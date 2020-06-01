@@ -194,6 +194,7 @@ def iterate_over_followers(device, interaction, total_likes_limit, interactions_
                     print "Reached total likes limit."
                     print_report_and_quit()
 
+                print "Back to followers list"
                 device.press.back()
 
         if len(iterated_followers) > 0:
@@ -250,21 +251,29 @@ def open_photo_and_like(device, row, column):
                  className='android.widget.FrameLayout')
     random_sleep()
 
+    action_bar = device(resourceId='com.instagram.android:id/action_bar_container',
+                        className='android.widget.FrameLayout')
+    action_bar_bottom = action_bar.bounds['bottom']
+
     # If double click didn't work, set like by icon click
     try:
-        like_image = device(resourceId='com.instagram.android:id/row_feed_button_like',
-                            className='android.widget.ImageView',
-                            selected=False)
-        like_image.click()
-        print "Double click didn't work, click on icon."
+        # Click only button which is under the action bar. It fixes bug with accidental back icon click
+        for like_button in device(resourceId='com.instagram.android:id/row_feed_button_like',
+                                  className='android.widget.ImageView',
+                                  selected=False):
+            like_button_top = like_button.bounds['top']
+            if like_button_top > action_bar_bottom:
+                print "Double click didn't work, click on icon."
+                like_button.click()
     except uiautomator.JsonRPCError:
         print "Double click worked successfully."
-    finally:
-        global totalLikes
-        totalLikes += 1
-        random_sleep()
-        device.press.back()
-        return True
+
+    global totalLikes
+    totalLikes += 1
+    random_sleep()
+    print "Back to profile"
+    device.press.back()
+    return True
 
 
 def scroll_profile(device):
