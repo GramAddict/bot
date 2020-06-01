@@ -93,7 +93,10 @@ def check_adb_connection():
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Insomniac: bot for Instagram on Android via ADB', add_help=False)
+    parser = argparse.ArgumentParser(
+        description='Instagram bot for automated Instagram interaction using Android device via ADB',
+        add_help=False
+    )
     parser.add_argument('--bloggers',
                         nargs='+',
                         help='list of usernames with whose followers you want to interact',
@@ -114,7 +117,7 @@ def parse_arguments():
 
     if not len(sys.argv) > 1:
         parser.print_help()
-        return False, None, None
+        return False, None, None, None, None
 
     args, _ = parser.parse_known_args()
     return True, args.bloggers, int(args.likes_count), int(args.total_likes_limit), int(args.interactions)
