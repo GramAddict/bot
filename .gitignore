@@ -2,3 +2,4 @@
 /.idea
 interacted_users.txt
 *.pyc
+.DS_Store
