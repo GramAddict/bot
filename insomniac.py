@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import traceback
+from datetime import datetime
 from functools import partial
 from random import shuffle, randint
 from time import sleep
@@ -23,7 +24,9 @@ COLOR_UNDERLINE = '\033[4m'
 
 storage = Storage()
 totalInteractions = 0
+successfulInteractions = 0
 totalLikes = 0
+startTime = datetime.now()
 
 
 def main():
@@ -179,8 +182,12 @@ def iterate_over_followers(device, interaction, total_likes_limit, interactions_
             else:
                 print "@" + username + ": interact"
                 item.click.wait()
-                interaction(device)
+                interaction_succeed = interaction(device)
                 storage.add_interacted_user(username)
+
+                if interaction_succeed:
+                    global successfulInteractions
+                    successfulInteractions += 1
 
                 global totalInteractions
                 totalInteractions += 1
@@ -222,7 +229,9 @@ def interact_with_user(device, likes_count):
 
         print "Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)"
         if not open_photo_and_like(device, row, column):
-            return
+            return False
+
+    return True
 
 
 def open_photo_and_like(device, row, column):
@@ -300,7 +309,10 @@ def random_sleep():
 def print_report_and_quit():
     print "\n"
     print(COLOR_OKBLUE + "Total interactions: " + str(totalInteractions) + COLOR_ENDC)
+    print(COLOR_OKBLUE + "Successful interactions: " + str(successfulInteractions) + COLOR_ENDC)
     print(COLOR_OKBLUE + "Total likes: " + str(totalLikes) + COLOR_ENDC)
+    working_time = datetime.now() - startTime
+    print(COLOR_OKBLUE + "Time worked: " + str(working_time) + COLOR_ENDC)
     sys.exit(0)
 
 
