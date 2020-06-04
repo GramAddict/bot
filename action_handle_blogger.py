@@ -52,7 +52,7 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 user_name_view = user_info_view.child(index=0).child()
                 username = user_name_view.text
             except uiautomator.JsonRPCError:
-                print(COLOR_OKBLUE + "Possibly reached end of the screen." + COLOR_ENDC)
+                print(COLOR_OKBLUE + "Probably reached end of the screen." + COLOR_ENDC)
                 break
 
             iterated_followers.append(username)
@@ -68,7 +68,6 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 can_continue = on_interaction(succeed=interaction_succeed, count=interactions_count)
 
                 if not can_continue:
-                    print "Made " + str(interactions_count) + " interactions, finish."
                     return
 
                 print "Back to followers list"
@@ -115,7 +114,7 @@ def _open_photo_and_like(device, row, column, on_like):
     try:
         open_photo()
     except uiautomator.JsonRPCError:
-        print(COLOR_WARNING + "Possibly need to scroll." + COLOR_ENDC)
+        print(COLOR_WARNING + "Probably need to scroll." + COLOR_ENDC)
         _scroll_profile(device)
         try:
             open_photo()
@@ -144,11 +143,11 @@ def _open_photo_and_like(device, row, column, on_like):
             if like_button_top > action_bar_bottom:
                 print "Double click didn't work, click on icon."
                 like_button.click()
+                random_sleep()
     except uiautomator.JsonRPCError:
         print "Double click worked successfully."
 
     on_like()
-    random_sleep()
     print "Back to profile"
     device.press.back()
     return True
