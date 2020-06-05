@@ -48,6 +48,6 @@ Full list of command line arguments:
 - [ ] Commenting during interaction
 
 ### Why Insomniac?
-There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram team improved their bots detection system. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account.
+There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account.
 
-That's why need arised in better solution, which completely acts like a human. Insomniac can't be distinguished from human, because it does exactly same things. Homever, don't fail to be careful and always set `--total-likes-limit` to 1000 or less.
+That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 1000 or less. Also it's better to use `--repeat` to act periodically by 2-3 hours, because Instagram keeps track of how long the app works.
