@@ -40,9 +40,9 @@ Full list of command line arguments:
 ```
 
 ### Features in progress
-- [ ] Follow given percentage of interacted users by `--follow-percentage 50`
-- [ ] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
-- [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
+- [ ] Follow given percentage of interacted users by `--follow-percentage 50`
+- [ ] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
+- [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Interaction by hashtags
 - [ ] Commenting during interaction
