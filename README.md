@@ -39,6 +39,14 @@ Full list of command line arguments:
                         completion, disabled by default
 ```
 
+### Features in progress
+- [ ] Follow given percentage of interacted users by `--follow-percentage 50`
+- [ ] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
+- [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
+- [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
+- [ ] Interaction by hashtags
+- [ ] Commenting during interaction
+
 ### Why Insomniac?
 There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram team improved their bots detection system. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account.
 
