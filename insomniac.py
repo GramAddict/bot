@@ -11,9 +11,7 @@ from session_state import SessionState
 from storage import Storage
 from utils import *
 
-sessionState = SessionState()
-completedSessions = 0
-totalTimeWorked = timedelta(0)
+sessions = []
 
 
 def main():
@@ -39,19 +37,15 @@ def main():
                              likes_limit=int(args.total_likes_limit))
 
     while True:
-        print(COLOR_OKBLUE + "\n-------- START: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
+        session_state = SessionState()
+        sessions.append(session_state)
+
+        print(COLOR_OKBLUE + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
         _job_handle_bloggers(device, args.bloggers, int(args.likes_count), storage, on_interaction)
-
-        global completedSessions
-        completedSessions += 1
-        global totalTimeWorked
-        totalTimeWorked += datetime.now() - sessionState.startTime
-
         close_instagram()
-        print(COLOR_OKBLUE + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
-        _print_report()
-        sessionState.reset()
+        session_state.finishTime = datetime.now()
+        print(COLOR_OKBLUE + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
 
         if args.repeat:
             repeat = int(args.repeat)
@@ -59,9 +53,12 @@ def main():
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:
+                _print_report()
                 sys.exit(0)
         else:
             break
+
+    _print_report()
 
 
 def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction):
@@ -81,8 +78,8 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
     for blogger in bloggers:
         print(COLOR_BOLD + "\nHandle @" + blogger + COLOR_ENDC)
         is_handled = False
+        on_interaction = partial(on_interaction, blogger=blogger)
         while not is_handled and not state.is_job_completed:
-            # noinspection PyBroadException
             try:
                 handle_blogger(device, blogger, likes_count, storage, _on_like, on_interaction)
                 is_handled = True
@@ -90,7 +87,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
                 print(COLOR_OKBLUE + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
                 _print_report()
                 sys.exit(0)
-            except Exception:
+            except (uiautomator.JsonRPCError, IndexError):
                 is_handled = False
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
                 print "Try again for @" + blogger + " from the beginning"
@@ -137,18 +134,17 @@ def _parse_arguments():
 
 
 def _on_like():
-    sessionState.totalLikes += 1
+    session_state = sessions[-1]
+    session_state.totalLikes += 1
 
 
-def _on_interaction(succeed, count, interactions_limit, likes_limit, on_likes_limit_reached):
-    sessionState.totalInteractions += 1
-
-    if succeed:
-        sessionState.successfulInteractions += 1
+def _on_interaction(blogger, succeed, count, interactions_limit, likes_limit, on_likes_limit_reached):
+    session_state = sessions[-1]
+    session_state.add_interaction(blogger, succeed)
 
     can_continue = True
 
-    if sessionState.totalLikes >= likes_limit:
+    if session_state.totalLikes >= likes_limit:
         print "Reached total likes limit, finish."
         on_likes_limit_reached()
         can_continue = False
@@ -161,14 +157,52 @@ def _on_interaction(succeed, count, interactions_limit, likes_limit, on_likes_li
 
 
 def _print_report():
+    if len(sessions) > 1:
+        for index, session in enumerate(sessions):
+            finish_time = session.finishTime or datetime.now()
+            print "\n"
+            print(COLOR_OKBLUE + "SESSION #" + str(index + 1) + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Start time: " + str(session.startTime) + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Finish time: " + str(finish_time) + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Total interactions: " + stringify_interactions(session.totalInteractions)
+                  + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Successful interactions: " + stringify_interactions(session.successfulInteractions)
+                  + COLOR_ENDC)
+            print(COLOR_OKBLUE + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
+
     print "\n"
-    print(COLOR_OKBLUE + "Total interactions: " + str(sessionState.totalInteractions) + COLOR_ENDC)
-    print(COLOR_OKBLUE + "Successful interactions: " + str(sessionState.successfulInteractions) + COLOR_ENDC)
-    print(COLOR_OKBLUE + "Total likes: " + str(sessionState.totalLikes) + COLOR_ENDC)
-    print(COLOR_OKBLUE + "Completed sessions: " + str(completedSessions) + COLOR_ENDC)
-    session_time = datetime.now() - sessionState.startTime
-    print(COLOR_OKBLUE + "Last session time: " + str(session_time) + COLOR_ENDC)
-    print(COLOR_OKBLUE + "Total time of Instagram being opened: " + str(totalTimeWorked) + COLOR_ENDC)
+    print(COLOR_OKBLUE + "TOTAL" + COLOR_ENDC)
+
+    completed_sessions = [session for session in sessions if session.is_finished()]
+    print(COLOR_OKBLUE + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
+
+    duration = timedelta(0)
+    for session in sessions:
+        finish_time = session.finishTime or datetime.now()
+        duration += finish_time - session.startTime
+    print(COLOR_OKBLUE + "Total duration: " + str(duration) + COLOR_ENDC)
+
+    total_interactions = {}
+    successful_interactions = {}
+    for session in sessions:
+        for blogger, count in session.totalInteractions.items():
+            if total_interactions.get(blogger) is None:
+                total_interactions[blogger] = count
+            else:
+                total_interactions[blogger] += count
+
+        for blogger, count in session.successfulInteractions.items():
+            if successful_interactions.get(blogger) is None:
+                successful_interactions[blogger] = count
+            else:
+                successful_interactions[blogger] += count
+
+    print(COLOR_OKBLUE + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
+    print(COLOR_OKBLUE + "Successful interactions: " + stringify_interactions(successful_interactions) + COLOR_ENDC)
+
+    total_likes = sum(session.totalLikes for session in sessions)
+    print(COLOR_OKBLUE + "Total likes: " + str(total_likes) + COLOR_ENDC)
 
 
 if __name__ == "__main__":

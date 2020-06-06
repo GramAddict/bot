@@ -57,3 +57,11 @@ def open_instagram():
 def close_instagram():
     print "Close Instagram app"
     os.popen("adb shell am force-stop com.instagram.android").close()
+
+
+def stringify_interactions(interactions):
+    result = ""
+    for blogger, count in interactions.items():
+        result += str(count) + " for @" + blogger + ", "
+    result = result[:-2]
+    return result
