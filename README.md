@@ -17,10 +17,10 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 4. Add platform-tools path to environment variables. E.g. on Mac you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
 
 ### Get started
-Connect Android device to your computer with a USB cabel. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 2.7):
+Connect Android device to your computer with a USB cabel. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
 cd <path-to-project>/Insomniac
-python insomniac.py --bloggers <username1> <username2> ...
+python3 insomniac.py --bloggers <username1> <username2> ...
 ```
 Make sure that the screen is turned on and device is unblocked. You don't have to open Instagram app, script opens it and closes when it's finished. Just make sure that Instagram app is installed. If everything's fine, script will open each blogger's followers and like their posts.
 
@@ -45,6 +45,7 @@ Full list of command line arguments:
 - [ ] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
 - [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
+- [ ] Support intervals for likes and interactions count like `--likes-count 2-3`
 - [ ] Interaction by hashtags
 - [ ] Commenting during interaction
 
