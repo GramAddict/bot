@@ -60,6 +60,9 @@ def close_instagram():
 
 
 def stringify_interactions(interactions):
+    if len(interactions) == 0:
+        return "0"
+
     result = ""
     for blogger, count in interactions.items():
         result += str(count) + " for @" + blogger + ", "

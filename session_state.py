@@ -9,7 +9,11 @@ class SessionState:
     finishTime = None
 
     def __init__(self):
+        self.totalInteractions = {}
+        self.successfulInteractions = {}
+        self.totalLikes = 0
         self.startTime = datetime.now()
+        self.finishTime = None
 
     def add_interaction(self, blogger, succeed):
         if self.totalInteractions.get(blogger) is None:
