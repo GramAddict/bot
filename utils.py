@@ -27,7 +27,7 @@ def check_adb_connection():
     output = stream.read()
     devices_count = len(re.findall('device\n', output))
     is_ok = devices_count == 1
-    print "Connected devices via adb: " + str(devices_count) + ". " + (is_ok and "That's ok." or "Cannot proceed.")
+    print("Connected devices via adb: " + str(devices_count) + ". " + (is_ok and "That's ok." or "Cannot proceed."))
     stream.close()
     return is_ok
 
@@ -44,18 +44,18 @@ def double_click(device, *args, **kwargs):
 
 def random_sleep():
     delay = randint(1, 4)
-    print "Sleep for " + str(delay) + (delay == 1 and " second" or " seconds")
+    print("Sleep for " + str(delay) + (delay == 1 and " second" or " seconds"))
     sleep(delay)
 
 
 def open_instagram():
-    print "Open Instagram app"
+    print("Open Instagram app")
     os.popen("adb shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity").close()
     random_sleep()
 
 
 def close_instagram():
-    print "Close Instagram app"
+    print("Close Instagram app")
     os.popen("adb shell am force-stop com.instagram.android").close()
 
 

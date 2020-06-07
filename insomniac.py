@@ -1,9 +1,11 @@
+# Since of v1.2.3 this script works on Python 3
+
 import argparse
 import sys
 import traceback
 from datetime import datetime, timedelta
 from functools import partial
-from httplib import HTTPException
+from http.client import HTTPException
 
 import uiautomator
 
@@ -29,7 +31,7 @@ def main():
         print(COLOR_FAIL + "Zero bloggers, no sense to proceed." + COLOR_ENDC)
         return
     else:
-        print "bloggers = " + ", ".join(str(blogger) for blogger in args.bloggers)
+        print("bloggers = " + ", ".join(str(blogger) for blogger in args.bloggers))
 
     device = uiautomator.device
     storage = Storage()
@@ -50,7 +52,7 @@ def main():
 
         if args.repeat:
             repeat = int(args.repeat)
-            print "\nSleep for " + str(repeat) + " minutes"
+            print("\nSleep for " + str(repeat) + " minutes")
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:
@@ -91,7 +93,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
             except (uiautomator.JsonRPCError, IndexError, HTTPException):
                 is_handled = False
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
-                print "Try again for @" + blogger + " from the beginning"
+                print("Try again for @" + blogger + " from the beginning")
                 # Hack for the case when IGTV was accidentally opened
                 open_instagram()
 
@@ -148,12 +150,12 @@ def _on_interaction(blogger, succeed, count, interactions_limit, likes_limit, on
     can_continue = True
 
     if session_state.totalLikes >= likes_limit:
-        print "Reached total likes limit, finish."
+        print("Reached total likes limit, finish.")
         on_likes_limit_reached()
         can_continue = False
 
     if count >= interactions_limit:
-        print "Made " + str(count) + " interactions, finish."
+        print("Made " + str(count) + " interactions, finish.")
         can_continue = False
 
     return can_continue
@@ -163,7 +165,7 @@ def _print_report():
     if len(sessions) > 1:
         for index, session in enumerate(sessions):
             finish_time = session.finishTime or datetime.now()
-            print "\n"
+            print("\n")
             print(COLOR_OKBLUE + "SESSION #" + str(index + 1) + COLOR_ENDC)
             print(COLOR_OKBLUE + "Start time: " + str(session.startTime) + COLOR_ENDC)
             print(COLOR_OKBLUE + "Finish time: " + str(finish_time) + COLOR_ENDC)
@@ -174,7 +176,7 @@ def _print_report():
                   + COLOR_ENDC)
             print(COLOR_OKBLUE + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
 
-    print "\n"
+    print("\n")
     print(COLOR_OKBLUE + "TOTAL" + COLOR_ENDC)
 
     completed_sessions = [session for session in sessions if session.is_finished()]

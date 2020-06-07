@@ -19,12 +19,12 @@ def handle_blogger(device,
 
 
 def _open_user_followers(device, username):
-    print "Press search"
+    print("Press search")
     tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
     search_button = tab_bar.child(index=1)
     search_button.click.wait()
 
-    print "Open user @" + username
+    print("Open user @" + username)
     search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
                               className='android.widget.EditText')
     search_edit_text.set_text(username)
@@ -33,7 +33,7 @@ def _open_user_followers(device, username):
     search_first_result = search_results_list.child(index=0)
     search_first_result.click.wait()
 
-    print "Open @" + username + " followers"
+    print("Open @" + username + " followers")
     followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
                               className='android.widget.LinearLayout')
     followers_button.click.wait()
@@ -42,7 +42,7 @@ def _open_user_followers(device, username):
 def _iterate_over_followers(device, interaction, storage, on_interaction):
     interactions_count = 0
     while True:
-        print "Iterate over visible followers"
+        print("Iterate over visible followers")
         iterated_followers = []
 
         for item in device(resourceId='com.instagram.android:id/follow_list_container',
@@ -57,9 +57,9 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
 
             iterated_followers.append(username)
             if storage.check_user_was_interacted(username):
-                print "@" + username + ": already interacted. Skip."
+                print("@" + username + ": already interacted. Skip.")
             else:
-                print "@" + username + ": interact"
+                print("@" + username + ": interact")
                 item.click.wait()
 
                 interaction_succeed = interaction(device)
@@ -70,7 +70,7 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 if not can_continue:
                     return
 
-                print "Back to followers list"
+                print("Back to followers list")
                 device.press.back()
 
         if len(iterated_followers) > 0:
@@ -91,12 +91,12 @@ def _interact_with_user(device, likes_count, on_like):
     random_sleep()
     photos_indices = [0, 1, 2, 3, 4, 5]
     shuffle(photos_indices)
-    for i in xrange(0, likes_count):
+    for i in range(0, likes_count):
         photo_index = photos_indices[i]
-        row = photo_index / 3
+        row = photo_index // 3
         column = photo_index - row * 3
 
-        print "Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)"
+        print("Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)")
         if not _open_photo_and_like(device, row, column, on_like):
             return False
 
@@ -123,7 +123,7 @@ def _open_photo_and_like(device, row, column, on_like):
             return False
 
     random_sleep()
-    print "Double click!"
+    print("Double click!")
     double_click(device,
                  resourceId='com.instagram.android:id/layout_container_main',
                  className='android.widget.FrameLayout')
@@ -141,14 +141,14 @@ def _open_photo_and_like(device, row, column, on_like):
                                   selected=False):
             like_button_top = like_button.bounds['top']
             if like_button_top > action_bar_bottom:
-                print "Double click didn't work, click on icon."
+                print("Double click didn't work, click on icon.")
                 like_button.click()
                 random_sleep()
     except uiautomator.JsonRPCError:
-        print "Double click worked successfully."
+        print("Double click worked successfully.")
 
     on_like()
-    print "Back to profile"
+    print("Back to profile")
     device.press.back()
     return True
 
