@@ -55,7 +55,9 @@ def main():
             repeat = int(args.repeat)
             print("\nSleep for " + str(repeat) + " minutes")
             try:
-                sleep(60 * repeat)
+                for i in range(repeat):
+                    sleep(60)
+                    device.screen.on()
             except KeyboardInterrupt:
                 _print_report()
                 sys.exit(0)
