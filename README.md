@@ -8,7 +8,7 @@ Liking followers of specific users automatically on your Android phone/tablet. N
 
 ### How to install
 1. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
-2. Install [uiautomator](https://github.com/xiaocong/uiautomator): `pip install uiautomator`
+2. Install [uiautomator](https://github.com/xiaocong/uiautomator): `pip3 install uiautomator`
 3. Download and unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), move them to a directory where you won't delete them accidentally, e.g.
 ```
 mkdir -p ~/Library/Android/sdk
