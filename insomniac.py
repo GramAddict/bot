@@ -99,7 +99,6 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
                 close_instagram()
                 random_sleep()
                 open_instagram()
-                random_sleep()
 
 
 def _parse_arguments():
