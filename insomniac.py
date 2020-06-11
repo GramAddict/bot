@@ -50,6 +50,7 @@ def main():
         close_instagram()
         session_state.finishTime = datetime.now()
         print(COLOR_OKBLUE + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
+        _print_report()
 
         if args.repeat:
             repeat = int(args.repeat)
@@ -101,6 +102,9 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
                 close_instagram()
                 random_sleep()
                 open_instagram()
+            except Exception as e:
+                _print_report()
+                raise e
 
 
 def _parse_arguments():
