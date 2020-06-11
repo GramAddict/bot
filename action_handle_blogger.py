@@ -40,13 +40,12 @@ def _open_user_followers(device, username):
 
 
 def _iterate_over_followers(device, interaction, storage, on_interaction):
+    followers_per_screen = None
     interactions_count = 0
-    full_interacted_screens_count = 0
 
     while True:
         print("Iterate over visible followers")
         screen_iterated_followers = 0
-        screen_interacted_followers = 0
 
         for item in device(resourceId='com.instagram.android:id/follow_list_container',
                            className='android.widget.LinearLayout'):
@@ -55,7 +54,9 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 user_name_view = user_info_view.child(index=0).child()
                 username = user_name_view.text
             except uiautomator.JsonRPCError:
-                print(COLOR_OKBLUE + "Probably reached end of the screen." + COLOR_ENDC)
+                print(COLOR_OKBLUE + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
+                if followers_per_screen is None:
+                    followers_per_screen = screen_iterated_followers
                 break
 
             screen_iterated_followers += 1
@@ -63,7 +64,6 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 print("@" + username + ": already interacted. Skip.")
             else:
                 print("@" + username + ": interact")
-                screen_interacted_followers += 1
                 item.click.wait()
 
                 interaction_succeed = interaction(device)
@@ -77,24 +77,19 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 print("Back to followers list")
                 device.press.back()
 
-        if screen_iterated_followers == 0:
-            print(COLOR_OKBLUE + "No followers were iterated, finish." + COLOR_ENDC)
-            return
+            if followers_per_screen and screen_iterated_followers >= followers_per_screen:
+                print(COLOR_OKBLUE + str(screen_iterated_followers) +
+                      " items iterated: probably reached end of the screen." + COLOR_ENDC)
+                break
 
-        list_view = device(resourceId='android:id/list',
-                           className='android.widget.ListView')
-
-        if screen_interacted_followers > 0:
-            full_interacted_screens_count = 0
+        if screen_iterated_followers > 0:
             print(COLOR_OKBLUE + "Need to scroll now" + COLOR_ENDC)
+            list_view = device(resourceId='android:id/list',
+                               className='android.widget.ListView')
             list_view.scroll.toEnd(max_swipes=1)
         else:
-            full_interacted_screens_count += 1
-            swipes_count = full_interacted_screens_count**2
-            print(COLOR_OKBLUE + "All followers on the screen were interacted already." + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Scrolling " + str(swipes_count) + " times." + COLOR_ENDC)
-            for i in range(full_interacted_screens_count):
-                list_view.scroll.toEnd(max_swipes=1)
+            print(COLOR_OKBLUE + "No followers were iterated, finish." + COLOR_ENDC)
+            return
 
 
 def _interact_with_user(device, likes_count, on_like):
