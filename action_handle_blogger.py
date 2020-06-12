@@ -114,8 +114,9 @@ def _interact_with_user(device, likes_count, on_like):
 
 def _open_photo_and_like(device, row, column, on_like):
     def open_photo():
-        recycler_view = device(resourceId='android:id/list',
-                               className='androidx.recyclerview.widget.RecyclerView')
+        # recycler_view has a className 'androidx.recyclerview.widget.RecyclerView' on modern Android versions and
+        # 'android.view.View' on Android 5.0.1 and probably earlier versions
+        recycler_view = device(resourceId='android:id/list')
         row_view = recycler_view.child(index=row + 1)
         item_view = row_view.child(index=column)
         item_view.click.wait()
