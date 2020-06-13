@@ -98,6 +98,10 @@ def _interact_with_user(device, likes_count, on_like):
         likes_count = 6
 
     random_sleep()
+    print("Scroll down to see more photos.")
+    if not _scroll_profile(device):
+        return False
+
     photos_indices = [0, 1, 2, 3, 4, 5]
     shuffle(photos_indices)
     for i in range(0, likes_count):
@@ -123,13 +127,8 @@ def _open_photo_and_like(device, row, column, on_like):
     try:
         open_photo()
     except uiautomator.JsonRPCError:
-        print(COLOR_WARNING + "Probably need to scroll." + COLOR_ENDC)
-        _scroll_profile(device)
-        try:
-            open_photo()
-        except uiautomator.JsonRPCError:
-            print(COLOR_WARNING + "Less than 6 photos / account is private. Skip user." + COLOR_ENDC)
-            return False
+        print(COLOR_WARNING + "Less than 6 photos. Skip user." + COLOR_ENDC)
+        return False
 
     random_sleep()
     print("Double click!")
@@ -166,12 +165,25 @@ def _scroll_profile(device):
     tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
                      className='android.widget.LinearLayout')
 
+    try:
+        profile_tabs_container = device(resourceId='com.instagram.android:id/profile_tabs_container',
+                                        className='android.widget.LinearLayout')
+        profile_tabs_container_top = profile_tabs_container.bounds['top']
+    except uiautomator.JsonRPCError:
+        print(COLOR_WARNING + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
+        return False
+
+    action_bar_container = device(resourceId='com.instagram.android:id/action_bar_container',
+                                  className='android.widget.FrameLayout')
+    action_bar_container_bottom = action_bar_container.bounds['bottom']
+
     x1 = (tab_bar.bounds['right'] - tab_bar.bounds['left']) / 2
     y1 = tab_bar.bounds['top'] - 1
 
-    vertical_offset = tab_bar.bounds['right'] - tab_bar.bounds['left']
+    vertical_offset = profile_tabs_container_top - action_bar_container_bottom
 
     x2 = x1
     y2 = y1 - vertical_offset
 
     device.swipe(x1, y1, x2, y2)
+    return True
