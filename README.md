@@ -56,6 +56,7 @@ That's why need arised in a solution for mobile devices. Instagram can't disting
 
 ### Community
 Join our Telegram group
+
 <a href="https://t.me/insomniac_chat">
   <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>
 </a>
