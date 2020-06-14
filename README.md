@@ -55,7 +55,7 @@ There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works
 That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 1000 or less. Also it's better to use `--repeat` to act periodically by 2-3 hours, because Instagram keeps track of how long the app works.
 
 ### Community
- Join our Telegram group
+Join our Telegram group
 
 <a href="https://t.me/insomniac_chat">
   <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>
