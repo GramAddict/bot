@@ -93,17 +93,20 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
 
 
 def _interact_with_user(device, likes_count, on_like):
-    if likes_count > 6:
-        print(COLOR_FAIL + "Max number of likes per user is 6" + COLOR_ENDC)
-        likes_count = 6
+    if likes_count > 12:
+        print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
+        likes_count = 12
 
     random_sleep()
     print("Scroll down to see more photos.")
     if not _scroll_profile(device):
         return False
 
-    photos_indices = [0, 1, 2, 3, 4, 5]
+    number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
+    photos_indices = list(range(0, number_of_rows_to_use * 3))
     shuffle(photos_indices)
+    photos_indices = photos_indices[:likes_count]
+    photos_indices = sorted(photos_indices)
     for i in range(0, likes_count):
         photo_index = photos_indices[i]
         row = photo_index // 3
@@ -111,6 +114,7 @@ def _interact_with_user(device, likes_count, on_like):
 
         print("Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)")
         if not _open_photo_and_like(device, row, column, on_like):
+            print(COLOR_OKGREEN + "Less than " + str(number_of_rows_to_use * 3) + " photos. Skip user." + COLOR_ENDC)
             return False
 
     return True
@@ -128,7 +132,6 @@ def _open_photo_and_like(device, row, column, on_like):
     try:
         open_photo()
     except uiautomator.JsonRPCError:
-        print(COLOR_OKGREEN + "Less than 6 photos. Skip user." + COLOR_ENDC)
         return False
 
     random_sleep()
