@@ -8,6 +8,7 @@ from functools import partial
 from http.client import HTTPException
 from socket import timeout
 
+import colorama
 import uiautomator
 
 from action_handle_blogger import handle_blogger
@@ -19,6 +20,7 @@ sessions = []
 
 
 def main():
+    colorama.init()
     print(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
 
     if not check_adb_connection():
@@ -44,12 +46,12 @@ def main():
         session_state = SessionState()
         sessions.append(session_state)
 
-        print(COLOR_OKBLUE + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
+        print(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
         _job_handle_bloggers(device, args.bloggers, int(args.likes_count), storage, on_interaction)
         close_instagram()
         session_state.finishTime = datetime.now()
-        print(COLOR_OKBLUE + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
+        print(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
         _print_report()
 
         if args.repeat:
@@ -89,7 +91,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
                 handle_blogger(device, blogger, likes_count, storage, _on_like, on_interaction)
                 is_handled = True
             except KeyboardInterrupt:
-                print(COLOR_OKBLUE + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
+                print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
                 _print_report()
                 sys.exit(0)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
@@ -173,27 +175,27 @@ def _print_report():
         for index, session in enumerate(sessions):
             finish_time = session.finishTime or datetime.now()
             print("\n")
-            print(COLOR_OKBLUE + "SESSION #" + str(index + 1) + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Start time: " + str(session.startTime) + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Finish time: " + str(finish_time) + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Total interactions: " + stringify_interactions(session.totalInteractions)
+            print(COLOR_WARNING + "SESSION #" + str(index + 1) + COLOR_ENDC)
+            print(COLOR_WARNING + "Start time: " + str(session.startTime) + COLOR_ENDC)
+            print(COLOR_WARNING + "Finish time: " + str(finish_time) + COLOR_ENDC)
+            print(COLOR_WARNING + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
+            print(COLOR_WARNING + "Total interactions: " + stringify_interactions(session.totalInteractions)
                   + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Successful interactions: " + stringify_interactions(session.successfulInteractions)
+            print(COLOR_WARNING + "Successful interactions: " + stringify_interactions(session.successfulInteractions)
                   + COLOR_ENDC)
-            print(COLOR_OKBLUE + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
+            print(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
 
     print("\n")
-    print(COLOR_OKBLUE + "TOTAL" + COLOR_ENDC)
+    print(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
 
     completed_sessions = [session for session in sessions if session.is_finished()]
-    print(COLOR_OKBLUE + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
+    print(COLOR_WARNING + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
 
     duration = timedelta(0)
     for session in sessions:
         finish_time = session.finishTime or datetime.now()
         duration += finish_time - session.startTime
-    print(COLOR_OKBLUE + "Total duration: " + str(duration) + COLOR_ENDC)
+    print(COLOR_WARNING + "Total duration: " + str(duration) + COLOR_ENDC)
 
     total_interactions = {}
     successful_interactions = {}
@@ -210,11 +212,11 @@ def _print_report():
             else:
                 successful_interactions[blogger] += count
 
-    print(COLOR_OKBLUE + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
-    print(COLOR_OKBLUE + "Successful interactions: " + stringify_interactions(successful_interactions) + COLOR_ENDC)
+    print(COLOR_WARNING + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
+    print(COLOR_WARNING + "Successful interactions: " + stringify_interactions(successful_interactions) + COLOR_ENDC)
 
     total_likes = sum(session.totalLikes for session in sessions)
-    print(COLOR_OKBLUE + "Total likes: " + str(total_likes) + COLOR_ENDC)
+    print(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
 
 
 if __name__ == "__main__":
