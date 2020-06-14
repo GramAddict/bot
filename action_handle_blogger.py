@@ -54,7 +54,7 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 user_name_view = user_info_view.child(index=0).child()
                 username = user_name_view.text
             except uiautomator.JsonRPCError:
-                print(COLOR_OKBLUE + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
+                print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                 if followers_per_screen is None:
                     followers_per_screen = screen_iterated_followers
                 break
@@ -78,17 +78,17 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 device.press.back()
 
             if followers_per_screen and screen_iterated_followers >= followers_per_screen:
-                print(COLOR_OKBLUE + str(screen_iterated_followers) +
+                print(COLOR_OKGREEN + str(screen_iterated_followers) +
                       " items iterated: probably reached end of the screen." + COLOR_ENDC)
                 break
 
         if screen_iterated_followers > 0:
-            print(COLOR_OKBLUE + "Need to scroll now" + COLOR_ENDC)
+            print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
             list_view = device(resourceId='android:id/list',
                                className='android.widget.ListView')
             list_view.scroll.toEnd(max_swipes=1)
         else:
-            print(COLOR_OKBLUE + "No followers were iterated, finish." + COLOR_ENDC)
+            print(COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC)
             return
 
 
@@ -128,7 +128,7 @@ def _open_photo_and_like(device, row, column, on_like):
     try:
         open_photo()
     except uiautomator.JsonRPCError:
-        print(COLOR_WARNING + "Less than 6 photos. Skip user." + COLOR_ENDC)
+        print(COLOR_OKGREEN + "Less than 6 photos. Skip user." + COLOR_ENDC)
         return False
 
     random_sleep()
@@ -171,7 +171,7 @@ def _scroll_profile(device):
                                         className='android.widget.LinearLayout')
         profile_tabs_container_top = profile_tabs_container.bounds['top']
     except uiautomator.JsonRPCError:
-        print(COLOR_WARNING + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
+        print(COLOR_OKGREEN + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
         return False
 
     action_bar_container = device(resourceId='com.instagram.android:id/action_bar_container',
