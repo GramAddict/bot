@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 from random import randint
 from time import sleep
 
@@ -68,3 +69,10 @@ def stringify_interactions(interactions):
         result += str(count) + " for @" + blogger + ", "
     result = result[:-2]
     return result
+
+
+def take_screenshot(device):
+    os.makedirs("screenshots/", exist_ok=True)
+    filename = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".png"
+    device.screenshot("screenshots/" + filename)
+    print(COLOR_OKGREEN + "Screenshot taken and saved as " + filename + COLOR_ENDC)

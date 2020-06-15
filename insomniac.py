@@ -3,7 +3,7 @@
 import argparse
 import sys
 import traceback
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import partial
 from http.client import HTTPException
 from socket import timeout
@@ -97,12 +97,14 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
                 is_handled = False
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
+                take_screenshot(device)
                 print("Try again for @" + blogger + " from the beginning")
                 # Hack for the case when IGTV was accidentally opened
                 close_instagram()
                 random_sleep()
                 open_instagram()
             except Exception as e:
+                take_screenshot(device)
                 _print_report()
                 raise e
 
