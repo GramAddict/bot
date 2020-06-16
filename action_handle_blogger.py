@@ -145,17 +145,24 @@ def _open_photo_and_like(device, row, column, on_like):
                         className='android.widget.FrameLayout')
     action_bar_bottom = action_bar.bounds['bottom']
 
+    tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
+                     className='android.widget.LinearLayout')
+    tab_bar_top = tab_bar.bounds['top']
+
     # If double click didn't work, set like by icon click
     try:
-        # Click only button which is under the action bar. It fixes bug with accidental back icon click
+        # Click only button which is under the action bar and above the tab bar.
+        # It fixes bugs with accidental back / home clicks.
         for like_button in device(resourceId='com.instagram.android:id/row_feed_button_like',
                                   className='android.widget.ImageView',
                                   selected=False):
             like_button_top = like_button.bounds['top']
-            if like_button_top > action_bar_bottom:
+            like_button_bottom = like_button.bounds['bottom']
+            if like_button_top > action_bar_bottom and like_button_bottom < tab_bar_top:
                 print("Double click didn't work, click on icon.")
                 like_button.click()
                 random_sleep()
+                break
     except uiautomator.JsonRPCError:
         print("Double click worked successfully.")
 
