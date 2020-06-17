@@ -17,7 +17,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 4. Add platform-tools path to environment variables. E.g. on Mac you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
 
 ### Get started
-Connect Android device to your computer with a USB cabel. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
+Connect Android device to your computer with a USB cable. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
 cd <path-to-project>/Insomniac
 python3 insomniac.py --bloggers <username1> <username2> ...
