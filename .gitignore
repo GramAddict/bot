@@ -1,6 +1,6 @@
 /venv*
 /.idea
-interacted_users.txt
+interacted_users.*
 *.pyc
 .DS_Store
 screenshots
