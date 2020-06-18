@@ -16,6 +16,12 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
 4. Add platform-tools path to environment variables. E.g. on Mac you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
 
+### How to install Raspberry Pi OS
+1. Update apt-get: `sudo apt-get update`
+2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
+3. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
+4. Install [uiautomator](https://github.com/xiaocong/uiautomator) and [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator colorama`
+
 ### Get started
 Connect Android device to your computer with a USB cable. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```

@@ -37,7 +37,7 @@ class Storage:
 
     def _update_file(self):
         with open(FILENAME_INTERACTED_USERS, 'w') as outfile:
-            json.dump(self.interacted_users, outfile)
+            json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
 
 
 @unique
