@@ -48,7 +48,12 @@ def main():
 
         print(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
-        _job_handle_bloggers(device, args.bloggers, int(args.likes_count), storage, on_interaction)
+        _job_handle_bloggers(device,
+                             args.bloggers,
+                             int(args.likes_count),
+                             int(args.follow_percentage),
+                             storage,
+                             on_interaction)
         close_instagram()
         session_state.finishTime = datetime.now()
         print(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
@@ -68,7 +73,7 @@ def main():
     _print_report()
 
 
-def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction):
+def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, storage, on_interaction):
     class State:
         def __init__(self):
             pass
@@ -88,7 +93,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, storage, on_interaction)
         on_interaction = partial(on_interaction, blogger=blogger)
         while not is_handled and not state.is_job_completed:
             try:
-                handle_blogger(device, blogger, likes_count, storage, _on_like, on_interaction)
+                handle_blogger(device, blogger, likes_count, follow_percentage, storage, _on_like, on_interaction)
                 is_handled = True
             except KeyboardInterrupt:
                 print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
@@ -134,6 +139,10 @@ def _parse_arguments():
     parser.add_argument('--repeat',
                         help='repeat the same session again after N minutes after completion, disabled by default',
                         metavar='180')
+    parser.add_argument('--follow-percentage',
+                        help='follow given percentage of interacted users, 0 by default',
+                        metavar='50',
+                        default=0)
 
     if not len(sys.argv) > 1:
         parser.print_help()
@@ -154,9 +163,9 @@ def _on_like():
     session_state.totalLikes += 1
 
 
-def _on_interaction(blogger, succeed, count, interactions_limit, likes_limit, on_likes_limit_reached):
+def _on_interaction(blogger, succeed, followed, count, interactions_limit, likes_limit, on_likes_limit_reached):
     session_state = sessions[-1]
-    session_state.add_interaction(blogger, succeed)
+    session_state.add_interaction(blogger, succeed, followed)
 
     can_continue = True
 
@@ -186,6 +195,7 @@ def _print_report():
             print(COLOR_WARNING + "Successful interactions: " + stringify_interactions(session.successfulInteractions)
                   + COLOR_ENDC)
             print(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
+            print(COLOR_WARNING + "Total followed: " + str(session.totalFollowed) + COLOR_ENDC)
 
     print("\n")
     print(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
@@ -219,6 +229,9 @@ def _print_report():
 
     total_likes = sum(session.totalLikes for session in sessions)
     print(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
+
+    total_followed = sum(session.totalFollowed for session in sessions)
+    print(COLOR_WARNING + "Total followed: " + str(total_followed) + COLOR_ENDC)
 
 
 if __name__ == "__main__":

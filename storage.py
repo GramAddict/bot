@@ -19,10 +19,19 @@ class Storage:
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
 
-    def add_interacted_user(self, username):
+    def check_user_can_be_followed(self, username):
+        user = self.interacted_users.get(username)
+        return user is None or FollowingStatus[user[USER_FOLLOWING_STATUS]] == FollowingStatus.NONE
+
+    def add_interacted_user(self, username, followed):
         user = self.interacted_users.get(username, {})
         user[USER_LAST_INTERACTION] = str(datetime.now())
-        user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+
+        if followed:
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
+        else:
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+
         self.interacted_users[username] = user
         self._update_file()
 

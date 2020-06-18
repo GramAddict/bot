@@ -9,10 +9,14 @@ from utils import *
 def handle_blogger(device,
                    username,
                    likes_count,
+                   follow_percentage,
                    storage,
                    on_like,
                    on_interaction):
-    interaction = partial(_interact_with_user, likes_count=likes_count, on_like=on_like)
+    interaction = partial(_interact_with_user,
+                          likes_count=likes_count,
+                          follow_percentage=follow_percentage,
+                          on_like=on_like)
 
     _open_user_followers(device, username)
     _iterate_over_followers(device, interaction, storage, on_interaction)
@@ -66,10 +70,13 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 print("@" + username + ": interact")
                 item.click.wait()
 
-                interaction_succeed = interaction(device)
-                storage.add_interacted_user(username)
+                can_follow = storage.check_user_can_be_followed(username)
+                interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
+                storage.add_interacted_user(username, followed)
                 interactions_count += 1
-                can_continue = on_interaction(succeed=interaction_succeed, count=interactions_count)
+                can_continue = on_interaction(succeed=interaction_succeed,
+                                              followed=followed,
+                                              count=interactions_count)
 
                 if not can_continue:
                     return
@@ -92,7 +99,10 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
             return
 
 
-def _interact_with_user(device, likes_count, on_like):
+def _interact_with_user(device, username, likes_count, on_like, can_follow, follow_percentage) -> (bool, bool):
+    """
+    :return: (whether interaction succeed, whether @username was followed during the interaction)
+    """
     if likes_count > 12:
         print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
         likes_count = 12
@@ -100,7 +110,7 @@ def _interact_with_user(device, likes_count, on_like):
     random_sleep()
     print("Scroll down to see more photos.")
     if not _scroll_profile(device):
-        return False
+        return False, False
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
@@ -115,9 +125,21 @@ def _interact_with_user(device, likes_count, on_like):
         print("Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)")
         if not _open_photo_and_like(device, row, column, on_like):
             print(COLOR_OKGREEN + "Less than " + str(number_of_rows_to_use * 3) + " photos. Skip user." + COLOR_ENDC)
-            return False
+            return False, False
 
-    return True
+    if can_follow:
+        follow_chance = randint(1, 100)
+        if follow_chance <= follow_percentage:
+            print("Following...")
+            followed = _do_follow(device)
+            if followed:
+                print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
+                random_sleep()
+                return True, True
+            else:
+                print(COLOR_FAIL + "Failed @" + username + " following." + COLOR_ENDC)
+
+    return True, False
 
 
 def _open_photo_and_like(device, row, column, on_like):
@@ -198,3 +220,18 @@ def _scroll_profile(device):
 
     device.swipe(x1, y1, x2, y2)
     return True
+
+
+def _do_follow(device):
+    recycler_view = device(resourceId='android:id/list')
+    recycler_view.scroll.toBeginning()
+
+    profile_actions = device(resourceId='com.instagram.android:id/profile_header_actions_top_row',
+                             className='android.widget.LinearLayout')
+    follow_button = profile_actions.child(index=0)
+
+    if follow_button.exists:
+        follow_button.click.wait()
+        return True
+
+    return False
