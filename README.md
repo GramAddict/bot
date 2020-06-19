@@ -14,7 +14,7 @@ Liking followers of specific users automatically on your Android phone/tablet. N
 mkdir -p ~/Library/Android/sdk
 mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-4. Add platform-tools path to environment variables. E.g. on Mac you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
+4. Add platform-tools path to environment variables. E.g. on Linux/macOS you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
 
 ### How to install Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
