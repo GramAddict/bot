@@ -184,7 +184,7 @@ def _parse_arguments():
                         metavar=('username1', 'username2'),
                         default=[])
     parser.add_argument('--likes-count',
-                        help='count of likes for each interacted user, 2 by default',
+                        help='number of likes for each interacted user, 2 by default',
                         metavar='2',
                         default=2)
     parser.add_argument('--total-likes-limit',
