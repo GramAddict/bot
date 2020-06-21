@@ -26,7 +26,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 Connect Android device to your computer with a USB cable. Enable developer's mode on the device, then enable USB debugging in developer settings. Device will ask you to allow computer connection, press "Connect" or similar. We're almost done: type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
 cd <path-to-project>/Insomniac
-python3 insomniac.py --bloggers <username1> <username2> ...
+python3 insomniac.py --interact <username1> <username2> ...
 ```
 Make sure that the screen is turned on and device is unblocked. You don't have to open Instagram app, script opens it and closes when it's finished. Just make sure that Instagram app is installed. If everything's fine, script will open each blogger's followers and like their posts.
 
