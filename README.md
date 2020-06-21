@@ -4,7 +4,7 @@
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/alexal1/Insomniac?label=latest%20version)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 
-Liking followers of specific users automatically on your Android phone/tablet. No root required: it works on [UI Automator](https://developer.android.com/training/testing/ui-automator), which is an official Android UI testing framework.
+Liking and following automatically on your Android phone/tablet. No root required: it works on [UI Automator](https://developer.android.com/training/testing/ui-automator), which is an official Android UI testing framework.
 
 ### How to install
 1. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
@@ -16,7 +16,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
 4. Add platform-tools path to environment variables. E.g. on Linux/macOS you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
 
-### How to install Raspberry Pi OS
+### How to install on Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
 2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
@@ -33,22 +33,29 @@ Make sure that the screen is turned on and device is unblocked. You don't have t
 ### Usage
 Full list of command line arguments:
 ```
-  --bloggers username1 [username2 ...]
+  --interact username1 [username2 ...]
                         list of usernames with whose followers you want to
                         interact
-  --likes-count 2       count of likes for each interacted user, 2 by default
+  --likes-count 2       number of likes for each interacted user, 2 by default
   --total-likes-limit 1000
                         limit on total amount of likes during the session,
                         1000 by default
-  --interactions 100    number of interactions per each blogger, 100 by
+  --interactions-count 100
+                        number of interactions per each blogger, 100 by
                         default
   --repeat 180          repeat the same session again after N minutes after
                         completion, disabled by default
+  --follow-percentage 50
+                        follow given percentage of interacted users, 0 by
+                        default
+  --unfollow 100        unfollow at most given number of users. Only users
+                        followed by this script will be unfollowed. The order
+                        is from oldest to newest followings
 ```
 
 ### Features in progress
-- [ ] Follow given percentage of interacted users by `--follow-percentage 50`
-- [ ] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
+- [x] Follow given percentage of interacted users by `--follow-percentage 50`
+- [x] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
 - [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Support intervals for likes and interactions count like `--likes-count 2-3`
