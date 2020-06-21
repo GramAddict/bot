@@ -9,11 +9,6 @@ def unfollow(device, count, on_unfollow, storage):
 
 
 def _open_my_followings(device):
-    print("Press profile")
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
-    search_button = tab_bar.child(index=4)
-    search_button.click.wait()
-
     print("Open my followings")
     followings_button = device(resourceId='com.instagram.android:id/row_profile_header_following_container',
                                className='android.widget.LinearLayout')

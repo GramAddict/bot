@@ -2,6 +2,7 @@ from datetime import datetime
 
 
 class SessionState:
+    my_username = None
     totalInteractions = {}
     successfulInteractions = {}
     totalLikes = 0
@@ -11,10 +12,12 @@ class SessionState:
     finishTime = None
 
     def __init__(self):
+        self.my_username = None
         self.totalInteractions = {}
         self.successfulInteractions = {}
         self.totalLikes = 0
         self.totalFollowed = 0
+        self.totalUnfollowed = 0
         self.startTime = datetime.now()
         self.finishTime = None
 

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 from datetime import datetime
@@ -76,3 +77,13 @@ def take_screenshot(device):
     filename = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".png"
     device.screenshot("screenshots/" + filename)
     print(COLOR_OKGREEN + "Screenshot taken and saved as " + filename + COLOR_ENDC)
+
+
+def print_copyright(username):
+    copyright_blacklist = (
+        '2a978d696a5bbc8536fe2859a61ee01d86e7a20f',
+        'ab1d65a93ec9b6fb90a67dec1ca1480ff71ef725'
+    )
+
+    if hashlib.sha1(username.encode('utf-8')).hexdigest() not in copyright_blacklist:
+        print("\nIf you like this script, you can follow the author\nhttps://www.instagram.com/admishchenko/\n")

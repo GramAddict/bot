@@ -27,6 +27,9 @@ def _open_user_followers(device, username):
     print("Press search")
     tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
     search_button = tab_bar.child(index=1)
+
+    # Two clicks to reset tab content
+    search_button.click.wait()
     search_button.click.wait()
 
     print("Open user @" + username)

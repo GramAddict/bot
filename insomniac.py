@@ -12,6 +12,7 @@ from socket import timeout
 import colorama
 import uiautomator
 
+from action_get_my_username import get_my_username
 from action_handle_blogger import handle_blogger
 from action_unfollow import unfollow
 from session_state import SessionState
@@ -58,7 +59,9 @@ def main():
 
         print(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
+        session_state.my_username = get_my_username(device)
 
+        # IMPORTANT: in each job we assume being on the top of the Profile tab already
         if mode == Mode.INTERACT:
             _job_handle_bloggers(device,
                                  args.interact,
@@ -70,6 +73,7 @@ def main():
             _job_unfollow(device, int(args.unfollow), storage)
 
         close_instagram()
+        print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
         print(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
 
@@ -96,6 +100,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
         is_job_completed = False
 
     state = State()
+    session_state = sessions[-1]
 
     def on_likes_limit_reached():
         state.is_job_completed = True
@@ -111,6 +116,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 handle_blogger(device, blogger, likes_count, follow_percentage, storage, _on_like, on_interaction)
                 completed = True
             except KeyboardInterrupt:
+                print_copyright(session_state.my_username)
                 print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
                 _print_report()
                 sys.exit(0)
@@ -136,10 +142,10 @@ def _job_unfollow(device, count, storage):
         unfollowed_count = 0
 
     state = State()
+    session_state = sessions[-1]
 
     def on_unfollow():
         state.unfollowed_count += 1
-        session_state = sessions[-1]
         session_state.totalUnfollowed += 1
 
     completed = False
@@ -149,6 +155,7 @@ def _job_unfollow(device, count, storage):
             print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
             completed = True
         except KeyboardInterrupt:
+            print_copyright(session_state.my_username)
             print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
             _print_report()
             sys.exit(0)
@@ -197,7 +204,7 @@ def _parse_arguments():
                         default=0)
     parser.add_argument('--unfollow',
                         help='unfollow at most given number of users. Only users followed by this script will '
-                             'be unfollowed. The order is from oldest followings to newest',
+                             'be unfollowed. The order is from oldest to newest followings',
                         metavar='100',
                         default='0')
 
