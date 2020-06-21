@@ -35,7 +35,7 @@ def main():
 
     mode = None
     if len(args.interact) == 0 and int(args.unfollow) == 0:
-        print(COLOR_FAIL + "You have to specify one of the action flags: --interact, --unfollow")
+        print(COLOR_FAIL + "You have to specify one of the action flags: --interact, --unfollow" + COLOR_ENDC)
         return
     elif len(args.interact) > 0 and int(args.unfollow) > 0:
         print(COLOR_FAIL + "Running Insomniac with both interaction and unfollowing is not supported yet." + COLOR_ENDC)
