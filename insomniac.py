@@ -4,6 +4,7 @@ import argparse
 import sys
 import traceback
 from datetime import timedelta
+from enum import Enum, unique
 from functools import partial
 from http.client import HTTPException
 from socket import timeout
@@ -12,6 +13,7 @@ import colorama
 import uiautomator
 
 from action_handle_blogger import handle_blogger
+from action_unfollow import unfollow
 from session_state import SessionState
 from storage import Storage
 from utils import *
@@ -30,16 +32,24 @@ def main():
     if not ok:
         return
 
-    if len(args.bloggers) == 0:
-        print(COLOR_FAIL + "Zero bloggers, no sense to proceed." + COLOR_ENDC)
+    mode = None
+    if len(args.interact) == 0 and int(args.unfollow) == 0:
+        print(COLOR_FAIL + "You have to specify one of the action flags: --interact, --unfollow")
         return
-    else:
-        print("bloggers = " + ", ".join(str(blogger) for blogger in args.bloggers))
+    elif len(args.interact) > 0 and int(args.unfollow) > 0:
+        print(COLOR_FAIL + "Running Insomniac with both interaction and unfollowing is not supported yet." + COLOR_ENDC)
+        return
+    elif len(args.interact) > 0:
+        print("Action: interact with @" + ", @".join(str(blogger) for blogger in args.interact))
+        mode = Mode.INTERACT
+    elif int(args.unfollow) > 0:
+        print("Action: unfollow " + str(args.unfollow))
+        mode = Mode.UNFOLLOW
 
     device = uiautomator.device
     storage = Storage()
     on_interaction = partial(_on_interaction,
-                             interactions_limit=int(args.interactions),
+                             interactions_limit=int(args.interactions_count),
                              likes_limit=int(args.total_likes_limit))
 
     while True:
@@ -48,18 +58,23 @@ def main():
 
         print(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
-        _job_handle_bloggers(device,
-                             args.bloggers,
-                             int(args.likes_count),
-                             int(args.follow_percentage),
-                             storage,
-                             on_interaction)
+
+        if mode == Mode.INTERACT:
+            _job_handle_bloggers(device,
+                                 args.interact,
+                                 int(args.likes_count),
+                                 int(args.follow_percentage),
+                                 storage,
+                                 on_interaction)
+        elif mode == Mode.UNFOLLOW:
+            _job_unfollow(device, int(args.unfollow), storage)
+
         close_instagram()
         session_state.finishTime = datetime.now()
         print(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
-        _print_report()
 
         if args.repeat:
+            _print_report()
             repeat = int(args.repeat)
             print("\nSleep for " + str(repeat) + " minutes")
             try:
@@ -89,18 +104,17 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
 
     for blogger in bloggers:
         print(COLOR_BOLD + "\nHandle @" + blogger + COLOR_ENDC)
-        is_handled = False
+        completed = False
         on_interaction = partial(on_interaction, blogger=blogger)
-        while not is_handled and not state.is_job_completed:
+        while not completed and not state.is_job_completed:
             try:
                 handle_blogger(device, blogger, likes_count, follow_percentage, storage, _on_like, on_interaction)
-                is_handled = True
+                completed = True
             except KeyboardInterrupt:
                 print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
                 _print_report()
                 sys.exit(0)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
-                is_handled = False
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
                 take_screenshot(device)
                 print("Try again for @" + blogger + " from the beginning")
@@ -114,12 +128,50 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 raise e
 
 
+def _job_unfollow(device, count, storage):
+    class State:
+        def __init__(self):
+            pass
+
+        unfollowed_count = 0
+
+    state = State()
+
+    def on_unfollow():
+        state.unfollowed_count += 1
+        session_state = sessions[-1]
+        session_state.totalUnfollowed += 1
+
+    completed = False
+    while not completed and state.unfollowed_count < count:
+        try:
+            unfollow(device, count - state.unfollowed_count, on_unfollow, storage)
+            print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
+            completed = True
+        except KeyboardInterrupt:
+            print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
+            _print_report()
+            sys.exit(0)
+        except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
+            print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
+            take_screenshot(device)
+            print("Try unfollowing again, " + str(count - state.unfollowed_count) + " users left")
+            # Hack for the case when IGTV was accidentally opened
+            close_instagram()
+            random_sleep()
+            open_instagram()
+        except Exception as e:
+            take_screenshot(device)
+            _print_report()
+            raise e
+
+
 def _parse_arguments():
     parser = argparse.ArgumentParser(
         description='Instagram bot for automated Instagram interaction using Android device via ADB',
         add_help=False
     )
-    parser.add_argument('--bloggers',
+    parser.add_argument('--interact',
                         nargs='+',
                         help='list of usernames with whose followers you want to interact',
                         metavar=('username1', 'username2'),
@@ -132,7 +184,7 @@ def _parse_arguments():
                         help='limit on total amount of likes during the session, 1000 by default',
                         metavar='1000',
                         default=1000)
-    parser.add_argument('--interactions',
+    parser.add_argument('--interactions-count',
                         help='number of interactions per each blogger, 100 by default',
                         metavar='100',
                         default=100)
@@ -143,6 +195,11 @@ def _parse_arguments():
                         help='follow given percentage of interacted users, 0 by default',
                         metavar='50',
                         default=0)
+    parser.add_argument('--unfollow',
+                        help='unfollow at most given number of users. Only users followed by this script will '
+                             'be unfollowed. The order is from oldest followings to newest',
+                        metavar='100',
+                        default='0')
 
     if not len(sys.argv) > 1:
         parser.print_help()
@@ -196,6 +253,7 @@ def _print_report():
                   + COLOR_ENDC)
             print(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
             print(COLOR_WARNING + "Total followed: " + str(session.totalFollowed) + COLOR_ENDC)
+            print(COLOR_WARNING + "Total unfollowed: " + str(session.totalUnfollowed) + COLOR_ENDC)
 
     print("\n")
     print(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
@@ -232,6 +290,15 @@ def _print_report():
 
     total_followed = sum(session.totalFollowed for session in sessions)
     print(COLOR_WARNING + "Total followed: " + str(total_followed) + COLOR_ENDC)
+
+    total_unfollowed = sum(session.totalUnfollowed for session in sessions)
+    print(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
+
+
+@unique
+class Mode(Enum):
+    INTERACT = 0
+    UNFOLLOW = 1
 
 
 if __name__ == "__main__":

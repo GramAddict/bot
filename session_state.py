@@ -6,6 +6,7 @@ class SessionState:
     successfulInteractions = {}
     totalLikes = 0
     totalFollowed = 0
+    totalUnfollowed = 0
     startTime = None
     finishTime = None
 

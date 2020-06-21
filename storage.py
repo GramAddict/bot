@@ -19,16 +19,18 @@ class Storage:
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
 
-    def check_user_can_be_followed(self, username):
+    def get_following_status(self, username):
         user = self.interacted_users.get(username)
-        return user is None or FollowingStatus[user[USER_FOLLOWING_STATUS]] == FollowingStatus.NONE
+        return user is None and FollowingStatus.NONE or FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
-    def add_interacted_user(self, username, followed):
+    def add_interacted_user(self, username, followed=False, unfollowed=False):
         user = self.interacted_users.get(username, {})
         user[USER_LAST_INTERACTION] = str(datetime.now())
 
         if followed:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
+        elif unfollowed:
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.lower()
         else:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
 

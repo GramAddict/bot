@@ -3,6 +3,7 @@ from random import shuffle
 
 import uiautomator
 
+from storage import FollowingStatus
 from utils import *
 
 
@@ -70,9 +71,9 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 print("@" + username + ": interact")
                 item.click.wait()
 
-                can_follow = storage.check_user_can_be_followed(username)
+                can_follow = storage.get_following_status(username) == FollowingStatus.NONE
                 interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
-                storage.add_interacted_user(username, followed)
+                storage.add_interacted_user(username, followed=followed)
                 interactions_count += 1
                 can_continue = on_interaction(succeed=interaction_succeed,
                                               followed=followed,
