@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum, unique
 
 FILENAME_INTERACTED_USERS = "interacted_users.json"
@@ -18,6 +18,14 @@ class Storage:
 
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
+
+    def check_user_was_interacted_recently(self, username):
+        user = self.interacted_users.get(username)
+        if user is None:
+            return False
+
+        last_interaction = datetime.strptime(user[USER_LAST_INTERACTION], '%Y-%m-%d %H:%M:%S.%f')
+        return datetime.now() - last_interaction <= timedelta(weeks=1)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)

@@ -14,42 +14,80 @@ def handle_blogger(device,
                    storage,
                    on_like,
                    on_interaction):
+    is_myself = username is None
     interaction = partial(_interact_with_user,
                           likes_count=likes_count,
                           follow_percentage=follow_percentage,
                           on_like=on_like)
 
     _open_user_followers(device, username)
-    _iterate_over_followers(device, interaction, storage, on_interaction)
+    if is_myself:
+        _scroll_to_bottom(device)
+    _iterate_over_followers(device, interaction, storage, on_interaction, is_myself)
 
 
 def _open_user_followers(device, username):
-    print("Press search")
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
-    search_button = tab_bar.child(index=1)
+    if username is None:
+        print("Open my followers")
+        followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
+                                  className='android.widget.LinearLayout')
+        followers_button.click.wait()
+    else:
+        print("Press search")
+        tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
+        search_button = tab_bar.child(index=1)
 
-    # Two clicks to reset tab content
-    search_button.click.wait()
-    search_button.click.wait()
+        # Two clicks to reset tab content
+        search_button.click.wait()
+        search_button.click.wait()
 
-    print("Open user @" + username)
-    search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
-                              className='android.widget.EditText')
-    search_edit_text.set_text(username)
-    search_results_list = device(resourceId='android:id/list',
-                                 className='android.widget.ListView')
-    search_first_result = search_results_list.child(index=0)
-    search_first_result.click.wait()
+        print("Open user @" + username)
+        search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
+                                  className='android.widget.EditText')
+        search_edit_text.set_text(username)
+        search_results_list = device(resourceId='android:id/list',
+                                     className='android.widget.ListView')
+        search_first_result = search_results_list.child(index=0)
+        search_first_result.click.wait()
 
-    print("Open @" + username + " followers")
-    followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
-                              className='android.widget.LinearLayout')
-    followers_button.click.wait()
+        print("Open @" + username + " followers")
+        followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
+                                  className='android.widget.LinearLayout')
+        followers_button.click.wait()
 
 
-def _iterate_over_followers(device, interaction, storage, on_interaction):
+def _scroll_to_bottom(device):
+    print("Scroll to bottom")
+
+    def is_end_reached():
+        see_all_button = device(resourceId='com.instagram.android:id/see_all_button',
+                                className='android.widget.TextView')
+        return see_all_button.exists
+
+    list_view = device(resourceId='android:id/list',
+                       className='android.widget.ListView')
+    while not is_end_reached():
+        list_view.fling.toEnd(max_swipes=1)
+
+    print("Scroll back to the first follower")
+
+    def is_at_least_one_follower():
+        follower = device(resourceId='com.instagram.android:id/follow_list_container',
+                          className='android.widget.LinearLayout')
+        return follower.exists
+
+    while not is_at_least_one_follower():
+        list_view.scroll.toBeginning(max_swipes=1)
+
+
+def _iterate_over_followers(device, interaction, storage, on_interaction, is_myself):
     followers_per_screen = None
     interactions_count = 0
+
+    def scrolled_to_top():
+        row_search = device(resourceId='com.instagram.android:id/row_search_edit_text',
+                            className='android.widget.EditText')
+        return row_search.exists
 
     while True:
         print("Iterate over visible followers")
@@ -61,6 +99,10 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 username = user_name_view.text
+                user_avatar_view = item.child(index=0).child(
+                    resourceId='com.instagram.android:id/follow_list_user_imageview',
+                    className='android.widget.ImageView'
+                )
             except uiautomator.JsonRPCError:
                 print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                 if followers_per_screen is None:
@@ -68,13 +110,15 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                 break
 
             screen_iterated_followers += 1
-            if storage.check_user_was_interacted(username):
+            if not is_myself and storage.check_user_was_interacted(username):
                 print("@" + username + ": already interacted. Skip.")
+            elif is_myself and storage.check_user_was_interacted_recently(username):
+                print("@" + username + ": already interacted in the last week. Skip.")
             else:
                 print("@" + username + ": interact")
-                item.click.wait()
+                user_avatar_view.click.wait()
 
-                can_follow = storage.get_following_status(username) == FollowingStatus.NONE
+                can_follow = not is_myself and storage.get_following_status(username) == FollowingStatus.NONE
                 interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
                 storage.add_interacted_user(username, followed=followed)
                 interactions_count += 1
@@ -93,11 +137,17 @@ def _iterate_over_followers(device, interaction, storage, on_interaction):
                       " items iterated: probably reached end of the screen." + COLOR_ENDC)
                 break
 
-        if screen_iterated_followers > 0:
+        if is_myself and scrolled_to_top():
+            print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
+            return
+        elif screen_iterated_followers > 0:
             print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
             list_view = device(resourceId='android:id/list',
                                className='android.widget.ListView')
-            list_view.scroll.toEnd(max_swipes=1)
+            if is_myself:
+                list_view.scroll.toBeginning(max_swipes=1)
+            else:
+                list_view.scroll.toEnd(max_swipes=1)
         else:
             print(COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC)
             return

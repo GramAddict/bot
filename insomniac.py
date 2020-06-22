@@ -108,12 +108,16 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
     on_interaction = partial(on_interaction, on_likes_limit_reached=on_likes_limit_reached)
 
     for blogger in bloggers:
-        print(COLOR_BOLD + "\nHandle @" + blogger + COLOR_ENDC)
+        is_myself = blogger == session_state.my_username
+        print(COLOR_BOLD + "\nHandle @" + blogger + (is_myself and " (it\'s me)" or "") + COLOR_ENDC)
         completed = False
         on_interaction = partial(on_interaction, blogger=blogger)
         while not completed and not state.is_job_completed:
             try:
-                handle_blogger(device, blogger, likes_count, follow_percentage, storage, _on_like, on_interaction)
+                username = None
+                if not is_myself:
+                    username = blogger
+                handle_blogger(device, username, likes_count, follow_percentage, storage, _on_like, on_interaction)
                 completed = True
             except KeyboardInterrupt:
                 print_copyright(session_state.my_username)
@@ -128,6 +132,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 close_instagram()
                 random_sleep()
                 open_instagram()
+                get_my_username(device)
             except Exception as e:
                 take_screenshot(device)
                 _print_report()
@@ -167,6 +172,7 @@ def _job_unfollow(device, count, storage):
             close_instagram()
             random_sleep()
             open_instagram()
+            get_my_username(device)
         except Exception as e:
             take_screenshot(device)
             _print_report()
