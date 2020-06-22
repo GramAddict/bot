@@ -99,10 +99,6 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 username = user_name_view.text
-                user_avatar_view = item.child(index=0).child(
-                    resourceId='com.instagram.android:id/follow_list_user_imageview',
-                    className='android.widget.ImageView'
-                )
             except uiautomator.JsonRPCError:
                 print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                 if followers_per_screen is None:
@@ -116,7 +112,7 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
                 print("@" + username + ": already interacted in the last week. Skip.")
             else:
                 print("@" + username + ": interact")
-                user_avatar_view.click.wait()
+                user_name_view.click.wait()
 
                 can_follow = not is_myself and storage.get_following_status(username) == FollowingStatus.NONE
                 interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
