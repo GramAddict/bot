@@ -24,7 +24,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 
 ### Get started
 1. Connect Android device to your computer with a USB cable
-2. Enable [developer's mode](https://developer.android.com/studio/debug/dev-options#enable) on the device
+2. Enable [Developer options](https://developer.android.com/studio/debug/dev-options#enable) on the device
 >On Android 4.1 and lower, the Developer options screen is available by default. On Android 4.2 and higher, you must enable this screen. To enable developer options, tap the Build Number option 7 times. You can find this option in one of the following locations, depending on your Android version:
 >
 > Android 9 (API level 28) and higher: Settings > About Phone > Build Number
