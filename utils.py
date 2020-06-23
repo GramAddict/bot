@@ -86,4 +86,7 @@ def print_copyright(username):
     )
 
     if hashlib.sha1(username.encode('utf-8')).hexdigest() not in copyright_blacklist:
-        print("\nIf you like this script, you can follow the author\nhttps://www.instagram.com/admishchenko/\n")
+        print("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please" + COLOR_ENDC
+              + ".")
+        print("Your feature request will be a " + COLOR_BOLD + "priority" + COLOR_ENDC + " in return.")
+        print("https://www.patreon.com/insomniac_bot\n")
