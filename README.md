@@ -76,7 +76,7 @@ Full list of command line arguments:
 ### Why Insomniac?
 There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account.
 
-That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 500 or less. Also it's better to use `--repeat` to act periodically by 2-3 hours, because Instagram keeps track of how long the app works.
+That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically by 2-3 hours, because Instagram keeps track of how long the app works.
 
 ### Community
 Join our Telegram group
