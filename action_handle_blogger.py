@@ -48,7 +48,9 @@ def _open_user_followers(device, username):
         search_results_list = device(resourceId='android:id/list',
                                      className='android.widget.ListView')
         search_first_result = search_results_list.child(index=0)
-        search_first_result.click.wait()
+        username_view = search_first_result.child(resourceId='com.instagram.android:id/row_search_user_username',
+                                                  className='android.widget.TextView')
+        username_view.click.wait()
 
         print("Open @" + username + " followers")
         followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
