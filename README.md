@@ -62,12 +62,17 @@ Full list of command line arguments:
   --unfollow 100        unfollow at most given number of users. Only users
                         followed by this script will be unfollowed. The order
                         is from oldest to newest followings
+  --unfollow-non-followers 100
+                        unfollow at most given number of users, that don't
+                        follow you back. Only users followed by this script
+                        will be unfollowed. The order is from oldest to newest
+                        followings
 ```
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
 - [x] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
-- [ ] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
+- [x] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Support intervals for likes and interactions count like `--likes-count 2-3`
 - [ ] Interaction by hashtags
