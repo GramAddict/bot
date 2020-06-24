@@ -34,18 +34,27 @@ def main():
         return
 
     mode = None
-    if len(args.interact) == 0 and int(args.unfollow) == 0:
-        print(COLOR_FAIL + "You have to specify one of the action flags: --interact, --unfollow" + COLOR_ENDC)
+    is_interact_enabled = len(args.interact) > 0
+    is_unfollow_enabled = int(args.unfollow) > 0
+    is_unfollow_non_followers_enabled = int(args.unfollow_non_followers) > 0
+    total_enabled = int(is_interact_enabled) + int(is_unfollow_enabled) + int(is_unfollow_non_followers_enabled)
+    if total_enabled == 0:
+        print(COLOR_FAIL + "You have to specify one of the actions: --interact, --unfollow, "
+                           "--unfollow-non-followers" + COLOR_ENDC)
         return
-    elif len(args.interact) > 0 and int(args.unfollow) > 0:
-        print(COLOR_FAIL + "Running Insomniac with both interaction and unfollowing is not supported yet." + COLOR_ENDC)
+    elif total_enabled > 1:
+        print(COLOR_FAIL + "Running Insomniac with two or more actions is not supported yet." + COLOR_ENDC)
         return
-    elif len(args.interact) > 0:
-        print("Action: interact with @" + ", @".join(str(blogger) for blogger in args.interact))
-        mode = Mode.INTERACT
-    elif int(args.unfollow) > 0:
-        print("Action: unfollow " + str(args.unfollow))
-        mode = Mode.UNFOLLOW
+    else:
+        if is_interact_enabled:
+            print("Action: interact with @" + ", @".join(str(blogger) for blogger in args.interact))
+            mode = Mode.INTERACT
+        elif is_unfollow_enabled:
+            print("Action: unfollow " + str(args.unfollow))
+            mode = Mode.UNFOLLOW
+        elif is_unfollow_non_followers_enabled:
+            print("Action: unfollow " + str(args.unfollow_non_followers) + " non followers")
+            mode = Mode.UNFOLLOW_NON_FOLLOWERS
 
     device = uiautomator.device
     storage = Storage()
@@ -70,7 +79,9 @@ def main():
                                  storage,
                                  on_interaction)
         elif mode == Mode.UNFOLLOW:
-            _job_unfollow(device, int(args.unfollow), storage)
+            _job_unfollow(device, int(args.unfollow), storage, only_non_followers=False)
+        elif mode == Mode.UNFOLLOW_NON_FOLLOWERS:
+            _job_unfollow(device, int(args.unfollow_non_followers), storage, only_non_followers=True)
 
         close_instagram()
         print_copyright(session_state.my_username)
@@ -109,7 +120,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
 
     for blogger in bloggers:
         is_myself = blogger == session_state.my_username
-        print(COLOR_BOLD + "\nHandle @" + blogger + (is_myself and " (it\'s me)" or "") + COLOR_ENDC)
+        print(COLOR_BOLD + "\nHandle @" + blogger + (is_myself and " (it\'s you)" or "") + COLOR_ENDC)
         completed = False
         on_interaction = partial(on_interaction, blogger=blogger)
         while not completed and not state.is_job_completed:
@@ -139,7 +150,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 raise e
 
 
-def _job_unfollow(device, count, storage):
+def _job_unfollow(device, count, storage, only_non_followers):
     class State:
         def __init__(self):
             pass
@@ -156,7 +167,12 @@ def _job_unfollow(device, count, storage):
     completed = False
     while not completed and state.unfollowed_count < count:
         try:
-            unfollow(device, count - state.unfollowed_count, on_unfollow, storage)
+            unfollow(device,
+                     count - state.unfollowed_count,
+                     on_unfollow,
+                     storage,
+                     only_non_followers,
+                     session_state.my_username)
             print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
             completed = True
         except KeyboardInterrupt:
@@ -211,6 +227,11 @@ def _parse_arguments():
     parser.add_argument('--unfollow',
                         help='unfollow at most given number of users. Only users followed by this script will '
                              'be unfollowed. The order is from oldest to newest followings',
+                        metavar='100',
+                        default='0')
+    parser.add_argument('--unfollow-non-followers',
+                        help='unfollow at most given number of users, that don\'t follow you back. Only users followed '
+                             'by this script will be unfollowed. The order is from oldest to newest followings',
                         metavar='100',
                         default='0')
 
@@ -312,6 +333,7 @@ def _print_report():
 class Mode(Enum):
     INTERACT = 0
     UNFOLLOW = 1
+    UNFOLLOW_NON_FOLLOWERS = 2
 
 
 if __name__ == "__main__":

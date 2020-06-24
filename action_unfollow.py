@@ -2,10 +2,10 @@ from storage import FollowingStatus
 from utils import *
 
 
-def unfollow(device, count, on_unfollow, storage):
+def unfollow(device, count, on_unfollow, storage, only_non_followers, my_username):
     _open_my_followings(device)
     _sort_followings_by_date(device)
-    _iterate_over_followings(device, count, on_unfollow, storage)
+    _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username)
 
 
 def _open_my_followings(device):
@@ -29,7 +29,7 @@ def _sort_followings_by_date(device):
     sort_options_recycler_view.child(index=2).click.wait()
 
 
-def _iterate_over_followings(device, count, on_unfollow, storage):
+def _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username):
     unfollowed_count = 0
     while True:
         print("Iterate over visible followings")
@@ -47,11 +47,18 @@ def _iterate_over_followings(device, count, on_unfollow, storage):
             screen_iterated_followings += 1
 
             following_status = storage.get_following_status(username)
-            if following_status == FollowingStatus.FOLLOWED:
+            if not following_status == FollowingStatus.FOLLOWED:
+                print("Skip @" + username + ". Following status: " + following_status.name + ".")
+            elif only_non_followers and _check_is_follower(device, username, my_username):
+                print("Skip @" + username + ". This user is following you.")
+            else:
                 print("Unfollow @" + username)
 
                 unfollow_button = item.child(resourceId='com.instagram.android:id/button',
                                              className='android.widget.TextView')
+                if not unfollow_button.exists:
+                    print(COLOR_FAIL + "Cannot find unfollow button" + COLOR_ENDC)
+                    break
                 unfollow_button.click.wait()
                 _close_dialog_if_shown(device)
                 storage.add_interacted_user(username, unfollowed=True)
@@ -62,8 +69,6 @@ def _iterate_over_followings(device, count, on_unfollow, storage):
                 unfollowed_count += 1
                 if unfollowed_count >= count:
                     return
-            else:
-                print("Skip @" + username + ". Following status: " + following_status.name + ".")
 
         if screen_iterated_followings > 0:
             print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
@@ -86,3 +91,26 @@ def _close_dialog_if_shown(device):
     unfollow_button = dialog_root_view.child(index=0).child(resourceId='com.instagram.android:id/primary_button',
                                                             className='android.widget.TextView')
     unfollow_button.click.wait()
+
+
+def _check_is_follower(device, username, my_username):
+    print(COLOR_OKGREEN + "Check if @" + username + " is following you." + COLOR_ENDC)
+    username_view = device(resourceId='com.instagram.android:id/follow_list_username',
+                           className='android.widget.TextView',
+                           text=username)
+    if not username_view.exists:
+        print(COLOR_FAIL + "Cannot find @" + username + ", skip." + COLOR_ENDC)
+        return True
+    username_view.click.wait()
+
+    following_container = device(resourceId='com.instagram.android:id/row_profile_header_following_container',
+                                 className='android.widget.LinearLayout')
+    following_container.click.wait()
+
+    my_username_view = device(resourceId='com.instagram.android:id/follow_list_username',
+                              className='android.widget.TextView',
+                              text=my_username)
+    result = my_username_view.exists
+    device.press.back()
+    device.press.back()
+    return result

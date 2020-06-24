@@ -28,7 +28,7 @@ def handle_blogger(device,
 
 def _open_user_followers(device, username):
     if username is None:
-        print("Open my followers")
+        print("Open your followers")
         followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
                                   className='android.widget.LinearLayout')
         followers_button.click.wait()
