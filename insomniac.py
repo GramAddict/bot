@@ -24,7 +24,7 @@ sessions = []
 
 def main():
     colorama.init()
-    print(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
+    print_timeless(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
 
     if not check_adb_connection():
         return
@@ -39,11 +39,11 @@ def main():
     is_unfollow_non_followers_enabled = int(args.unfollow_non_followers) > 0
     total_enabled = int(is_interact_enabled) + int(is_unfollow_enabled) + int(is_unfollow_non_followers_enabled)
     if total_enabled == 0:
-        print(COLOR_FAIL + "You have to specify one of the actions: --interact, --unfollow, "
-                           "--unfollow-non-followers" + COLOR_ENDC)
+        print_timeless(COLOR_FAIL + "You have to specify one of the actions: --interact, --unfollow, "
+                                    "--unfollow-non-followers" + COLOR_ENDC)
         return
     elif total_enabled > 1:
-        print(COLOR_FAIL + "Running Insomniac with two or more actions is not supported yet." + COLOR_ENDC)
+        print_timeless(COLOR_FAIL + "Running Insomniac with two or more actions is not supported yet." + COLOR_ENDC)
         return
     else:
         if is_interact_enabled:
@@ -66,7 +66,7 @@ def main():
         session_state = SessionState()
         sessions.append(session_state)
 
-        print(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
+        print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram()
         session_state.my_username = get_my_username(device)
 
@@ -86,7 +86,7 @@ def main():
         close_instagram()
         print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
-        print(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
+        print_timeless(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
 
         if args.repeat:
             _print_report()
@@ -120,7 +120,8 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
 
     for blogger in bloggers:
         is_myself = blogger == session_state.my_username
-        print(COLOR_BOLD + "\nHandle @" + blogger + (is_myself and " (it\'s you)" or "") + COLOR_ENDC)
+        print_timeless("")
+        print(COLOR_BOLD + "Handle @" + blogger + (is_myself and " (it\'s you)" or "") + COLOR_ENDC)
         completed = False
         on_interaction = partial(on_interaction, blogger=blogger)
         while not completed and not state.is_job_completed:
@@ -132,7 +133,8 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 completed = True
             except KeyboardInterrupt:
                 print_copyright(session_state.my_username)
-                print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
+                print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------"
+                               + COLOR_ENDC)
                 _print_report()
                 sys.exit(0)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
@@ -177,7 +179,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             completed = True
         except KeyboardInterrupt:
             print_copyright(session_state.my_username)
-            print(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
             _print_report()
             sys.exit(0)
         except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
@@ -276,30 +278,30 @@ def _print_report():
     if len(sessions) > 1:
         for index, session in enumerate(sessions):
             finish_time = session.finishTime or datetime.now()
-            print("\n")
-            print(COLOR_WARNING + "SESSION #" + str(index + 1) + COLOR_ENDC)
-            print(COLOR_WARNING + "Start time: " + str(session.startTime) + COLOR_ENDC)
-            print(COLOR_WARNING + "Finish time: " + str(finish_time) + COLOR_ENDC)
-            print(COLOR_WARNING + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
-            print(COLOR_WARNING + "Total interactions: " + stringify_interactions(session.totalInteractions)
-                  + COLOR_ENDC)
-            print(COLOR_WARNING + "Successful interactions: " + stringify_interactions(session.successfulInteractions)
-                  + COLOR_ENDC)
-            print(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
-            print(COLOR_WARNING + "Total followed: " + str(session.totalFollowed) + COLOR_ENDC)
-            print(COLOR_WARNING + "Total unfollowed: " + str(session.totalUnfollowed) + COLOR_ENDC)
+            print_timeless("\n")
+            print_timeless(COLOR_WARNING + "SESSION #" + str(index + 1) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Start time: " + str(session.startTime) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Finish time: " + str(finish_time) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(session.totalInteractions)
+                           + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Successful interactions: "
+                           + stringify_interactions(session.successfulInteractions) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Total followed: " + str(session.totalFollowed) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Total unfollowed: " + str(session.totalUnfollowed) + COLOR_ENDC)
 
-    print("\n")
-    print(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
+    print_timeless("\n")
+    print_timeless(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
 
     completed_sessions = [session for session in sessions if session.is_finished()]
-    print(COLOR_WARNING + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
 
     duration = timedelta(0)
     for session in sessions:
         finish_time = session.finishTime or datetime.now()
         duration += finish_time - session.startTime
-    print(COLOR_WARNING + "Total duration: " + str(duration) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Total duration: " + str(duration) + COLOR_ENDC)
 
     total_interactions = {}
     successful_interactions = {}
@@ -316,17 +318,18 @@ def _print_report():
             else:
                 successful_interactions[blogger] += count
 
-    print(COLOR_WARNING + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
-    print(COLOR_WARNING + "Successful interactions: " + stringify_interactions(successful_interactions) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Successful interactions: " + stringify_interactions(successful_interactions)
+                   + COLOR_ENDC)
 
     total_likes = sum(session.totalLikes for session in sessions)
-    print(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
 
     total_followed = sum(session.totalFollowed for session in sessions)
-    print(COLOR_WARNING + "Total followed: " + str(total_followed) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Total followed: " + str(total_followed) + COLOR_ENDC)
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
-    print(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
 
 
 @unique

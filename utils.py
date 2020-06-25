@@ -86,7 +86,22 @@ def print_copyright(username):
     )
 
     if hashlib.sha1(username.encode('utf-8')).hexdigest() not in copyright_blacklist:
-        print("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please" + COLOR_ENDC
-              + ".")
-        print("Your feature request will be a " + COLOR_BOLD + "priority" + COLOR_ENDC + " in return.")
-        print("https://www.patreon.com/insomniac_bot\n")
+        print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
+                       + COLOR_ENDC + ".")
+        print_timeless("Your feature request will be a " + COLOR_BOLD + "priority" + COLOR_ENDC + " in return.")
+        print_timeless("https://www.patreon.com/insomniac_bot\n")
+
+
+def _print_with_time_decorator(standard_print, print_time):
+    def wrapper(*args, **kwargs):
+        if print_time:
+            time = datetime.now().strftime("%m/%d %H:%M:%S")
+            return standard_print("[" + time + "]", *args, **kwargs)
+        else:
+            return standard_print(*args, **kwargs)
+
+    return wrapper
+
+
+print_timeless = _print_with_time_decorator(print, False)
+print = _print_with_time_decorator(print, True)
