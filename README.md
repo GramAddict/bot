@@ -6,6 +6,8 @@
 
 Liking and following automatically on your Android phone/tablet. No root required: it works on [UI Automator](https://developer.android.com/training/testing/ui-automator), which is an official Android UI testing framework.
 
+<img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/demo.gif">
+
 ### How to install
 1. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
 2. Install [uiautomator](https://github.com/xiaocong/uiautomator) and [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator colorama`
