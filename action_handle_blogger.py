@@ -20,7 +20,8 @@ def handle_blogger(device,
                           follow_percentage=follow_percentage,
                           on_like=on_like)
 
-    _open_user_followers(device, username)
+    if not _open_user_followers(device, username):
+        return
     if is_myself:
         _scroll_to_bottom(device)
     _iterate_over_followers(device, interaction, storage, on_interaction, is_myself)
@@ -47,15 +48,22 @@ def _open_user_followers(device, username):
         search_edit_text.set_text(username)
         search_results_list = device(resourceId='android:id/list',
                                      className='android.widget.ListView')
-        search_first_result = search_results_list.child(index=0)
-        username_view = search_first_result.child(resourceId='com.instagram.android:id/row_search_user_username',
-                                                  className='android.widget.TextView')
+
+        username_view = search_results_list.child(resourceId='com.instagram.android:id/row_search_user_username',
+                                                  className='android.widget.TextView',
+                                                  text=username)
+        if not username_view.exists:
+            print_timeless(COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC)
+            return False
+
         username_view.click.wait()
 
         print("Open @" + username + " followers")
         followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
                                   className='android.widget.LinearLayout')
         followers_button.click.wait()
+
+    return True
 
 
 def _scroll_to_bottom(device):
