@@ -19,6 +19,7 @@ from session_state import SessionState
 from storage import Storage
 from utils import *
 
+device_id = None
 sessions = []
 
 
@@ -26,11 +27,15 @@ def main():
     colorama.init()
     print_timeless(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
 
-    if not check_adb_connection():
-        return
-
     ok, args = _parse_arguments()
     if not ok:
+        return
+
+    global device_id
+    device_id = args.device
+    device = uiautomator.device if device_id is None else uiautomator.Device(device_id)
+
+    if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
 
     mode = None
@@ -56,7 +61,6 @@ def main():
             print("Action: unfollow " + str(args.unfollow_non_followers) + " non followers")
             mode = Mode.UNFOLLOW_NON_FOLLOWERS
 
-    device = uiautomator.device
     storage = Storage()
     on_interaction = partial(_on_interaction,
                              interactions_limit=int(args.interactions_count),
@@ -67,7 +71,7 @@ def main():
         sessions.append(session_state)
 
         print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
-        open_instagram()
+        open_instagram(device_id)
         session_state.my_username = get_my_username(device)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -144,7 +148,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 # Hack for the case when IGTV was accidentally opened
                 close_instagram()
                 random_sleep()
-                open_instagram()
+                open_instagram(device_id)
                 get_my_username(device)
             except Exception as e:
                 take_screenshot(device)
@@ -189,7 +193,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             # Hack for the case when IGTV was accidentally opened
             close_instagram()
             random_sleep()
-            open_instagram()
+            open_instagram(device_id)
             get_my_username(device)
         except Exception as e:
             take_screenshot(device)
@@ -236,6 +240,9 @@ def _parse_arguments():
                              'by this script will be unfollowed. The order is from oldest to newest followings',
                         metavar='100',
                         default='0')
+    parser.add_argument('--device',
+                        help='device identifier. Should be used only when multiple devices are connected at once',
+                        metavar='2443de990e017ece')
 
     if not len(sys.argv) > 1:
         parser.print_help()

@@ -24,13 +24,23 @@ def get_version():
     return version
 
 
-def check_adb_connection():
+def check_adb_connection(is_device_id_provided):
     stream = os.popen('adb devices')
     output = stream.read()
     devices_count = len(re.findall('device\n', output))
-    is_ok = devices_count == 1
-    print("Connected devices via adb: " + str(devices_count) + ". " + (is_ok and "That's ok." or "Cannot proceed."))
     stream.close()
+
+    is_ok = True
+    message = "That's ok."
+    if devices_count == 0:
+        is_ok = False
+        message = "Cannot proceed."
+    elif devices_count > 1 and not is_device_id_provided:
+        is_ok = False
+        message = "Use --device to specify a device."
+
+    print(("" if is_ok else COLOR_FAIL) + "Connected devices via adb: " + str(devices_count) + ". " + message +
+          COLOR_ENDC)
     return is_ok
 
 
@@ -50,9 +60,10 @@ def random_sleep():
     sleep(delay)
 
 
-def open_instagram():
+def open_instagram(device_id):
     print("Open Instagram app")
-    os.popen("adb shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity").close()
+    os.popen("adb" + ("" if device_id is None else " -s " + device_id) +
+             " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity").close()
     random_sleep()
 
 
