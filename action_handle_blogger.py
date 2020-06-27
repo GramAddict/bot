@@ -46,12 +46,11 @@ def _open_user_followers(device, username):
         search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
                                   className='android.widget.EditText')
         search_edit_text.set_text(username)
-        search_results_list = device(resourceId='android:id/list',
-                                     className='android.widget.ListView')
+        device.wait.idle()
+        username_view = device(resourceId='com.instagram.android:id/row_search_user_username',
+                               className='android.widget.TextView',
+                               text=username)
 
-        username_view = search_results_list.child(resourceId='com.instagram.android:id/row_search_user_username',
-                                                  className='android.widget.TextView',
-                                                  text=username)
         if not username_view.exists:
             print_timeless(COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC)
             return False
