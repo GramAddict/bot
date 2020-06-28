@@ -61,7 +61,6 @@ def main():
             print("Action: unfollow " + str(args.unfollow_non_followers) + " non followers")
             mode = Mode.UNFOLLOW_NON_FOLLOWERS
 
-    storage = Storage()
     on_interaction = partial(_on_interaction,
                              interactions_limit=int(args.interactions_count),
                              likes_limit=int(args.total_likes_limit))
@@ -73,6 +72,7 @@ def main():
         print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram(device_id)
         session_state.my_username = get_my_username(device)
+        storage = Storage(session_state.my_username)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         if mode == Mode.INTERACT:
@@ -95,7 +95,8 @@ def main():
         if args.repeat:
             _print_report()
             repeat = int(args.repeat)
-            print("\nSleep for " + str(repeat) + " minutes")
+            print_timeless("")
+            print("Sleep for " + str(repeat) + " minutes")
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:

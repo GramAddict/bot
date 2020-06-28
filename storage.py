@@ -9,11 +9,15 @@ USER_FOLLOWING_STATUS = "following_status"
 
 
 class Storage:
+    interacted_users_path = ""
     interacted_users = {}
 
-    def __init__(self):
-        if os.path.exists(FILENAME_INTERACTED_USERS):
-            with open(FILENAME_INTERACTED_USERS) as json_file:
+    def __init__(self, my_username):
+        if not os.path.exists(my_username):
+            os.makedirs(my_username)
+        self.interacted_users_path = my_username + "/" + FILENAME_INTERACTED_USERS
+        if os.path.exists(self.interacted_users_path):
+            with open(self.interacted_users_path) as json_file:
                 self.interacted_users = json.load(json_file)
 
     def check_user_was_interacted(self, username):
@@ -46,7 +50,7 @@ class Storage:
         self._update_file()
 
     def _update_file(self):
-        with open(FILENAME_INTERACTED_USERS, 'w') as outfile:
+        with open(self.interacted_users_path, 'w') as outfile:
             json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
 
 
