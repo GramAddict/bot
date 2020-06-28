@@ -72,7 +72,9 @@ Full list of command line arguments:
 ```
 
 ### FAQ
-- [How to connect Android phone via WiFi](https://www.patreon.com/posts/connect-android-38655552)
+- Can I prevent my phone from falling asleep while script works? Yes. Settings -> Developer Options -> Stay awake.
+- [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
+- [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
