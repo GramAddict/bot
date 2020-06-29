@@ -69,11 +69,15 @@ Full list of command line arguments:
                         follow you back. Only users followed by this script
                         will be unfollowed. The order is from oldest to newest
                         followings
+  --device 2443de990e017ece
+                        device identifier. Should be used only when multiple
+                        devices are connected at once
 ```
 
 ### FAQ
 - Can I prevent my phone from falling asleep? Yes. Settings -> Developer Options -> Stay awake.
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
+- [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
 
 ### Features in progress
