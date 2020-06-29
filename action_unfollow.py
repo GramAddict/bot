@@ -38,11 +38,11 @@ def _iterate_over_followings(device, count, on_unfollow, storage, only_non_follo
         for item in device(resourceId='com.instagram.android:id/follow_list_container',
                            className='android.widget.LinearLayout'):
             user_info_view = item.child(index=1)
-            if not user_info_view.exists:
+            user_name_view = user_info_view.child(index=0).child()
+            if not user_name_view.exists:
                 print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                 break
 
-            user_name_view = user_info_view.child(index=0).child()
             username = user_name_view.text
             screen_iterated_followings += 1
 
