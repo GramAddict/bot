@@ -4,3 +4,4 @@ interacted_users.*
 *.pyc
 .DS_Store
 screenshots
+filter.json

@@ -3,8 +3,8 @@ from random import shuffle
 
 import uiautomator
 
-from storage import FollowingStatus
-from utils import *
+from src.storage import FollowingStatus
+from src.utils import *
 
 
 def handle_blogger(device,
@@ -12,13 +12,15 @@ def handle_blogger(device,
                    likes_count,
                    follow_percentage,
                    storage,
+                   profile_filter,
                    on_like,
                    on_interaction):
     is_myself = username is None
     interaction = partial(_interact_with_user,
                           likes_count=likes_count,
                           follow_percentage=follow_percentage,
-                          on_like=on_like)
+                          on_like=on_like,
+                          profile_filter=profile_filter)
 
     if not _open_user_followers(device, username):
         return
@@ -158,10 +160,19 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
             return
 
 
-def _interact_with_user(device, username, likes_count, on_like, can_follow, follow_percentage) -> (bool, bool):
+def _interact_with_user(device,
+                        username,
+                        likes_count,
+                        on_like,
+                        can_follow,
+                        follow_percentage,
+                        profile_filter) -> (bool, bool):
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
     """
+    if not profile_filter.check_profile(device, username):
+        return False, False
+
     if likes_count > 12:
         print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
         likes_count = 12

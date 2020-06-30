@@ -12,12 +12,13 @@ from socket import timeout
 import colorama
 import uiautomator
 
-from action_get_my_username import get_my_username
-from action_handle_blogger import handle_blogger
-from action_unfollow import unfollow
-from session_state import SessionState
-from storage import Storage
-from utils import *
+from src.action_get_my_username import get_my_username
+from src.action_handle_blogger import handle_blogger
+from src.action_unfollow import unfollow
+from src.filter import Filter
+from src.session_state import SessionState
+from src.storage import Storage
+from src.utils import *
 
 device_id = None
 sessions = []
@@ -61,6 +62,7 @@ def main():
             print("Action: unfollow " + str(args.unfollow_non_followers) + " non followers")
             mode = Mode.UNFOLLOW_NON_FOLLOWERS
 
+    profile_filter = Filter()
     on_interaction = partial(_on_interaction,
                              interactions_limit=int(args.interactions_count),
                              likes_limit=int(args.total_likes_limit))
@@ -81,6 +83,7 @@ def main():
                                  int(args.likes_count),
                                  int(args.follow_percentage),
                                  storage,
+                                 profile_filter,
                                  on_interaction)
         elif mode == Mode.UNFOLLOW:
             _job_unfollow(device, int(args.unfollow), storage, only_non_followers=False)
@@ -108,7 +111,7 @@ def main():
     _print_report()
 
 
-def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, storage, on_interaction):
+def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, storage, profile_filter, on_interaction):
     class State:
         def __init__(self):
             pass
@@ -134,7 +137,14 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 username = None
                 if not is_myself:
                     username = blogger
-                handle_blogger(device, username, likes_count, follow_percentage, storage, _on_like, on_interaction)
+                handle_blogger(device,
+                               username,
+                               likes_count,
+                               follow_percentage,
+                               storage,
+                               profile_filter,
+                               _on_like,
+                               on_interaction)
                 completed = True
             except KeyboardInterrupt:
                 print_copyright(session_state.my_username)

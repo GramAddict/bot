@@ -1,5 +1,5 @@
-from storage import FollowingStatus
-from utils import *
+from src.storage import FollowingStatus
+from src.utils import *
 
 
 def unfollow(device, count, on_unfollow, storage, only_non_followers, my_username):
