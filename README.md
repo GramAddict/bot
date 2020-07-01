@@ -79,7 +79,7 @@ Full list of command line arguments:
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(patrons only)**
+- [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(unblocks after donation)**
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
