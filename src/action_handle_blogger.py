@@ -265,28 +265,25 @@ def _open_photo_and_like(device, row, column, on_like):
 
 
 def _scroll_profile(device):
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
-                     className='android.widget.LinearLayout')
-
-    try:
-        profile_tabs_container = device(resourceId='com.instagram.android:id/profile_tabs_container',
-                                        className='android.widget.LinearLayout')
-        profile_tabs_container_top = profile_tabs_container.bounds['top']
-    except uiautomator.JsonRPCError:
+    profile_tab_layout = device(resourceId='com.instagram.android:id/profile_tab_layout',
+                                className='android.widget.HorizontalScrollView')
+    if not profile_tab_layout.exists:
         print(COLOR_OKGREEN + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
         return False
 
-    action_bar_container = device(resourceId='com.instagram.android:id/action_bar_container',
-                                  className='android.widget.FrameLayout')
-    action_bar_container_bottom = action_bar_container.bounds['bottom']
+    profile_tab_layout_top = profile_tab_layout.bounds['top']
+    profile_tab_layout_bottom = profile_tab_layout.bounds['bottom']
+    profile_tab_layout_right = profile_tab_layout.bounds['right']
 
-    x1 = (tab_bar.bounds['right'] - tab_bar.bounds['left']) / 2
-    y1 = tab_bar.bounds['top'] - 1
+    action_bar_text_view = device(resourceId='com.instagram.android:id/action_bar_textview_title',
+                                  className='android.widget.TextView')
+    action_bar_text_view_bottom = action_bar_text_view.bounds['bottom']
 
-    vertical_offset = profile_tabs_container_top - action_bar_container_bottom
+    x1 = profile_tab_layout_right / 2
+    y1 = profile_tab_layout_bottom + 1
 
     x2 = x1
-    y2 = y1 - vertical_offset
+    y2 = y1 - profile_tab_layout_top + action_bar_text_view_bottom + 1
 
     device.swipe(x1, y1, x2, y2)
     return True
