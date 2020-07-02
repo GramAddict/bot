@@ -29,7 +29,7 @@ class Storage:
             return False
 
         last_interaction = datetime.strptime(user[USER_LAST_INTERACTION], '%Y-%m-%d %H:%M:%S.%f')
-        return datetime.now() - last_interaction <= timedelta(weeks=1)
+        return datetime.now() - last_interaction <= timedelta(days=3)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
