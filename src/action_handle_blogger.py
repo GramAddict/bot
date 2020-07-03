@@ -178,8 +178,13 @@ def _interact_with_user(device,
         likes_count = 12
 
     random_sleep()
-    print("Scroll down to see more photos.")
-    device(scrollable=True).scroll()
+    list_view = device(scrollable=True)
+    if list_view.exists:
+        print("Scroll down to see more photos.")
+        list_view.scroll()
+    else:
+        print(COLOR_OKGREEN + "Private / empty account. Skip user.")
+        return False, False
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
