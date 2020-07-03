@@ -227,8 +227,8 @@ def _parse_arguments():
                         metavar='2',
                         default=2)
     parser.add_argument('--total-likes-limit',
-                        help='limit on total amount of likes during the session, 1000 by default',
-                        metavar='1000',
+                        help='limit on total amount of likes during the session, 300 by default',
+                        metavar='300',
                         default=1000)
     parser.add_argument('--interactions-count',
                         help='number of interactions per each blogger, 100 by default',
