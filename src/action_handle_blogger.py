@@ -179,8 +179,7 @@ def _interact_with_user(device,
 
     random_sleep()
     print("Scroll down to see more photos.")
-    if not _scroll_profile(device):
-        return False, False
+    device(scrollable=True).scroll()
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
@@ -218,12 +217,15 @@ def _open_photo_and_like(device, row, column, on_like):
         # 'android.view.View' on Android 5.0.1 and probably earlier versions
         recycler_view = device(resourceId='android:id/list')
         row_view = recycler_view.child(index=row + 1)
+        if not row_view.exists:
+            return False
         item_view = row_view.child(index=column)
+        if not item_view.exists:
+            return False
         item_view.click.wait()
+        return True
 
-    try:
-        open_photo()
-    except uiautomator.JsonRPCError:
+    if not open_photo():
         return False
 
     random_sleep()
@@ -261,31 +263,6 @@ def _open_photo_and_like(device, row, column, on_like):
     on_like()
     print("Back to profile")
     device.press.back()
-    return True
-
-
-def _scroll_profile(device):
-    profile_tab_layout = device(resourceId='com.instagram.android:id/profile_tab_layout',
-                                className='android.widget.HorizontalScrollView')
-    if not profile_tab_layout.exists:
-        print(COLOR_OKGREEN + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
-        return False
-
-    profile_tab_layout_top = profile_tab_layout.bounds['top']
-    profile_tab_layout_bottom = profile_tab_layout.bounds['bottom']
-    profile_tab_layout_right = profile_tab_layout.bounds['right']
-
-    action_bar_text_view = device(resourceId='com.instagram.android:id/action_bar_textview_title',
-                                  className='android.widget.TextView')
-    action_bar_text_view_bottom = action_bar_text_view.bounds['bottom']
-
-    x1 = profile_tab_layout_right / 2
-    y1 = profile_tab_layout_bottom + 1
-
-    x2 = x1
-    y2 = y1 - profile_tab_layout_top + action_bar_text_view_bottom + 1
-
-    device.swipe(x1, y1, x2, y2)
     return True
 
 
