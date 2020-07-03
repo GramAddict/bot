@@ -50,9 +50,9 @@ Full list of command line arguments:
                         list of usernames with whose followers you want to
                         interact
   --likes-count 2       number of likes for each interacted user, 2 by default
-  --total-likes-limit 1000
-                        limit on total amount of likes during the session,
-                        1000 by default
+  --total-likes-limit 300
+                        limit on total amount of likes during the session, 300
+                        by default
   --interactions-count 100
                         number of interactions per each blogger, 100 by
                         default
