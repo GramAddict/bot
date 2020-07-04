@@ -178,12 +178,12 @@ def _interact_with_user(device,
         likes_count = 12
 
     random_sleep()
-    list_view = device(scrollable=True)
+    list_view = device(resourceId='android:id/list')
     if list_view.exists:
         print("Scroll down to see more photos.")
         list_view.scroll()
     else:
-        print(COLOR_OKGREEN + "Private / empty account. Skip user.")
+        print(COLOR_OKGREEN + "Private / empty account. Skip user." + COLOR_ENDC)
         return False, False
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
