@@ -147,6 +147,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                                on_interaction)
                 completed = True
             except KeyboardInterrupt:
+                close_instagram()
                 print_copyright(session_state.my_username)
                 print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------"
                                + COLOR_ENDC)
@@ -163,6 +164,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 get_my_username(device)
             except Exception as e:
                 take_screenshot(device)
+                close_instagram()
                 _print_report()
                 raise e
 
@@ -193,6 +195,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
             completed = True
         except KeyboardInterrupt:
+            close_instagram()
             print_copyright(session_state.my_username)
             print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
             _print_report()
@@ -208,6 +211,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             get_my_username(device)
         except Exception as e:
             take_screenshot(device)
+            close_instagram()
             _print_report()
             raise e
 
