@@ -178,8 +178,12 @@ def _interact_with_user(device,
         likes_count = 12
 
     random_sleep()
-    print("Scroll down to see more photos.")
-    if not _scroll_profile(device):
+    coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
+    if coordinator_layout.exists:
+        print("Scroll down to see more photos.")
+        coordinator_layout.scroll()
+    else:
+        print(COLOR_OKGREEN + "Private / empty account. Skip user." + COLOR_ENDC)
         return False, False
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
@@ -218,12 +222,15 @@ def _open_photo_and_like(device, row, column, on_like):
         # 'android.view.View' on Android 5.0.1 and probably earlier versions
         recycler_view = device(resourceId='android:id/list')
         row_view = recycler_view.child(index=row + 1)
+        if not row_view.exists:
+            return False
         item_view = row_view.child(index=column)
+        if not item_view.exists:
+            return False
         item_view.click.wait()
+        return True
 
-    try:
-        open_photo()
-    except uiautomator.JsonRPCError:
+    if not open_photo():
         return False
 
     random_sleep()
@@ -261,34 +268,6 @@ def _open_photo_and_like(device, row, column, on_like):
     on_like()
     print("Back to profile")
     device.press.back()
-    return True
-
-
-def _scroll_profile(device):
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
-                     className='android.widget.LinearLayout')
-
-    try:
-        profile_tabs_container = device(resourceId='com.instagram.android:id/profile_tabs_container',
-                                        className='android.widget.LinearLayout')
-        profile_tabs_container_top = profile_tabs_container.bounds['top']
-    except uiautomator.JsonRPCError:
-        print(COLOR_OKGREEN + "Cannot scroll: empty / private account. Skip user." + COLOR_ENDC)
-        return False
-
-    action_bar_container = device(resourceId='com.instagram.android:id/action_bar_container',
-                                  className='android.widget.FrameLayout')
-    action_bar_container_bottom = action_bar_container.bounds['bottom']
-
-    x1 = (tab_bar.bounds['right'] - tab_bar.bounds['left']) / 2
-    y1 = tab_bar.bounds['top'] - 1
-
-    vertical_offset = profile_tabs_container_top - action_bar_container_bottom
-
-    x2 = x1
-    y2 = y1 - vertical_offset
-
-    device.swipe(x1, y1, x2, y2)
     return True
 
 
