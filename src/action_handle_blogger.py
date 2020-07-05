@@ -178,10 +178,10 @@ def _interact_with_user(device,
         likes_count = 12
 
     random_sleep()
-    list_view = device(resourceId='android:id/list')
-    if list_view.exists:
+    coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
+    if coordinator_layout.exists:
         print("Scroll down to see more photos.")
-        list_view.scroll()
+        coordinator_layout.scroll()
     else:
         print(COLOR_OKGREEN + "Private / empty account. Skip user." + COLOR_ENDC)
         return False, False
