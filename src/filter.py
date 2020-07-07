@@ -11,6 +11,7 @@ FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
 FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
+FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 
 
 class Filter:
@@ -71,6 +72,13 @@ class Filter:
                                str(field_min_potency_ratio) + ", skip." + COLOR_ENDC)
                 return False
         return True
+
+    def can_follow_private_or_empty(self):
+        if self.conditions is None:
+            return False
+
+        field_follow_private_or_empty = self.conditions.get(FIELD_FOLLOW_PRIVATE_OR_EMPTY)
+        return field_follow_private_or_empty is not None and bool(field_follow_private_or_empty)
 
     @staticmethod
     def _get_followers_and_followings(username):

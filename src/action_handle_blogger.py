@@ -183,8 +183,13 @@ def _interact_with_user(device,
         print("Scroll down to see more photos.")
         coordinator_layout.scroll()
     else:
-        print(COLOR_OKGREEN + "Private / empty account. Skip user." + COLOR_ENDC)
-        return False, False
+        print(COLOR_OKGREEN + "Private / empty account." + COLOR_ENDC)
+        followed = _follow(device,
+                           username,
+                           follow_percentage) if profile_filter.can_follow_private_or_empty() else False
+        if not followed:
+            print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
+        return False, followed
 
     number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
@@ -198,20 +203,16 @@ def _interact_with_user(device,
 
         print("Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)")
         if not _open_photo_and_like(device, row, column, on_like):
-            print(COLOR_OKGREEN + "Less than " + str(number_of_rows_to_use * 3) + " photos. Skip user." + COLOR_ENDC)
-            return False, False
+            print(COLOR_OKGREEN + "Less than " + str(number_of_rows_to_use * 3) + " photos." + COLOR_ENDC)
+            followed = _follow(device,
+                               username,
+                               follow_percentage) if profile_filter.can_follow_private_or_empty() else False
+            if not followed:
+                print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
+            return False, followed
 
     if can_follow:
-        follow_chance = randint(1, 100)
-        if follow_chance <= follow_percentage:
-            print("Following...")
-            followed = _do_follow(device)
-            if followed:
-                print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
-                random_sleep()
-                return True, True
-            else:
-                print(COLOR_FAIL + "Failed @" + username + " following." + COLOR_ENDC)
+        return True, _follow(device, username, follow_percentage)
 
     return True, False
 
@@ -271,9 +272,15 @@ def _open_photo_and_like(device, row, column, on_like):
     return True
 
 
-def _do_follow(device):
-    recycler_view = device(resourceId='android:id/list')
-    recycler_view.scroll.toBeginning()
+def _follow(device, username, follow_percentage):
+    follow_chance = randint(1, 100)
+    if follow_chance > follow_percentage:
+        return False
+
+    print("Following...")
+    coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
+    if coordinator_layout.exists:
+        coordinator_layout.scroll.toBeginning()
 
     profile_actions = device(resourceId='com.instagram.android:id/profile_header_actions_top_row',
                              className='android.widget.LinearLayout')
@@ -281,6 +288,9 @@ def _do_follow(device):
 
     if follow_button.exists:
         follow_button.click.wait()
+        print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
+        random_sleep()
         return True
-
-    return False
+    else:
+        print_timeless(COLOR_FAIL + "Failed @" + username + " following." + COLOR_ENDC)
+        return False
