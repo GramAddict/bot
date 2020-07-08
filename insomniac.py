@@ -90,7 +90,7 @@ def main():
         elif mode == Mode.UNFOLLOW_NON_FOLLOWERS:
             _job_unfollow(device, int(args.unfollow_non_followers), storage, only_non_followers=True)
 
-        close_instagram()
+        close_instagram(device_id)
         print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
         print_timeless(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
@@ -147,7 +147,7 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                                on_interaction)
                 completed = True
             except KeyboardInterrupt:
-                close_instagram()
+                close_instagram(device_id)
                 print_copyright(session_state.my_username)
                 print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------"
                                + COLOR_ENDC)
@@ -158,13 +158,13 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                 take_screenshot(device)
                 print("Try again for @" + blogger + " from the beginning")
                 # Hack for the case when IGTV was accidentally opened
-                close_instagram()
+                close_instagram(device_id)
                 random_sleep()
                 open_instagram(device_id)
                 get_my_username(device)
             except Exception as e:
                 take_screenshot(device)
-                close_instagram()
+                close_instagram(device_id)
                 _print_report()
                 raise e
 
@@ -195,7 +195,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
             completed = True
         except KeyboardInterrupt:
-            close_instagram()
+            close_instagram(device_id)
             print_copyright(session_state.my_username)
             print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
             _print_report()
@@ -205,13 +205,13 @@ def _job_unfollow(device, count, storage, only_non_followers):
             take_screenshot(device)
             print("Try unfollowing again, " + str(count - state.unfollowed_count) + " users left")
             # Hack for the case when IGTV was accidentally opened
-            close_instagram()
+            close_instagram(device_id)
             random_sleep()
             open_instagram(device_id)
             get_my_username(device)
         except Exception as e:
             take_screenshot(device)
-            close_instagram()
+            close_instagram(device_id)
             _print_report()
             raise e
 

@@ -67,9 +67,10 @@ def open_instagram(device_id):
     random_sleep()
 
 
-def close_instagram():
+def close_instagram(device_id):
     print("Close Instagram app")
-    os.popen("adb shell am force-stop com.instagram.android").close()
+    os.popen("adb" + ("" if device_id is None else " -s " + device_id) +
+             " shell am force-stop com.instagram.android").close()
 
 
 def stringify_interactions(interactions):
