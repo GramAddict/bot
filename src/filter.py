@@ -84,9 +84,21 @@ class Filter:
     def _get_followers_and_followings(username):
         url = 'https://www.instagram.com/' + username
         with urllib.request.urlopen(url) as response:
-            html = str(response.read())
-            followers = int(re.search('"edge_followed_by":{"count":([0-9]+)}', html).group(1))
-            followings = int(re.search('"edge_follow":{"count":([0-9]+)}', html).group(1))
+            html = str(response.read(), "utf-8")
+
+            followers_search_result = re.search('"edge_followed_by":{"count":([0-9]+)}', html)
+            if followers_search_result:
+                followers = int(followers_search_result.group(1))
+            else:
+                print_timeless(COLOR_FAIL + "Cannot get followers count from the html page" + COLOR_ENDC)
+                followers = 0
+
+            followings_search_result = re.search('"edge_follow":{"count":([0-9]+)}', html)
+            if followings_search_result:
+                followings = int(followings_search_result.group(1))
+            else:
+                print_timeless(COLOR_FAIL + "Cannot get followings count from the html page" + COLOR_ENDC)
+                followings = 0
         return followers, followings
 
     @staticmethod
