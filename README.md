@@ -53,9 +53,9 @@ Full list of command line arguments:
   --total-likes-limit 300
                         limit on total amount of likes during the session, 300
                         by default
-  --interactions-count 100
-                        number of interactions per each blogger, 100 by
-                        default
+  --interactions-count 70
+                        number of interactions per each blogger, 70 by
+                        default. Only successful interactions count
   --repeat 180          repeat the same session again after N minutes after
                         completion, disabled by default
   --follow-percentage 50
