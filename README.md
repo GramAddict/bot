@@ -79,7 +79,7 @@ Full list of command line arguments:
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [Private accounts are always skipped. Can I make them be followed too?](https://www.patreon.com/posts/enable-private-39097751) **(at least $5 donation required)**
+- [Private accounts are always skipped. How to make them be followed too?](https://www.patreon.com/posts/enable-private-39097751) **(at least $5 donation required)**
 - [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(at least $5 donation required)**
 
 ### Features in progress
