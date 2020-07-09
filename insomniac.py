@@ -235,9 +235,10 @@ def _parse_arguments():
                         metavar='300',
                         default=1000)
     parser.add_argument('--interactions-count',
-                        help='number of interactions per each blogger, 100 by default',
-                        metavar='100',
-                        default=100)
+                        help='number of interactions per each blogger, 70 by default. Only successful interactions'
+                             ' count',
+                        metavar='70',
+                        default=70)
     parser.add_argument('--repeat',
                         help='repeat the same session again after N minutes after completion, disabled by default',
                         metavar='180')
@@ -278,7 +279,7 @@ def _on_like():
     session_state.totalLikes += 1
 
 
-def _on_interaction(blogger, succeed, followed, count, interactions_limit, likes_limit, on_likes_limit_reached):
+def _on_interaction(blogger, succeed, followed, interactions_limit, likes_limit, on_likes_limit_reached):
     session_state = sessions[-1]
     session_state.add_interaction(blogger, succeed, followed)
 
@@ -289,8 +290,9 @@ def _on_interaction(blogger, succeed, followed, count, interactions_limit, likes
         on_likes_limit_reached()
         can_continue = False
 
-    if count >= interactions_limit:
-        print("Made " + str(count) + " interactions, finish.")
+    successful_interactions_count = session_state.get_successful_interactions_count()
+    if successful_interactions_count >= interactions_limit:
+        print("Made " + str(successful_interactions_count) + " successful interactions, finish.")
         can_continue = False
 
     return can_continue

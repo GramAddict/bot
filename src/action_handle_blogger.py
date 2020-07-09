@@ -93,7 +93,6 @@ def _scroll_to_bottom(device):
 
 def _iterate_over_followers(device, interaction, storage, on_interaction, is_myself):
     followers_per_screen = None
-    interactions_count = 0
 
     def scrolled_to_top():
         row_search = device(resourceId='com.instagram.android:id/row_search_edit_text',
@@ -128,10 +127,8 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
                 can_follow = not is_myself and storage.get_following_status(username) == FollowingStatus.NONE
                 interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
                 storage.add_interacted_user(username, followed=followed)
-                interactions_count += 1
                 can_continue = on_interaction(succeed=interaction_succeed,
-                                              followed=followed,
-                                              count=interactions_count)
+                                              followed=followed)
 
                 if not can_continue:
                     return

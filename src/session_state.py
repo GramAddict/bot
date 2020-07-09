@@ -36,5 +36,8 @@ class SessionState:
         if followed:
             self.totalFollowed += 1
 
+    def get_successful_interactions_count(self):
+        return sum(self.successfulInteractions.values())
+
     def is_finished(self):
         return self.finishTime is not None
