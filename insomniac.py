@@ -1,6 +1,7 @@
 # Since of v1.2.3 this script works on Python 3
 
 import argparse
+import random
 import sys
 import traceback
 from datetime import timedelta
@@ -15,7 +16,9 @@ import uiautomator
 from src.action_get_my_username import get_my_username
 from src.action_handle_blogger import handle_blogger
 from src.action_unfollow import unfollow
+from src.counters_parser import LanguageChangedException
 from src.filter import Filter
+from src.navigation import navigate, Tabs
 from src.session_state import SessionState
 from src.storage import Storage
 from src.utils import *
@@ -25,6 +28,7 @@ sessions = []
 
 
 def main():
+    random.seed()
     colorama.init()
     print_timeless(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
 
@@ -130,43 +134,23 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
         is_myself = blogger == session_state.my_username
         print_timeless("")
         print(COLOR_BOLD + "Handle @" + blogger + (is_myself and " (it\'s you)" or "") + COLOR_ENDC)
-        completed = False
         on_interaction = partial(on_interaction, blogger=blogger)
-        while not completed and not state.is_job_completed:
-            try:
-                username = None
-                if not is_myself:
-                    username = blogger
-                handle_blogger(device,
-                               username,
-                               likes_count,
-                               follow_percentage,
-                               storage,
-                               profile_filter,
-                               _on_like,
-                               on_interaction)
-                completed = True
-            except KeyboardInterrupt:
-                close_instagram(device_id)
-                print_copyright(session_state.my_username)
-                print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------"
-                               + COLOR_ENDC)
-                _print_report()
-                sys.exit(0)
-            except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
-                print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
-                take_screenshot(device)
-                print("Try again for @" + blogger + " from the beginning")
-                # Hack for the case when IGTV was accidentally opened
-                close_instagram(device_id)
-                random_sleep()
-                open_instagram(device_id)
-                get_my_username(device)
-            except Exception as e:
-                take_screenshot(device)
-                close_instagram(device_id)
-                _print_report()
-                raise e
+
+        @_run_safely(device=device)
+        def job():
+            handle_blogger(device,
+                           blogger,
+                           session_state.my_username,
+                           likes_count,
+                           follow_percentage,
+                           storage,
+                           profile_filter,
+                           _on_like,
+                           on_interaction)
+            state.is_job_completed = True
+
+        while not state.is_job_completed:
+            job()
 
 
 def _job_unfollow(device, count, storage, only_non_followers):
@@ -175,6 +159,7 @@ def _job_unfollow(device, count, storage, only_non_followers):
             pass
 
         unfollowed_count = 0
+        is_job_completed = False
 
     state = State()
     session_state = sessions[-1]
@@ -183,37 +168,19 @@ def _job_unfollow(device, count, storage, only_non_followers):
         state.unfollowed_count += 1
         session_state.totalUnfollowed += 1
 
-    completed = False
-    while not completed and state.unfollowed_count < count:
-        try:
-            unfollow(device,
-                     count - state.unfollowed_count,
-                     on_unfollow,
-                     storage,
-                     only_non_followers,
-                     session_state.my_username)
-            print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
-            completed = True
-        except KeyboardInterrupt:
-            close_instagram(device_id)
-            print_copyright(session_state.my_username)
-            print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" + COLOR_ENDC)
-            _print_report()
-            sys.exit(0)
-        except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
-            print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
-            take_screenshot(device)
-            print("Try unfollowing again, " + str(count - state.unfollowed_count) + " users left")
-            # Hack for the case when IGTV was accidentally opened
-            close_instagram(device_id)
-            random_sleep()
-            open_instagram(device_id)
-            get_my_username(device)
-        except Exception as e:
-            take_screenshot(device)
-            close_instagram(device_id)
-            _print_report()
-            raise e
+    @_run_safely(device=device)
+    def job():
+        unfollow(device,
+                 count - state.unfollowed_count,
+                 on_unfollow,
+                 storage,
+                 only_non_followers,
+                 session_state.my_username)
+        print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
+        state.is_job_completed = True
+
+    while not state.is_job_completed and state.unfollowed_count < count:
+        job()
 
 
 def _parse_arguments():
@@ -354,6 +321,41 @@ def _print_report():
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     print_timeless(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
+
+
+def _run_safely(device):
+    def actual_decorator(func):
+        def wrapper(*args, **kwargs):
+            session_state = sessions[-1]
+            try:
+                func(*args, **kwargs)
+            except KeyboardInterrupt:
+                close_instagram(device_id)
+                print_copyright(session_state.my_username)
+                print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" +
+                               COLOR_ENDC)
+                _print_report()
+                sys.exit(0)
+            except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
+                print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
+                take_screenshot(device)
+                print("No idea what it was. Let's try again.")
+                # Hack for the case when IGTV was accidentally opened
+                close_instagram(device_id)
+                random_sleep()
+                open_instagram(device_id)
+                navigate(device, Tabs.PROFILE)
+            except LanguageChangedException:
+                print_timeless("")
+                print("Language was changed. We'll have to start from the beginning.")
+                navigate(device, Tabs.PROFILE)
+            except Exception as e:
+                take_screenshot(device)
+                close_instagram(device_id)
+                _print_report()
+                raise e
+        return wrapper
+    return actual_decorator
 
 
 @unique

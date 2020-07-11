@@ -1,15 +1,9 @@
+from src.navigation import navigate, Tabs
 from src.utils import *
 
 
 def get_my_username(device):
-    print("Press profile")
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
-    profile_button = tab_bar.child(index=4)
-
-    # Two clicks to reset tab content
-    profile_button.click.wait()
-    profile_button.click.wait()
-
+    navigate(device, Tabs.PROFILE)
     title_view = device(resourceId='com.instagram.android:id/title_view',
                         className='android.widget.TextView')
     if title_view.exists:

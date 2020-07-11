@@ -3,20 +3,23 @@ from random import shuffle
 
 import uiautomator
 
+from src.navigation import navigate, Tabs
 from src.storage import FollowingStatus
 from src.utils import *
 
 
 def handle_blogger(device,
                    username,
+                   my_username,
                    likes_count,
                    follow_percentage,
                    storage,
                    profile_filter,
                    on_like,
                    on_interaction):
-    is_myself = username is None
+    is_myself = username == my_username
     interaction = partial(_interact_with_user,
+                          my_username=my_username,
                           likes_count=likes_count,
                           follow_percentage=follow_percentage,
                           on_like=on_like,
@@ -36,13 +39,7 @@ def _open_user_followers(device, username):
                                   className='android.widget.LinearLayout')
         followers_button.click.wait()
     else:
-        print("Press search")
-        tab_bar = device(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
-        search_button = tab_bar.child(index=1)
-
-        # Two clicks to reset tab content
-        search_button.click.wait()
-        search_button.click.wait()
+        navigate(device, Tabs.SEARCH)
 
         print("Open user @" + username)
         search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
@@ -159,6 +156,7 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
 
 def _interact_with_user(device,
                         username,
+                        my_username,
                         likes_count,
                         on_like,
                         can_follow,
@@ -167,6 +165,12 @@ def _interact_with_user(device,
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
     """
+    if username == my_username:
+        print("It's you, skip.")
+        return False, False
+
+    random_sleep()
+
     if not profile_filter.check_profile(device, username):
         return False, False
 
@@ -174,7 +178,6 @@ def _interact_with_user(device,
         print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
         likes_count = 12
 
-    random_sleep()
     coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
     if coordinator_layout.exists:
         print("Scroll down to see more photos.")
@@ -285,6 +288,12 @@ def _follow(device, username, follow_percentage):
 
     if follow_button.exists:
         follow_button.click.wait()
+        bottom_sheet = device(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
+                              className='android.widget.FrameLayout')
+        if bottom_sheet.exists:
+            print_timeless(COLOR_FAIL + "Already followed" + COLOR_ENDC)
+            device.press.back()
+            return False
         print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
         random_sleep()
         return True
