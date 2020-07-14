@@ -125,16 +125,18 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
             pass
 
         is_job_completed = False
+        is_likes_limit_reached = False
 
-    state = State()
+    state = None
     session_state = sessions[-1]
 
     def on_likes_limit_reached():
-        state.is_job_completed = True
+        state.is_likes_limit_reached = True
 
     on_interaction = partial(on_interaction, on_likes_limit_reached=on_likes_limit_reached)
 
     for blogger in bloggers:
+        state = State()
         is_myself = blogger == session_state.my_username
         print_timeless("")
         print(COLOR_BOLD + "Handle @" + blogger + (is_myself and " (it\'s you)" or "") + COLOR_ENDC)
@@ -153,8 +155,11 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
                            on_interaction)
             state.is_job_completed = True
 
-        while not state.is_job_completed:
+        while not state.is_job_completed and not state.is_likes_limit_reached:
             job()
+
+        if state.is_likes_limit_reached:
+            break
 
 
 def _job_unfollow(device, count, storage, only_non_followers):
@@ -261,8 +266,8 @@ def _on_interaction(blogger, succeed, followed, interactions_limit, likes_limit,
         on_likes_limit_reached()
         can_continue = False
 
-    successful_interactions_count = session_state.get_successful_interactions_count()
-    if successful_interactions_count >= interactions_limit:
+    successful_interactions_count = session_state.successfulInteractions.get(blogger)
+    if successful_interactions_count and successful_interactions_count >= interactions_limit:
         print("Made " + str(successful_interactions_count) + " successful interactions, finish.")
         can_continue = False
 
