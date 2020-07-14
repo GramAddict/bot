@@ -13,18 +13,19 @@ from socket import timeout
 import colorama
 import uiautomator
 
-from src.action_get_my_username import get_my_username
+from src.action_get_my_profile_info import get_my_profile_info
 from src.action_handle_blogger import handle_blogger
 from src.action_unfollow import unfollow
 from src.counters_parser import LanguageChangedException
 from src.filter import Filter
 from src.navigation import navigate, Tabs
-from src.session_state import SessionState
+from src.persistent_list import PersistentList
+from src.session_state import SessionState, SessionStateEncoder
 from src.storage import Storage
 from src.utils import *
 
 device_id = None
-sessions = []
+sessions = PersistentList("sessions", SessionStateEncoder)
 
 
 def main():
@@ -73,11 +74,12 @@ def main():
 
     while True:
         session_state = SessionState()
+        session_state.args = args.__dict__
         sessions.append(session_state)
 
         print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram(device_id)
-        session_state.my_username = get_my_username(device)
+        session_state.my_username, session_state.my_followers_count = get_my_profile_info(device)
         storage = Storage(session_state.my_username)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -108,11 +110,13 @@ def main():
                 sleep(60 * repeat)
             except KeyboardInterrupt:
                 _print_report()
+                sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
         else:
             break
 
     _print_report()
+    sessions.persist(directory=session_state.my_username)
 
 
 def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, storage, profile_filter, on_interaction):
@@ -196,23 +200,23 @@ def _parse_arguments():
     parser.add_argument('--likes-count',
                         help='number of likes for each interacted user, 2 by default',
                         metavar='2',
-                        default=2)
+                        default='2')
     parser.add_argument('--total-likes-limit',
                         help='limit on total amount of likes during the session, 300 by default',
                         metavar='300',
-                        default=1000)
+                        default='1000')
     parser.add_argument('--interactions-count',
                         help='number of interactions per each blogger, 70 by default. Only successful interactions'
                              ' count',
                         metavar='70',
-                        default=70)
+                        default='70')
     parser.add_argument('--repeat',
                         help='repeat the same session again after N minutes after completion, disabled by default',
                         metavar='180')
     parser.add_argument('--follow-percentage',
                         help='follow given percentage of interacted users, 0 by default',
                         metavar='50',
-                        default=0)
+                        default='0')
     parser.add_argument('--unfollow',
                         help='unfollow at most given number of users. Only users followed by this script will '
                              'be unfollowed. The order is from oldest to newest followings',
@@ -335,6 +339,7 @@ def _run_safely(device):
                 print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" +
                                COLOR_ENDC)
                 _print_report()
+                sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
@@ -353,6 +358,7 @@ def _run_safely(device):
                 take_screenshot(device)
                 close_instagram(device_id)
                 _print_report()
+                sessions.persist(directory=session_state.my_username)
                 raise e
         return wrapper
     return actual_decorator

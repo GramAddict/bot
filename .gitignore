@@ -1,6 +1,7 @@
 /venv*
 /.idea
 interacted_users.*
+sessions.json
 *.pyc
 .DS_Store
 screenshots
