@@ -36,25 +36,37 @@ def _switch_to_english(device):
                              className='android.widget.TextView')
     settings_button.click.wait()
 
-    list_view = device(resourceId='android:id/list',
-                       className='android.widget.ListView')
-    account_item = list_view.child(index=6)
-    account_item.click.wait()
+    for account_item_index in range(6, 9):
+        list_view = device(resourceId='android:id/list',
+                           className='android.widget.ListView')
+        account_item = list_view.child(index=account_item_index)
+        account_item.click.wait()
 
-    list_view = device(resourceId='android:id/list',
-                       className='android.widget.ListView')
-    language_item = list_view.child(index=3)
-    language_item.click.wait()
+        list_view = device(resourceId='android:id/list',
+                           className='android.widget.ListView')
+        language_item = list_view.child(index=3)
+        if not language_item.exists:
+            print(COLOR_FAIL + "Oops, went the wrong way" + COLOR_ENDC)
+            device.press.back()
+            continue
+        language_item.click.wait()
 
-    search_edit_text = device(resourceId='com.instagram.android:id/search',
-                              className='android.widget.EditText')
-    search_edit_text.set_text("english")
-    device.wait.idle()
+        search_edit_text = device(resourceId='com.instagram.android:id/search',
+                                  className='android.widget.EditText')
+        if not search_edit_text.exists:
+            print(COLOR_FAIL + "Oops, went the wrong way" + COLOR_ENDC)
+            device.press.back()
+            device.press.back()
+            continue
+        search_edit_text.set_text("english")
+        device.wait.idle()
 
-    list_view = device(resourceId='com.instagram.android:id/language_locale_list',
-                       className='android.widget.ListView')
-    english_item = list_view.child(index=0)
-    english_item.click.wait()
+        list_view = device(resourceId='com.instagram.android:id/language_locale_list',
+                           className='android.widget.ListView')
+        english_item = list_view.child(index=0)
+        english_item.click.wait()
+
+        break
 
 
 class LanguageChangedException(Exception):

@@ -1,4 +1,4 @@
-from src.counters_parser import parse
+from src.counters_parser import parse, LanguageChangedException
 from src.navigation import navigate, Tabs
 from src.utils import *
 
@@ -14,6 +14,26 @@ def get_my_profile_info(device):
     else:
         print(COLOR_FAIL + "Failed to get username" + COLOR_ENDC)
 
+    try:
+        followers = _get_followers_count(device)
+    except LanguageChangedException:
+        # Try again on the correct language
+        navigate(device, Tabs.PROFILE)
+        followers = _get_followers_count(device)
+
+    report_string = ""
+    if username:
+        report_string += "Hello, @" + username + "!"
+    if followers:
+        report_string += " You have " + str(followers) + " followers so far."
+
+    if not report_string == "":
+        print(report_string)
+
+    return username, followers
+
+
+def _get_followers_count(device):
     followers = None
     followers_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_followers_count',
                                  className='android.widget.TextView')
@@ -26,13 +46,4 @@ def get_my_profile_info(device):
     else:
         print(COLOR_FAIL + "Cannot find your followers count view" + COLOR_ENDC)
 
-    report_string = ""
-    if username:
-        report_string += "Hello, @" + username + "!"
-    if followers:
-        report_string += " You have " + str(followers) + " followers so far."
-
-    if not report_string == "":
-        print(report_string)
-
-    return username, followers
+    return followers
