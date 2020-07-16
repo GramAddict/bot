@@ -10,8 +10,8 @@ class SessionState:
     my_followers_count = None
     totalInteractions = {}
     successfulInteractions = {}
+    totalFollowed = {}
     totalLikes = 0
-    totalFollowed = 0
     totalUnfollowed = 0
     startTime = None
     finishTime = None
@@ -23,8 +23,8 @@ class SessionState:
         self.my_followers_count = None
         self.totalInteractions = {}
         self.successfulInteractions = {}
+        self.totalFollowed = {}
         self.totalLikes = 0
-        self.totalFollowed = 0
         self.totalUnfollowed = 0
         self.startTime = datetime.now()
         self.finishTime = None
@@ -41,8 +41,11 @@ class SessionState:
             if succeed:
                 self.successfulInteractions[blogger] += 1
 
-        if followed:
-            self.totalFollowed += 1
+        if self.totalFollowed.get(blogger) is None:
+            self.totalFollowed[blogger] = 1 if followed else 0
+        else:
+            if followed:
+                self.totalFollowed[blogger] += 1
 
     def is_finished(self):
         return self.finishTime is not None
@@ -55,8 +58,8 @@ class SessionStateEncoder(JSONEncoder):
             "id": session_state.id,
             "total_interactions": sum(session_state.totalInteractions.values()),
             "successful_interactions": sum(session_state.successfulInteractions.values()),
+            "total_followed": sum(session_state.totalFollowed.values()),
             "total_likes": session_state.totalLikes,
-            "total_followed": session_state.totalFollowed,
             "total_unfollowed": session_state.totalUnfollowed,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),

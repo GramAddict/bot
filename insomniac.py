@@ -4,7 +4,6 @@ import argparse
 import random
 import sys
 import traceback
-from datetime import timedelta
 from enum import Enum, unique
 from functools import partial
 from http.client import HTTPException
@@ -20,6 +19,7 @@ from src.counters_parser import LanguageChangedException
 from src.filter import Filter
 from src.navigation import navigate, Tabs
 from src.persistent_list import PersistentList
+from src.report import print_full_report
 from src.session_state import SessionState, SessionStateEncoder
 from src.storage import Storage
 from src.utils import *
@@ -88,6 +88,7 @@ def main():
                                  args.interact,
                                  int(args.likes_count),
                                  int(args.follow_percentage),
+                                 int(args.follow_limit),
                                  storage,
                                  profile_filter,
                                  on_interaction)
@@ -102,24 +103,31 @@ def main():
         print_timeless(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
 
         if args.repeat:
-            _print_report()
+            print_full_report(sessions)
             repeat = int(args.repeat)
             print_timeless("")
             print("Sleep for " + str(repeat) + " minutes")
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:
-                _print_report()
+                print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
         else:
             break
 
-    _print_report()
+    print_full_report(sessions)
     sessions.persist(directory=session_state.my_username)
 
 
-def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, storage, profile_filter, on_interaction):
+def _job_handle_bloggers(device,
+                         bloggers,
+                         likes_count,
+                         follow_percentage,
+                         follow_limit,
+                         storage,
+                         profile_filter,
+                         on_interaction):
     class State:
         def __init__(self):
             pass
@@ -146,9 +154,10 @@ def _job_handle_bloggers(device, bloggers, likes_count, follow_percentage, stora
         def job():
             handle_blogger(device,
                            blogger,
-                           session_state.my_username,
+                           session_state,
                            likes_count,
                            follow_percentage,
+                           follow_limit,
                            storage,
                            profile_filter,
                            _on_like,
@@ -222,6 +231,10 @@ def _parse_arguments():
                         help='follow given percentage of interacted users, 0 by default',
                         metavar='50',
                         default='0')
+    parser.add_argument('--follow-limit',
+                        help='limit on amount of follows during interaction with each one user\'s followers, '
+                             'disabled by default',
+                        metavar='50')
     parser.add_argument('--unfollow',
                         help='unfollow at most given number of users. Only users followed by this script will '
                              'be unfollowed. The order is from oldest to newest followings',
@@ -274,64 +287,6 @@ def _on_interaction(blogger, succeed, followed, interactions_limit, likes_limit,
     return can_continue
 
 
-def _print_report():
-    if len(sessions) > 1:
-        for index, session in enumerate(sessions):
-            finish_time = session.finishTime or datetime.now()
-            print_timeless("\n")
-            print_timeless(COLOR_WARNING + "SESSION #" + str(index + 1) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Start time: " + str(session.startTime) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Finish time: " + str(finish_time) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(session.totalInteractions)
-                           + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Successful interactions: "
-                           + stringify_interactions(session.successfulInteractions) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total followed: " + str(session.totalFollowed) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total unfollowed: " + str(session.totalUnfollowed) + COLOR_ENDC)
-
-    print_timeless("\n")
-    print_timeless(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
-
-    completed_sessions = [session for session in sessions if session.is_finished()]
-    print_timeless(COLOR_WARNING + "Completed sessions: " + str(len(completed_sessions)) + COLOR_ENDC)
-
-    duration = timedelta(0)
-    for session in sessions:
-        finish_time = session.finishTime or datetime.now()
-        duration += finish_time - session.startTime
-    print_timeless(COLOR_WARNING + "Total duration: " + str(duration) + COLOR_ENDC)
-
-    total_interactions = {}
-    successful_interactions = {}
-    for session in sessions:
-        for blogger, count in session.totalInteractions.items():
-            if total_interactions.get(blogger) is None:
-                total_interactions[blogger] = count
-            else:
-                total_interactions[blogger] += count
-
-        for blogger, count in session.successfulInteractions.items():
-            if successful_interactions.get(blogger) is None:
-                successful_interactions[blogger] = count
-            else:
-                successful_interactions[blogger] += count
-
-    print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
-    print_timeless(COLOR_WARNING + "Successful interactions: " + stringify_interactions(successful_interactions)
-                   + COLOR_ENDC)
-
-    total_likes = sum(session.totalLikes for session in sessions)
-    print_timeless(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
-
-    total_followed = sum(session.totalFollowed for session in sessions)
-    print_timeless(COLOR_WARNING + "Total followed: " + str(total_followed) + COLOR_ENDC)
-
-    total_unfollowed = sum(session.totalUnfollowed for session in sessions)
-    print_timeless(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
-
-
 def _run_safely(device):
     def actual_decorator(func):
         def wrapper(*args, **kwargs):
@@ -343,7 +298,7 @@ def _run_safely(device):
                 print_copyright(session_state.my_username)
                 print_timeless(COLOR_WARNING + "-------- FINISH: " + str(datetime.now().time()) + " --------" +
                                COLOR_ENDC)
-                _print_report()
+                print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
             except (uiautomator.JsonRPCError, IndexError, HTTPException, timeout):
@@ -362,7 +317,7 @@ def _run_safely(device):
             except Exception as e:
                 take_screenshot(device)
                 close_instagram(device_id)
-                _print_report()
+                print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 raise e
         return wrapper

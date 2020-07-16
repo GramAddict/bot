@@ -10,26 +10,31 @@ from src.utils import *
 
 def handle_blogger(device,
                    username,
-                   my_username,
+                   session_state,
                    likes_count,
                    follow_percentage,
+                   follow_limit,
                    storage,
                    profile_filter,
                    on_like,
                    on_interaction):
-    is_myself = username == my_username
+    is_myself = username == session_state.my_username
     interaction = partial(_interact_with_user,
-                          my_username=my_username,
+                          my_username=session_state.my_username,
                           likes_count=likes_count,
                           follow_percentage=follow_percentage,
                           on_like=on_like,
                           profile_filter=profile_filter)
+    is_follow_limit_reached = partial(_is_follow_limit_reached,
+                                      session_state=session_state,
+                                      follow_limit=follow_limit,
+                                      blogger=username)
 
     if not _open_user_followers(device, username):
         return
     if is_myself:
         _scroll_to_bottom(device)
-    _iterate_over_followers(device, interaction, storage, on_interaction, is_myself)
+    _iterate_over_followers(device, interaction, is_follow_limit_reached, storage, on_interaction, is_myself)
 
 
 def _open_user_followers(device, username):
@@ -88,7 +93,7 @@ def _scroll_to_bottom(device):
         list_view.scroll.toBeginning(max_swipes=1)
 
 
-def _iterate_over_followers(device, interaction, storage, on_interaction, is_myself):
+def _iterate_over_followers(device, interaction, is_follow_limit_reached, storage, on_interaction, is_myself):
     followers_per_screen = None
 
     def scrolled_to_top():
@@ -121,7 +126,10 @@ def _iterate_over_followers(device, interaction, storage, on_interaction, is_mys
                 print("@" + username + ": interact")
                 user_name_view.click.wait()
 
-                can_follow = not is_myself and storage.get_following_status(username) == FollowingStatus.NONE
+                can_follow = not is_myself \
+                    and not is_follow_limit_reached() \
+                    and storage.get_following_status(username) == FollowingStatus.NONE
+
                 interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
                 storage.add_interacted_user(username, followed=followed)
                 can_continue = on_interaction(succeed=interaction_succeed,
@@ -291,7 +299,7 @@ def _follow(device, username, follow_percentage):
         bottom_sheet = device(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
                               className='android.widget.FrameLayout')
         if bottom_sheet.exists:
-            print_timeless(COLOR_FAIL + "Already followed" + COLOR_ENDC)
+            print(COLOR_OKGREEN + "Already followed" + COLOR_ENDC)
             device.press.back()
             return False
         print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
@@ -300,3 +308,11 @@ def _follow(device, username, follow_percentage):
     else:
         print_timeless(COLOR_FAIL + "Failed @" + username + " following." + COLOR_ENDC)
         return False
+
+
+def _is_follow_limit_reached(session_state, follow_limit, blogger):
+    if follow_limit is None:
+        return False
+
+    followed_count = session_state.totalFollowed.get(blogger)
+    return followed_count is not None and followed_count >= follow_limit
