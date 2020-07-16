@@ -61,6 +61,8 @@ Full list of command line arguments:
   --follow-percentage 50
                         follow given percentage of interacted users, 0 by
                         default
+  --follow-limit 50     limit on amount of follows during interaction with
+                        each one user's followers, disabled by default
   --unfollow 100        unfollow at most given number of users. Only users
                         followed by this script will be unfollowed. The order
                         is from oldest to newest followings
