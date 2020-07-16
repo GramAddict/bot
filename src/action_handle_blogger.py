@@ -212,9 +212,13 @@ def _interact_with_user(device,
         print("Open and like photo #" + str(i + 1) + " (" + str(row + 1) + " row, " + str(column + 1) + " column)")
         if not _open_photo_and_like(device, row, column, on_like):
             print(COLOR_OKGREEN + "Less than " + str(number_of_rows_to_use * 3) + " photos." + COLOR_ENDC)
-            followed = _follow(device,
-                               username,
-                               follow_percentage) if profile_filter.can_follow_private_or_empty() else False
+            if can_follow and profile_filter.can_follow_private_or_empty():
+                followed = _follow(device,
+                                   username,
+                                   follow_percentage)
+            else:
+                followed = False
+
             if not followed:
                 print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
             return False, followed
