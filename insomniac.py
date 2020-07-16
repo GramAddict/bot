@@ -88,7 +88,7 @@ def main():
                                  args.interact,
                                  int(args.likes_count),
                                  int(args.follow_percentage),
-                                 int(args.follow_limit),
+                                 int(args.follow_limit) if args.follow_limit else None,
                                  storage,
                                  profile_filter,
                                  on_interaction)
