@@ -94,8 +94,6 @@ def _scroll_to_bottom(device):
 
 
 def _iterate_over_followers(device, interaction, is_follow_limit_reached, storage, on_interaction, is_myself):
-    followers_per_screen = None
-
     def scrolled_to_top():
         row_search = device(resourceId='com.instagram.android:id/row_search_edit_text',
                             className='android.widget.EditText')
@@ -105,46 +103,42 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
         print("Iterate over visible followers")
         screen_iterated_followers = 0
 
-        for item in device(resourceId='com.instagram.android:id/follow_list_container',
-                           className='android.widget.LinearLayout'):
-            try:
+        try:
+            for item in device(resourceId='com.instagram.android:id/follow_list_container',
+                               className='android.widget.LinearLayout'):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
+                if not user_name_view.exists:
+                    print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
+                    break
+
                 username = user_name_view.text
-            except uiautomator.JsonRPCError:
-                print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
-                if followers_per_screen is None:
-                    followers_per_screen = screen_iterated_followers
-                break
+                screen_iterated_followers += 1
 
-            screen_iterated_followers += 1
-            if not is_myself and storage.check_user_was_interacted(username):
-                print("@" + username + ": already interacted. Skip.")
-            elif is_myself and storage.check_user_was_interacted_recently(username):
-                print("@" + username + ": already interacted in the last week. Skip.")
-            else:
-                print("@" + username + ": interact")
-                user_name_view.click.wait()
+                if not is_myself and storage.check_user_was_interacted(username):
+                    print("@" + username + ": already interacted. Skip.")
+                elif is_myself and storage.check_user_was_interacted_recently(username):
+                    print("@" + username + ": already interacted in the last week. Skip.")
+                else:
+                    print("@" + username + ": interact")
+                    user_name_view.click.wait()
 
-                can_follow = not is_myself \
-                    and not is_follow_limit_reached() \
-                    and storage.get_following_status(username) == FollowingStatus.NONE
+                    can_follow = not is_myself \
+                        and not is_follow_limit_reached() \
+                        and storage.get_following_status(username) == FollowingStatus.NONE
 
-                interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
-                storage.add_interacted_user(username, followed=followed)
-                can_continue = on_interaction(succeed=interaction_succeed,
-                                              followed=followed)
+                    interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
+                    storage.add_interacted_user(username, followed=followed)
+                    can_continue = on_interaction(succeed=interaction_succeed,
+                                                  followed=followed)
 
-                if not can_continue:
-                    return
+                    if not can_continue:
+                        return
 
-                print("Back to followers list")
-                device.press.back()
-
-            if followers_per_screen and screen_iterated_followers >= followers_per_screen:
-                print(COLOR_OKGREEN + str(screen_iterated_followers) +
-                      " items iterated: probably reached end of the screen." + COLOR_ENDC)
-                break
+                    print("Back to followers list")
+                    device.press.back()
+        except IndexError:
+            print(COLOR_FAIL + "Cannot get next item: probably reached end of the screen." + COLOR_ENDC)
 
         if is_myself and scrolled_to_top():
             print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
