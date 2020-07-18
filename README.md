@@ -16,7 +16,7 @@ Liking and following automatically on your Android phone/tablet. No root require
 mkdir -p ~/Library/Android/sdk
 mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-4. Add platform-tools path to environment variables. E.g. on Linux/macOS you have to add the following line to .bash_profile:<br>`export PATH=~/Library/Android/sdk/platform-tools/:$PATH`<br>If you do it correctly, terminal command `adb devices` will print `List of devices attached`
+4. [Add platform-tools path to the PATH environment variable](https://github.com/alexal1/Insomniac/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command line command `adb devices` will print `List of devices attached`
 
 ### How to install on Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
