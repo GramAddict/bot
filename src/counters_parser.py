@@ -7,10 +7,10 @@ def parse(device, text):
     text = text.replace(",", "")
     if "K" in text:
         text = text.replace("K", "")
-        multiplier = 1_000
+        multiplier = 1000
     if "M" in text:
         text = text.replace("M", "")
-        multiplier = 1_000_000
+        multiplier = 1000000
     try:
         count = int(float(text) * multiplier)
     except ValueError:
