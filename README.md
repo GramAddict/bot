@@ -34,7 +34,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 > Android 8.0.0 (API level 26) and Android 8.1.0 (API level 26): Settings > System > About Phone > Build Number
 >
 > Android 7.1 (API level 25) and lower: Settings > About Phone > Build Number
-3. Switch on **USB debugging** (or **Install apps via USB** or similar) on the Developer options screen
+3. Switch on **USB debugging** (and **Install apps via USB** if there is such option) on the Developer options screen.
 4. Device will ask you to allow computer connection. Press "Connect"
 5. Type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
