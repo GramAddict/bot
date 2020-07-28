@@ -81,8 +81,14 @@ Full list of command line arguments:
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [Private accounts are always skipped. How to follow them too?](https://www.patreon.com/posts/enable-private-39097751) **(at least $5 donation required)**
-- [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(at least $5 donation required)**
+- [Private accounts are always skipped. How to follow them too?](https://www.patreon.com/posts/enable-private-39097751) **(please join Patreon $5 tier)**
+- [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(please join Patreon $5 tier)**
+
+### Analytics
+There also is an analytics tool for this bot. It is a script that builds a report in PDF format. The report contains account's followers growth graphs for different periods. Liking, following and unfollowing actions' amounts are on the same axis to determine bot effectiveness. The report also contains stats of sessions length for different configurations that you've used. All data is taken from `sessions.json` file that's generated during bot's execution.
+<img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/analytics_sample.png">
+
+To get access to the analytics tool you have to [join Patreon $5 tier](https://www.patreon.com/insomniac_bot).
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
