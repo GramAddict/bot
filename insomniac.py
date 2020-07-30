@@ -12,7 +12,7 @@ from socket import timeout
 import colorama
 import uiautomator
 
-from src.action_get_my_profile_info import get_my_profile_info
+from src.action_get_my_profile_info import get_my_profile_info, _get_following_count
 from src.action_handle_blogger import handle_blogger
 from src.action_unfollow import unfollow
 from src.counters_parser import LanguageChangedException
@@ -93,9 +93,11 @@ def main():
                                  profile_filter,
                                  on_interaction)
         elif mode == Mode.UNFOLLOW:
-            _job_unfollow(device, int(args.unfollow), storage, only_non_followers=False)
+            ## added min_following to _job_unfollow
+            _job_unfollow(device, int(args.unfollow), storage, int(args.min_following), only_non_followers=False)
         elif mode == Mode.UNFOLLOW_NON_FOLLOWERS:
-            _job_unfollow(device, int(args.unfollow_non_followers), storage, only_non_followers=True)
+            ## added min_following to _job_unfollow
+            _job_unfollow(device, int(args.unfollow_non_followers), storage, int(args.min_following), only_non_followers=True)
 
         close_instagram(device_id)
         print_copyright(session_state.my_username)
@@ -170,8 +172,8 @@ def _job_handle_bloggers(device,
         if state.is_likes_limit_reached:
             break
 
-
-def _job_unfollow(device, count, storage, only_non_followers):
+## added min_following to _job_unfollow
+def _job_unfollow(device, count, storage, min_following, only_non_followers):
     class State:
         def __init__(self):
             pass
@@ -188,12 +190,15 @@ def _job_unfollow(device, count, storage, only_non_followers):
 
     @_run_safely(device=device)
     def job():
+        ## Gets following count
+        current_following_count = _get_following_count(device)
+        ## added min_following and following_count to unfollow function
         unfollow(device,
                  count - state.unfollowed_count,
                  on_unfollow,
                  storage,
                  only_non_followers,
-                 session_state.my_username)
+                 session_state.my_username, current_following_count, min_following)
         print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
         state.is_job_completed = True
 
@@ -243,6 +248,10 @@ def _parse_arguments():
     parser.add_argument('--unfollow-non-followers',
                         help='unfollow at most given number of users, that don\'t follow you back. Only users followed '
                              'by this script will be unfollowed. The order is from oldest to newest followings',
+                        metavar='100',
+                        default='0')
+    parser.add_argument('--min_following',
+                        help='Minimum amount of followings, once reached this amount then unfollow would stop',
                         metavar='100',
                         default='0')
     parser.add_argument('--device',
