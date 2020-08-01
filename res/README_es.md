@@ -19,7 +19,7 @@ Dale like y sigue automáticamente en tu teléfono / tableta Android. No se requ
 mkdir -p ~/Library/Android/sdk
 mv <ruta-para-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-4. [Agregue la ruta de platform-tools a las variables de entorno del sistema.](https://github.com/alexal1/Insomniac/wiki/Agregue-la-ruta-de-platform-tools-a-las-variables-de-entorno-del-sistema---es) Si lo hace correctamente, el comando en la terminal (Símbolo del sistema) `adb devices` imprimirá `List of devices attached`
+4. [Agregue la ruta de platform-tools a las variables de entorno del sistema.](https://github.com/alexal1/Insomniac/wiki/Agregue-la-ruta-de-platform-tools-a-las-variables-de-entorno-del-sistema-es) Si lo hace correctamente, el comando en la terminal (Símbolo del sistema) `adb devices` imprimirá `List of devices attached`
 
 ### Cómo instalar en Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
