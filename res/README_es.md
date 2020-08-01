@@ -37,7 +37,7 @@ mv <ruta-para-downloads>/platform-tools/ ~/Library/Android/sdk
 > Android 8.0.0 (API nivel 26) y Android 8.1.0 (API nivel 26): Configuración > Sistema > Acerca del dispositivo > Número de compilación
 >
 > Android 7.1 (API nivel 25) y versiones anteriores: Configuración > Acerca del dispositivo > Número de compilación
-3. Active **Depuración de USB** (e **Instalación aplicaciones a través de USB** si existe tal opción) en la pantalla de opciones para desarrolladores.
+3. Active **Depuración de USB** (e **Instalación de aplicaciones a través de USB** si existe tal opción) en la pantalla de opciones para desarrolladores.
 4. El dispositivo le pedirá que permita la conexión de la computadora. Presione "Conectar"
 5. Escriba `adb devices` en terminal. Mostrará los dispositivos conectados. Debe haber exactamente un dispositivo. Luego ejecute el script (funciona en Python 3):
 ```
