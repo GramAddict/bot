@@ -18,7 +18,7 @@ Like e seguir automaticamente no seu celular/tablet Android. Não é necessário
 mkdir -p ~/Library/Android/sdk
 mv <caminho-para-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-4. [Add o caminho do platform-tools às variáveis de ambiente do sistema](https://github.com/alexal1/Insomniac/wiki/Adding-platform-tools-to-the-PATH-environment-variable). Se você fizer isso corretamente, o comando `adb devices` no terminal(prompt de comando) imprimirá `List of devices attached`
+4. [Add o caminho do platform-tools às variáveis de ambiente do sistema](https://github.com/alexal1/Insomniac/wiki/Add-o-caminho-do-platform-tools-as-variaveis-de-ambiente-do-sistema---pt_BR). Se você fizer isso corretamente, o comando `adb devices` no terminal(prompt de comando) imprimirá `List of devices attached`
 
 ### Como instalar no Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
