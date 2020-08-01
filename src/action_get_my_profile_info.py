@@ -1,10 +1,12 @@
 from src.counters_parser import parse, LanguageChangedException
+from src.interaction_rect_checker import update_interaction_rect
 from src.navigation import navigate, Tabs
 from src.utils import *
 
 
 def get_my_profile_info(device):
     navigate(device, Tabs.PROFILE)
+    update_interaction_rect(device)
 
     username = None
     title_view = device(resourceId='com.instagram.android:id/title_view',

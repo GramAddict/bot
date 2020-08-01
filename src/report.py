@@ -66,3 +66,12 @@ def print_full_report(sessions):
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     print_timeless(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
+
+
+def print_short_report(blogger, session_state):
+    total_likes = session_state.totalLikes
+    total_followed = sum(session_state.totalFollowed.values())
+    interactions = session_state.successfulInteractions.get(blogger, 0)
+    print(COLOR_WARNING + "Session progress: " + str(total_likes) + " likes, " + str(total_followed) + " followed, " +
+          str(interactions) + " successful " + ("interaction" if interactions == 1 else "interactions") +
+          " for @" + blogger + COLOR_ENDC)

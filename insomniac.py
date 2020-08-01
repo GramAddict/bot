@@ -19,7 +19,7 @@ from src.counters_parser import LanguageChangedException
 from src.filter import Filter
 from src.navigation import navigate, Tabs
 from src.persistent_list import PersistentList
-from src.report import print_full_report
+from src.report import print_full_report, print_short_report
 from src.session_state import SessionState, SessionStateEncoder
 from src.storage import Storage
 from src.utils import *
@@ -283,6 +283,9 @@ def _on_interaction(blogger, succeed, followed, interactions_limit, likes_limit,
     if successful_interactions_count and successful_interactions_count >= interactions_limit:
         print("Made " + str(successful_interactions_count) + " successful interactions, finish.")
         can_continue = False
+
+    if can_continue and succeed:
+        print_short_report(blogger, session_state)
 
     return can_continue
 

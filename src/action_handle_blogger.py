@@ -3,6 +3,7 @@ from random import shuffle
 
 import uiautomator
 
+from src.interaction_rect_checker import is_in_interaction_rect
 from src.navigation import navigate, Tabs
 from src.storage import FollowingStatus
 from src.utils import *
@@ -247,14 +248,6 @@ def _open_photo_and_like(device, row, column, on_like):
                  className='android.widget.FrameLayout')
     random_sleep()
 
-    action_bar = device(resourceId='com.instagram.android:id/action_bar_container',
-                        className='android.widget.FrameLayout')
-    action_bar_bottom = action_bar.bounds['bottom']
-
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
-                     className='android.widget.LinearLayout')
-    tab_bar_top = tab_bar.bounds['top']
-
     # If double click didn't work, set like by icon click
     try:
         # Click only button which is under the action bar and above the tab bar.
@@ -262,9 +255,7 @@ def _open_photo_and_like(device, row, column, on_like):
         for like_button in device(resourceId='com.instagram.android:id/row_feed_button_like',
                                   className='android.widget.ImageView',
                                   selected=False):
-            like_button_top = like_button.bounds['top']
-            like_button_bottom = like_button.bounds['bottom']
-            if like_button_top > action_bar_bottom and like_button_bottom < tab_bar_top:
+            if is_in_interaction_rect(like_button):
                 print("Double click didn't work, click on icon.")
                 like_button.click()
                 random_sleep()
