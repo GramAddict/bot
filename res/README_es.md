@@ -110,10 +110,9 @@ Es por eso que surgió la necesidad de una solución para dispositivos móviles.
 ### Comunidad
 Tenemos [Discord server](https://discord.gg/59pUYCw) que es el lugar más conveniente para discutir todos los errores, nuevas funciones, límites de Instagram, etc. Si no está familiarizado con Discord, también puede unirse a nuestro [Telegram chat](https://t.me/insomniac_chat). Y finalmente, toda la información útil se publica en nuestro [Patreon page](https://www.patreon.com/insomniac_bot). La mayoría de las publicaciones están disponibles para todos, pero algunas requieren unirse al Plan de $ 10: Esta es nuestra manera de seguir evolucionando y mejorando el bot.
 
-
-<a href="https://t.me/insomniac_chat">	<p>
-  <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>	  <a href="https://discord.gg/59pUYCw">
-</a>	    <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
+<p>
+  <a href="https://discord.gg/59pUYCw">
+    <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
   </a>
   <a href="https://t.me/insomniac_chat">
     <img hspace="3" alt="Telegram Chat" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" height=84/>
