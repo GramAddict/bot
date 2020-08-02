@@ -3,11 +3,11 @@ from src.utils import *
 
 #
 ## added min_following and following_count to unfollow function
-def unfollow(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following):
+def unfollow(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following, unfollow_any):
     _open_my_followings(device)
     _sort_followings_by_date(device)
     ## added min_following and following_count to _iterate_over_followings function
-    _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following)
+    _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following, unfollow_any)
 
 
 def _open_my_followings(device):
@@ -31,7 +31,7 @@ def _sort_followings_by_date(device):
     sort_options_recycler_view.child(index=2).click.wait()
 
 ## added min_following and following_count to _iterate_over_followings function
-def _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following):
+def _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username, following_count, min_following, unfollow_any):
     
     following_deduction = 0
     # If following is = 0 then validate limit
@@ -45,6 +45,10 @@ def _iterate_over_followings(device, count, on_unfollow, storage, only_non_follo
         print("\033[96mUser Currently has ["+ str(following_count) +"] and would stop unfollowing at ["+ str(following_deduction) +"] unfollows, total user followings after job ["+ str(following_total) +"]\033[37m")
     else:
         print("\033[96mUser Currently has ["+ str(following_count) +"] and it would not stop unfollowing!\033[37m")
+
+    if unfollow_any > 0:
+        print("\033[96mUser unfollow_any activated, script will not validate interation with the users followed by the script!\033[37m")
+
 
 
     unfollowed_count = 0
@@ -70,7 +74,7 @@ def _iterate_over_followings(device, count, on_unfollow, storage, only_non_follo
             screen_iterated_followings += 1
 
             following_status = storage.get_following_status(username)
-            if not following_status == FollowingStatus.FOLLOWED:
+            if not following_status == FollowingStatus.FOLLOWED and unfollow_any == 0:
                 print("Skip @" + username + ". Following status: " + following_status.name + ".")
             elif only_non_followers and _check_is_follower(device, username, my_username):
                 print("Skip @" + username + ". This user is following you.")
