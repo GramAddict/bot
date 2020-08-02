@@ -107,7 +107,7 @@ Já existe [InstaPy](https://github.com/timgrossmann/InstaPy), que trabalha com 
 É por isso que surgiu a necessidade de uma solução para dispositivos móveis. O Instagram não pode distinguir bot de um humano quando se trata do seu telefone. No entanto, mesmo um ser humano pode atingir limites ao usar o aplicativo, portanto, não deixe de ter cuidado. Sempre defina `--total-likes-limit` para 300 ou menos. Também é melhor usar `--repeat` para repetir periodicamente por 2-3 horas, porque o Instagram acompanha por quanto tempo o aplicativo funciona.
 
 ### Comunidade
-Temos o [Discord server](https://discord.gg/59pUYCw) qual é o lugar mais conveniente para discutir todos os bugs, novos recursos, limites do Instagram etc. Se você não está familiarizado com o Discord, também pode se juntar ao nosso [Telegram chat](https://t.me/insomniac_chat).E, finalmente, todas as informações úteis são publicadas em nosso [Patreon page](https://www.patreon.com/insomniac_bot). A maioria das postagens está disponível para todos, mas algumas exigem oS Plano $ 10: Esta é a nossa maneira de continuar evoluindo e melhorando o bot.
+Temos o [Discord server](https://discord.gg/59pUYCw) qual é o lugar mais conveniente para discutir todos os bugs, novos recursos, limites do Instagram etc. Se você não está familiarizado com o Discord, também pode se juntar ao nosso [Telegram chat](https://t.me/insomniac_chat). E, finalmente, todas as informações úteis são publicadas em nosso [Patreon page](https://www.patreon.com/insomniac_bot). A maioria das postagens está disponível para todos, mas algumas exigem oS Plano $ 10: Esta é a nossa maneira de continuar evoluindo e melhorando o bot.
 
 <p>
   <a href="https://discord.gg/59pUYCw">
