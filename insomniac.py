@@ -94,10 +94,10 @@ def main():
                                  on_interaction)
         elif mode == Mode.UNFOLLOW:
             ## added min_following to _job_unfollow
-            _job_unfollow(device, int(args.unfollow), storage, int(args.min_following), only_non_followers=False)
+            _job_unfollow(device, int(args.unfollow), storage, int(args.min_following), int(args.unfollow_any), only_non_followers=False)
         elif mode == Mode.UNFOLLOW_NON_FOLLOWERS:
             ## added min_following to _job_unfollow
-            _job_unfollow(device, int(args.unfollow_non_followers), storage, int(args.min_following), only_non_followers=True)
+            _job_unfollow(device, int(args.unfollow_non_followers), storage, int(args.unfollow_any), only_non_followers=True)
 
         close_instagram(device_id)
         print_copyright(session_state.my_username)
@@ -173,7 +173,7 @@ def _job_handle_bloggers(device,
             break
 
 ## added min_following to _job_unfollow
-def _job_unfollow(device, count, storage, min_following, only_non_followers):
+def _job_unfollow(device, count, storage, min_following, unfollow_any, only_non_followers):
     class State:
         def __init__(self):
             pass
@@ -198,7 +198,7 @@ def _job_unfollow(device, count, storage, min_following, only_non_followers):
                  on_unfollow,
                  storage,
                  only_non_followers,
-                 session_state.my_username, current_following_count, min_following)
+                 session_state.my_username, current_following_count, min_following, unfollow_any)
         print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
         state.is_job_completed = True
 
@@ -252,6 +252,10 @@ def _parse_arguments():
                         default='0')
     parser.add_argument('--min_following',
                         help='Minimum amount of followings, once reached this amount then unfollow would stop',
+                        metavar='100',
+                        default='0')
+    parser.add_argument('--unfollow_any',
+                        help='Skips followed/not_followed by script validation',
                         metavar='100',
                         default='0')
     parser.add_argument('--device',
