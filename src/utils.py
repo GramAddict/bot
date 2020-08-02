@@ -100,9 +100,9 @@ def print_copyright(username):
     if hashlib.sha1(username.encode('utf-8')).hexdigest() not in copyright_blacklist:
         print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
                        + COLOR_ENDC + ".")
-        print_timeless(COLOR_BOLD + "$1" + COLOR_ENDC + " - support this project")
-        print_timeless(COLOR_BOLD + "$5" + COLOR_ENDC + " - unblock hidden features")
-        print_timeless(COLOR_BOLD + "$50" + COLOR_ENDC + " - order the feature you want")
+        print_timeless(COLOR_BOLD + "$3" + COLOR_ENDC + " - support this project")
+        print_timeless(COLOR_BOLD + "$10" + COLOR_ENDC + " - unblock extra features")
+        print_timeless(COLOR_BOLD + "$25" + COLOR_ENDC + " - same as $10 + vote for the next feature")
         print_timeless("https://www.patreon.com/insomniac_bot\n")
 
 
