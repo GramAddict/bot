@@ -83,14 +83,14 @@ Lista completa de argumentos da linha de comando:
 - [Como conectar um telefone Android via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [Como rodar em 2 ou mais dispositivos ao mesmo tempo?](https://www.patreon.com/posts/38683736)
 - [Script quebra com **OSError: RPC server not started!** ou **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [As contas privadas são sempre ignoradas. Como segui-las também?](https://www.patreon.com/posts/enable-private-39097751) **(Por favor, juntar-se ao Patreon - Plano $ 5)**
-- [Filtrar por contagem de seguidores / seguidores, ratio, business / não business](https://www.patreon.com/posts/38826184) **(Por favor, juntar-se ao Patreon - Plano $ 5)**
+- [As contas privadas são sempre ignoradas. Como segui-las também?](https://www.patreon.com/posts/enable-private-39097751) **(Por favor, juntar-se ao Patreon - Plano $ 10)**
+- [Filtrar por contagem de seguidores / seguidores, ratio, business / não business](https://www.patreon.com/posts/38826184) **(Por favor, juntar-se ao Patreon - Plano $ 10)**
 
 ### Análises 
 Também existe uma ferramenta de análise para este bot. É um script que cria um relatório em formato PDF. O relatório contém gráficos de crescimento de seguidores da conta para diferentes períodos. Likes, seguir e deixar de seguir as ações estão no mesmo eixo para determinar a eficácia do bot. O relatório também contém estatísticas da duração das sessões para diferentes configurações que você usou. Todos os dados são retirados do `sessions.json` arquivo gerado durante a execução do bot.
 <img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/analytics_sample.png">
 
-Para ter acesso à ferramenta de análise, você precisa [juntar-se ao Patreon - Plano $ 5](https://www.patreon.com/insomniac_bot).
+Para ter acesso à ferramenta de análise, você precisa [juntar-se ao Patreon - Plano $ 10](https://www.patreon.com/insomniac_bot).
 
 ### Recursos em progresso
 - [x] Seguir determinada porcentagem de usuários interagidos com `--follow-percentage 50`
@@ -107,8 +107,17 @@ Já existe [InstaPy](https://github.com/timgrossmann/InstaPy), que trabalha com 
 É por isso que surgiu a necessidade de uma solução para dispositivos móveis. O Instagram não pode distinguir bot de um humano quando se trata do seu telefone. No entanto, mesmo um ser humano pode atingir limites ao usar o aplicativo, portanto, não deixe de ter cuidado. Sempre defina `--total-likes-limit` para 300 ou menos. Também é melhor usar `--repeat` para repetir periodicamente por 2-3 horas, porque o Instagram acompanha por quanto tempo o aplicativo funciona.
 
 ### Comunidade
-Junte-se ao nosso grupo no Telegram (Inglês)
+Temos o [Discord server](https://discord.gg/59pUYCw) qual é o lugar mais conveniente para discutir todos os bugs, novos recursos, limites do Instagram etc. Se você não está familiarizado com o Discord, também pode se juntar ao nosso [Telegram chat](https://t.me/insomniac_chat).E, finalmente, todas as informações úteis são publicadas em nosso [Patreon page](https://www.patreon.com/insomniac_bot). A maioria das postagens está disponível para todos, mas algumas exigem oS Plano $ 10: Esta é a nossa maneira de continuar evoluindo e melhorando o bot.
 
-<a href="https://t.me/insomniac_chat">
-  <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>
-</a>
+<p>
+  <a href="https://discord.gg/59pUYCw">
+    <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
+  </a>
+  <a href="https://t.me/insomniac_chat">
+    <img hspace="3" alt="Telegram Chat" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" height=84/>
+  </a>
+  <a href="https://www.patreon.com/insomniac_bot">
+    <img hspace="3" alt="Patreon Page" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/patreon.png" height=84/>
+  </a>
+</p>
+
