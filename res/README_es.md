@@ -84,14 +84,14 @@ Lista completa de argumentos de línea de comando:
 - [¿Cómo conectar un teléfono Android a través de WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [¿Cómo ejecutar en 2 o más dispositivos a la vez?](https://www.patreon.com/posts/38683736)
 - [Script crash con **OSError: RPC server not started!** o **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [Las cuentas privadas siempre se ignoran. ¿Cómo seguirlas también?](https://www.patreon.com/posts/enable-private-39097751) **(Por favor, únete a Patreon - Plan $ 5)**
-- [Filtrar por seguidores / número de seguidores, ratio, business / no business](https://www.patreon.com/posts/38826184) **(Por favor, únete a Patreon - Plan $ 5)**
+- [Las cuentas privadas siempre se ignoran. ¿Cómo seguirlas también?](https://www.patreon.com/posts/enable-private-39097751) **(Por favor, únete a Patreon - Plan $ 10)**
+- [Filtrar por seguidores / número de seguidores, ratio, business / no business](https://www.patreon.com/posts/38826184) **(Por favor, únete a Patreon - Plan $ 10)**
 
 ### Análisis
 También hay una herramienta de análisis para este bot. Es un script que crea un informe en formato PDF. El informe contiene gráficos de crecimiento de seguidores de la cuenta para diferentes períodos. Las cantidades de acciones de likes, seguir y dejar de seguir están en el mismo eje para determinar la efectividad del bot. El informe también contiene estadísticas de la duración de las sesiones para las diferentes configuraciones que ha utilizado. Todos los datos se toman del archivo `sessions.json` que se genera durante la ejecución del bot.
 <img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/analytics_sample.png">
 
-Para obtener acceso a la herramienta de análisis, debe [unirte a Patreon - Plan $5](https://www.patreon.com/insomniac_bot).
+Para obtener acceso a la herramienta de análisis, debe [unirte a Patreon - Plan $10](https://www.patreon.com/insomniac_bot).
 
 ### Recursos en progreso
 - [x] Siga el porcentaje dado de usuarios interaccionado con `--follow-percentage 50`
@@ -108,8 +108,17 @@ Ya existe [InstaPy](https://github.com/timgrossmann/InstaPy), que funciona en la
 Es por eso que surgió la necesidad de una solución para dispositivos móviles. Instagram no puede distinguir un bot de un humano cuando se trata de tu teléfono. Sin embargo, incluso un ser humano puede alcanzar límites cuando usa la aplicación, así que no deje de tener cuidado. Establezca siempre `--total-likes-limit` en 300 o menos. También es mejor usar `--repeat` para actuar periódicamente durante 2-3 horas, porque Instagram realiza un seguimiento de cuánto tiempo funciona la aplicación.
 
 ### Comunidad
-Únete a nuestro grupo en Telegram (Inglés)
+Tenemos [Discord server](https://discord.gg/59pUYCw) que es el lugar más conveniente para discutir todos los errores, nuevas funciones, límites de Instagram, etc. Si no está familiarizado con Discord, también puede unirse a nuestro [Telegram chat](https://t.me/insomniac_chat). Y finalmente, toda la información útil se publica en nuestro [Patreon page](https://www.patreon.com/insomniac_bot). La mayoría de las publicaciones están disponibles para todos, pero algunas requieren unirse al Plan de $ 10: Esta es nuestra manera de seguir evolucionando y mejorando el bot.
 
-<a href="https://t.me/insomniac_chat">
-  <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>
-</a>
+
+<a href="https://t.me/insomniac_chat">	<p>
+  <img hspace="3" alt="Telegram Group" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" width=214/>	  <a href="https://discord.gg/59pUYCw">
+</a>	    <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
+  </a>
+  <a href="https://t.me/insomniac_chat">
+    <img hspace="3" alt="Telegram Chat" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" height=84/>
+  </a>
+  <a href="https://www.patreon.com/insomniac_bot">
+    <img hspace="3" alt="Patreon Page" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/patreon.png" height=84/>
+  </a>
+</p>
