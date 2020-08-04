@@ -49,3 +49,19 @@ def _get_followers_count(device):
         print(COLOR_FAIL + "Cannot find your followers count view" + COLOR_ENDC)
 
     return followers
+
+# Gets Followig Count
+def _get_following_count(device):
+    following = None
+    following_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
+                                 className='android.widget.TextView')
+    if following_text_view.exists:
+        following_text = following_text_view.text
+        if following_text:
+            following = parse(device, following_text)
+        else:
+            print(COLOR_FAIL + "Cannot get your following count text" + COLOR_ENDC)
+    else:
+        print(COLOR_FAIL + "Cannot find your following count view" + COLOR_ENDC)
+
+    return following
