@@ -1,11 +1,13 @@
+from enum import unique, Enum
+
 from src.storage import FollowingStatus
 from src.utils import *
 
 
-def unfollow(device, count, on_unfollow, storage, only_non_followers, my_username):
+def unfollow(device, count, on_unfollow, storage, unfollow_restriction, my_username):
     _open_my_followings(device)
     _sort_followings_by_date(device)
-    _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username)
+    _iterate_over_followings(device, count, on_unfollow, storage, unfollow_restriction, my_username)
 
 
 def _open_my_followings(device):
@@ -29,7 +31,7 @@ def _sort_followings_by_date(device):
     sort_options_recycler_view.child(index=2).click.wait()
 
 
-def _iterate_over_followings(device, count, on_unfollow, storage, only_non_followers, my_username):
+def _iterate_over_followings(device, count, on_unfollow, storage, unfollow_restriction, my_username):
     unfollowed_count = 0
     while True:
         print("Iterate over visible followings")
@@ -46,29 +48,35 @@ def _iterate_over_followings(device, count, on_unfollow, storage, only_non_follo
             username = user_name_view.text
             screen_iterated_followings += 1
 
-            following_status = storage.get_following_status(username)
-            if not following_status == FollowingStatus.FOLLOWED:
-                print("Skip @" + username + ". Following status: " + following_status.name + ".")
-            elif only_non_followers and _check_is_follower(device, username, my_username):
+            if unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT or \
+                    unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS:
+                following_status = storage.get_following_status(username)
+                if not following_status == FollowingStatus.FOLLOWED:
+                    print("Skip @" + username + ". Following status: " + following_status.name + ".")
+                    continue
+
+            if unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS and \
+                    _check_is_follower(device, username, my_username):
                 print("Skip @" + username + ". This user is following you.")
-            else:
-                print("Unfollow @" + username)
+                continue
 
-                unfollow_button = item.child(resourceId='com.instagram.android:id/button',
-                                             className='android.widget.TextView')
-                if not unfollow_button.exists:
-                    print(COLOR_FAIL + "Cannot find unfollow button" + COLOR_ENDC)
-                    break
-                unfollow_button.click.wait()
-                _close_dialog_if_shown(device)
-                storage.add_interacted_user(username, unfollowed=True)
-                on_unfollow()
+            print("Unfollow @" + username)
 
-                random_sleep()
+            unfollow_button = item.child(resourceId='com.instagram.android:id/button',
+                                         className='android.widget.TextView')
+            if not unfollow_button.exists:
+                print(COLOR_FAIL + "Cannot find unfollow button" + COLOR_ENDC)
+                break
+            unfollow_button.click.wait()
+            _close_dialog_if_shown(device)
+            storage.add_interacted_user(username, unfollowed=True)
+            on_unfollow()
 
-                unfollowed_count += 1
-                if unfollowed_count >= count:
-                    return
+            random_sleep()
+
+            unfollowed_count += 1
+            if unfollowed_count >= count:
+                return
 
         if screen_iterated_followings > 0:
             print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
@@ -114,3 +122,10 @@ def _check_is_follower(device, username, my_username):
     device.press.back()
     device.press.back()
     return result
+
+
+@unique
+class UnfollowRestriction(Enum):
+    ANY = 0
+    FOLLOWED_BY_SCRIPT = 1
+    FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
