@@ -73,6 +73,10 @@ Full list of command line arguments:
                         follow you back. Only users followed by this script
                         will be unfollowed. The order is from oldest to newest
                         followings
+  --unfollow-any 100    unfollow at most given number of users. The order is
+                        from oldest to newest followings
+  --min-following 100   minimum amount of followings, after reaching this
+                        amount unfollow stops
   --device 2443de990e017ece
                         device identifier. Should be used only when multiple
                         devices are connected at once
