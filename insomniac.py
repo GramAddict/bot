@@ -12,9 +12,9 @@ from socket import timeout
 import colorama
 import uiautomator
 
-from src.action_get_my_profile_info import get_my_profile_info, _get_following_count
+from src.action_get_my_profile_info import get_my_profile_info
 from src.action_handle_blogger import handle_blogger
-from src.action_unfollow import unfollow
+from src.action_unfollow import unfollow, UnfollowRestriction
 from src.counters_parser import LanguageChangedException
 from src.filter import Filter
 from src.navigation import navigate, Tabs
@@ -48,10 +48,12 @@ def main():
     is_interact_enabled = len(args.interact) > 0
     is_unfollow_enabled = int(args.unfollow) > 0
     is_unfollow_non_followers_enabled = int(args.unfollow_non_followers) > 0
-    total_enabled = int(is_interact_enabled) + int(is_unfollow_enabled) + int(is_unfollow_non_followers_enabled)
+    is_unfollow_any_enabled = int(args.unfollow_any) > 0
+    total_enabled = int(is_interact_enabled) + int(is_unfollow_enabled) + int(is_unfollow_non_followers_enabled) \
+        + int(is_unfollow_any_enabled)
     if total_enabled == 0:
         print_timeless(COLOR_FAIL + "You have to specify one of the actions: --interact, --unfollow, "
-                                    "--unfollow-non-followers" + COLOR_ENDC)
+                                    "--unfollow-non-followers, --unfollow-any" + COLOR_ENDC)
         return
     elif total_enabled > 1:
         print_timeless(COLOR_FAIL + "Running Insomniac with two or more actions is not supported yet." + COLOR_ENDC)
@@ -66,6 +68,9 @@ def main():
         elif is_unfollow_non_followers_enabled:
             print("Action: unfollow " + str(args.unfollow_non_followers) + " non followers")
             mode = Mode.UNFOLLOW_NON_FOLLOWERS
+        elif is_unfollow_any_enabled:
+            print("Action: unfollow any " + str(args.unfollow_any))
+            mode = Mode.UNFOLLOW_ANY
 
     profile_filter = Filter()
     on_interaction = partial(_on_interaction,
@@ -79,7 +84,9 @@ def main():
 
         print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram(device_id)
-        session_state.my_username, session_state.my_followers_count = get_my_profile_info(device)
+        session_state.my_username,\
+            session_state.my_followers_count,\
+            session_state.my_following_count = get_my_profile_info(device)
         storage = Storage(session_state.my_username)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -93,11 +100,23 @@ def main():
                                  profile_filter,
                                  on_interaction)
         elif mode == Mode.UNFOLLOW:
-            ## added min_following to _job_unfollow
-            _job_unfollow(device, int(args.unfollow), storage, int(args.min_following), int(args.unfollow_any), only_non_followers=False)
+            _job_unfollow(device,
+                          int(args.unfollow),
+                          storage,
+                          int(args.min_following),
+                          UnfollowRestriction.FOLLOWED_BY_SCRIPT)
         elif mode == Mode.UNFOLLOW_NON_FOLLOWERS:
-            ## added min_following to _job_unfollow
-            _job_unfollow(device, int(args.unfollow_non_followers), storage, int(args.unfollow_any), only_non_followers=True)
+            _job_unfollow(device,
+                          int(args.unfollow_non_followers),
+                          storage,
+                          int(args.min_following),
+                          UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS)
+        elif mode == Mode.UNFOLLOW_ANY:
+            _job_unfollow(device,
+                          int(args.unfollow_any),
+                          storage,
+                          int(args.min_following),
+                          UnfollowRestriction.ANY)
 
         close_instagram(device_id)
         print_copyright(session_state.my_username)
@@ -172,8 +191,8 @@ def _job_handle_bloggers(device,
         if state.is_likes_limit_reached:
             break
 
-## added min_following to _job_unfollow
-def _job_unfollow(device, count, storage, min_following, unfollow_any, only_non_followers):
+
+def _job_unfollow(device, count, storage, min_following, unfollow_restriction):
     class State:
         def __init__(self):
             pass
@@ -183,6 +202,11 @@ def _job_unfollow(device, count, storage, min_following, unfollow_any, only_non_
 
     state = State()
     session_state = sessions[-1]
+    new_count = min(count, session_state.my_following_count - min_following)
+    if new_count <= 0:
+        print("You want to unfollow " + str(count) + ", you have " + str(session_state.my_following_count) +
+              " followings, min following is " + str(min_following) + ". Finish.")
+        return
 
     def on_unfollow():
         state.unfollowed_count += 1
@@ -190,19 +214,16 @@ def _job_unfollow(device, count, storage, min_following, unfollow_any, only_non_
 
     @_run_safely(device=device)
     def job():
-        ## Gets following count
-        current_following_count = _get_following_count(device)
-        ## added min_following and following_count to unfollow function
         unfollow(device,
-                 count - state.unfollowed_count,
+                 new_count - state.unfollowed_count,
                  on_unfollow,
                  storage,
-                 only_non_followers,
-                 session_state.my_username, current_following_count, min_following, unfollow_any)
+                 unfollow_restriction,
+                 session_state.my_username)
         print("Unfollowed " + str(state.unfollowed_count) + ", finish.")
         state.is_job_completed = True
 
-    while not state.is_job_completed and state.unfollowed_count < count:
+    while not state.is_job_completed and state.unfollowed_count < new_count:
         job()
 
 
@@ -250,14 +271,14 @@ def _parse_arguments():
                              'by this script will be unfollowed. The order is from oldest to newest followings',
                         metavar='100',
                         default='0')
-    parser.add_argument('--min_following',
-                        help='Minimum amount of followings, once reached this amount then unfollow would stop',
+    parser.add_argument('--unfollow-any',
+                        help='unfollow at most given number of users. The order is from oldest to newest followings',
                         metavar='100',
                         default='0')
-    parser.add_argument('--unfollow_any',
-                        help='Skips followed/not_followed by script validation',
+    parser.add_argument('--min-following',
+                        help='minimum amount of followings, after reaching this amount unfollow stops',
                         metavar='100',
-                        default='0')
+                        default=0)
     parser.add_argument('--device',
                         help='device identifier. Should be used only when multiple devices are connected at once',
                         metavar='2443de990e017ece')
@@ -345,6 +366,7 @@ class Mode(Enum):
     INTERACT = 0
     UNFOLLOW = 1
     UNFOLLOW_NON_FOLLOWERS = 2
+    UNFOLLOW_ANY = 3
 
 
 if __name__ == "__main__":

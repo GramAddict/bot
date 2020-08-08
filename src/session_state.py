@@ -8,6 +8,7 @@ class SessionState:
     args = {}
     my_username = None
     my_followers_count = None
+    my_following_count = None
     totalInteractions = {}
     successfulInteractions = {}
     totalFollowed = {}
@@ -21,6 +22,7 @@ class SessionState:
         self.args = {}
         self.my_username = None
         self.my_followers_count = None
+        self.my_following_count = None
         self.totalInteractions = {}
         self.successfulInteractions = {}
         self.totalFollowed = {}

@@ -23,16 +23,26 @@ def get_my_profile_info(device):
         navigate(device, Tabs.PROFILE)
         followers = _get_followers_count(device)
 
+    try:
+        following = _get_following_count(device)
+    except LanguageChangedException:
+        # Try again on the correct language
+        navigate(device, Tabs.PROFILE)
+        following = _get_following_count(device)
+
     report_string = ""
     if username:
         report_string += "Hello, @" + username + "!"
-    if followers:
-        report_string += " You have " + str(followers) + " followers so far."
+    if followers is not None:
+        report_string += " You have " + str(followers) + " followers"
+        if following is not None:
+            report_string += " and " + str(following) + " followings"
+        report_string += " so far."
 
     if not report_string == "":
         print(report_string)
 
-    return username, followers
+    return username, followers, following
 
 
 def _get_followers_count(device):
@@ -50,7 +60,7 @@ def _get_followers_count(device):
 
     return followers
 
-# Gets Followig Count
+
 def _get_following_count(device):
     following = None
     following_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
