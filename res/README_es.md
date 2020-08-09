@@ -73,7 +73,11 @@ Lista completa de argumentos de línea de comando:
                         deja de seguir el numero maximo de usuarios, que no
                         te siguen de vuelta. Solo usuario que fue seguido por el script
                         será dejado de seguir. El orden es del más antiguo al
-                        más nuevo.
+                        más nuevo
+  --unfollow-any 100    deja de seguir el numero maximo de usuarios. El orden es
+                        del más antiguo al más nuevo
+  --min-following 100   cantidad mínima de seguidores, después de alcanzar
+                        esta cantidad, unfollow se detiene
   --device 2443de990e017ece
                         identificador de dispositivo. Debe usarse solo cuando hay varios
                         dispositivos conectados a la vez
