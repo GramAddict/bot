@@ -58,7 +58,7 @@ Lista completa de argumentos de línea de comando:
                         por defecto
   --interactions-count 70
                         cantidad de interacciones por cada blogger, 70 por
-                        defecto. Only successful interactions count
+                        defecto. Solo cuentan las interacciones exitosas
   --repeat 180          repita la misma sesión nuevamente después de N minutos
                         completos, deshabilitada por defecto
   --follow-percentage 50
