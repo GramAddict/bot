@@ -7,7 +7,7 @@
 
 [inglés](https://github.com/alexal1/Insomniac/blob/master/README.md) | [portugués](https://github.com/alexal1/Insomniac/blob/master/res/README_pt_BR.md)
 
-Dale like y sigue automáticamente en tu teléfono / tableta Android. No se requiere root: funciona con UI Automator, que es una estructura de prueba oficial UI de Android.
+Dale like y sigue automáticamente en tu teléfono / tableta Android. No se requiere root: funciona con [UI Automator](https://developer.android.com/training/testing/ui-automator?hl=es), que es una estructura de prueba oficial UI de Android.
 
 <img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/demo.gif">
 
