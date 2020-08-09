@@ -54,7 +54,7 @@ Lista completa de argumentos de línea de comando:
                         interactuar
   --likes-count 2       número de likes para cada usuario interactuado, 2 por defecto
   --total-likes-limit 300
-                        limit on total amount of likes during the session, 300
+                        límite en la cantidad total de likes durante la sesión, 300
                         por defecto
   --interactions-count 70
                         cantidad de interacciones por cada blogger, 70 por
