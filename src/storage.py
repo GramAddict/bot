@@ -7,10 +7,13 @@ FILENAME_INTERACTED_USERS = "interacted_users.json"
 USER_LAST_INTERACTION = "last_interaction"
 USER_FOLLOWING_STATUS = "following_status"
 
+FILENAME_WHITELIST = "whitelist.txt"
+
 
 class Storage:
     interacted_users_path = ""
     interacted_users = {}
+    whitelist = []
 
     def __init__(self, my_username):
         if not os.path.exists(my_username):
@@ -19,6 +22,10 @@ class Storage:
         if os.path.exists(self.interacted_users_path):
             with open(self.interacted_users_path) as json_file:
                 self.interacted_users = json.load(json_file)
+        whitelist_path = my_username + "/" + FILENAME_WHITELIST
+        if os.path.exists(whitelist_path):
+            with open(whitelist_path) as file:
+                self.whitelist = [line.rstrip() for line in file]
 
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
@@ -48,6 +55,9 @@ class Storage:
 
         self.interacted_users[username] = user
         self._update_file()
+
+    def is_user_in_whitelist(self, username):
+        return username in self.whitelist
 
     def _update_file(self):
         with open(self.interacted_users_path, 'w') as outfile:

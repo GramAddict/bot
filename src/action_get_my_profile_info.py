@@ -24,11 +24,11 @@ def get_my_profile_info(device):
         followers = _get_followers_count(device)
 
     try:
-        following = _get_following_count(device)
+        following = get_following_count(device)
     except LanguageChangedException:
         # Try again on the correct language
         navigate(device, Tabs.PROFILE)
-        following = _get_following_count(device)
+        following = get_following_count(device)
 
     report_string = ""
     if username:
@@ -61,7 +61,7 @@ def _get_followers_count(device):
     return followers
 
 
-def _get_following_count(device):
+def get_following_count(device):
     following = None
     following_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
                                  className='android.widget.TextView')
