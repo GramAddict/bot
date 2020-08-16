@@ -90,6 +90,7 @@ Full list of command line arguments:
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
 - [Private accounts are always skipped. How to follow them too?](https://www.patreon.com/posts/enable-private-39097751) **(please join Patreon $10 tier)**
 - [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(please join Patreon $10 tier)**
+- [Can I automate removing mass followers from my account? Yes.](https://www.patreon.com/posts/40514622) **(please join Patreon $10 tier)**
 
 ### Analytics
 There also is an analytics tool for this bot. It is a script that builds a report in PDF format. The report contains account's followers growth graphs for different periods. Liking, following and unfollowing actions' amounts are on the same axis to determine bot effectiveness. The report also contains stats of sessions length for different configurations that you've used. All data is taken from `sessions.json` file that's generated during bot's execution.
