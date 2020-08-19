@@ -91,6 +91,7 @@ Lista completa de argumentos de línea de comando:
 - [Script crash con **OSError: RPC server not started!** o **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
 - [Las cuentas privadas siempre se ignoran. ¿Cómo seguirlas también?](https://www.patreon.com/posts/enable-private-39097751) **(Por favor, únete a Patreon - Plan $ 10)**
 - [Filtrar por seguidores / número de seguidores, ratio, business / no business](https://www.patreon.com/posts/38826184) **(Por favor, únete a Patreon - Plan $ 10)**
+- [¿Puedo automatizar la eliminación de seguidores masivos de mi cuenta? Si.](https://www.patreon.com/posts/40514622) **(Por favor, únete a Patreon - Plan $ 10)**
 
 ### Análisis
 También hay una herramienta de análisis para este bot. Es un script que crea un informe en formato PDF. El informe contiene gráficos de crecimiento de seguidores de la cuenta para diferentes períodos. Las cantidades de acciones de likes, seguir y dejar de seguir están en el mismo eje para determinar la efectividad del bot. El informe también contiene estadísticas de la duración de las sesiones para las diferentes configuraciones que ha utilizado. Todos los datos se toman del archivo `sessions.json` que se genera durante la ejecución del bot.
