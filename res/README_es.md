@@ -14,7 +14,7 @@ Dale like y sigue automáticamente en tu teléfono / tableta Android. No se requ
 
 ### Cómo instalar
 1. Clone el proyecto: `git clone https://github.com/alexal1/Insomniac.git`
-2. Instalar [uiautomator](https://github.com/xiaocong/uiautomator) y [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator colorama`
+2. Instalar [uiautomator2](https://github.com/openatx/uiautomator2) y [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
 3. Download y unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), moverlos a un directorio donde no los eliminará accidentalmente, ejemplo:
 ```
 mkdir -p ~/Library/Android/sdk
@@ -26,7 +26,7 @@ mv <ruta-para-downloads>/platform-tools/ ~/Library/Android/sdk
 1. Update apt-get: `sudo apt-get update`
 2. Instalar ADB y Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone el proyecto: `git clone https://github.com/alexal1/Insomniac.git`
-4. Instalar [uiautomator](https://github.com/xiaocong/uiautomator) y [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator colorama`
+4. Instalar [uiautomator2](https://github.com/openatx/uiautomator2) y [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
 
 ### Comenzando
 1. Conecte el dispositivo Android a su computadora con un cable USB
