@@ -78,8 +78,11 @@ def close_instagram(device_id):
 def take_screenshot(device):
     os.makedirs("screenshots/", exist_ok=True)
     filename = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".png"
-    device.screenshot("screenshots/" + filename)
-    print(COLOR_OKGREEN + "Screenshot taken and saved as " + filename + COLOR_ENDC)
+    try:
+        device.screenshot("screenshots/" + filename)
+        print(COLOR_OKGREEN + "Screenshot taken and saved as " + filename + COLOR_ENDC)
+    except RuntimeError:
+        print(COLOR_FAIL + "Cannot save screenshot." + COLOR_ENDC)
 
 
 def print_copyright(username):
