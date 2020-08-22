@@ -12,16 +12,16 @@ def print_full_report(sessions):
             print_timeless(COLOR_WARNING + "Start time: " + str(session.startTime) + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Finish time: " + str(finish_time) + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Duration: " + str(finish_time - session.startTime) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(session.totalInteractions)
+            print_timeless(COLOR_WARNING + "Total interactions: " + _stringify_interactions(session.totalInteractions)
                            + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Successful interactions: "
-                           + stringify_interactions(session.successfulInteractions) + COLOR_ENDC)
+                           + _stringify_interactions(session.successfulInteractions) + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Total followed: "
-                           + stringify_interactions(session.totalFollowed) + COLOR_ENDC)
+                           + _stringify_interactions(session.totalFollowed) + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC)
             print_timeless(COLOR_WARNING + "Total unfollowed: " + str(session.totalUnfollowed) + COLOR_ENDC)
-            print_timeless(COLOR_WARNING + "Total removed mass followers: "
-                           + str(session.totalRemovedMassFollowers) + COLOR_ENDC)
+            print_timeless(COLOR_WARNING + "Removed mass followers: "
+                           + _stringify_removed_mass_followers(session.removedMassFollowers) + COLOR_ENDC)
 
     print_timeless("\n")
     print_timeless(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
@@ -38,6 +38,7 @@ def print_full_report(sessions):
     total_interactions = {}
     successful_interactions = {}
     total_followed = {}
+    total_removed_mass_followers = []
     for session in sessions:
         for blogger, count in session.totalInteractions.items():
             if total_interactions.get(blogger) is None:
@@ -57,10 +58,13 @@ def print_full_report(sessions):
             else:
                 total_followed[blogger] += count
 
-    print_timeless(COLOR_WARNING + "Total interactions: " + stringify_interactions(total_interactions) + COLOR_ENDC)
-    print_timeless(COLOR_WARNING + "Successful interactions: " + stringify_interactions(successful_interactions)
+        for username in session.removedMassFollowers:
+            total_removed_mass_followers.append(username)
+
+    print_timeless(COLOR_WARNING + "Total interactions: " + _stringify_interactions(total_interactions) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Successful interactions: " + _stringify_interactions(successful_interactions)
                    + COLOR_ENDC)
-    print_timeless(COLOR_WARNING + "Total followed : " + stringify_interactions(total_followed)
+    print_timeless(COLOR_WARNING + "Total followed : " + _stringify_interactions(total_followed)
                    + COLOR_ENDC)
 
     total_likes = sum(session.totalLikes for session in sessions)
@@ -69,8 +73,8 @@ def print_full_report(sessions):
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     print_timeless(COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC)
 
-    total_removed_mass_followers = sum(session.totalRemovedMassFollowers for session in sessions)
-    print_timeless(COLOR_WARNING + "Total removed mass followers: " + str(total_removed_mass_followers) + COLOR_ENDC)
+    print_timeless(COLOR_WARNING + "Removed mass followers: "
+                   + _stringify_removed_mass_followers(total_removed_mass_followers) + COLOR_ENDC)
 
 
 def print_short_report(blogger, session_state):
@@ -80,3 +84,21 @@ def print_short_report(blogger, session_state):
     print(COLOR_WARNING + "Session progress: " + str(total_likes) + " likes, " + str(total_followed) + " followed, " +
           str(interactions) + " successful " + ("interaction" if interactions == 1 else "interactions") +
           " for @" + blogger + COLOR_ENDC)
+
+
+def _stringify_interactions(interactions):
+    if len(interactions) == 0:
+        return "0"
+
+    result = ""
+    for blogger, count in interactions.items():
+        result += str(count) + " for @" + blogger + ", "
+    result = result[:-2]
+    return result
+
+
+def _stringify_removed_mass_followers(removed_mass_followers):
+    if len(removed_mass_followers) == 0:
+        return "none"
+    else:
+        return "@" + ", @".join(removed_mass_followers)

@@ -1,5 +1,6 @@
 from enum import Enum, unique
 
+from src.globals import UI_TIMEOUT
 from src.utils import *
 
 
@@ -12,8 +13,8 @@ def navigate(device, tab):
     button = tab_bar.child(index=tab_index)
 
     # Two clicks to reset tab content
-    button.click.wait()
-    button.click.wait()
+    button.click(timeout=UI_TIMEOUT)
+    button.click(timeout=UI_TIMEOUT)
 
 
 @unique

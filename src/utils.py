@@ -50,13 +50,10 @@ def check_adb_connection(is_device_id_provided):
 
 
 def double_click(device, *args, **kwargs):
-    config = device.server.jsonrpc.getConfigurator()
-    config['actionAcknowledgmentTimeout'] = 40
-    device.server.jsonrpc.setConfigurator(config)
-    device(*args, **kwargs).click()
-    device(*args, **kwargs).click()
-    config['actionAcknowledgmentTimeout'] = 3000
-    device.server.jsonrpc.setConfigurator(config)
+    visible_bounds = device(*args, **kwargs).info['bounds']
+    center_x = (visible_bounds['right'] - visible_bounds['left']) / 2
+    center_y = (visible_bounds['bottom'] - visible_bounds['top']) / 2
+    device.double_click(center_x, center_y, duration=0)
 
 
 def random_sleep():
@@ -76,17 +73,6 @@ def close_instagram(device_id):
     print("Close Instagram app")
     os.popen("adb" + ("" if device_id is None else " -s " + device_id) +
              " shell am force-stop com.instagram.android").close()
-
-
-def stringify_interactions(interactions):
-    if len(interactions) == 0:
-        return "0"
-
-    result = ""
-    for blogger, count in interactions.items():
-        result += str(count) + " for @" + blogger + ", "
-    result = result[:-2]
-    return result
 
 
 def take_screenshot(device):
