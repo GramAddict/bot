@@ -25,7 +25,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 1. Update apt-get: `sudo apt-get update`
 2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
-4. Install [uiautomator2](https://github.com/openatx/uiautomator2) and [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator colorama`
+4. Install [uiautomator2](https://github.com/openatx/uiautomator2) and [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
 
 ### Get started
 1. Connect Android device to your computer with a USB cable
