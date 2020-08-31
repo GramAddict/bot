@@ -269,6 +269,7 @@ def _open_photo_and_like(device, row, column, on_like):
     except uiautomator.JSONRPCError:
         print("Double click worked successfully.")
 
+    detect_block(device)
     on_like()
     print("Back to profile")
     device.press("back")
@@ -291,6 +292,7 @@ def _follow(device, username, follow_percentage):
 
     if follow_button.exists(timeout=UI_TIMEOUT):
         follow_button.click(timeout=UI_TIMEOUT)
+        detect_block(device)
         bottom_sheet = device(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
                               className='android.widget.FrameLayout')
         if bottom_sheet.exists(timeout=UI_TIMEOUT):

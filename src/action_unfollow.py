@@ -109,6 +109,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
 
     if check_if_is_follower and _check_is_follower(device, username, my_username):
         print("Skip @" + username + ". This user is following you.")
+        print("Back to the followings list.")
         device.press("back")
         return False
 
@@ -138,15 +139,11 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
     confirm_unfollow_button.click(timeout=UI_TIMEOUT)
 
     random_sleep()
-
-    unfollow_succeed = not _check_if_you_follow(device, username, my_username)
-    if not unfollow_succeed:
-        print(COLOR_FAIL + "Unfollow didn't work for some reason." + COLOR_ENDC)
-        raise UnfollowError("Please check why unfollow doesn't work, you may be blocked!")
+    detect_block(device)
 
     print("Back to the followings list.")
     device.press("back")
-    return unfollow_succeed
+    return True
 
 
 def _check_is_follower(device, username, my_username):
@@ -154,23 +151,6 @@ def _check_is_follower(device, username, my_username):
     following_container = device(resourceId='com.instagram.android:id/row_profile_header_following_container',
                                  className='android.widget.LinearLayout')
     following_container.click(timeout=UI_TIMEOUT)
-
-    random_sleep()
-
-    my_username_view = device(resourceId='com.instagram.android:id/follow_list_username',
-                              className='android.widget.TextView',
-                              text=my_username)
-    result = my_username_view.exists(timeout=UI_TIMEOUT)
-    print("Back to the profile.")
-    device.press("back")
-    return result
-
-
-def _check_if_you_follow(device, username, my_username):
-    print("Make sure that you don't still follow @" + username)
-    followers_container = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
-                                 className='android.widget.LinearLayout')
-    followers_container.click(timeout=UI_TIMEOUT)
 
     random_sleep()
 

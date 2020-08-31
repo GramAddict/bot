@@ -5,6 +5,8 @@ from datetime import datetime
 from random import randint
 from time import sleep
 
+from src.globals import UI_TIMEOUT
+
 COLOR_HEADER = '\033[95m'
 COLOR_OKBLUE = '\033[94m'
 COLOR_OKGREEN = '\033[92m'
@@ -85,6 +87,16 @@ def take_screenshot(device):
         print(COLOR_FAIL + "Cannot save screenshot." + COLOR_ENDC)
 
 
+def detect_block(device):
+    block_dialog = device(resourceId='com.instagram.android:id/dialog_root_view',
+                          className='android.widget.FrameLayout')
+    is_blocked = block_dialog.exists(UI_TIMEOUT)
+    if is_blocked:
+        print(COLOR_FAIL + "Probably block dialog is shown." + COLOR_ENDC)
+        raise ActionBlockedError("Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
+                                 " with limits!")
+
+
 def print_copyright(username):
     if hashlib.sha1(username.encode('utf-8')).hexdigest() not in COPYRIGHT_BLACKLIST:
         print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
@@ -114,3 +126,7 @@ def _print_with_time_decorator(standard_print, print_time):
 
 print_timeless = _print_with_time_decorator(print, False)
 print = _print_with_time_decorator(print, True)
+
+
+class ActionBlockedError(Exception):
+    pass
