@@ -30,7 +30,7 @@ def _switch_to_english(device):
 
     action_bar = device(resourceId='com.instagram.android:id/action_bar',
                         className='android.widget.LinearLayout')
-    options_view = action_bar.child(index=1)
+    options_view = action_bar.child(index=2)
     options_view.click(timeout=UI_TIMEOUT)
 
     settings_button = device(resourceId='com.instagram.android:id/menu_settings_row',
@@ -60,7 +60,6 @@ def _switch_to_english(device):
             device.press("back")
             continue
         search_edit_text.set_text("english")
-        device.wait.idle()
 
         list_view = device(resourceId='com.instagram.android:id/language_locale_list',
                            className='android.widget.ListView')
