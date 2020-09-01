@@ -3,7 +3,7 @@ from random import shuffle
 
 import uiautomator2 as uiautomator
 
-from src.globals import UI_TIMEOUT, UI_TIMEOUT_ITERATOR
+from src.globals import UI_TIMEOUT_ITERATOR
 from src.interaction_rect_checker import is_in_interaction_rect
 from src.navigation import navigate, Tabs
 from src.storage import FollowingStatus
@@ -108,6 +108,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
         print("Iterate over visible followers")
         random_sleep()
         screen_iterated_followers = 0
+        screen_skipped_followers = 0
 
         try:
             for item in device(resourceId='com.instagram.android:id/follow_list_container',
@@ -123,8 +124,10 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
 
                 if not is_myself and storage.check_user_was_interacted(username):
                     print("@" + username + ": already interacted. Skip.")
+                    screen_skipped_followers += 1
                 elif is_myself and storage.check_user_was_interacted_recently(username):
                     print("@" + username + ": already interacted in the last week. Skip.")
+                    screen_skipped_followers += 1
                 else:
                     print("@" + username + ": interact")
                     user_name_view.click(timeout=UI_TIMEOUT)
@@ -150,13 +153,19 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
             print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
             return
         elif screen_iterated_followers > 0:
-            print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+            need_swipe = screen_skipped_followers == screen_iterated_followers
             list_view = device(resourceId='android:id/list',
                                className='android.widget.ListView')
             if is_myself:
+                print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
                 list_view.scroll.toBeginning(max_swipes=1)
             else:
-                list_view.scroll.toEnd(max_swipes=1)
+                if need_swipe:
+                    print(COLOR_OKGREEN + "All followers skipped, let's do a swipe" + COLOR_ENDC)
+                    list_view.fling.toEnd(max_swipes=5)
+                else:
+                    print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+                    list_view.scroll.toEnd(max_swipes=1)
         else:
             print(COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC)
             return
