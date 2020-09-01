@@ -1,6 +1,6 @@
 from enum import unique, Enum
 
-from src.globals import UI_TIMEOUT, UI_TIMEOUT_ITERATOR
+from src.globals import UI_TIMEOUT_ITERATOR
 from src.storage import FollowingStatus
 from src.utils import *
 
@@ -139,6 +139,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
     confirm_unfollow_button.click(timeout=UI_TIMEOUT)
 
     random_sleep()
+    _close_confirm_dialog_if_shown(device)
     detect_block(device)
 
     print("Back to the followings list.")
@@ -163,12 +164,27 @@ def _check_is_follower(device, username, my_username):
     return result
 
 
+def _close_confirm_dialog_if_shown(device):
+    dialog_root_view = device(resourceId='com.instagram.android:id/dialog_root_view',
+                              className='android.widget.FrameLayout')
+    if not dialog_root_view.exists(timeout=UI_TIMEOUT):
+        return
+
+    # Avatar existence is the way to distinguish confirm dialog from block dialog
+    user_avatar_view = device(resourceId='com.instagram.android:id/circular_image',
+                              className='android.widget.ImageView')
+    if not user_avatar_view.exists(timeout=UI_TIMEOUT):
+        return
+
+    print(COLOR_OKGREEN + "Dialog shown, confirm unfollowing." + COLOR_ENDC)
+    random_sleep()
+    unfollow_button = dialog_root_view.child(resourceId='com.instagram.android:id/primary_button',
+                                             className='android.widget.TextView')
+    unfollow_button.click(timeout=UI_TIMEOUT)
+
+
 @unique
 class UnfollowRestriction(Enum):
     ANY = 0
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
-
-
-class UnfollowError(Exception):
-    pass
