@@ -6,6 +6,7 @@ from src.utils import *
 def parse(device, text):
     multiplier = 1
     text = text.replace(",", "")
+    text = text.replace(".", "")
     if "K" in text:
         text = text.replace("K", "")
         multiplier = 1000
