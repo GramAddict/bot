@@ -1,6 +1,6 @@
 from enum import unique, Enum
 
-from src.globals import UI_TIMEOUT_ITERATOR
+from src.device_facade import DeviceFacade
 from src.storage import FollowingStatus
 from src.utils import *
 
@@ -14,32 +14,33 @@ def unfollow(device, count, on_unfollow, storage, unfollow_restriction, my_usern
 
 def _open_my_followings(device):
     print("Open my followings")
-    followings_button = device(resourceId='com.instagram.android:id/row_profile_header_following_container',
-                               className='android.widget.LinearLayout')
-    followings_button.click(timeout=UI_TIMEOUT)
+    followings_button = device.find(resourceId='com.instagram.android:id/row_profile_header_following_container',
+                                    className='android.widget.LinearLayout')
+    followings_button.click()
 
 
 def _sort_followings_by_date(device):
     print("Sort followings by date: from oldest to newest.")
-    sort_button = device(resourceId='com.instagram.android:id/sorting_entry_row_icon',
-                         className='android.widget.ImageView')
-    if not sort_button.exists(timeout=UI_TIMEOUT):
+    sort_button = device.find(resourceId='com.instagram.android:id/sorting_entry_row_icon',
+                              className='android.widget.ImageView')
+    if not sort_button.exists():
         print(COLOR_FAIL + "Cannot find button to sort followings. Continue without sorting.")
         return
-    sort_button.click(timeout=UI_TIMEOUT)
+    sort_button.click()
 
-    sort_options_recycler_view = device(resourceId='com.instagram.android:id/follow_list_sorting_options_recycler_view')
-    if not sort_options_recycler_view.exists(timeout=UI_TIMEOUT):
+    sort_options_recycler_view = device.find(
+        resourceId='com.instagram.android:id/follow_list_sorting_options_recycler_view')
+    if not sort_options_recycler_view.exists():
         print(COLOR_FAIL + "Cannot find options to sort followings. Continue without sorting." + COLOR_ENDC)
         return
 
-    sort_options_recycler_view.child(index=2).click(timeout=UI_TIMEOUT)
+    sort_options_recycler_view.child(index=2).click()
 
 
 def _iterate_over_followings(device, count, on_unfollow, storage, unfollow_restriction, my_username):
     # Wait until list is rendered
-    device(resourceId='com.instagram.android:id/follow_list_container',
-           className='android.widget.LinearLayout').wait(timeout=UI_TIMEOUT)
+    device.find(resourceId='com.instagram.android:id/follow_list_container',
+                className='android.widget.LinearLayout').wait()
 
     unfollowed_count = 0
     while True:
@@ -47,15 +48,15 @@ def _iterate_over_followings(device, count, on_unfollow, storage, unfollow_restr
         random_sleep()
         screen_iterated_followings = 0
 
-        for item in device(resourceId='com.instagram.android:id/follow_list_container',
-                           className='android.widget.LinearLayout'):
+        for item in device.find(resourceId='com.instagram.android:id/follow_list_container',
+                                className='android.widget.LinearLayout'):
             user_info_view = item.child(index=1)
             user_name_view = user_info_view.child(index=0).child()
-            if not user_name_view.exists(timeout=UI_TIMEOUT_ITERATOR):
+            if not user_name_view.exists(quick=True):
                 print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                 break
 
-            username = user_name_view.info['text']
+            username = user_name_view.get_text()
             screen_iterated_followings += 1
 
             if unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT or \
@@ -87,9 +88,9 @@ def _iterate_over_followings(device, count, on_unfollow, storage, unfollow_restr
 
         if screen_iterated_followings > 0:
             print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
-            list_view = device(resourceId='android:id/list',
-                               className='android.widget.ListView')
-            list_view.scroll.toEnd(max_swipes=1)
+            list_view = device.find(resourceId='android:id/list',
+                                    className='android.widget.ListView')
+            list_view.scroll(DeviceFacade.Direction.BOTTOM)
         else:
             print(COLOR_OKGREEN + "No followings were iterated, finish." + COLOR_ENDC)
             return
@@ -99,88 +100,88 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
     """
     :return: whether unfollow was successful
     """
-    username_view = device(resourceId='com.instagram.android:id/follow_list_username',
-                           className='android.widget.TextView',
-                           text=username)
-    if not username_view.exists(timeout=UI_TIMEOUT):
+    username_view = device.find(resourceId='com.instagram.android:id/follow_list_username',
+                                className='android.widget.TextView',
+                                text=username)
+    if not username_view.exists():
         print(COLOR_FAIL + "Cannot find @" + username + ", skip." + COLOR_ENDC)
         return False
-    username_view.click(timeout=UI_TIMEOUT)
+    username_view.click()
 
     if check_if_is_follower and _check_is_follower(device, username, my_username):
         print("Skip @" + username + ". This user is following you.")
         print("Back to the followings list.")
-        device.press("back")
+        device.back()
         return False
 
-    profile_actions_view = device(resourceId='com.instagram.android:id/profile_header_actions_top_row',
-                                  className='android.widget.LinearLayout')
-    if not profile_actions_view.exists(timeout=UI_TIMEOUT):
+    profile_actions_view = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
+                                       className='android.widget.LinearLayout')
+    if not profile_actions_view.exists():
         print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
         take_screenshot(device)
-        device.press("back")
+        device.back()
         return False
 
     unfollow_button = profile_actions_view.child(index=0)
-    if not unfollow_button.exists(timeout=UI_TIMEOUT):
+    if not unfollow_button.exists():
         print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
         take_screenshot(device)
-        device.press("back")
+        device.back()
         return False
-    unfollow_button.click(timeout=UI_TIMEOUT)
+    unfollow_button.click()
 
-    confirm_unfollow_button = device(resourceId='com.instagram.android:id/follow_sheet_unfollow_row',
-                                     className='android.widget.TextView')
-    if not confirm_unfollow_button.exists(timeout=UI_TIMEOUT):
+    confirm_unfollow_button = device.find(resourceId='com.instagram.android:id/follow_sheet_unfollow_row',
+                                          className='android.widget.TextView')
+    if not confirm_unfollow_button.exists():
         print(COLOR_FAIL + "Cannot confirm unfollow." + COLOR_ENDC)
         take_screenshot(device)
-        device.press("back")
+        device.back()
         return False
-    confirm_unfollow_button.click(timeout=UI_TIMEOUT)
+    confirm_unfollow_button.click()
 
     random_sleep()
     _close_confirm_dialog_if_shown(device)
     detect_block(device)
 
     print("Back to the followings list.")
-    device.press("back")
+    device.back()
     return True
 
 
 def _check_is_follower(device, username, my_username):
     print(COLOR_OKGREEN + "Check if @" + username + " is following you." + COLOR_ENDC)
-    following_container = device(resourceId='com.instagram.android:id/row_profile_header_following_container',
-                                 className='android.widget.LinearLayout')
-    following_container.click(timeout=UI_TIMEOUT)
+    following_container = device.find(resourceId='com.instagram.android:id/row_profile_header_following_container',
+                                      className='android.widget.LinearLayout')
+    following_container.click()
 
     random_sleep()
 
-    my_username_view = device(resourceId='com.instagram.android:id/follow_list_username',
-                              className='android.widget.TextView',
-                              text=my_username)
-    result = my_username_view.exists(timeout=UI_TIMEOUT)
+    my_username_view = device.find(resourceId='com.instagram.android:id/follow_list_username',
+                                   className='android.widget.TextView',
+                                   text=my_username)
+    result = my_username_view.exists()
     print("Back to the profile.")
-    device.press("back")
+    device.back()
     return result
 
 
 def _close_confirm_dialog_if_shown(device):
-    dialog_root_view = device(resourceId='com.instagram.android:id/dialog_root_view',
-                              className='android.widget.FrameLayout')
-    if not dialog_root_view.exists(timeout=UI_TIMEOUT):
+    dialog_root_view = device.find(resourceId='com.instagram.android:id/dialog_root_view',
+                                   className='android.widget.FrameLayout')
+    if not dialog_root_view.exists():
         return
 
     # Avatar existence is the way to distinguish confirm dialog from block dialog
-    user_avatar_view = device(resourceId='com.instagram.android:id/circular_image',
-                              className='android.widget.ImageView')
-    if not user_avatar_view.exists(timeout=UI_TIMEOUT):
+    user_avatar_view = device.find(resourceId='com.instagram.android:id/circular_image',
+                                   className='android.widget.ImageView')
+    if not user_avatar_view.exists():
         return
 
     print(COLOR_OKGREEN + "Dialog shown, confirm unfollowing." + COLOR_ENDC)
     random_sleep()
     unfollow_button = dialog_root_view.child(resourceId='com.instagram.android:id/primary_button',
                                              className='android.widget.TextView')
-    unfollow_button.click(timeout=UI_TIMEOUT)
+    unfollow_button.click()
 
 
 @unique

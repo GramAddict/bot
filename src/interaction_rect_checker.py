@@ -5,15 +5,15 @@ _tab_bar_top = None
 
 
 def update_interaction_rect(device):
-    action_bar = device(resourceId='com.instagram.android:id/action_bar_container',
-                        className='android.widget.FrameLayout')
+    action_bar = device.find(resourceId='com.instagram.android:id/action_bar_container',
+                             className='android.widget.FrameLayout')
     global _action_bar_bottom
-    _action_bar_bottom = action_bar.info['bounds']['bottom']
+    _action_bar_bottom = action_bar.get_bounds()['bottom']
 
-    tab_bar = device(resourceId='com.instagram.android:id/tab_bar',
-                     className='android.widget.LinearLayout')
+    tab_bar = device.find(resourceId='com.instagram.android:id/tab_bar',
+                          className='android.widget.LinearLayout')
     global _tab_bar_top
-    _tab_bar_top = tab_bar.info['bounds']['top']
+    _tab_bar_top = tab_bar.get_bounds()['top']
 
 
 def is_in_interaction_rect(view):
@@ -21,6 +21,6 @@ def is_in_interaction_rect(view):
         print(COLOR_FAIL + "Interaction rect is not specified in interaction_rect_checker.py" + COLOR_ENDC)
         return False
 
-    view_top = view.info['bounds']['top']
-    view_bottom = view.info['bounds']['bottom']
+    view_top = view.get_bounds()['top']
+    view_bottom = view.get_bounds()['bottom']
     return _action_bar_bottom <= view_top and view_bottom <= _tab_bar_top

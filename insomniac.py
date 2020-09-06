@@ -10,12 +10,12 @@ from http.client import HTTPException
 from socket import timeout
 
 import colorama
-import uiautomator2 as uiautomator
 
 from src.action_get_my_profile_info import get_my_profile_info
 from src.action_handle_blogger import handle_blogger
 from src.action_unfollow import unfollow, UnfollowRestriction
 from src.counters_parser import LanguageChangedException
+from src.device_facade import create_device, DeviceFacade
 from src.filter import Filter
 from src.navigation import navigate, Tabs
 from src.persistent_list import PersistentList
@@ -42,7 +42,9 @@ def main():
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
 
-    device = uiautomator.connect() if device_id is None else uiautomator.connect(device_id)
+    device = create_device(args.old, device_id)
+    if device is None:
+        return
 
     mode = None
     is_interact_enabled = len(args.interact) > 0
@@ -322,6 +324,10 @@ def _parse_arguments():
     parser.add_argument('--device',
                         help='device identifier. Should be used only when multiple devices are connected at once',
                         metavar='2443de990e017ece')
+    parser.add_argument('--old',
+                        help='add this flag to use an old version of uiautomator. Use it only if you experience '
+                             'problems with the default version',
+                        action='store_true')
     # Remove mass followers from the list of your followers. "Mass followers" are those who has more than N followings,
     # where N can be set via --max-following. This is an extra feature, requires Patreon $10 tier.
     parser.add_argument('--remove-mass-followers',
@@ -385,7 +391,7 @@ def _run_safely(device):
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
-            except (uiautomator.JSONRPCError, IndexError, HTTPException, timeout):
+            except (DeviceFacade.JsonRpcError, IndexError, HTTPException, timeout):
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
                 take_screenshot(device)
                 print("No idea what it was. Let's try again.")

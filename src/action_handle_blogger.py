@@ -1,9 +1,7 @@
 from functools import partial
 from random import shuffle
 
-import uiautomator2 as uiautomator
-
-from src.globals import UI_TIMEOUT_ITERATOR
+from src.device_facade import DeviceFacade
 from src.interaction_rect_checker import is_in_interaction_rect
 from src.navigation import navigate, Tabs
 from src.storage import FollowingStatus
@@ -42,30 +40,30 @@ def handle_blogger(device,
 def _open_user_followers(device, username):
     if username is None:
         print("Open your followers")
-        followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
-                                  className='android.widget.LinearLayout')
-        followers_button.click(timeout=UI_TIMEOUT)
+        followers_button = device.find(resourceId='com.instagram.android:id/row_profile_header_followers_container',
+                                       className='android.widget.LinearLayout')
+        followers_button.click()
     else:
         navigate(device, Tabs.SEARCH)
 
         print("Open user @" + username)
-        search_edit_text = device(resourceId='com.instagram.android:id/action_bar_search_edit_text',
-                                  className='android.widget.EditText')
+        search_edit_text = device.find(resourceId='com.instagram.android:id/action_bar_search_edit_text',
+                                       className='android.widget.EditText')
         search_edit_text.set_text(username)
-        username_view = device(resourceId='com.instagram.android:id/row_search_user_username',
-                               className='android.widget.TextView',
-                               text=username)
+        username_view = device.find(resourceId='com.instagram.android:id/row_search_user_username',
+                                    className='android.widget.TextView',
+                                    text=username)
 
-        if not username_view.exists(timeout=UI_TIMEOUT):
+        if not username_view.exists():
             print_timeless(COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC)
             return False
 
-        username_view.click(timeout=UI_TIMEOUT)
+        username_view.click()
 
         print("Open @" + username + " followers")
-        followers_button = device(resourceId='com.instagram.android:id/row_profile_header_followers_container',
-                                  className='android.widget.LinearLayout')
-        followers_button.click(timeout=UI_TIMEOUT)
+        followers_button = device.find(resourceId='com.instagram.android:id/row_profile_header_followers_container',
+                                       className='android.widget.LinearLayout')
+        followers_button.click()
 
     return True
 
@@ -74,35 +72,35 @@ def _scroll_to_bottom(device):
     print("Scroll to bottom")
 
     def is_end_reached():
-        see_all_button = device(resourceId='com.instagram.android:id/see_all_button',
-                                className='android.widget.TextView')
-        return see_all_button.exists(timeout=UI_TIMEOUT)
+        see_all_button = device.find(resourceId='com.instagram.android:id/see_all_button',
+                                     className='android.widget.TextView')
+        return see_all_button.exists()
 
-    list_view = device(resourceId='android:id/list',
-                       className='android.widget.ListView')
+    list_view = device.find(resourceId='android:id/list',
+                            className='android.widget.ListView')
     while not is_end_reached():
-        list_view.fling.toEnd(max_swipes=5)
+        list_view.swipe(DeviceFacade.Direction.BOTTOM)
 
     print("Scroll back to the first follower")
 
     def is_at_least_one_follower():
-        follower = device(resourceId='com.instagram.android:id/follow_list_container',
-                          className='android.widget.LinearLayout')
-        return follower.exists(timeout=UI_TIMEOUT)
+        follower = device.find(resourceId='com.instagram.android:id/follow_list_container',
+                               className='android.widget.LinearLayout')
+        return follower.exists()
 
     while not is_at_least_one_follower():
-        list_view.scroll.toBeginning(max_swipes=1)
+        list_view.scroll(DeviceFacade.Direction.TOP)
 
 
 def _iterate_over_followers(device, interaction, is_follow_limit_reached, storage, on_interaction, is_myself):
     # Wait until list is rendered
-    device(resourceId='com.instagram.android:id/follow_list_container',
-           className='android.widget.LinearLayout').wait(timeout=UI_TIMEOUT)
+    device.find(resourceId='com.instagram.android:id/follow_list_container',
+                className='android.widget.LinearLayout').wait()
 
     def scrolled_to_top():
-        row_search = device(resourceId='com.instagram.android:id/row_search_edit_text',
-                            className='android.widget.EditText')
-        return row_search.exists(timeout=UI_TIMEOUT)
+        row_search = device.find(resourceId='com.instagram.android:id/row_search_edit_text',
+                                 className='android.widget.EditText')
+        return row_search.exists()
 
     while True:
         print("Iterate over visible followers")
@@ -111,15 +109,15 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
         screen_skipped_followers = 0
 
         try:
-            for item in device(resourceId='com.instagram.android:id/follow_list_container',
-                               className='android.widget.LinearLayout'):
+            for item in device.find(resourceId='com.instagram.android:id/follow_list_container',
+                                    className='android.widget.LinearLayout'):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
-                if not user_name_view.exists(timeout=UI_TIMEOUT_ITERATOR):
+                if not user_name_view.exists(quick=True):
                     print(COLOR_OKGREEN + "Next item not found: probably reached end of the screen." + COLOR_ENDC)
                     break
 
-                username = user_name_view.info['text']
+                username = user_name_view.get_text()
                 screen_iterated_followers += 1
 
                 if not is_myself and storage.check_user_was_interacted(username):
@@ -130,7 +128,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                     screen_skipped_followers += 1
                 else:
                     print("@" + username + ": interact")
-                    user_name_view.click(timeout=UI_TIMEOUT)
+                    user_name_view.click()
 
                     can_follow = not is_myself \
                         and not is_follow_limit_reached() \
@@ -145,7 +143,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                         return
 
                     print("Back to followers list")
-                    device.press("back")
+                    device.back()
         except IndexError:
             print(COLOR_FAIL + "Cannot get next item: probably reached end of the screen." + COLOR_ENDC)
 
@@ -154,18 +152,18 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
             return
         elif screen_iterated_followers > 0:
             need_swipe = screen_skipped_followers == screen_iterated_followers
-            list_view = device(resourceId='android:id/list',
-                               className='android.widget.ListView')
+            list_view = device.find(resourceId='android:id/list',
+                                    className='android.widget.ListView')
             if is_myself:
                 print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
-                list_view.scroll.toBeginning(max_swipes=1)
+                list_view.scroll(DeviceFacade.Direction.TOP)
             else:
                 if need_swipe:
                     print(COLOR_OKGREEN + "All followers skipped, let's do a swipe" + COLOR_ENDC)
-                    list_view.fling.toEnd(max_swipes=5)
+                    list_view.swipe(DeviceFacade.Direction.BOTTOM)
                 else:
                     print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
-                    list_view.scroll.toEnd(max_swipes=1)
+                    list_view.scroll(DeviceFacade.Direction.BOTTOM)
         else:
             print(COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC)
             return
@@ -195,10 +193,10 @@ def _interact_with_user(device,
         print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
         likes_count = 12
 
-    coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
-    if coordinator_layout.exists(timeout=UI_TIMEOUT):
+    coordinator_layout = device.find(resourceId='com.instagram.android:id/coordinator_root_layout')
+    if coordinator_layout.exists():
         print("Scroll down to see more photos.")
-        coordinator_layout.scroll()
+        coordinator_layout.scroll(DeviceFacade.Direction.BOTTOM)
     else:
         print(COLOR_OKGREEN + "Private / empty account." + COLOR_ENDC)
         followed = _follow(device,
@@ -243,14 +241,14 @@ def _open_photo_and_like(device, row, column, on_like):
     def open_photo():
         # recycler_view has a className 'androidx.recyclerview.widget.RecyclerView' on modern Android versions and
         # 'android.view.View' on Android 5.0.1 and probably earlier versions
-        recycler_view = device(resourceId='android:id/list')
+        recycler_view = device.find(resourceId='android:id/list')
         row_view = recycler_view.child(index=row + 1)
-        if not row_view.exists(timeout=UI_TIMEOUT):
+        if not row_view.exists():
             return False
         item_view = row_view.child(index=column)
-        if not item_view.exists(timeout=UI_TIMEOUT):
+        if not item_view.exists():
             return False
-        item_view.click(timeout=UI_TIMEOUT)
+        item_view.click()
         return True
 
     if not open_photo():
@@ -258,30 +256,30 @@ def _open_photo_and_like(device, row, column, on_like):
 
     random_sleep()
     print("Double click!")
-    double_click(device,
-                 resourceId='com.instagram.android:id/layout_container_main',
-                 className='android.widget.FrameLayout')
+    photo_view = device.find(resourceId='com.instagram.android:id/layout_container_main',
+                             className='android.widget.FrameLayout')
+    photo_view.double_click()
     random_sleep()
 
     # If double click didn't work, set like by icon click
     try:
         # Click only button which is under the action bar and above the tab bar.
         # It fixes bugs with accidental back / home clicks.
-        for like_button in device(resourceId='com.instagram.android:id/row_feed_button_like',
-                                  className='android.widget.ImageView',
-                                  selected=False):
+        for like_button in device.find(resourceId='com.instagram.android:id/row_feed_button_like',
+                                       className='android.widget.ImageView',
+                                       selected=False):
             if is_in_interaction_rect(like_button):
                 print("Double click didn't work, click on icon.")
-                like_button.click(timeout=UI_TIMEOUT)
+                like_button.click()
                 random_sleep()
                 break
-    except uiautomator.JSONRPCError:
+    except DeviceFacade.JsonRpcError:
         print("Double click worked successfully.")
 
     detect_block(device)
     on_like()
     print("Back to profile")
-    device.press("back")
+    device.back()
     return True
 
 
@@ -291,22 +289,22 @@ def _follow(device, username, follow_percentage):
         return False
 
     print("Following...")
-    coordinator_layout = device(resourceId='com.instagram.android:id/coordinator_root_layout')
-    if coordinator_layout.exists(timeout=UI_TIMEOUT):
+    coordinator_layout = device.find(resourceId='com.instagram.android:id/coordinator_root_layout')
+    if coordinator_layout.exists():
         coordinator_layout.scroll.toBeginning()
 
-    profile_actions = device(resourceId='com.instagram.android:id/profile_header_actions_top_row',
-                             className='android.widget.LinearLayout')
+    profile_actions = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
+                                  className='android.widget.LinearLayout')
     follow_button = profile_actions.child(index=0)
 
-    if follow_button.exists(timeout=UI_TIMEOUT):
-        follow_button.click(timeout=UI_TIMEOUT)
+    if follow_button.exists():
+        follow_button.click()
         detect_block(device)
-        bottom_sheet = device(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
-                              className='android.widget.FrameLayout')
-        if bottom_sheet.exists(timeout=UI_TIMEOUT):
+        bottom_sheet = device.find(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
+                                   className='android.widget.FrameLayout')
+        if bottom_sheet.exists():
             print(COLOR_OKGREEN + "Already followed" + COLOR_ENDC)
-            device.press("back")
+            device.back()
             return False
         print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
         random_sleep()

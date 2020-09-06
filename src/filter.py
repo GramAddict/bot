@@ -1,7 +1,6 @@
 import json
 
 from src.counters_parser import parse
-from src.globals import UI_TIMEOUT
 from src.utils import *
 
 FILENAME_CONDITIONS = "filter.json"
@@ -84,10 +83,12 @@ class Filter:
     @staticmethod
     def _get_followers_and_followings(device):
         followers = 0
-        followers_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_followers_count',
-                                     className='android.widget.TextView')
-        if followers_text_view.exists(timeout=UI_TIMEOUT):
-            followers_text = followers_text_view.info['text']
+        followers_text_view = device.find(
+            resourceId='com.instagram.android:id/row_profile_header_textview_followers_count',
+            className='android.widget.TextView'
+        )
+        if followers_text_view.exists():
+            followers_text = followers_text_view.get_text()
             if followers_text:
                 followers = parse(device, followers_text)
             else:
@@ -97,10 +98,11 @@ class Filter:
             print_timeless(COLOR_FAIL + "Cannot find followers count view, default is " + str(followers) + COLOR_ENDC)
 
         followings = 0
-        followings_text_view = device(resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
-                                      className='android.widget.TextView')
-        if followings_text_view.exists(timeout=UI_TIMEOUT):
-            followings_text = followings_text_view.info['text']
+        followings_text_view = device.find(
+            resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
+            className='android.widget.TextView')
+        if followings_text_view.exists():
+            followings_text = followings_text_view.get_text()
             if followings_text:
                 followings = parse(device, followings_text)
             else:
@@ -113,6 +115,6 @@ class Filter:
 
     @staticmethod
     def _has_business_category(device):
-        business_category_view = device(resourceId='com.instagram.android:id/profile_header_business_category',
-                                        className='android.widget.TextView')
-        return business_category_view.exists(timeout=UI_TIMEOUT)
+        business_category_view = device.find(resourceId='com.instagram.android:id/profile_header_business_category',
+                                             className='android.widget.TextView')
+        return business_category_view.exists()

@@ -1,4 +1,3 @@
-from src.globals import UI_TIMEOUT
 from src.navigation import Tabs, navigate
 from src.utils import *
 
@@ -29,43 +28,43 @@ def _switch_to_english(device):
     navigate(device, Tabs.PROFILE)
     print("Changing language in settings")
 
-    action_bar = device(resourceId='com.instagram.android:id/action_bar',
-                        className='android.widget.LinearLayout')
+    action_bar = device.find(resourceId='com.instagram.android:id/action_bar',
+                             className='android.widget.LinearLayout')
     options_view = action_bar.child(index=2)
-    options_view.click(timeout=UI_TIMEOUT)
+    options_view.click()
 
-    settings_button = device(resourceId='com.instagram.android:id/menu_settings_row',
-                             className='android.widget.TextView')
-    settings_button.click(timeout=UI_TIMEOUT)
+    settings_button = device.find(resourceId='com.instagram.android:id/menu_settings_row',
+                                  className='android.widget.TextView')
+    settings_button.click()
 
     for account_item_index in range(6, 9):
-        list_view = device(resourceId='android:id/list',
-                           className='android.widget.ListView')
+        list_view = device.find(resourceId='android:id/list',
+                                className='android.widget.ListView')
         account_item = list_view.child(index=account_item_index)
-        account_item.click(timeout=UI_TIMEOUT)
+        account_item.click()
 
-        list_view = device(resourceId='android:id/list',
-                           className='android.widget.ListView')
+        list_view = device.find(resourceId='android:id/list',
+                                className='android.widget.ListView')
         language_item = list_view.child(index=3)
-        if not language_item.exists(timeout=UI_TIMEOUT):
+        if not language_item.exists():
             print(COLOR_FAIL + "Oops, went the wrong way" + COLOR_ENDC)
-            device.press("back")
+            device.back()
             continue
-        language_item.click(timeout=UI_TIMEOUT)
+        language_item.click()
 
-        search_edit_text = device(resourceId='com.instagram.android:id/search',
-                                  className='android.widget.EditText')
-        if not search_edit_text.exists(timeout=UI_TIMEOUT):
+        search_edit_text = device.find(resourceId='com.instagram.android:id/search',
+                                       className='android.widget.EditText')
+        if not search_edit_text.exists():
             print(COLOR_FAIL + "Oops, went the wrong way" + COLOR_ENDC)
-            device.press("back")
-            device.press("back")
+            device.back()
+            device.back()
             continue
         search_edit_text.set_text("english")
 
-        list_view = device(resourceId='com.instagram.android:id/language_locale_list',
-                           className='android.widget.ListView')
+        list_view = device.find(resourceId='com.instagram.android:id/language_locale_list',
+                                className='android.widget.ListView')
         english_item = list_view.child(index=0)
-        english_item.click(timeout=UI_TIMEOUT)
+        english_item.click()
 
         break
 
