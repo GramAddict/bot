@@ -110,6 +110,22 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(is_old=False, view=view, device=self.deviceV2)
 
+        def right(self, *args, **kwargs):
+            if self.viewV1 is not None:
+                import uiautomator
+                try:
+                    view = self.viewV1.right(*args, **kwargs)
+                except uiautomator.JsonRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+                return DeviceFacade.View(is_old=True, view=view, device=self.deviceV1)
+            else:
+                import uiautomator2
+                try:
+                    view = self.viewV2.right(*args, **kwargs)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+                return DeviceFacade.View(is_old=False, view=view, device=self.deviceV2)
+
         def click(self):
             if self.viewV1 is not None:
                 import uiautomator
