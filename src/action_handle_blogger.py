@@ -291,7 +291,7 @@ def _follow(device, username, follow_percentage):
     print("Following...")
     coordinator_layout = device.find(resourceId='com.instagram.android:id/coordinator_root_layout')
     if coordinator_layout.exists():
-        coordinator_layout.scroll.toBeginning()
+        coordinator_layout.scroll(DeviceFacade.Direction.TOP)
 
     profile_actions = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
                                   className='android.widget.LinearLayout')
