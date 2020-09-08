@@ -6,6 +6,7 @@ from src.utils import *
 
 def get_my_profile_info(device):
     navigate(device, Tabs.PROFILE)
+    random_sleep()
     update_interaction_rect(device)
 
     username = None
@@ -32,9 +33,9 @@ def get_my_profile_info(device):
 
     report_string = ""
     if username:
-        report_string += "Hello, @" + username + "!"
+        report_string += "Hello, @" + username + "! "
     if followers is not None:
-        report_string += " You have " + str(followers) + " followers"
+        report_string += "You have " + str(followers) + " followers"
         if following is not None:
             report_string += " and " + str(following) + " followings"
         report_string += " so far."

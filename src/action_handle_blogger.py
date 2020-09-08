@@ -293,6 +293,8 @@ def _follow(device, username, follow_percentage):
     if coordinator_layout.exists():
         coordinator_layout.scroll(DeviceFacade.Direction.TOP)
 
+    random_sleep()
+
     profile_actions = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
                                   className='android.widget.LinearLayout')
     follow_button = profile_actions.child(index=0)

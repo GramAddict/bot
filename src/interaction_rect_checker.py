@@ -7,13 +7,15 @@ _tab_bar_top = None
 def update_interaction_rect(device):
     action_bar = device.find(resourceId='com.instagram.android:id/action_bar_container',
                              className='android.widget.FrameLayout')
-    global _action_bar_bottom
-    _action_bar_bottom = action_bar.get_bounds()['bottom']
+    if action_bar.exists():
+        global _action_bar_bottom
+        _action_bar_bottom = action_bar.get_bounds()['bottom']
 
     tab_bar = device.find(resourceId='com.instagram.android:id/tab_bar',
                           className='android.widget.LinearLayout')
-    global _tab_bar_top
-    _tab_bar_top = tab_bar.get_bounds()['top']
+    if tab_bar.exists():
+        global _tab_bar_top
+        _tab_bar_top = tab_bar.get_bounds()['top']
 
 
 def is_in_interaction_rect(view):

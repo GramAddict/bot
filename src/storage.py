@@ -1,7 +1,8 @@
 import json
-import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum, unique
+
+from src.utils import *
 
 FILENAME_INTERACTED_USERS = "interacted_users.json"
 USER_LAST_INTERACTION = "last_interaction"
@@ -11,11 +12,16 @@ FILENAME_WHITELIST = "whitelist.txt"
 
 
 class Storage:
-    interacted_users_path = ""
+    interacted_users_path = None
     interacted_users = {}
     whitelist = []
 
     def __init__(self, my_username):
+        if my_username is None:
+            print(COLOR_FAIL + "No username, thus the script won't get access to interacted users and sessions data" +
+                  COLOR_ENDC)
+            return
+
         if not os.path.exists(my_username):
             os.makedirs(my_username)
         self.interacted_users_path = my_username + "/" + FILENAME_INTERACTED_USERS
@@ -60,8 +66,9 @@ class Storage:
         return username in self.whitelist
 
     def _update_file(self):
-        with open(self.interacted_users_path, 'w') as outfile:
-            json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
+        if self.interacted_users_path is not None:
+            with open(self.interacted_users_path, 'w') as outfile:
+                json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
 
 
 @unique
