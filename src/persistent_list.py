@@ -12,6 +12,9 @@ class PersistentList(list):
         super().__init__()
 
     def persist(self, directory):
+        if directory is None:
+            return
+
         if not os.path.exists(directory):
             os.makedirs(directory)
 

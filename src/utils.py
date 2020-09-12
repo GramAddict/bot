@@ -109,7 +109,7 @@ def detect_block(device):
 
 
 def print_copyright(username):
-    if hashlib.sha1(username.encode('utf-8')).hexdigest() not in COPYRIGHT_BLACKLIST:
+    if username is None or (hashlib.sha1(username.encode('utf-8')).hexdigest() not in COPYRIGHT_BLACKLIST):
         print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
                        + COLOR_ENDC + ".")
         print_timeless(COLOR_BOLD + "$3" + COLOR_ENDC + " - support this project")
