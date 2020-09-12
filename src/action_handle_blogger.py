@@ -53,7 +53,8 @@ def _open_user_followers(device, username):
         username_view = device.find(resourceId='com.instagram.android:id/row_search_user_username',
                                     className='android.widget.TextView',
                                     text=username)
-
+                                    
+        random_sleep()
         if not username_view.exists():
             print_timeless(COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC)
             return False
