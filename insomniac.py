@@ -393,7 +393,7 @@ def _run_safely(device):
                 sys.exit(0)
             except (DeviceFacade.JsonRpcError, IndexError, HTTPException, timeout):
                 print(COLOR_FAIL + traceback.format_exc() + COLOR_ENDC)
-                take_screenshot(device)
+                save_crash(device)
                 print("No idea what it was. Let's try again.")
                 # Hack for the case when IGTV was accidentally opened
                 close_instagram(device_id)
@@ -405,7 +405,7 @@ def _run_safely(device):
                 print("Language was changed. We'll have to start from the beginning.")
                 navigate(device, Tabs.PROFILE)
             except Exception as e:
-                take_screenshot(device)
+                save_crash(device)
                 close_instagram(device_id)
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)

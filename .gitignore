@@ -5,6 +5,7 @@ sessions.json
 *.pyc
 .DS_Store
 screenshots
+crashes
 filter.json
 whitelist.txt
 action_remove_mass_followers.py

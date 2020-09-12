@@ -17,7 +17,7 @@ def parse(device, text):
     except ValueError:
         print_timeless(COLOR_FAIL + "Cannot parse \"" + text + "\". Probably wrong language, will set English now." +
                        COLOR_ENDC)
-        take_screenshot(device)
+        save_crash(device)
         _switch_to_english(device)
         raise LanguageChangedException()
     return count

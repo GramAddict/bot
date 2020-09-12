@@ -118,14 +118,14 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
                                        className='android.widget.LinearLayout')
     if not profile_actions_view.exists():
         print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
-        take_screenshot(device)
+        save_crash(device)
         device.back()
         return False
 
     unfollow_button = profile_actions_view.child(index=0)
     if not unfollow_button.exists():
         print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
-        take_screenshot(device)
+        save_crash(device)
         device.back()
         return False
     unfollow_button.click()
@@ -134,7 +134,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
                                           className='android.widget.TextView')
     if not confirm_unfollow_button.exists():
         print(COLOR_FAIL + "Cannot confirm unfollow." + COLOR_ENDC)
-        take_screenshot(device)
+        save_crash(device)
         device.back()
         return False
     confirm_unfollow_button.click()

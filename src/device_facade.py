@@ -34,6 +34,9 @@ class DeviceFacade:
             except ImportError:
                 raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
+    def is_old(self):
+        return self.deviceV1 is not None
+
     def find(self, *args, **kwargs):
         if self.deviceV1 is not None:
             import uiautomator

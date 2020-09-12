@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import shutil
 from datetime import datetime
 from random import randint
 from time import sleep
@@ -68,14 +69,33 @@ def close_instagram(device_id):
              " shell am force-stop com.instagram.android").close()
 
 
-def take_screenshot(device):
-    os.makedirs("screenshots/", exist_ok=True)
-    filename = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".png"
+def save_crash(device):
+    global print_log
+
+    directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     try:
-        device.screenshot("screenshots/" + filename)
-        print(COLOR_OKGREEN + "Screenshot taken and saved as " + filename + COLOR_ENDC)
+        os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
+    except OSError:
+        print(COLOR_FAIL + "Directory " + directory_name + " already exists." + COLOR_ENDC)
+        return
+
+    screenshot_format = ".png" if device.is_old() else ".jpg"
+    try:
+        device.screenshot("crashes/" + directory_name + "/screenshot" + screenshot_format)
     except RuntimeError:
         print(COLOR_FAIL + "Cannot save screenshot." + COLOR_ENDC)
+
+    with open("crashes/" + directory_name + "/logs.txt", 'w') as outfile:
+        outfile.write(print_log)
+
+    shutil.make_archive("crashes/" + directory_name, 'zip', "crashes/" + directory_name + "/")
+    shutil.rmtree("crashes/" + directory_name + "/")
+
+    print(COLOR_OKGREEN + "Crash saved as \"crashes/" + directory_name + ".zip\"." + COLOR_ENDC)
+    print(COLOR_OKGREEN + "Please attach this file if you gonna report the crash at" + COLOR_ENDC)
+    print(COLOR_OKGREEN + "https://github.com/alexal1/Insomniac/issues\n" + COLOR_ENDC)
+
+    print_log = ""
 
 
 def detect_block(device):
@@ -106,15 +126,19 @@ def print_blocked_feature(username, feature_name):
 
 def _print_with_time_decorator(standard_print, print_time):
     def wrapper(*args, **kwargs):
+        global print_log
         if print_time:
             time = datetime.now().strftime("%m/%d %H:%M:%S")
+            print_log += re.sub(r"\[\d+m", '', ("[" + time + "] " + str(*args, **kwargs) + "\n"))
             return standard_print("[" + time + "]", *args, **kwargs)
         else:
+            print_log += re.sub(r"\[\d+m", '', (str(*args, **kwargs) + "\n"))
             return standard_print(*args, **kwargs)
 
     return wrapper
 
 
+print_log = ""
 print_timeless = _print_with_time_decorator(print, False)
 print = _print_with_time_decorator(print, True)
 
