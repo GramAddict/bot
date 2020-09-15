@@ -198,7 +198,9 @@ def _interact_with_user(device,
     if coordinator_layout.exists():
         print("Scroll down to see more photos.")
         coordinator_layout.scroll(DeviceFacade.Direction.BOTTOM)
-    else:
+
+    recycler_view = device.find(resourceId='android:id/list')
+    if not recycler_view.exists():
         print(COLOR_OKGREEN + "Private / empty account." + COLOR_ENDC)
         followed = _follow(device,
                            username,
