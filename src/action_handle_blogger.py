@@ -3,6 +3,7 @@ from random import shuffle
 
 from src.device_facade import DeviceFacade
 from src.interaction_rect_checker import is_in_interaction_rect
+from src.language_switcher import switch_to_english, LanguageChangedException
 from src.navigation import navigate, Tabs
 from src.storage import FollowingStatus
 from src.utils import *
@@ -296,25 +297,28 @@ def _follow(device, username, follow_percentage):
 
     random_sleep()
 
-    profile_actions = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
-                                  className='android.widget.LinearLayout')
-    follow_button = profile_actions.child(index=0)
-
-    if follow_button.exists():
-        follow_button.click()
-        detect_block(device)
-        bottom_sheet = device.find(resourceId='com.instagram.android:id/layout_container_bottom_sheet',
-                                   className='android.widget.FrameLayout')
-        if bottom_sheet.exists():
-            print(COLOR_OKGREEN + "Already followed" + COLOR_ENDC)
-            device.back()
+    follow_button = device.find(className='android.widget.TextView',
+                                text='Follow')
+    if not follow_button.exists():
+        follow_button = device.find(className='android.widget.TextView',
+                                    text='Follow Back')
+    if not follow_button.exists():
+        unfollow_button = device.find(className='android.widget.TextView',
+                                      text='Following')
+        if unfollow_button.exists():
+            print(COLOR_OKGREEN + "You already follow @" + username + "." + COLOR_ENDC)
             return False
-        print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
-        random_sleep()
-        return True
-    else:
-        print_timeless(COLOR_FAIL + "Failed @" + username + " following." + COLOR_ENDC)
-        return False
+        else:
+            print(COLOR_FAIL + "Cannot find neither Follow button, nor Following button. Maybe not "
+                               "English language is set?" + COLOR_ENDC)
+            switch_to_english(device)
+            raise LanguageChangedException()
+
+    follow_button.click()
+    detect_block(device)
+    print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
+    random_sleep()
+    return True
 
 
 def _is_follow_limit_reached(session_state, follow_limit, blogger):
