@@ -153,6 +153,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
             print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
             return
         elif screen_iterated_followers > 0:
+            load_more_button = device.find(resourceId='com.instagram.android:id/row_load_more_button')
             need_swipe = screen_skipped_followers == screen_iterated_followers
             list_view = device.find(resourceId='android:id/list',
                                     className='android.widget.ListView')
@@ -160,7 +161,15 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                 print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
                 list_view.scroll(DeviceFacade.Direction.TOP)
             else:
-                if need_swipe:
+                pressed_retry = False
+                if load_more_button.exists():
+                    retry_button = load_more_button.child(className='android.widget.ImageView')
+                    if retry_button.exists():
+                        retry_button.click()
+                        random_sleep()
+                        pressed_retry = True
+
+                if need_swipe and not pressed_retry:
                     print(COLOR_OKGREEN + "All followers skipped, let's do a swipe" + COLOR_ENDC)
                     list_view.swipe(DeviceFacade.Direction.BOTTOM)
                 else:
@@ -298,12 +307,15 @@ def _follow(device, username, follow_percentage):
     random_sleep()
 
     follow_button = device.find(className='android.widget.TextView',
+                                clickable=True,
                                 text='Follow')
     if not follow_button.exists():
         follow_button = device.find(className='android.widget.TextView',
+                                    clickable=True,
                                     text='Follow Back')
     if not follow_button.exists():
         unfollow_button = device.find(className='android.widget.TextView',
+                                      clickable=True,
                                       text='Following')
         if unfollow_button.exists():
             print(COLOR_OKGREEN + "You already follow @" + username + "." + COLOR_ENDC)

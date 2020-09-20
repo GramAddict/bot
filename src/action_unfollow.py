@@ -1,6 +1,7 @@
 from enum import unique, Enum
 
 from src.device_facade import DeviceFacade
+from src.language_switcher import switch_to_english, LanguageChangedException
 from src.storage import FollowingStatus
 from src.utils import *
 
@@ -114,20 +115,13 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         device.back()
         return False
 
-    profile_actions_view = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
-                                       className='android.widget.LinearLayout')
-    if not profile_actions_view.exists():
-        print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
-        save_crash(device)
-        device.back()
-        return False
-
-    unfollow_button = profile_actions_view.child(index=0)
+    unfollow_button = device.find(className='android.widget.TextView',
+                                  clickable=True,
+                                  text='Following')
     if not unfollow_button.exists():
-        print(COLOR_FAIL + "Cannot find unfollow button." + COLOR_ENDC)
-        save_crash(device)
-        device.back()
-        return False
+        print(COLOR_FAIL + "Cannot find Following button. Maybe not English language is set?" + COLOR_ENDC)
+        switch_to_english(device)
+        raise LanguageChangedException()
     unfollow_button.click()
 
     confirm_unfollow_button = device.find(resourceId='com.instagram.android:id/follow_sheet_unfollow_row',
