@@ -3,8 +3,7 @@ from random import shuffle
 
 from src.device_facade import DeviceFacade
 from src.interaction_rect_checker import is_in_interaction_rect
-from src.language_switcher import switch_to_english, LanguageChangedException
-from src.navigation import navigate, Tabs
+from src.navigation import navigate, Tabs, switch_to_english, LanguageChangedException
 from src.storage import FollowingStatus
 from src.utils import *
 

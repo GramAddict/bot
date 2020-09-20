@@ -1,7 +1,7 @@
 from enum import unique, Enum
 
 from src.device_facade import DeviceFacade
-from src.language_switcher import switch_to_english, LanguageChangedException
+from src.navigation import switch_to_english, LanguageChangedException
 from src.storage import FollowingStatus
 from src.utils import *
 
