@@ -82,6 +82,8 @@ Lista completa de argumentos de línea de comando:
   --device 2443de990e017ece
                         identificador de dispositivo. Debe usarse solo cuando hay varios
                         dispositivos conectados a la vez
+  --old                 agregue esta bandera para usar la versión anterior de uiautomator.
+                        Úselo solo si tiene problemas con la versión estándar                   
 ```
 
 ### FAQ
