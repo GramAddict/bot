@@ -91,8 +91,6 @@ def _navigate_to_search(device):
     action_bar = device.find(resourceId='com.instagram.android:id/action_bar', className='android.widget.LinearLayout')
     search_in_action_bar = action_bar.child(descriptionMatches=SEARCH_CONTENT_DESC_REGEX)
     if search_in_action_bar.exists():
-        # Two clicks to reset tab content
-        search_in_action_bar.click()
         search_in_action_bar.click()
         return
 
