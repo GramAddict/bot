@@ -64,6 +64,16 @@ class DeviceFacade:
             self.deviceV1.screenshot(path)
         else:
             self.deviceV2.screenshot(path)
+    
+    def dump_hierarchy(self, path):
+        xml_dump = ''
+        if self.deviceV1 is not None:
+            xml_dump = self.deviceV1.dump()
+        else:
+            xml_dump = self.deviceV2.dump_hierarchy()
+        
+        with open(path, 'w') as outfile:
+            outfile.write(xml_dump)
 
     class View:
         deviceV1 = None  # uiautomator
