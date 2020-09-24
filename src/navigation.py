@@ -2,7 +2,7 @@ from enum import Enum, unique
 
 from src.utils import *
 
-SEARCH_CONTENT_DESC = 'Search and Explore'
+SEARCH_CONTENT_DESC_REGEX = '[Ss]earch and [Ee]xplore'
 
 
 def navigate(device, tab):
@@ -78,7 +78,7 @@ def _navigate_to_search(device):
     # "Home" tab and press search in the action bar.
 
     tab_bar = device.find(resourceId='com.instagram.android:id/tab_bar', className='android.widget.LinearLayout')
-    search_in_tab_bar = tab_bar.child(description=SEARCH_CONTENT_DESC)
+    search_in_tab_bar = tab_bar.child(descriptionMatches=SEARCH_CONTENT_DESC_REGEX)
     if search_in_tab_bar.exists():
         # Two clicks to reset tab content
         search_in_tab_bar.click()
@@ -89,7 +89,7 @@ def _navigate_to_search(device):
     navigate(device, Tabs.HOME)
     print("Press search in the action bar")
     action_bar = device.find(resourceId='com.instagram.android:id/action_bar', className='android.widget.LinearLayout')
-    search_in_action_bar = action_bar.child(description=SEARCH_CONTENT_DESC)
+    search_in_action_bar = action_bar.child(descriptionMatches=SEARCH_CONTENT_DESC_REGEX)
     if search_in_action_bar.exists():
         # Two clicks to reset tab content
         search_in_action_bar.click()
