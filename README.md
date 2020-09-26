@@ -52,30 +52,38 @@ Full list of command line arguments:
   --interact username1 [username2 ...]
                         list of usernames with whose followers you want to
                         interact
-  --likes-count 2       number of likes for each interacted user, 2 by default
+  --likes-count 2-4     number of likes for each interacted user, 2 by
+                        default. It can be a number (e.g. 2) or a range (e.g.
+                        2-4)
   --total-likes-limit 300
                         limit on total amount of likes during the session, 300
                         by default
-  --interactions-count 70
+  --interactions-count 60-80
                         number of interactions per each blogger, 70 by
-                        default. Only successful interactions count
-  --repeat 180          repeat the same session again after N minutes after
-                        completion, disabled by default
+                        default. It can be a number (e.g. 70) or a range (e.g.
+                        60-80). Only successful interactions count
+  --repeat 120-180      repeat the same session again after N minutes after
+                        completion, disabled by default. It can be a number of
+                        minutes (e.g. 180) or a range (e.g. 120-180)
   --follow-percentage 50
                         follow given percentage of interacted users, 0 by
                         default
   --follow-limit 50     limit on amount of follows during interaction with
                         each one user's followers, disabled by default
-  --unfollow 100        unfollow at most given number of users. Only users
+  --unfollow 100-200    unfollow at most given number of users. Only users
                         followed by this script will be unfollowed. The order
-                        is from oldest to newest followings
-  --unfollow-non-followers 100
+                        is from oldest to newest followings. It can be a
+                        number (e.g. 100) or a range (e.g. 100-200)
+  --unfollow-non-followers 100-200
                         unfollow at most given number of users, that don't
                         follow you back. Only users followed by this script
                         will be unfollowed. The order is from oldest to newest
-                        followings
-  --unfollow-any 100    unfollow at most given number of users. The order is
-                        from oldest to newest followings
+                        followings. It can be a number (e.g. 100) or a range
+                        (e.g. 100-200)
+  --unfollow-any 100-200
+                        unfollow at most given number of users. The order is
+                        from oldest to newest followings. It can be a number
+                        (e.g. 100) or a range (e.g. 100-200)
   --min-following 100   minimum amount of followings, after reaching this
                         amount unfollow stops
   --device 2443de990e017ece
@@ -87,7 +95,8 @@ Full list of command line arguments:
 ```
 
 ### FAQ
-- Can I prevent my phone from falling asleep? Yes. Settings -> Developer Options -> Stay awake.
+- How to stop the script? _Ctrl+C (control+C for Mac)_
+- Can I prevent my phone from falling asleep while the script is working? _Yes. Settings -> Developer Options -> Stay awake._
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)

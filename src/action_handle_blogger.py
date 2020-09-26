@@ -199,9 +199,10 @@ def _interact_with_user(device,
     if not profile_filter.check_profile(device, username):
         return False, False
 
-    if likes_count > 12:
+    likes_value = get_value(likes_count, "Likes count: {}", 2)
+    if likes_value > 12:
         print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
-        likes_count = 12
+        likes_value = 12
 
     coordinator_layout = device.find(resourceId='com.instagram.android:id/coordinator_root_layout')
     if coordinator_layout.exists():
@@ -216,12 +217,12 @@ def _interact_with_user(device,
             print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
         return False, followed
 
-    number_of_rows_to_use = min((likes_count * 2) // 3 + 1, 4)
+    number_of_rows_to_use = min((likes_value * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
     shuffle(photos_indices)
-    photos_indices = photos_indices[:likes_count]
+    photos_indices = photos_indices[:likes_value]
     photos_indices = sorted(photos_indices)
-    for i in range(0, likes_count):
+    for i in range(0, likes_value):
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
