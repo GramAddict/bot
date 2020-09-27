@@ -175,6 +175,9 @@ def _job_handle_bloggers(device,
 
     on_interaction = partial(on_interaction, on_likes_limit_reached=on_likes_limit_reached)
 
+    if len(sessions) > 1:
+        random.shuffle(bloggers)
+
     for blogger in bloggers:
         state = State()
         is_myself = blogger == session_state.my_username
