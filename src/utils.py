@@ -85,6 +85,12 @@ def save_crash(device):
     except RuntimeError:
         print(COLOR_FAIL + "Cannot save screenshot." + COLOR_ENDC)
 
+    view_hierarchy_format = ".xml"
+    try:
+        device.dump_hierarchy("crashes/" + directory_name + "/view_hierarchy" + view_hierarchy_format)
+    except RuntimeError:
+        print(COLOR_FAIL + "Cannot save view hierarchy." + COLOR_ENDC)
+
     with open("crashes/" + directory_name + "/logs.txt", 'w') as outfile:
         outfile.write(print_log)
 
