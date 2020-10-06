@@ -13,7 +13,7 @@ Liking and following automatically on your Android phone/tablet. No root require
 
 ### How to install
 1. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
-2. Install [uiautomator2](https://github.com/openatx/uiautomator2) and [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
+2. Install required libraries: `pip3 install -r requirements.txt`
 3. Download and unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), move them to a directory where you won't delete them accidentally, e.g.
 ```
 mkdir -p ~/Library/Android/sdk
