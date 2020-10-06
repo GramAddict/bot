@@ -52,31 +52,37 @@ Lista completa de argumentos de línea de comando:
 ```
   --interact username1 [username2 ...]
                         lista de usernames con cuyos seguidores desea
-                        interactuar
-  --likes-count 2       número de likes para cada usuario interactuado, 2 por defecto
+                        interactuar.
+  --likes-count 2-4     número de likes para cada usuario interactuado, 2 por defecto.
+                        Puede ser un número (Ej. 2) o un rango (Ej. 2-4).
   --total-likes-limit 300
                         límite en la cantidad total de likes durante la sesión, 300
-                        por defecto
-  --interactions-count 70
+                        por defecto.
+  --interactions-count 60-80
                         cantidad de interacciones por cada blogger, 70 por
-                        defecto. Solo cuentan las interacciones exitosas
-  --repeat 180          repita la misma sesión nuevamente después de N minutos
-                        completos, deshabilitada por defecto
+                        defecto. Puede ser un número (Ej. 70) o un rango
+                        (Ej. 60-80). Solo cuentan las interacciones exitosas
+  --repeat 120-180      repita la misma sesión nuevamente después de N minutos
+                        completos, deshabilitada por defecto. Puede ser un numero
+                        en minutos (Ej. 180) o un rango (Ej. 120-180)
   --follow-percentage 50
                         segue el porcentaje dado de usuarios, 0 por
                         defecto
   --follow-limit 50     límite en la cantidad de seguidores durante la interacción con
                         los seguidores de cada usuario, deshabilitada por defecto
-  --unfollow 100        deja de seguir el numero maximo de usuarios. Solo usuario
+  --unfollow 100-120    deja de seguir el numero maximo de usuarios. Solo usuario
                         que fue seguido por el script será dejado de seguir. El orden
-                        es del más antiguo al más nuevo.
-  --unfollow-non-followers 100
+                        es del más antiguo al más nuevo. Puede ser un número (Ej. 100)
+                        o un rango (Ej. 100-200).
+  --unfollow-non-followers 100-200
                         deja de seguir el numero maximo de usuarios, que no
                         te siguen de vuelta. Solo usuario que fue seguido por el script
                         será dejado de seguir. El orden es del más antiguo al
-                        más nuevo
-  --unfollow-any 100    deja de seguir el numero maximo de usuarios. El orden es
-                        del más antiguo al más nuevo
+                        más nuevo. Puede ser un número (Ej. 100) o un rango (Ej. 100-200).
+  --unfollow-any 100-200
+                        deja de seguir el numero maximo de usuarios. El orden es
+                        del más antiguo al más nuevo. Puede ser un número
+                        (Ej. 100) o un rango (Ej. 100-200).
   --min-following 100   cantidad mínima de seguidores, después de alcanzar
                         esta cantidad, unfollow se detiene
   --device 2443de990e017ece
@@ -87,6 +93,7 @@ Lista completa de argumentos de línea de comando:
 ```
 
 ### FAQ
+- ¿Cómo detener el script? _Ctrl + C (control + C para Mac)_
 - ¿Puedo evitar que mi teléfono se quede dormido? Si. Configuración -> Opciones para desarrolladores -> Stay awake.
 - [¿Cómo conectar un teléfono Android a través de WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [¿Cómo ejecutar en 2 o más dispositivos a la vez?](https://www.patreon.com/posts/38683736)
@@ -105,8 +112,8 @@ Para obtener acceso a la herramienta de análisis, debe [unirte a Patreon - Plan
 - [x] Siga el porcentaje dado de usuarios interaccionado con `--follow-percentage 50`
 - [x] Deja de seguir el porcentaje dado de usuarios (solo aquellos que fueron seguidos por el script) con `--unfollow 100`
 - [x] Deja de seguir el porcentaje dado de usuarios no seguidores (solo aquellos que fueron seguidos por el script) con `--unfollow-non-followers 100`
+- [x] Soporte para intervalos de likes y cuenta de interacciones `--likes-count 2-3`
 - [ ] Agregar acciones aleatorias para comportarse más como un humano (ver su propio feed, stories, etc.)
-- [ ] Soporte para intervalos de likes y cuenta de interacciones `--likes-count 2-3`
 - [ ] Interacción por hashtags
 - [ ] Comentar durante la interacción
 
