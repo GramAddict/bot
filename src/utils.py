@@ -31,7 +31,7 @@ def get_version():
 
 
 def get_instagram_version():
-    stream = os.popen('adb shell dumpsys package com.instagram.android | grep versionName')
+    stream = os.popen('adb shell dumpsys package com.instagram.android')
     output = stream.read()
     version_match = re.findall('versionName=(\\S+)', output)
     if len(version_match) == 1:
