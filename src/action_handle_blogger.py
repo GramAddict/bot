@@ -64,8 +64,7 @@ def _open_user_followers(device, username):
         username_view.click()
 
         print("Open @" + username + " followers")
-        followers_button = device.find(resourceId='com.instagram.android:id/row_profile_header_followers_container',
-                                       className='android.widget.LinearLayout')
+        followers_button = device.find(resourceIdMatches=FOLLOWERS_BUTTON_ID_REGEX)
         followers_button.click()
 
     return True
@@ -308,15 +307,15 @@ def _follow(device, username, follow_percentage):
 
     random_sleep()
 
-    follow_button = device.find(className='android.widget.TextView',
+    follow_button = device.find(className='android.widget.Button',
                                 clickable=True,
                                 text='Follow')
     if not follow_button.exists():
-        follow_button = device.find(className='android.widget.TextView',
+        follow_button = device.find(className='android.widget.Button',
                                     clickable=True,
                                     text='Follow Back')
     if not follow_button.exists():
-        unfollow_button = device.find(className='android.widget.TextView',
+        unfollow_button = device.find(className='android.widget.Button',
                                       clickable=True,
                                       text='Following')
         if unfollow_button.exists():

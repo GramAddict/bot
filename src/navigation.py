@@ -29,10 +29,11 @@ def switch_to_english(device):
 
     action_bar = device.find(resourceId='com.instagram.android:id/action_bar',
                              className='android.widget.LinearLayout')
-    options_view = action_bar.child(index=2, className='android.widget.ImageView')
-    if not options_view.exists():
-        options_view = action_bar.child(index=3, className='android.widget.ImageView')
-    if not options_view.exists():
+    # We wanna pick last ImageView in the action bar
+    options_view = None
+    for options_view in action_bar.child(className='android.widget.ImageView'):
+        pass
+    if options_view is None or not options_view.exists():
         print(COLOR_FAIL + "No idea how to open menu..." + COLOR_ENDC)
         return
     options_view.click()

@@ -30,6 +30,18 @@ def get_version():
     return version
 
 
+def get_instagram_version():
+    stream = os.popen('adb shell dumpsys package com.instagram.android | grep versionName')
+    output = stream.read()
+    version_match = re.findall('versionName=(\\S+)', output)
+    if len(version_match) == 1:
+        version = version_match[0]
+    else:
+        version = "not found"
+    stream.close()
+    return version
+
+
 def check_adb_connection(is_device_id_provided):
     stream = os.popen('adb devices')
     output = stream.read()
@@ -100,8 +112,6 @@ def save_crash(device):
     print(COLOR_OKGREEN + "Crash saved as \"crashes/" + directory_name + ".zip\"." + COLOR_ENDC)
     print(COLOR_OKGREEN + "Please attach this file if you gonna report the crash at" + COLOR_ENDC)
     print(COLOR_OKGREEN + "https://github.com/alexal1/Insomniac/issues\n" + COLOR_ENDC)
-
-    print_log = ""
 
 
 def detect_block(device):

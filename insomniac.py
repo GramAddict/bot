@@ -42,6 +42,8 @@ def main():
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
 
+    print("Instagram version: " + get_instagram_version())
+
     device = create_device(args.old, device_id)
     if device is None:
         return
