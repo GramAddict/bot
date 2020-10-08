@@ -5,6 +5,10 @@ from src.navigation import switch_to_english, LanguageChangedException
 from src.storage import FollowingStatus
 from src.utils import *
 
+FOLLOWING_BUTTON_ID_REGEX = 'com.instagram.android:id/row_profile_header_following_container' \
+                            '|com.instagram.android:id/row_profile_header_container_following'
+TEXTVIEW_OR_BUTTON_REGEX = 'android.widget.TextView|android.widget.Button'
+
 
 def unfollow(device, count, on_unfollow, storage, unfollow_restriction, my_username):
     _open_my_followings(device)
@@ -15,8 +19,7 @@ def unfollow(device, count, on_unfollow, storage, unfollow_restriction, my_usern
 
 def _open_my_followings(device):
     print("Open my followings")
-    followings_button = device.find(resourceId='com.instagram.android:id/row_profile_header_following_container',
-                                    className='android.widget.LinearLayout')
+    followings_button = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
     followings_button.click()
 
 
@@ -115,7 +118,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         device.back()
         return False
 
-    unfollow_button = device.find(className='android.widget.TextView',
+    unfollow_button = device.find(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
                                   clickable=True,
                                   text='Following')
     if not unfollow_button.exists():
@@ -145,8 +148,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
 
 def _check_is_follower(device, username, my_username):
     print(COLOR_OKGREEN + "Check if @" + username + " is following you." + COLOR_ENDC)
-    following_container = device.find(resourceId='com.instagram.android:id/row_profile_header_following_container',
-                                      className='android.widget.LinearLayout')
+    following_container = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
     following_container.click()
 
     random_sleep()
