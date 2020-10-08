@@ -97,6 +97,7 @@ def _navigate_to_search(device):
 
     print(COLOR_FAIL + "Cannot find search tab neither in the tab bar, nor in the action bar. Maybe not English "
                        "language is set?" + COLOR_ENDC)
+    save_crash(device)
     switch_to_english(device)
     raise LanguageChangedException()
 

@@ -120,6 +120,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
                                   text='Following')
     if not unfollow_button.exists():
         print(COLOR_FAIL + "Cannot find Following button. Maybe not English language is set?" + COLOR_ENDC)
+        save_crash(device)
         switch_to_english(device)
         raise LanguageChangedException()
     unfollow_button.click()

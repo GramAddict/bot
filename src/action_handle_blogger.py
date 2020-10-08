@@ -326,6 +326,7 @@ def _follow(device, username, follow_percentage):
         else:
             print(COLOR_FAIL + "Cannot find neither Follow button, nor Following button. Maybe not "
                                "English language is set?" + COLOR_ENDC)
+            save_crash(device)
             switch_to_english(device)
             raise LanguageChangedException()
 
