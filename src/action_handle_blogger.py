@@ -105,11 +105,12 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                                  className='android.widget.EditText')
         return row_search.exists()
 
+    prev_screen_iterated_followers = []
     while True:
         print("Iterate over visible followers")
         random_sleep()
-        screen_iterated_followers = 0
-        screen_skipped_followers = 0
+        screen_iterated_followers = []
+        screen_skipped_followers_count = 0
 
         try:
             for item in device.find(resourceId='com.instagram.android:id/follow_list_container',
@@ -121,14 +122,14 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                     break
 
                 username = user_name_view.get_text()
-                screen_iterated_followers += 1
+                screen_iterated_followers.append(username)
 
                 if not is_myself and storage.check_user_was_interacted(username):
                     print("@" + username + ": already interacted. Skip.")
-                    screen_skipped_followers += 1
+                    screen_skipped_followers_count += 1
                 elif is_myself and storage.check_user_was_interacted_recently(username):
                     print("@" + username + ": already interacted in the last week. Skip.")
-                    screen_skipped_followers += 1
+                    screen_skipped_followers_count += 1
                 else:
                     print("@" + username + ": interact")
                     user_name_view.click()
@@ -153,9 +154,15 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
         if is_myself and scrolled_to_top():
             print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
             return
-        elif screen_iterated_followers > 0:
+        elif len(screen_iterated_followers) > 0:
             load_more_button = device.find(resourceId='com.instagram.android:id/row_load_more_button')
-            need_swipe = screen_skipped_followers == screen_iterated_followers
+            load_more_button_exists = load_more_button.exists()
+
+            if not load_more_button_exists and screen_iterated_followers == prev_screen_iterated_followers:
+                print(COLOR_OKGREEN + "Iterated exactly the same followers twice, finish." + COLOR_ENDC)
+                return
+
+            need_swipe = screen_skipped_followers_count == len(screen_iterated_followers)
             list_view = device.find(resourceId='android:id/list',
                                     className='android.widget.ListView')
             if is_myself:
@@ -163,7 +170,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                 list_view.scroll(DeviceFacade.Direction.TOP)
             else:
                 pressed_retry = False
-                if load_more_button.exists():
+                if load_more_button_exists:
                     retry_button = load_more_button.child(className='android.widget.ImageView')
                     if retry_button.exists():
                         retry_button.click()
@@ -176,6 +183,9 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                 else:
                     print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
                     list_view.scroll(DeviceFacade.Direction.BOTTOM)
+
+            prev_screen_iterated_followers.clear()
+            prev_screen_iterated_followers += screen_iterated_followers
         else:
             print(COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC)
             return
