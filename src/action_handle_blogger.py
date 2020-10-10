@@ -10,6 +10,8 @@ from src.utils import *
 FOLLOWERS_BUTTON_ID_REGEX = 'com.instagram.android:id/row_profile_header_followers_container' \
                             '|com.instagram.android:id/row_profile_header_container_followers'
 TEXTVIEW_OR_BUTTON_REGEX = 'android.widget.TextView|android.widget.Button'
+FOLLOW_REGEX = 'Follow|Follow Back'
+UNFOLLOW_REGEX = 'Following|Requested'
 
 
 def handle_blogger(device,
@@ -224,10 +226,12 @@ def _interact_with_user(device,
     recycler_view = device.find(resourceId='android:id/list')
     if not recycler_view.exists():
         print(COLOR_OKGREEN + "Private / empty account." + COLOR_ENDC)
-        followed = _follow(device,
-                           username,
-                           follow_percentage) if profile_filter.can_follow_private_or_empty() else False
-        if not followed:
+        if can_follow and profile_filter.can_follow_private_or_empty():
+            followed = _follow(device,
+                               username,
+                               follow_percentage)
+        else:
+            followed = False
             print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
         return False, followed
 
@@ -320,22 +324,24 @@ def _follow(device, username, follow_percentage):
 
     random_sleep()
 
-    follow_button = device.find(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
-                                clickable=True,
-                                text='Follow')
+    profile_header_actions_layout = device.find(resourceId='com.instagram.android:id/profile_header_actions_top_row',
+                                                className='android.widget.LinearLayout')
+    if not profile_header_actions_layout.exists():
+        print(COLOR_FAIL + "Cannot find profile actions." + COLOR_ENDC)
+        return False
+
+    follow_button = profile_header_actions_layout.child(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+                                                        clickable=True,
+                                                        textMatches=FOLLOW_REGEX)
     if not follow_button.exists():
-        follow_button = device.find(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
-                                    clickable=True,
-                                    text='Follow Back')
-    if not follow_button.exists():
-        unfollow_button = device.find(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
-                                      clickable=True,
-                                      text='Following')
+        unfollow_button = profile_header_actions_layout.child(classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+                                                              clickable=True,
+                                                              textMatches=UNFOLLOW_REGEX)
         if unfollow_button.exists():
             print(COLOR_OKGREEN + "You already follow @" + username + "." + COLOR_ENDC)
             return False
         else:
-            print(COLOR_FAIL + "Cannot find neither Follow button, nor Following button. Maybe not "
+            print(COLOR_FAIL + "Cannot find neither Follow button, nor Unfollow button. Maybe not "
                                "English language is set?" + COLOR_ENDC)
             save_crash(device)
             switch_to_english(device)
