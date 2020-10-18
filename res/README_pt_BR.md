@@ -13,7 +13,7 @@ Like e seguir automaticamente no seu celular/tablet Android. Não é necessário
 
 ### Como instalar
 1. Clone o projeto: `git clone https://github.com/alexal1/Insomniac.git`
-2. Instale [uiautomator2](https://github.com/openatx/uiautomator2) e [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
+2. Instale as bibliotecas necessárias: `pip3 install -r requirements.txt`
 3. Download e unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), mova-os para um diretório em que você não os excluirá acidentalmente, por exemplo:
 ```
 mkdir -p ~/Library/Android/sdk
