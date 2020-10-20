@@ -14,19 +14,21 @@ Dale like y sigue automáticamente en tu teléfono / tableta Android. No se requ
 
 ### Cómo instalar
 1. Clone el proyecto: `git clone https://github.com/alexal1/Insomniac.git`
-2. Instalar las bibliotecas necesarias: `pip3 install -r requirements.txt`
-3. Download y unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), moverlos a un directorio donde no los eliminará accidentalmente, ejemplo:
+2. Vaya a la carpeta Insomniac: `cd Insomniac`
+3. Instalar las bibliotecas necesarias: `pip3 install -r requirements.txt`
+4. Download y unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), moverlos a un directorio donde no los eliminará accidentalmente, ejemplo:
 ```
 mkdir -p ~/Library/Android/sdk
 mv <ruta-para-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-4. [Agregue la ruta de platform-tools a las variables de entorno del sistema](https://github.com/alexal1/Insomniac/wiki/Agregue-la-ruta-de-platform-tools-a-las-variables-de-entorno-del-sistema-es). Si lo hace correctamente, el comando en la terminal (Símbolo del sistema) `adb devices` imprimirá `List of devices attached`
+5. [Agregue la ruta de platform-tools a las variables de entorno del sistema](https://github.com/alexal1/Insomniac/wiki/Agregue-la-ruta-de-platform-tools-a-las-variables-de-entorno-del-sistema-es). Si lo hace correctamente, el comando en la terminal (Símbolo del sistema) `adb devices` imprimirá `List of devices attached`
 
 ### Cómo instalar en Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
 2. Instalar ADB y Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone el proyecto: `git clone https://github.com/alexal1/Insomniac.git`
-4. Instalar [uiautomator2](https://github.com/openatx/uiautomator2) y [colorama](https://pypi.org/project/colorama/): `pip3 install uiautomator2 colorama`
+4. Vaya a la carpeta Insomniac: `cd Insomniac`
+5. Instalar las bibliotecas necesarias: `pip3 install -r requirements.txt`
 
 ### Comenzando
 1. Conecte el dispositivo Android a su computadora con un cable USB
