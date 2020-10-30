@@ -110,10 +110,10 @@ def main():
         session_state = SessionState()
         session_state.args = args.__dict__
         sessions.append(session_state)
-        if args.screen_care:
-            screen_care()  # Turn on the device screen
+        if args.screen_sleep:
+            screen_sleep()  # Turn on the device screen
         else:
-            print("Screen care is OFF")
+            print("Screen-sleep is OFF")
 
         print_timeless(
             COLOR_WARNING
@@ -185,7 +185,6 @@ def main():
             )
 
         close_instagram(device_id)
-        print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
         print_timeless(
             COLOR_WARNING
@@ -194,10 +193,10 @@ def main():
             + " --------"
             + COLOR_ENDC
         )
-        if args.screen_care:
-            screen_care()  # Turn on the device screen
+        if args.screen_sleep:
+            screen_sleep()  # Turn on the device screen
         else:
-            print("Screen care is OFF")
+            print("Screen-sleep is OFF")
 
         if args.repeat:
             print_full_report(sessions)
@@ -455,9 +454,9 @@ def _parse_arguments():
         action="store_true",
     )
     parser.add_argument(
-        "--screen_care",
+        "--screen-sleep",
         help="take care of your device screen by turning it off during sleeping time",
-        action='store_true'
+        action="store_true",
     )
     parser.add_argument("--remove-mass-followers", help=argparse.SUPPRESS)
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
@@ -525,7 +524,6 @@ def _run_safely(device):
                 func(*args, **kwargs)
             except KeyboardInterrupt:
                 close_instagram(device_id)
-                print_copyright(session_state.my_username)
                 print_timeless(
                     COLOR_WARNING
                     + "-------- FINISH: "

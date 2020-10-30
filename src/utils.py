@@ -94,7 +94,7 @@ def random_sleep():
     sleep(delay)
 
 
-def screen_care():
+def screen_sleep():
     status = os.popen("adb shell dumpsys input_method")
     data = status.read()
     flag = re.search("mInteractive=(true|false)", data)
@@ -103,7 +103,7 @@ def screen_care():
             print("Turning ON device screen")
             os.popen("adb shell input keyevent 26")
     else:
-        print("Screen care is OFF")
+        print("Screen-sleep is OFF")
 
 
 def save_crash(device):
@@ -169,17 +169,6 @@ def detect_block(device):
             "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
             " with limits!"
         )
-
-
-def print_copyright(username):
-    print_timeless(
-        "\nIf you like this script and want it to be improved, "
-        + COLOR_BOLD
-        + "donate please"
-        + COLOR_ENDC
-        + "."
-    )
-    print_timeless(COLOR_BOLD + "$3" + COLOR_ENDC + " - support this project")
 
 
 def _print_with_time_decorator(standard_print, print_time):
