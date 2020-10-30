@@ -449,7 +449,7 @@ def _parse_arguments():
     )
     parser.add_argument(
         "--old",
-        help="add this flag to use an old version of uiautomator. Use it only if you experience"
+        help="add this flag to use an old version of uiautomator. Use it only if you experience "
         "problems with the default version",
         action="store_true",
     )
