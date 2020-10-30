@@ -111,7 +111,7 @@ def main():
         session_state.args = args.__dict__
         sessions.append(session_state)
         if args.screen_sleep:
-            screen_sleep()  # Turn on the device screen
+            screen_sleep(device_id, "on")  # Turn on the device screen
         else:
             print("Screen-sleep is OFF")
 
@@ -194,7 +194,7 @@ def main():
             + COLOR_ENDC
         )
         if args.screen_sleep:
-            screen_sleep()  # Turn on the device screen
+            screen_sleep(device_id, "off")  # Turn off the device screen
         else:
             print("Screen-sleep is OFF")
 
@@ -449,7 +449,7 @@ def _parse_arguments():
     )
     parser.add_argument(
         "--old",
-        help="add this flag to use an old version of uiautomator. Use it only if you experience "
+        help="add this flag to use an old version of uiautomator. Use it only if you experience"
         "problems with the default version",
         action="store_true",
     )
@@ -457,6 +457,11 @@ def _parse_arguments():
         "--screen-sleep",
         help="take care of your device screen by turning it off during sleeping time",
         action="store_true",
+    )
+    parser.add_argument(
+        "--follow-if-private",
+        help="in the like mode you can follow only people who have private/empty profile",
+        action="store_true"
     )
     parser.add_argument("--remove-mass-followers", help=argparse.SUPPRESS)
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
