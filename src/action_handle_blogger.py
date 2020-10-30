@@ -134,11 +134,11 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                     screen_skipped_followers_count += 1
                 else:
                     print("@" + username + ": interact")
-                    item.click("left")
+                    item.click("center")
 
-                    can_follow = not is_myself \
-                        and not is_follow_limit_reached() \
-                        and storage.get_following_status(username) == FollowingStatus.NONE
+                    can_follow = (not is_myself
+                        and not is_follow_limit_reached()
+                        and storage.get_following_status(username) == FollowingStatus.NONE)
 
                     interaction_succeed, followed = interaction(device, username=username, can_follow=can_follow)
                     storage.add_interacted_user(username, followed=followed)

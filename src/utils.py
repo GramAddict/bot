@@ -78,7 +78,7 @@ def close_instagram(device_id):
              " shell am force-stop com.instagram.android").close()
 
 def random_sleep():
-    delay = randint(2, 6)
+    delay = randint(1, 4)
     print("Sleep for " + str(delay) + (delay == 1 and " second" or " seconds"))
     sleep(delay)
 
