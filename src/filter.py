@@ -40,36 +40,93 @@ class Filter:
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
             if field_skip_business and has_business_category is True:
-                print(COLOR_OKGREEN + "@" + username + " has business account, skip." + COLOR_ENDC)
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has business account, skip."
+                    + COLOR_ENDC
+                )
                 return False
             if field_skip_non_business and has_business_category is False:
-                print(COLOR_OKGREEN + "@" + username + " has non business account, skip." + COLOR_ENDC)
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has non business account, skip."
+                    + COLOR_ENDC
+                )
                 return False
 
-        if field_min_followers is not None or field_max_followers is not None \
-                or field_min_followings is not None or field_max_followings is not None \
-                or field_min_potency_ratio is not None:
+        if (
+            field_min_followers is not None
+            or field_max_followers is not None
+            or field_min_followings is not None
+            or field_max_followings is not None
+            or field_min_potency_ratio is not None
+        ):
             followers, followings = self._get_followers_and_followings(device)
             if field_min_followers is not None and followers < int(field_min_followers):
-                print(COLOR_OKGREEN + "@" + username + " has less than " + str(field_min_followers) +
-                      " followers, skip." + COLOR_ENDC)
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has less than "
+                    + str(field_min_followers)
+                    + " followers, skip."
+                    + COLOR_ENDC
+                )
                 return False
             if field_max_followers is not None and followers > int(field_max_followers):
-                print(COLOR_OKGREEN + "@" + username + " has more than " + str(field_max_followers) +
-                      " followers, skip." + COLOR_ENDC)
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has more than "
+                    + str(field_max_followers)
+                    + " followers, skip."
+                    + COLOR_ENDC
+                )
                 return False
-            if field_min_followings is not None and followings < int(field_min_followings):
-                print(COLOR_OKGREEN + "@" + username + " has less than " + str(field_min_followings) +
-                      " followings, skip." + COLOR_ENDC)
+            if field_min_followings is not None and followings < int(
+                field_min_followings
+            ):
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has less than "
+                    + str(field_min_followings)
+                    + " followings, skip."
+                    + COLOR_ENDC
+                )
                 return False
-            if field_max_followings is not None and followings > int(field_max_followings):
-                print(COLOR_OKGREEN + "@" + username + " has more than " + str(field_max_followings) +
-                      " followings, skip." + COLOR_ENDC)
+            if field_max_followings is not None and followings > int(
+                field_max_followings
+            ):
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + " has more than "
+                    + str(field_max_followings)
+                    + " followings, skip."
+                    + COLOR_ENDC
+                )
                 return False
-            if field_min_potency_ratio is not None \
-                    and (int(followings) == 0 or followers / followings < float(field_min_potency_ratio)):
-                print(COLOR_OKGREEN + "@" + username + "'s potency ratio is less than " +
-                      str(field_min_potency_ratio) + ", skip." + COLOR_ENDC)
+            if field_min_potency_ratio is not None and (
+                int(followings) == 0
+                or followers / followings < float(field_min_potency_ratio)
+            ):
+                print(
+                    COLOR_OKGREEN
+                    + "@"
+                    + username
+                    + "'s potency ratio is less than "
+                    + str(field_min_potency_ratio)
+                    + ", skip."
+                    + COLOR_ENDC
+                )
                 return False
         return True
 
@@ -77,44 +134,69 @@ class Filter:
         if self.conditions is None:
             return False
 
-        field_follow_private_or_empty = self.conditions.get(FIELD_FOLLOW_PRIVATE_OR_EMPTY)
-        return field_follow_private_or_empty is not None and bool(field_follow_private_or_empty)
+        field_follow_private_or_empty = self.conditions.get(
+            FIELD_FOLLOW_PRIVATE_OR_EMPTY
+        )
+        return field_follow_private_or_empty is not None and bool(
+            field_follow_private_or_empty
+        )
 
     @staticmethod
     def _get_followers_and_followings(device):
         followers = 0
         followers_text_view = device.find(
-            resourceId='com.instagram.android:id/row_profile_header_textview_followers_count',
-            className='android.widget.TextView'
+            resourceId="com.instagram.android:id/row_profile_header_textview_followers_count",
+            className="android.widget.TextView",
         )
         if followers_text_view.exists():
             followers_text = followers_text_view.get_text()
             if followers_text:
                 followers = parse(device, followers_text)
             else:
-                print_timeless(COLOR_FAIL + "Cannot get followers count text, default is " + str(followers) +
-                               COLOR_ENDC)
+                print_timeless(
+                    COLOR_FAIL
+                    + "Cannot get followers count text, default is "
+                    + str(followers)
+                    + COLOR_ENDC
+                )
         else:
-            print_timeless(COLOR_FAIL + "Cannot find followers count view, default is " + str(followers) + COLOR_ENDC)
+            print_timeless(
+                COLOR_FAIL
+                + "Cannot find followers count view, default is "
+                + str(followers)
+                + COLOR_ENDC
+            )
 
         followings = 0
         followings_text_view = device.find(
-            resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
-            className='android.widget.TextView')
+            resourceId="com.instagram.android:id/row_profile_header_textview_following_count",
+            className="android.widget.TextView",
+        )
         if followings_text_view.exists():
             followings_text = followings_text_view.get_text()
             if followings_text:
                 followings = parse(device, followings_text)
             else:
-                print_timeless(COLOR_FAIL + "Cannot get followings count text, default is " + str(followings) +
-                               COLOR_ENDC)
+                print_timeless(
+                    COLOR_FAIL
+                    + "Cannot get followings count text, default is "
+                    + str(followings)
+                    + COLOR_ENDC
+                )
         else:
-            print_timeless(COLOR_FAIL + "Cannot find followings count view, default is " + str(followings) + COLOR_ENDC)
+            print_timeless(
+                COLOR_FAIL
+                + "Cannot find followings count view, default is "
+                + str(followings)
+                + COLOR_ENDC
+            )
 
         return followers, followings
 
     @staticmethod
     def _has_business_category(device):
-        business_category_view = device.find(resourceId='com.instagram.android:id/profile_header_business_category',
-                                             className='android.widget.TextView')
+        business_category_view = device.find(
+            resourceId="com.instagram.android:id/profile_header_business_category",
+            className="android.widget.TextView",
+        )
         return business_category_view.exists()

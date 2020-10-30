@@ -56,12 +56,13 @@ class SessionState:
 
 
 class SessionStateEncoder(JSONEncoder):
-
     def default(self, session_state: SessionState):
         return {
             "id": session_state.id,
             "total_interactions": sum(session_state.totalInteractions.values()),
-            "successful_interactions": sum(session_state.successfulInteractions.values()),
+            "successful_interactions": sum(
+                session_state.successfulInteractions.values()
+            ),
             "total_followed": sum(session_state.totalFollowed.values()),
             "total_likes": session_state.totalLikes,
             "total_unfollowed": session_state.totalUnfollowed,
@@ -69,7 +70,5 @@ class SessionStateEncoder(JSONEncoder):
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
             "args": session_state.args,
-            "profile": {
-                "followers": str(session_state.my_followers_count)
-            }
+            "profile": {"followers": str(session_state.my_followers_count)},
         }

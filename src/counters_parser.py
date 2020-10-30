@@ -15,8 +15,13 @@ def parse(device, text):
     try:
         count = int(float(text) * multiplier)
     except ValueError:
-        print_timeless(COLOR_FAIL + "Cannot parse \"" + text + "\". Probably wrong language, will set English now." +
-                       COLOR_ENDC)
+        print_timeless(
+            COLOR_FAIL
+            + 'Cannot parse "'
+            + text
+            + '". Probably wrong language, will set English now.'
+            + COLOR_ENDC
+        )
         save_crash(device)
         switch_to_english(device)
         raise LanguageChangedException()
