@@ -110,10 +110,10 @@ def main():
         session_state = SessionState()
         session_state.args = args.__dict__
         sessions.append(session_state)
-        if args.screen_care == "on":
+        if args.screen_care:
             screen_care()  # Turn on the device screen
         else:
-            print("Screen care off")
+            print("Screen care is OFF")
 
         print_timeless(
             COLOR_WARNING
@@ -194,10 +194,10 @@ def main():
             + " --------"
             + COLOR_ENDC
         )
-        if args.screen_care == "on":
+        if args.screen_care:
             screen_care()  # Turn on the device screen
         else:
-            print("Screen care off")
+            print("Screen care is OFF")
 
         if args.repeat:
             print_full_report(sessions)
@@ -457,9 +457,7 @@ def _parse_arguments():
     parser.add_argument(
         "--screen_care",
         help="take care of your device screen by turning it off during sleeping time",
-        metavar="on / off",
-        choices=["on", "off"],
-        default="on",
+        action='store_true'
     )
     parser.add_argument("--remove-mass-followers", help=argparse.SUPPRESS)
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
