@@ -162,11 +162,7 @@ def save_crash(device):
         + "Please attach this file if you gonna report the crash at"
         + COLOR_ENDC
     )
-    print(
-        COLOR_OKGREEN
-        + "https://github.com/GramAddict/bot/issues\n"
-        + COLOR_ENDC
-    )
+    print(COLOR_OKGREEN + "https://github.com/GramAddict/bot/issues\n" + COLOR_ENDC)
 
 
 def detect_block(device):
