@@ -31,7 +31,7 @@ sessions = PersistentList("sessions", SessionStateEncoder)
 def main():
     random.seed()
     colorama.init()
-    print_timeless(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
+    print_timeless(COLOR_HEADER + "Gramaddict " + get_version() + "\n" + COLOR_ENDC)
 
     ok, args = _parse_arguments()
     if not ok:
@@ -74,7 +74,7 @@ def main():
     elif total_enabled > 1:
         print_timeless(
             COLOR_FAIL
-            + "Running Insomniac with two or more actions is not supported yet."
+            + "Running Gramaddict with two or more actions is not supported yet."
             + COLOR_ENDC
         )
         return
@@ -181,7 +181,7 @@ def main():
             )
 
         close_instagram(device_id)
-        print_copyright(session_state.my_username)
+        
         session_state.finishTime = datetime.now()
         print_timeless(
             COLOR_WARNING
@@ -339,7 +339,7 @@ def _job_remove_mass_followers(device, count, max_followings, storage):
     try:
         from src.action_remove_mass_followers import remove_mass_followers
     except ImportError:
-        print_blocked_feature(session_state.my_username, "--remove-mass-followers")
+        print("Some error occured. action_remove_mass_followers")
         return
 
     def on_remove(username):
@@ -520,7 +520,7 @@ def _run_safely(device):
                 func(*args, **kwargs)
             except KeyboardInterrupt:
                 close_instagram(device_id)
-                print_copyright(session_state.my_username)
+                
                 print_timeless(
                     COLOR_WARNING
                     + "-------- FINISH: "

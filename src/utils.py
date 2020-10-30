@@ -15,10 +15,7 @@ COLOR_ENDC = "\033[0m"
 COLOR_BOLD = "\033[1m"
 COLOR_UNDERLINE = "\033[4m"
 
-COPYRIGHT_BLACKLIST = (
-    "2a978d696a5bbc8536fe2859a61ee01d86e7a20f",
-    "ab1d65a93ec9b6fb90a67dec1ca1480ff71ef725",
-)
+
 
 
 def get_version():
