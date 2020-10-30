@@ -31,7 +31,7 @@ sessions = PersistentList("sessions", SessionStateEncoder)
 def main():
     random.seed()
     colorama.init()
-    print_timeless(COLOR_HEADER + "Insomniac " + get_version() + "\n" + COLOR_ENDC)
+    print_timeless(COLOR_HEADER + "GramAddict " + get_version() + "\n" + COLOR_ENDC)
 
     ok, args = _parse_arguments()
     if not ok:
@@ -61,7 +61,7 @@ def main():
                                     "--unfollow-non-followers, --unfollow-any, --remove-mass-followers" + COLOR_ENDC)
         return
     elif total_enabled > 1:
-        print_timeless(COLOR_FAIL + "Running Insomniac with two or more actions is not supported yet." + COLOR_ENDC)
+        print_timeless(COLOR_FAIL + "Running GramAddict with two or more actions is not supported yet." + COLOR_ENDC)
         return
     else:
         if is_interact_enabled:
@@ -86,6 +86,10 @@ def main():
         session_state = SessionState()
         session_state.args = args.__dict__
         sessions.append(session_state)
+        if args.screen_care == "on":
+            screen_care() #Turn on the device screen
+        else:
+            print("Screen care off")
 
         print_timeless(COLOR_WARNING + "\n-------- START: " + str(session_state.startTime) + " --------" + COLOR_ENDC)
         open_instagram(device_id)
@@ -135,6 +139,10 @@ def main():
         print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
         print_timeless(COLOR_WARNING + "-------- FINISH: " + str(session_state.finishTime) + " --------" + COLOR_ENDC)
+        if args.screen_care == "on":
+            screen_care() #Turn on the device screen
+        else:
+            print("Screen care off")
 
         if args.repeat:
             print_full_report(sessions)
@@ -256,12 +264,6 @@ def _job_remove_mass_followers(device, count, max_followings, storage):
     state = State()
     session_state = sessions[-1]
 
-    try:
-        from src.action_remove_mass_followers import remove_mass_followers
-    except ImportError:
-        print_blocked_feature(session_state.my_username, "--remove-mass-followers")
-        return
-
     def on_remove(username):
         state.removed_count += 1
         session_state.removedMassFollowers.append(username)
@@ -340,8 +342,11 @@ def _parse_arguments():
                         help='add this flag to use an old version of uiautomator. Use it only if you experience '
                              'problems with the default version',
                         action='store_true')
-    # Remove mass followers from the list of your followers. "Mass followers" are those who has more than N followings,
-    # where N can be set via --max-following. This is an extra feature, requires Patreon $10 tier.
+    parser.add_argument('--screen_care',
+                        help='take care of your device screen by turning it off during sleeping time',
+                        metavar='on / off',
+                        choices=['on', 'off'],
+                        default='on')
     parser.add_argument('--remove-mass-followers',
                         help=argparse.SUPPRESS)
     parser.add_argument('--max-following',

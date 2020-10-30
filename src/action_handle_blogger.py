@@ -134,7 +134,7 @@ def _iterate_over_followers(device, interaction, is_follow_limit_reached, storag
                     screen_skipped_followers_count += 1
                 else:
                     print("@" + username + ": interact")
-                    user_name_view.click()
+                    item.click("left")
 
                     can_follow = not is_myself \
                         and not is_follow_limit_reached() \

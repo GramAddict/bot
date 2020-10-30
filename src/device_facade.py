@@ -1,5 +1,5 @@
 from enum import Enum, unique
-
+import random
 from src.utils import *
 
 # How long we're waiting until UI element appears (loading content + animation)
@@ -139,7 +139,7 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(is_old=False, view=view, device=self.deviceV2)
 
-        def click(self):
+        def click(self, mode="center"):
             if self.viewV1 is not None:
                 import uiautomator
                 try:
@@ -149,7 +149,13 @@ class DeviceFacade:
             else:
                 import uiautomator2
                 try:
-                    self.viewV2.click(UI_TIMEOUT_LONG)
+                    if mode=="center":
+                        self.viewV2.click(UI_TIMEOUT_LONG, offset=(random.uniform(0.1,0.9),random.uniform(0.1,0.9)))
+                    elif mode=="left":
+                        self.viewV2.click(UI_TIMEOUT_LONG, offset=(random.uniform(0.25,0.6),random.uniform(0.1,0.9)))
+                        #0.25 to avoid pressing on stories if present
+                    elif mode=="right":
+                        self.viewV2.click(UI_TIMEOUT_LONG, offset=(random.uniform(0.6,0.9),random.uniform(0.1,0.9)))
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
 

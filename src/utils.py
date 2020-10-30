@@ -1,5 +1,6 @@
 import hashlib
 import os
+import platform
 import re
 import shutil
 from datetime import datetime
@@ -15,10 +16,6 @@ COLOR_ENDC = '\033[0m'
 COLOR_BOLD = '\033[1m'
 COLOR_UNDERLINE = '\033[4m'
 
-COPYRIGHT_BLACKLIST = (
-    '2a978d696a5bbc8536fe2859a61ee01d86e7a20f',
-    'ab1d65a93ec9b6fb90a67dec1ca1480ff71ef725'
-)
 
 
 def get_version():
@@ -80,6 +77,28 @@ def close_instagram(device_id):
     os.popen("adb" + ("" if device_id is None else " -s " + device_id) +
              " shell am force-stop com.instagram.android").close()
 
+def random_sleep():
+    delay = randint(2, 6)
+    print("Sleep for " + str(delay) + (delay == 1 and " second" or " seconds"))
+    sleep(delay)
+
+def screen_care():
+    System_OS = platform.system()
+    print(f"You're on {System_OS}!")
+    if "Linux" == System_OS:
+        status=os.popen ("adb shell dumpsys input_method | grep mInteractive=")
+    else:
+        status=os.popen ("adb shell dumpsys input_method | findstr mInteractive=")
+
+    data = status.read()
+    flag = re.search("mInteractive=(true|false)", data)
+    if flag is not None:
+        if flag.group(1) == "false":
+            print("Turning ON device screen")
+            os.popen("adb shell input keyevent 26")
+    else:
+        print("Screen care off")
+        print("You're using an emulator!")
 
 def save_crash(device):
     global print_log
@@ -111,7 +130,7 @@ def save_crash(device):
 
     print(COLOR_OKGREEN + "Crash saved as \"crashes/" + directory_name + ".zip\"." + COLOR_ENDC)
     print(COLOR_OKGREEN + "Please attach this file if you gonna report the crash at" + COLOR_ENDC)
-    print(COLOR_OKGREEN + "https://github.com/alexal1/Insomniac/issues\n" + COLOR_ENDC)
+    print(COLOR_OKGREEN + "https://github.com/GramAddict/gramaddict-bot/issues\n" + COLOR_ENDC)
 
 
 def detect_block(device):
@@ -125,19 +144,9 @@ def detect_block(device):
 
 
 def print_copyright(username):
-    if username is None or (hashlib.sha1(username.encode('utf-8')).hexdigest() not in COPYRIGHT_BLACKLIST):
-        print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
+    print_timeless("\nIf you like this script and want it to be improved, " + COLOR_BOLD + "donate please"
                        + COLOR_ENDC + ".")
-        print_timeless(COLOR_BOLD + "$3" + COLOR_ENDC + " - support this project")
-        print_timeless(COLOR_BOLD + "$10" + COLOR_ENDC + " - unblock extra features")
-        print_timeless(COLOR_BOLD + "$25" + COLOR_ENDC + " - same as $10 + vote for the next feature")
-        print_timeless("https://www.patreon.com/insomniac_bot\n")
-
-
-def print_blocked_feature(username, feature_name):
-    if hashlib.sha1(username.encode('utf-8')).hexdigest() not in COPYRIGHT_BLACKLIST:
-        print_timeless(COLOR_FAIL + "Sorry, " + feature_name + " is available for Patrons only!" + COLOR_ENDC)
-        print_timeless(COLOR_FAIL + "Please visit https://www.patreon.com/insomniac_bot\n" + COLOR_ENDC)
+    print_timeless(COLOR_BOLD + "$3" + COLOR_ENDC + " - support this project")
 
 
 def _print_with_time_decorator(standard_print, print_time):
