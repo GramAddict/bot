@@ -1,6 +1,5 @@
 import hashlib
 import os
-import platform
 import re
 import shutil
 from datetime import datetime
@@ -96,13 +95,7 @@ def random_sleep():
 
 
 def screen_care():
-    System_OS = platform.system()
-    print(f"You're on {System_OS}!")
-    if "Linux" == System_OS:
-        status = os.popen("adb shell dumpsys input_method | grep mInteractive=")
-    else:
-        status = os.popen("adb shell dumpsys input_method | findstr mInteractive=")
-
+    status = os.popen("adb shell dumpsys input_method")
     data = status.read()
     flag = re.search("mInteractive=(true|false)", data)
     if flag is not None:
@@ -110,8 +103,7 @@ def screen_care():
             print("Turning ON device screen")
             os.popen("adb shell input keyevent 26")
     else:
-        print("Screen care off")
-        print("You're using an emulator!")
+        print("Screen care is OFF")
 
 
 def save_crash(device):
