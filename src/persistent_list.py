@@ -38,8 +38,5 @@ class PersistentList(list):
             json_object[item_id] = item
         json_array = list(json_object.values())
 
-        with open(path, 'w') as outfile:
-            json.dump(json_array,
-                      outfile,
-                      indent=4,
-                      sort_keys=False)
+        with open(path, "w") as outfile:
+            json.dump(json_array, outfile, indent=4, sort_keys=False)

@@ -10,8 +10,10 @@ def get_my_profile_info(device):
     update_interaction_rect(device)
 
     username = None
-    title_view = device.find(resourceId='com.instagram.android:id/title_view',
-                             className='android.widget.TextView')
+    title_view = device.find(
+        resourceId="com.instagram.android:id/title_view",
+        className="android.widget.TextView",
+    )
     if title_view.exists():
         username = title_view.get_text()
     else:
@@ -48,8 +50,10 @@ def get_my_profile_info(device):
 
 def _get_followers_count(device):
     followers = None
-    followers_text_view = device.find(resourceId='com.instagram.android:id/row_profile_header_textview_followers_count',
-                                      className='android.widget.TextView')
+    followers_text_view = device.find(
+        resourceId="com.instagram.android:id/row_profile_header_textview_followers_count",
+        className="android.widget.TextView",
+    )
     if followers_text_view.exists():
         followers_text = followers_text_view.get_text()
         if followers_text:
@@ -64,8 +68,10 @@ def _get_followers_count(device):
 
 def get_following_count(device):
     following = None
-    following_text_view = device.find(resourceId='com.instagram.android:id/row_profile_header_textview_following_count',
-                                      className='android.widget.TextView')
+    following_text_view = device.find(
+        resourceId="com.instagram.android:id/row_profile_header_textview_following_count",
+        className="android.widget.TextView",
+    )
     if following_text_view.exists():
         following_text = following_text_view.get_text()
         if following_text:
