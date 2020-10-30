@@ -18,8 +18,11 @@ class Storage:
 
     def __init__(self, my_username):
         if my_username is None:
-            print(COLOR_FAIL + "No username, thus the script won't get access to interacted users and sessions data" +
-                  COLOR_ENDC)
+            print(
+                COLOR_FAIL
+                + "No username, thus the script won't get access to interacted users and sessions data"
+                + COLOR_ENDC
+            )
             return
 
         if not os.path.exists(my_username):
@@ -41,12 +44,18 @@ class Storage:
         if user is None:
             return False
 
-        last_interaction = datetime.strptime(user[USER_LAST_INTERACTION], '%Y-%m-%d %H:%M:%S.%f')
+        last_interaction = datetime.strptime(
+            user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
+        )
         return datetime.now() - last_interaction <= timedelta(days=3)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
-        return user is None and FollowingStatus.NONE or FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
+        return (
+            user is None
+            and FollowingStatus.NONE
+            or FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
+        )
 
     def add_interacted_user(self, username, followed=False, unfollowed=False):
         user = self.interacted_users.get(username, {})
@@ -67,7 +76,7 @@ class Storage:
 
     def _update_file(self):
         if self.interacted_users_path is not None:
-            with open(self.interacted_users_path, 'w') as outfile:
+            with open(self.interacted_users_path, "w") as outfile:
                 json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
 
 
