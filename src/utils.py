@@ -164,7 +164,7 @@ def save_crash(device):
     )
     print(
         COLOR_OKGREEN
-        + "https://github.com/GramAddict/gramaddict-bot/issues\n"
+        + "https://github.com/GramAddict/bot/issues\n"
         + COLOR_ENDC
     )
 
