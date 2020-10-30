@@ -2,7 +2,7 @@ from src.counters_parser import parse, LanguageChangedException
 from src.interaction_rect_checker import update_interaction_rect
 from src.navigation import navigate, Tabs
 from src.utils import *
-
+from src.layout import *
 
 def get_my_profile_info(device):
     navigate(device, Tabs.PROFILE)
@@ -10,8 +10,8 @@ def get_my_profile_info(device):
     update_interaction_rect(device)
 
     username = None
-    title_view = device.find(resourceId='com.instagram.android:id/title_view',
-                             className='android.widget.TextView')
+    title_view = device.find(resourceIdMatches=PROFILE_USERNAME_RES_ID,
+                             className=PROFILE_USERNAME_CLASS_NAME)
     if title_view.exists():
         username = title_view.get_text()
     else:
