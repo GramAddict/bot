@@ -1,5 +1,6 @@
 /venv*
 /.idea
+/.vscode
 interacted_users.*
 sessions.json
 *.pyc

@@ -1,0 +1,14 @@
+[[source]]
+name = "gramaddict-bot"
+url = "https://github.com/GramAddict/gramaddict-bot"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+uiautomator2 = "*"
+uiautomator = "*"
+colorama = "*"
+
+[requires]
+python_version = "3.8"
