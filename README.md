@@ -1,7 +1,4 @@
-<img align="left" width="80" height="80" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/icon.jpg" alt="Insomniac">
-
-# Insomniac
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/alexal1/Insomniac?label=latest%20version)
+# GramAddict
 ![Python](https://img.shields.io/badge/built%20with-Python3-red.svg)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 
@@ -110,8 +107,6 @@ Full list of command line arguments:
 There also is an analytics tool for this bot. It is a script that builds a report in PDF format. The report contains account's followers growth graphs for different periods. Liking, following and unfollowing actions' amounts are on the same axis to determine bot effectiveness. The report also contains stats of sessions length for different configurations that you've used. All data is taken from `sessions.json` file that's generated during bot's execution.
 <img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/analytics_sample.png">
 
-To get access to the analytics tool you have to [join Patreon $10 tier](https://www.patreon.com/insomniac_bot).
-
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
 - [x] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
@@ -121,22 +116,16 @@ To get access to the analytics tool you have to [join Patreon $10 tier](https://
 - [ ] Interaction by hashtags
 - [ ] Commenting during interaction
 
-### Why Insomniac?
-There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account.
+### Why GramAddict?
+There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account. There is also [Insomniac](https://github.com/alexal1/Insomniac/) which is the origin of this project, but they decided to charge a monthly fee for features that used to be free and we wanted to keep this project completely free and open source.
 
 That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
 
 ### Community
-We have a [Discord server](https://discord.gg/59pUYCw) which is the most convenient place to discuss all bugs, new features, Instagram limits, etc. If you're not familiar with Discord, you can also join our [Telegram chat](https://t.me/insomniac_chat). And finally, all useful info is posted on our [Patreon page](https://www.patreon.com/insomniac_bot). Most posts are available for everyone, but some require joining $10 tier: this is our way to keep evolving and improving the bot.
+We have a [Discord server](https://discord.gg/9MTjgs8g5R) which is the most convenient place to discuss all bugs, new features, Instagram limits, etc. 
 
 <p>
-  <a href="https://discord.gg/59pUYCw">
+  <a href="https://discord.gg/9MTjgs8g5R">
     <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
-  </a>
-  <a href="https://t.me/insomniac_chat">
-    <img hspace="3" alt="Telegram Chat" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/telegram.png" height=84/>
-  </a>
-  <a href="https://www.patreon.com/insomniac_bot">
-    <img hspace="3" alt="Patreon Page" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/patreon.png" height=84/>
   </a>
 </p>
