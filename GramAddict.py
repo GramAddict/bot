@@ -458,11 +458,6 @@ def _parse_arguments():
         help="take care of your device screen by turning it off during sleeping time",
         action="store_true",
     )
-    parser.add_argument(
-        "--follow-if-private",
-        help="in the like mode you can follow only people who have private/empty profile",
-        action="store_true"
-    )
     parser.add_argument("--remove-mass-followers", help=argparse.SUPPRESS)
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
 
