@@ -42,6 +42,7 @@ def main():
 
     print("Instagram version: " + get_instagram_version())
 
+    args.old = False
     device = create_device(args.old, device_id)
     if device is None:
         return
@@ -443,12 +444,6 @@ def _parse_arguments():
         "--device",
         help="device identifier. Should be used only when multiple devices are connected at once",
         metavar="2443de990e017ece",
-    )
-    parser.add_argument(
-        "--old",
-        help="add this flag to use an old version of uiautomator. Use it only if you experience "
-        "problems with the default version",
-        action="store_true",
     )
     # Remove mass followers from the list of your followers. "Mass followers" are those who has more than N followings,
     # where N can be set via --max-following. This is an extra feature, requires Patreon $10 tier.

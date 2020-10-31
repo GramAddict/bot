@@ -1,14 +1,17 @@
 [[source]]
-name = "gramaddict-bot"
-url = "https://github.com/GramAddict/gramaddict-bot"
+name = "pypi"
+url = "https://pypi.python.org/simple"
 verify_ssl = true
 
 [dev-packages]
+black = "*"
 
 [packages]
 uiautomator2 = "*"
-uiautomator = "*"
 colorama = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
