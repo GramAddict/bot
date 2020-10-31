@@ -110,6 +110,9 @@ def main():
         session_state.args = args.__dict__
         sessions.append(session_state)
 
+        if args.screen_sleep:
+            screen_sleep(device_id, "on")  # Turn on the device screen
+
         print_timeless(
             COLOR_WARNING
             + "\n-------- START: "
@@ -182,6 +185,10 @@ def main():
         close_instagram(device_id)
         print_copyright(session_state.my_username)
         session_state.finishTime = datetime.now()
+
+        if args.screen_sleep:
+            screen_sleep(device_id, "off")  # Turn off the device screen
+
         print_timeless(
             COLOR_WARNING
             + "-------- FINISH: "
@@ -444,6 +451,11 @@ def _parse_arguments():
         "--device",
         help="device identifier. Should be used only when multiple devices are connected at once",
         metavar="2443de990e017ece",
+    )
+    parser.add_argument(
+        "--screen-sleep",
+        help="take care of your device screen by turning it off during sleeping time",
+        action="store_true",
     )
     # Remove mass followers from the list of your followers. "Mass followers" are those who has more than N followings,
     # where N can be set via --max-following. This is an extra feature, requires Patreon $10 tier.

@@ -95,23 +95,26 @@ Full list of command line arguments:
   --device 2443de990e017ece
                         device identifier. Should be used only when multiple
                         devices are connected at once
+  --screen-sleep        turns on the phone screen when the script is running and 
+                        off when when it's ended or sleeping (e.g. when using with
+                        --repeat) - disable the passcode for unlocking the phone
+                        if you want to use that function!
 ```
 
 ### FAQ
 - How to stop the script? _Ctrl+C (control+C for Mac)_
 - Can I prevent my phone from falling asleep while the script is working? _Yes. Settings -> Developer Options -> Stay awake._
+- With the new feature _--screen-sleep_ you can forget about keeping your screen always on: the script will turn it on and off for you.
+  Attention: this function is intended to work only if you don't have a passcode for unlock your phone!
 - [How to connect Android phone via WiFi?](https://github.com/GramAddict/bot/wiki/Connect-Android-phone(s)-via-WiFi)
 - [How to run on 2 or more devices at once?](https://github.com/GramAddict/bot/wiki/Running-script-on-multiple-devices-at-once)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://github.com/GramAddict/bot/wiki/Problems-with-adb-connection:-what-to-do)
 
 ### Features in progress
-- [x] Follow given percentage of interacted users by `--follow-percentage 50`
-- [x] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
-- [x] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
-- [x] Support intervals for likes and interactions count like `--likes-count 2-3`
-- [ ] Follow private accounts
-- [ ] Filter by followers/followings count, ratio, business/non-business
-- [ ] Removing mass followers
+- [x] Follow private accounts
+- [x] Filter by followers/followings count, ratio, business/non-business
+- [x] Screen-sleep for turning on and off your phone screen
+- [ ] Randomize the single click for a better human-like behaviour
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Interaction by hashtags
 - [ ] Commenting during interaction
