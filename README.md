@@ -22,7 +22,7 @@ Liking and following automatically on your Android phone/tablet. No root require
 mkdir -p ~/Library/Android/sdk
 mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-5. [Add platform-tools path to the PATH environment variable](https://github.com/alexal1/Insomniac/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command prompt command `adb devices` will print `List of devices attached`
+5. [Add platform-tools path to the PATH environment variable](https://github.com/GramAddict/bot/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command prompt command `adb devices` will print `List of devices attached`
 6. Activate pipenv shell: `pipenv shell`
 
 ### How to install on Raspberry Pi OS
@@ -100,9 +100,9 @@ Full list of command line arguments:
 ### FAQ
 - How to stop the script? _Ctrl+C (control+C for Mac)_
 - Can I prevent my phone from falling asleep while the script is working? _Yes. Settings -> Developer Options -> Stay awake._
-- [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
-- [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
-- [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
+- [How to connect Android phone via WiFi?](https://github.com/GramAddict/bot/wiki/Connect-Android-phone(s)-via-WiFi)
+- [How to run on 2 or more devices at once?](https://github.com/GramAddict/bot/wiki/Running-script-on-multiple-devices-at-once)
+- [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://github.com/GramAddict/bot/wiki/Problems-with-adb-connection:-what-to-do)
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
