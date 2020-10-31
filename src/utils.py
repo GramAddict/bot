@@ -92,6 +92,32 @@ def close_instagram(device_id):
         + " shell am force-stop com.instagram.android"
     ).close()
 
+def screen_sleep(device_id, mode):
+    if mode == "on":
+        status = os.popen(
+            "adb"
+            + ("" if device_id is None else " -s " + device_id)
+            + " shell dumpsys input_method"
+        )
+        data = status.read()
+        flag = re.search("mInteractive=(true|false)", data)
+        if flag is not None:
+            if flag.group(1) == "false":
+                os.popen(
+                    "adb"
+                    + ("" if device_id is None else " -s " + device_id)
+                    + " shell input keyevent 26"
+                )
+                print("Device screen turned ON!")
+            else:
+                print("Device screen already turned ON!")
+    else:
+        os.popen(
+            "adb"
+            + ("" if device_id is None else " -s " + device_id)
+            + " shell input keyevent 26"
+        )
+        print("Device screen turned OFF!")
 
 def save_crash(device):
     global print_log
