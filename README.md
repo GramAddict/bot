@@ -2,29 +2,36 @@
 ![Python](https://img.shields.io/badge/built%20with-Python3-red.svg)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 
-[español](https://github.com/alexal1/Insomniac/blob/master/res/README_es.md) | [português](https://github.com/alexal1/Insomniac/blob/master/res/README_pt_BR.md)
+[español](https://github.com/GramAddict/bot/blob/master/res/README_es.md) | [português](https://github.com/GramAddict/bot/blob/master/res/README_pt_BR.md)
 
 Liking and following automatically on your Android phone/tablet. No root required: it works on [UI Automator](https://developer.android.com/training/testing/ui-automator), which is an official Android UI testing framework.
 
-<img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/demo.gif">
+<img src="https://github.com/GramAddict/bot/raw/master/res/demo.gif">
+
+## Requirements
+
+- Python 3.8
+- pipenv [how to install](https://github.com/pypa/pipenv#installation)
 
 ### How to install
-1. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
-2. Go to Insomniac folder: `cd Insomniac`
-3. Install required libraries: `pip3 install -r requirements.txt`
+1. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
+2. Go to GramAddict folder: `cd gramaddict`
+3. Install required libraries: `pipenv install`
 4. Download and unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), move them to a directory where you won't delete them accidentally, e.g.
 ```
 mkdir -p ~/Library/Android/sdk
 mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
 5. [Add platform-tools path to the PATH environment variable](https://github.com/alexal1/Insomniac/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command prompt command `adb devices` will print `List of devices attached`
+6. Activate pipenv shell: `pipenv shell`
 
 ### How to install on Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
-2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
-3. Clone project: `git clone https://github.com/alexal1/Insomniac.git`
-4. Go to Insomniac folder: `cd Insomniac`
-5. Install required libraries: `pip3 install -r requirements.txt`
+2. Install ADB, Fastboot and Pipenv: `sudo apt-get install -y android-tools-adb android-tools-fastboot pipenv`
+3. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
+4. Go to GramAddict folder: `cd gramaddict`
+5. Install required libraries: `pipenv install`
+6. Activate pipenv shell: `pipenv shell`
 
 ### Get started
 1. Connect Android device to your computer with a USB cable
@@ -40,8 +47,8 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 4. Device will ask you to allow computer connection. Press "Connect"
 5. Type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
-cd <path-to-project>/Insomniac
-python3 insomniac.py --interact <username1> <username2> ...
+cd <path-to-project>/gramaddict
+python run.py --interact <username1> <username2> ...
 ```
 Make sure that the screen is turned on and device is unblocked. You don't have to open Instagram app, script opens it and closes when it's finished. Just make sure that Instagram app is installed. If everything's fine, script will open each blogger's followers and like their posts.
 
@@ -99,19 +106,15 @@ Full list of command line arguments:
 - [How to connect Android phone via WiFi?](https://www.patreon.com/posts/connect-android-38655552)
 - [How to run on 2 or more devices at once?](https://www.patreon.com/posts/38683736)
 - [Script crashes with **OSError: RPC server not started!** or **ReadTimeoutError**](https://www.patreon.com/posts/problems-with-to-38702683)
-- [Private accounts are always skipped. How to follow them too?](https://www.patreon.com/posts/enable-private-39097751) **(please join Patreon $10 tier)**
-- [Filter by followers/followings count, ratio, business/non-business](https://www.patreon.com/posts/38826184) **(please join Patreon $10 tier)**
-- [Can I automate removing mass followers from my account? Yes.](https://www.patreon.com/posts/40514622) **(please join Patreon $10 tier)**
-
-### Analytics
-There also is an analytics tool for this bot. It is a script that builds a report in PDF format. The report contains account's followers growth graphs for different periods. Liking, following and unfollowing actions' amounts are on the same axis to determine bot effectiveness. The report also contains stats of sessions length for different configurations that you've used. All data is taken from `sessions.json` file that's generated during bot's execution.
-<img src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/analytics_sample.png">
 
 ### Features in progress
 - [x] Follow given percentage of interacted users by `--follow-percentage 50`
 - [x] Unfollow given number of users (only those who were followed by the script) by `--unfollow 100`
 - [x] Unfollow given number of non-followers (only those who were followed by the script) by `--unfollow-non-followers 100`
 - [x] Support intervals for likes and interactions count like `--likes-count 2-3`
+- [ ] Follow private accounts
+- [ ] Filter by followers/followings count, ratio, business/non-business
+- [ ] Removing mass followers
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Interaction by hashtags
 - [ ] Commenting during interaction
@@ -119,13 +122,13 @@ There also is an analytics tool for this bot. It is a script that builds a repor
 ### Why GramAddict?
 There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account. There is also [Insomniac](https://github.com/alexal1/Insomniac/) which is the origin of this project, but they decided to charge a monthly fee for features that used to be free and we wanted to keep this project completely free and open source.
 
-That's why need arised in a solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
+Our objective is to make a free solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
 
 ### Community
 We have a [Discord server](https://discord.gg/9MTjgs8g5R) which is the most convenient place to discuss all bugs, new features, Instagram limits, etc. 
 
 <p>
   <a href="https://discord.gg/9MTjgs8g5R">
-    <img hspace="3" alt="Discord Server" src="https://raw.githubusercontent.com/alexal1/Insomniac/master/res/discord.png" height=84/>
+    <img hspace="3" alt="Discord Server" src="https://github.com/GramAddict/bot/raw/master/res/discord.png" height=84/>
   </a>
 </p>

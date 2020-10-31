@@ -1,5 +1,3 @@
-# Since of v1.2.3 this script works on Python 3
-
 import argparse
 import random
 import sys
