@@ -95,9 +95,6 @@ Full list of command line arguments:
   --device 2443de990e017ece
                         device identifier. Should be used only when multiple
                         devices are connected at once
-  --old                 add this flag to use an old version of uiautomator.
-                        Use it only if you experience problems with the
-                        default version
 ```
 
 ### FAQ

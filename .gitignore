@@ -10,3 +10,4 @@ crashes
 filter.json
 whitelist.txt
 action_remove_mass_followers.py
+Pipfile.lock
