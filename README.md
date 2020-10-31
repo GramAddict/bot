@@ -104,7 +104,7 @@ Full list of command line arguments:
 ### FAQ
 - How to stop the script? _Ctrl+C (control+C for Mac)_
 - Can I prevent my phone from falling asleep while the script is working? _Yes. Settings -> Developer Options -> Stay awake._
-- With the new feature _--screen-sleep_ you can forget about keeping your screen always on: the script will turn it on and off for you
+- With the new feature _--screen-sleep_ you can forget about keeping your screen always on: the script will turn it on and off for you.
   Attention: this function is intended to work only if you don't have a passcode for unlock your phone!
 - [How to connect Android phone via WiFi?](https://github.com/GramAddict/bot/wiki/Connect-Android-phone(s)-via-WiFi)
 - [How to run on 2 or more devices at once?](https://github.com/GramAddict/bot/wiki/Running-script-on-multiple-devices-at-once)
@@ -113,6 +113,7 @@ Full list of command line arguments:
 ### Features in progress
 - [x] Follow private accounts
 - [x] Filter by followers/followings count, ratio, business/non-business
+- [x] Screen-sleep for turning on and off your phone screen
 - [ ] Randomize the single click for a better human-like behaviour
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Interaction by hashtags
