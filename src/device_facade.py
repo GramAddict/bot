@@ -169,7 +169,7 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(is_old=False, view=view, device=self.deviceV2)
 
-        def click(self):
+        def click(self, mode="whole"):
             if self.viewV1 is not None:
                 import uiautomator
 
@@ -181,7 +181,29 @@ class DeviceFacade:
                 import uiautomator2
 
                 try:
-                    self.viewV2.click(UI_TIMEOUT_LONG)
+                    if mode == "whole":
+                        self.viewV2.click(
+                            UI_TIMEOUT_LONG,
+                            offset=(
+                                random.uniform(0.1, 0.9),
+                                random.uniform(0.15, 0.85),
+                            ),
+                        )
+                    elif mode == "left":
+                        self.viewV2.click(
+                            UI_TIMEOUT_LONG,
+                            offset=(random.uniform(0.1, 0.4), random.uniform(0.1, 0.9)),
+                        )
+                    elif mode == "center":
+                        self.viewV2.click(
+                            UI_TIMEOUT_LONG,
+                            offset=(random.uniform(0.4, 0.6), random.uniform(0.1, 0.9)),
+                        )
+                    elif mode == "right":
+                        self.viewV2.click(
+                            UI_TIMEOUT_LONG,
+                            offset=(random.uniform(0.6, 0.9), random.uniform(0.1, 0.9)),
+                        )
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
 

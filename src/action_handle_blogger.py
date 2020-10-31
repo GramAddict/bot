@@ -169,7 +169,7 @@ def _iterate_over_followers(
                     screen_skipped_followers_count += 1
                 else:
                     print("@" + username + ": interact")
-                    user_name_view.click()
+                    item.click("center")
 
                     can_follow = (
                         not is_myself
