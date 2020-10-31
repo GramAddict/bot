@@ -65,7 +65,7 @@ def main():
         print_timeless(
             COLOR_FAIL
             + "You have to specify one of the actions: --interact, --unfollow, "
-            "--unfollow-non-followers, --unfollow-any, --remove-mass-followers"
+            "--unfollow-non-followers, --unfollow-any"
             + COLOR_ENDC
         )
         return
@@ -403,9 +403,7 @@ def _parse_arguments():
         "problems with the default version",
         action="store_true",
     )
-    # Remove mass followers from the list of your followers. "Mass followers" are those who has more than N followings,
-    # where N can be set via --max-following. This is an extra feature, requires Patreon $10 tier.
-    parser.add_argument("--remove-mass-followers", help=argparse.SUPPRESS)
+    
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
 
     if not len(sys.argv) > 1:
