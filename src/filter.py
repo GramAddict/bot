@@ -116,9 +116,16 @@ class Filter:
                     + COLOR_ENDC
                 )
                 return False
-            if field_min_potency_ratio is not None and field_max_potency_ratio is not None and (
-                int(followings) == 0
-                or (followers / followings < float(field_min_potency_ratio) or followers / followings > field_max_potency_ratio)
+            if (
+                field_min_potency_ratio is not None
+                and field_max_potency_ratio is not None
+                and (
+                    int(followings) == 0
+                    or (
+                        followers / followings < float(field_min_potency_ratio)
+                        or followers / followings > field_max_potency_ratio
+                    )
+                )
             ):
                 print(
                     COLOR_OKGREEN
