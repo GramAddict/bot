@@ -53,15 +53,13 @@ def main():
     is_unfollow_enabled = args.unfollow is not None
     is_unfollow_non_followers_enabled = args.unfollow_non_followers is not None
     is_unfollow_any_enabled = args.unfollow_any is not None
-    is_remove_mass_followers_enabled = (
-        args.remove_mass_followers is not None and int(args.remove_mass_followers) > 0
-    )
+    
     total_enabled = (
         int(is_interact_enabled)
         + int(is_unfollow_enabled)
         + int(is_unfollow_non_followers_enabled)
         + int(is_unfollow_any_enabled)
-        + int(is_remove_mass_followers_enabled)
+        
     )
     if total_enabled == 0:
         print_timeless(
@@ -98,11 +96,7 @@ def main():
         elif is_unfollow_any_enabled:
             print("Action: unfollow any " + str(args.unfollow_any))
             mode = Mode.UNFOLLOW_ANY
-        elif is_remove_mass_followers_enabled:
-            print(
-                "Action: remove " + str(args.remove_mass_followers) + " mass followers"
-            )
-            mode = Mode.REMOVE_MASS_FOLLOWERS
+        
 
     profile_filter = Filter()
 
@@ -172,13 +166,7 @@ def main():
                 int(args.min_following),
                 UnfollowRestriction.ANY,
             )
-        elif mode == Mode.REMOVE_MASS_FOLLOWERS:
-            _job_remove_mass_followers(
-                device,
-                int(args.remove_mass_followers),
-                int(args.max_following),
-                storage,
-            )
+        
 
         close_instagram(device_id)
         
@@ -325,44 +313,7 @@ def _job_unfollow(device, count, storage, min_following, unfollow_restriction):
         job()
 
 
-def _job_remove_mass_followers(device, count, max_followings, storage):
-    class State:
-        def __init__(self):
-            pass
 
-        removed_count = 0
-        is_job_completed = False
-
-    state = State()
-    session_state = sessions[-1]
-
-    try:
-        from src.action_remove_mass_followers import remove_mass_followers
-    except ImportError:
-        print("Some error occured. action_remove_mass_followers")
-        return
-
-    def on_remove(username):
-        state.removed_count += 1
-        session_state.removedMassFollowers.append(username)
-        can_continue = state.removed_count < count
-        if not can_continue:
-            print(
-                COLOR_OKGREEN
-                + "Removed "
-                + str(state.removed_count)
-                + " mass followers, finish."
-                + COLOR_ENDC
-            )
-        return can_continue
-
-    @_run_safely(device=device)
-    def job():
-        remove_mass_followers(device, max_followings, on_remove, storage)
-        state.is_job_completed = True
-
-    while not state.is_job_completed and state.removed_count < count:
-        job()
 
 
 def _parse_arguments():
@@ -562,7 +513,7 @@ class Mode(Enum):
     UNFOLLOW = 1
     UNFOLLOW_NON_FOLLOWERS = 2
     UNFOLLOW_ANY = 3
-    REMOVE_MASS_FOLLOWERS = 4
+    
 
 
 if __name__ == "__main__":
