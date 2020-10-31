@@ -110,7 +110,6 @@ def main():
         session_state.args = args.__dict__
         sessions.append(session_state)
 
-
         if args.screen_sleep:
             screen_sleep(device_id, "on")  # Turn on the device screen
 

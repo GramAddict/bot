@@ -92,6 +92,7 @@ def close_instagram(device_id):
         + " shell am force-stop com.instagram.android"
     ).close()
 
+
 def screen_sleep(device_id, mode):
     if mode == "on":
         status = os.popen(
@@ -118,6 +119,7 @@ def screen_sleep(device_id, mode):
             + " shell input keyevent 26"
         )
         print("Device screen turned OFF!")
+
 
 def save_crash(device):
     global print_log
