@@ -53,20 +53,18 @@ def main():
     is_unfollow_enabled = args.unfollow is not None
     is_unfollow_non_followers_enabled = args.unfollow_non_followers is not None
     is_unfollow_any_enabled = args.unfollow_any is not None
-    
+
     total_enabled = (
         int(is_interact_enabled)
         + int(is_unfollow_enabled)
         + int(is_unfollow_non_followers_enabled)
         + int(is_unfollow_any_enabled)
-        
     )
     if total_enabled == 0:
         print_timeless(
             COLOR_FAIL
             + "You have to specify one of the actions: --interact, --unfollow, "
-            "--unfollow-non-followers, --unfollow-any"
-            + COLOR_ENDC
+            "--unfollow-non-followers, --unfollow-any" + COLOR_ENDC
         )
         return
     elif total_enabled > 1:
@@ -96,7 +94,6 @@ def main():
         elif is_unfollow_any_enabled:
             print("Action: unfollow any " + str(args.unfollow_any))
             mode = Mode.UNFOLLOW_ANY
-        
 
     profile_filter = Filter()
 
@@ -166,10 +163,9 @@ def main():
                 int(args.min_following),
                 UnfollowRestriction.ANY,
             )
-        
 
         close_instagram(device_id)
-        
+
         session_state.finishTime = datetime.now()
         print_timeless(
             COLOR_WARNING
@@ -313,9 +309,6 @@ def _job_unfollow(device, count, storage, min_following, unfollow_restriction):
         job()
 
 
-
-
-
 def _parse_arguments():
     parser = argparse.ArgumentParser(
         description="Instagram bot for automated Instagram interaction using Android device via ADB",
@@ -403,7 +396,7 @@ def _parse_arguments():
         "problems with the default version",
         action="store_true",
     )
-    
+
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
 
     if not len(sys.argv) > 1:
@@ -469,7 +462,7 @@ def _run_safely(device):
                 func(*args, **kwargs)
             except KeyboardInterrupt:
                 close_instagram(device_id)
-                
+
                 print_timeless(
                     COLOR_WARNING
                     + "-------- FINISH: "
@@ -511,7 +504,6 @@ class Mode(Enum):
     UNFOLLOW = 1
     UNFOLLOW_NON_FOLLOWERS = 2
     UNFOLLOW_ANY = 3
-    
 
 
 if __name__ == "__main__":
