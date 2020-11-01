@@ -171,13 +171,13 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         )
         if not unfollow_button.exists() and attemp <= 1:
             scrollable = device.find(
-            classNameMatches="androidx.viewpager.widget.ViewPager"
+                classNameMatches="androidx.viewpager.widget.ViewPager"
             )
             scrollable.scroll(DeviceFacade.Direction.TOP)
             attemp += 1
         else:
             break
-    
+
     if not unfollow_button.exists():
         print(
             COLOR_FAIL
