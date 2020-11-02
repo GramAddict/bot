@@ -11,6 +11,7 @@ FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
 FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
+FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 
 
@@ -36,6 +37,7 @@ class Filter:
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
         field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
+        field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO)
 
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
@@ -114,16 +116,25 @@ class Filter:
                     + COLOR_ENDC
                 )
                 return False
-            if field_min_potency_ratio is not None and (
-                int(followings) == 0
-                or followers / followings < float(field_min_potency_ratio)
+            if (
+                field_min_potency_ratio is not None
+                and field_max_potency_ratio is not None
+                and (
+                    int(followings) == 0
+                    or (
+                        followers / followings < float(field_min_potency_ratio)
+                        or followers / followings > field_max_potency_ratio
+                    )
+                )
             ):
                 print(
                     COLOR_OKGREEN
                     + "@"
                     + username
-                    + "'s potency ratio is less than "
+                    + "'s potency ratio is not between "
                     + str(field_min_potency_ratio)
+                    + " and "
+                    + str(field_max_potency_ratio)
                     + ", skip."
                     + COLOR_ENDC
                 )
