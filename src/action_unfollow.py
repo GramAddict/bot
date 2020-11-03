@@ -163,18 +163,18 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         device.back()
         return False
 
-    attemp = 0
+    attempts = 0
 
     while True:
         unfollow_button = device.find(
             classNameMatches=TEXTVIEW_OR_BUTTON_REGEX, clickable=True, text="Following"
         )
-        if not unfollow_button.exists() and attemp <= 1:
+        if not unfollow_button.exists() and attempts <= 1:
             scrollable = device.find(
                 classNameMatches="androidx.viewpager.widget.ViewPager"
             )
             scrollable.scroll(DeviceFacade.Direction.TOP)
-            attemp += 1
+            attempts += 1
         else:
             break
 
