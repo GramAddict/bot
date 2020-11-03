@@ -163,9 +163,21 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         device.back()
         return False
 
-    unfollow_button = device.find(
-        classNameMatches=TEXTVIEW_OR_BUTTON_REGEX, clickable=True, text="Following"
-    )
+    attempts = 0
+
+    while True:
+        unfollow_button = device.find(
+            classNameMatches=TEXTVIEW_OR_BUTTON_REGEX, clickable=True, text="Following"
+        )
+        if not unfollow_button.exists() and attempts <= 1:
+            scrollable = device.find(
+                classNameMatches="androidx.viewpager.widget.ViewPager"
+            )
+            scrollable.scroll(DeviceFacade.Direction.TOP)
+            attempts += 1
+        else:
+            break
+
     if not unfollow_button.exists():
         print(
             COLOR_FAIL
@@ -175,6 +187,7 @@ def _do_unfollow(device, username, my_username, check_if_is_follower):
         save_crash(device)
         switch_to_english(device)
         raise LanguageChangedException()
+
     unfollow_button.click()
 
     confirm_unfollow_button = device.find(
