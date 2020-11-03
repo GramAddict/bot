@@ -69,7 +69,9 @@ def main():
         print_timeless(
             COLOR_FAIL
             + "You have to specify one of the actions: --interact, --unfollow, "
-            "--unfollow-non-followers, --unfollow-any, --analytics" + COLOR_ENDC + COLOR_ENDC
+            "--unfollow-non-followers, --unfollow-any, --analytics"
+            + COLOR_ENDC
+            + COLOR_ENDC
         )
         return
     elif total_enabled > 1:
