@@ -57,7 +57,7 @@ def main():
     is_unfollow_enabled = args.unfollow is not None
     is_unfollow_non_followers_enabled = args.unfollow_non_followers is not None
     is_unfollow_any_enabled = args.unfollow_any is not None
-    if_analytics_enabled = args.analytics is not None
+    is_analytics_enabled = args.analytics is not None
     total_enabled = (
         int(is_interact_enabled)
         + int(is_unfollow_enabled)
