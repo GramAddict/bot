@@ -12,6 +12,7 @@ import colorama
 from src.action_get_my_profile_info import get_my_profile_info
 from src.action_handle_blogger import handle_blogger
 from src.action_unfollow import unfollow, UnfollowRestriction
+from src.analytics import generate_analytics
 from src.counters_parser import LanguageChangedException
 from src.device_facade import create_device, DeviceFacade
 from src.filter import Filter
@@ -35,6 +36,10 @@ def main():
     if not ok:
         return
 
+    if args.analytics:
+        generate_analytics(args.analytics)
+        return
+
     global device_id
     device_id = args.device
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
@@ -52,17 +57,19 @@ def main():
     is_unfollow_enabled = args.unfollow is not None
     is_unfollow_non_followers_enabled = args.unfollow_non_followers is not None
     is_unfollow_any_enabled = args.unfollow_any is not None
+    if_analytics_enabled = args.analytics is not None
     total_enabled = (
         int(is_interact_enabled)
         + int(is_unfollow_enabled)
         + int(is_unfollow_non_followers_enabled)
         + int(is_unfollow_any_enabled)
+        + int(is_analytics_enabled)
     )
     if total_enabled == 0:
         print_timeless(
             COLOR_FAIL
             + "You have to specify one of the actions: --interact, --unfollow, "
-            "--unfollow-non-followers, --unfollow-any" + COLOR_ENDC + COLOR_ENDC
+            "--unfollow-non-followers, --unfollow-any, --analytics" + COLOR_ENDC + COLOR_ENDC
         )
         return
     elif total_enabled > 1:
@@ -91,6 +98,9 @@ def main():
             mode = Mode.UNFOLLOW_NON_FOLLOWERS
         elif is_unfollow_any_enabled:
             print("Action: unfollow any " + str(args.unfollow_any))
+            mode = Mode.UNFOLLOW_ANY
+        elif is_analytics_enabled:
+            print("Action: generate analytics report " + str(args.unfollow_any))
             mode = Mode.UNFOLLOW_ANY
 
     profile_filter = Filter()
@@ -407,6 +417,11 @@ def _parse_arguments():
         action="store_true",
     )
     parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
+    parser.add_argument(
+        "--analytics",
+        help="generate a PDF analytics report of specified username session data.",
+        metavar="username",
+    )
 
     if not len(sys.argv) > 1:
         parser.print_help()

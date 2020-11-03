@@ -9,6 +9,7 @@ black = "*"
 [packages]
 uiautomator2 = "*"
 colorama = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.8"

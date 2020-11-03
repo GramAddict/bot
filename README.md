@@ -95,10 +95,12 @@ Full list of command line arguments:
   --device 2443de990e017ece
                         device identifier. Should be used only when multiple
                         devices are connected at once
-  --screen-sleep        turns on the phone screen when the script is running and 
+  --screen-sleep        turns on the phone screen when the script is running and
                         off when when it's ended or sleeping (e.g. when using with
                         --repeat) - disable the passcode for unlocking the phone
                         if you want to use that function!
+  --analytics           generate a PDF analytics report of specified username
+                        session data.
 ```
 
 ### FAQ
@@ -125,7 +127,7 @@ There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works
 Our objective is to make a free solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
 
 ### Community
-We have a [Discord server](https://discord.gg/9MTjgs8g5R) which is the most convenient place to discuss all bugs, new features, Instagram limits, etc. 
+We have a [Discord server](https://discord.gg/9MTjgs8g5R) which is the most convenient place to discuss all bugs, new features, Instagram limits, etc.
 
 <p>
   <a href="https://discord.gg/9MTjgs8g5R">
