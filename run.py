@@ -11,6 +11,7 @@ import colorama
 
 from src.action_get_my_profile_info import get_my_profile_info
 from src.action_handle_blogger import handle_blogger
+from src.action_remove_mass_followers import remove_mass_followers
 from src.action_unfollow import unfollow, UnfollowRestriction
 from src.counters_parser import LanguageChangedException
 from src.device_facade import create_device, DeviceFacade
@@ -52,17 +53,23 @@ def main():
     is_unfollow_enabled = args.unfollow is not None
     is_unfollow_non_followers_enabled = args.unfollow_non_followers is not None
     is_unfollow_any_enabled = args.unfollow_any is not None
+    is_remove_mass_followers_enabled = (
+        args.remove_mass_followers is not None and int(args.remove_mass_followers) > 0
+    )
     total_enabled = (
         int(is_interact_enabled)
         + int(is_unfollow_enabled)
         + int(is_unfollow_non_followers_enabled)
         + int(is_unfollow_any_enabled)
+        + int(is_remove_mass_followers_enabled)
     )
     if total_enabled == 0:
         print_timeless(
             COLOR_FAIL
             + "You have to specify one of the actions: --interact, --unfollow, "
-            "--unfollow-non-followers, --unfollow-any" + COLOR_ENDC + COLOR_ENDC
+            "--unfollow-non-followers, --unfollow-any, --remove-mass-followers "
+            + COLOR_ENDC
+            + COLOR_ENDC
         )
         return
     elif total_enabled > 1:
@@ -92,6 +99,11 @@ def main():
         elif is_unfollow_any_enabled:
             print("Action: unfollow any " + str(args.unfollow_any))
             mode = Mode.UNFOLLOW_ANY
+        elif is_remove_mass_followers_enabled:
+            print(
+                "Action: remove " + str(args.remove_mass_followers) + " mass followers"
+            )
+            mode = Mode.REMOVE_MASS_FOLLOWERS
 
     profile_filter = Filter()
 
@@ -320,6 +332,45 @@ def _job_unfollow(device, count, storage, min_following, unfollow_restriction):
         job()
 
 
+def _job_remove_mass_followers(device, count, max_followings, storage):
+    class State:
+        def __init__(self):
+            pass
+
+        removed_count = 0
+        is_job_completed = False
+
+    state = State()
+    session_state = sessions[-1]
+
+    def on_remove(username):
+        state.removed_count += 1
+        session_state.removedMassFollowers.append(username)
+        can_continue = state.removed_count < count
+
+        print(f"state.removed_count = {state.removed_count}")
+        print(f"count = {count}")
+        print(f"can_continue = {state.removed_count < count}")
+
+        if not can_continue:
+            print(
+                COLOR_OKGREEN
+                + "Removed "
+                + str(state.removed_count)
+                + " mass followers, finish."
+                + COLOR_ENDC
+            )
+        return can_continue
+
+    @_run_safely(device=device)
+    def job():
+        remove_mass_followers(device, max_followings, on_remove, storage)
+        state.is_job_completed = True
+
+    while not state.is_job_completed and state.removed_count < count:
+        job()
+
+
 def _parse_arguments():
     parser = argparse.ArgumentParser(
         description="Instagram bot for automated Instagram interaction using Android device via ADB",
@@ -406,7 +457,19 @@ def _parse_arguments():
         help="take care of your device screen by turning it off during sleeping time",
         action="store_true",
     )
-    parser.add_argument("--max-following", help=argparse.SUPPRESS, default=1000)
+    parser.add_argument(
+        "--remove-mass-followers",
+        help='Remove given number of mass followers from the list of your followers. "Mass followers" '
+        "are those who has more than N followings, where N can be set via --max-following",
+        metavar="10",
+    )
+    parser.add_argument(
+        "--max-following",
+        help="Should be used together with --remove-mass-followers. Specifies max number of "
+        "followings for any your follower, 1000 by default",
+        metavar="1000",
+        default=1000,
+    )
 
     if not len(sys.argv) > 1:
         parser.print_help()
@@ -512,6 +575,7 @@ class Mode(Enum):
     UNFOLLOW = 1
     UNFOLLOW_NON_FOLLOWERS = 2
     UNFOLLOW_ANY = 3
+    REMOVE_MASS_FOLLOWERS = 4
 
 
 if __name__ == "__main__":
