@@ -88,7 +88,7 @@ class DeviceFacade:
         else:
             xml_dump = self.deviceV2.dump_hierarchy()
 
-        with open(path, "w") as outfile:
+        with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
     class View:
