@@ -9,12 +9,14 @@ USER_LAST_INTERACTION = "last_interaction"
 USER_FOLLOWING_STATUS = "following_status"
 
 FILENAME_WHITELIST = "whitelist.txt"
+FILENAME_BLACKLIST = "blacklist.txt"
 
 
 class Storage:
     interacted_users_path = None
     interacted_users = {}
     whitelist = []
+    blacklist = []
 
     def __init__(self, my_username):
         if my_username is None:
@@ -35,6 +37,10 @@ class Storage:
         if os.path.exists(whitelist_path):
             with open(whitelist_path) as file:
                 self.whitelist = [line.rstrip() for line in file]
+        blacklist_path = my_username + "/" + FILENAME_BLACKLIST
+        if os.path.exists(blacklist_path):
+            with open(blacklist_path) as file:
+                self.blacklist = [line.rstrip() for line in file]
 
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
@@ -73,6 +79,9 @@ class Storage:
 
     def is_user_in_whitelist(self, username):
         return username in self.whitelist
+
+    def is_user_in_blacklist(self, username):
+        return username in self.blacklist
 
     def _update_file(self):
         if self.interacted_users_path is not None:

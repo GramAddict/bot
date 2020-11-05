@@ -48,12 +48,6 @@ def print_full_report(sessions):
                 + str(session.totalUnfollowed)
                 + COLOR_ENDC
             )
-            print_timeless(
-                COLOR_WARNING
-                + "Removed mass followers: "
-                + _stringify_removed_mass_followers(session.removedMassFollowers)
-                + COLOR_ENDC
-            )
 
     print_timeless("\n")
     print_timeless(COLOR_WARNING + "TOTAL" + COLOR_ENDC)
@@ -75,7 +69,6 @@ def print_full_report(sessions):
     total_interactions = {}
     successful_interactions = {}
     total_followed = {}
-    total_removed_mass_followers = []
     for session in sessions:
         for blogger, count in session.totalInteractions.items():
             if total_interactions.get(blogger) is None:
@@ -94,9 +87,6 @@ def print_full_report(sessions):
                 total_followed[blogger] = count
             else:
                 total_followed[blogger] += count
-
-        for username in session.removedMassFollowers:
-            total_removed_mass_followers.append(username)
 
     print_timeless(
         COLOR_WARNING
@@ -123,13 +113,6 @@ def print_full_report(sessions):
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     print_timeless(
         COLOR_WARNING + "Total unfollowed: " + str(total_unfollowed) + COLOR_ENDC
-    )
-
-    print_timeless(
-        COLOR_WARNING
-        + "Removed mass followers: "
-        + _stringify_removed_mass_followers(total_removed_mass_followers)
-        + COLOR_ENDC
     )
 
 
@@ -162,10 +145,3 @@ def _stringify_interactions(interactions):
         result += str(count) + " for @" + blogger + ", "
     result = result[:-2]
     return result
-
-
-def _stringify_removed_mass_followers(removed_mass_followers):
-    if len(removed_mass_followers) == 0:
-        return "none"
-    else:
-        return "@" + ", @".join(removed_mass_followers)

@@ -25,6 +25,64 @@ def navigate(device, tab):
     button.click()
 
 
+def search_for(device, username=None, hashtag=None):
+    navigate(device, Tabs.SEARCH)
+    search_edit_text = device.find(
+        resourceId="com.instagram.android:id/action_bar_search_edit_text",
+        className="android.widget.EditText",
+    )
+    search_edit_text.click()
+
+    if username is not None:
+        print("Open user @" + username)
+        search_edit_text.set_text(username)
+        username_view = device.find(
+            resourceId="com.instagram.android:id/row_search_user_username",
+            className="android.widget.TextView",
+            text=username,
+        )
+
+        random_sleep()
+        if not username_view.exists():
+            print_timeless(
+                COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC
+            )
+            return False
+
+        username_view.click()
+        return True
+
+    if hashtag is not None:
+        print("Open hashtag #" + hashtag)
+        tab_layout = device.find(
+            resourceId="com.instagram.android:id/fixed_tabbar_tabs_container",
+            className="android.widget.LinearLayout",
+        )
+        if not tab_layout.exists():
+            print(COLOR_FAIL + "Cannot find tabs." + COLOR_ENDC)
+            return False
+        tab_layout.child(index=2).click()
+
+        search_edit_text.set_text(hashtag)
+        hashtag_view = device.find(
+            resourceId="com.instagram.android:id/row_hashtag_textview_tag_name",
+            className="android.widget.TextView",
+            text=f"#{hashtag}",
+        )
+
+        random_sleep()
+        if not hashtag_view.exists():
+            print_timeless(
+                COLOR_FAIL + "Cannot find hashtag #" + hashtag + ", abort." + COLOR_ENDC
+            )
+            return False
+
+        hashtag_view.click()
+        return True
+
+    return False
+
+
 def switch_to_english(device):
     print(COLOR_OKGREEN + "Switching to English locale" + COLOR_ENDC)
     navigate(device, Tabs.PROFILE)
