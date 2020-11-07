@@ -2,6 +2,7 @@ import hashlib
 import os
 import re
 import shutil
+import sys
 from datetime import datetime
 from random import randint
 from time import sleep
@@ -89,30 +90,39 @@ def close_instagram(device_id):
 
 
 def check_screen_status(device_id):
-    status = os.popen("adb"
-                + ("" if device_id is None else " -s " + device_id)
-                + " shell dumpsys input_method"
-            )
-    data = status.read()   
+    status = os.popen(
+        f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys input_method"
+    )
+    data = status.read()
     return re.search("mInteractive=(true|false)", data)
 
+
 def screen_sleep(device_id, mode):
-    keyevent = [26,82]
+    keyevent = [26, 82]
     if mode == "on":
         for magic_number in keyevent:
             flag = check_screen_status(device_id)
             if flag is not None:
                 if flag.group(1) == "false":
-                    os.popen(f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {magic_number}")
+                    os.popen(
+                        f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {magic_number}"
+                    )
+                    sleep(2)
                     if check_screen_status(device_id).group(1) == "true":
                         print("Device screen turned ON!")
                         break
                 else:
                     print("Device screen already turned ON!")
                     break
+        if check_screen_status(device_id).group(1) == "false":
+            sys.exit(
+                "Can't turn ON your device screen!! Disable --device-screen and run this script again!"
+            )
     else:
         for magic_number in keyevent:
-            os.popen(f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {magic_number}")
+            os.popen(
+                f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {magic_number}"
+            )
             if check_screen_status(device_id).group(1) == "true":
                 print("Device screen turned OFF!")
                 break
