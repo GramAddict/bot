@@ -33,23 +33,23 @@ class SessionState:
         self.startTime = datetime.now()
         self.finishTime = None
 
-    def add_interaction(self, blogger, succeed, followed):
-        if self.totalInteractions.get(blogger) is None:
-            self.totalInteractions[blogger] = 1
+    def add_interaction(self, source, succeed, followed):
+        if self.totalInteractions.get(source) is None:
+            self.totalInteractions[source] = 1
         else:
-            self.totalInteractions[blogger] += 1
+            self.totalInteractions[source] += 1
 
-        if self.successfulInteractions.get(blogger) is None:
-            self.successfulInteractions[blogger] = 1 if succeed else 0
+        if self.successfulInteractions.get(source) is None:
+            self.successfulInteractions[source] = 1 if succeed else 0
         else:
             if succeed:
-                self.successfulInteractions[blogger] += 1
+                self.successfulInteractions[source] += 1
 
-        if self.totalFollowed.get(blogger) is None:
-            self.totalFollowed[blogger] = 1 if followed else 0
+        if self.totalFollowed.get(source) is None:
+            self.totalFollowed[source] = 1 if followed else 0
         else:
             if followed:
-                self.totalFollowed[blogger] += 1
+                self.totalFollowed[source] += 1
 
     def is_finished(self):
         return self.finishTime is not None

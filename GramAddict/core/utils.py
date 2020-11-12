@@ -1,16 +1,16 @@
-import hashlib
 import os
 import re
 import shutil
 import sys
 from datetime import datetime
-from random import randint
+from random import uniform, randint
 from time import sleep
 
 COLOR_HEADER = "\033[95m"
 COLOR_OKBLUE = "\033[94m"
 COLOR_OKGREEN = "\033[92m"
 COLOR_WARNING = "\033[93m"
+COLOR_DBG = "\033[90m"  # dark gray
 COLOR_FAIL = "\033[91m"
 COLOR_ENDC = "\033[0m"
 COLOR_BOLD = "\033[1m"
@@ -18,23 +18,9 @@ COLOR_UNDERLINE = "\033[4m"
 
 
 def get_version():
-    stream = os.popen("git describe --tags")
-    output = stream.read()
-    version_match = re.match("(v\\d+.\\d+.\\d+)", output)
-    version = (version_match is None) and "(Work In Progress)" or version_match.group(1)
-    stream.close()
-    return version
-
-
-def get_instagram_version():
-    stream = os.popen("adb shell dumpsys package com.instagram.android")
-    output = stream.read()
-    version_match = re.findall("versionName=(\\S+)", output)
-    if len(version_match) == 1:
-        version = version_match[0]
-    else:
-        version = "not found"
-    stream.close()
+    fin = open("GramAddict/version.txt")
+    version = fin.readline().strip()
+    fin.close()
     return version
 
 
@@ -64,10 +50,16 @@ def check_adb_connection(is_device_id_provided):
     return is_ok
 
 
-def random_sleep():
-    delay = randint(1, 4)
-    print("Sleep for " + str(delay) + (delay == 1 and " second" or " seconds"))
-    sleep(delay)
+def get_instagram_version():
+    stream = os.popen("adb shell dumpsys package com.instagram.android")
+    output = stream.read()
+    version_match = re.findall("versionName=(\\S+)", output)
+    if len(version_match) == 1:
+        version = version_match[0]
+    else:
+        version = "not found"
+    stream.close()
+    return version
 
 
 def open_instagram(device_id):
@@ -89,12 +81,22 @@ def close_instagram(device_id):
     ).close()
 
 
-def check_screen_status(device_id):
+def random_sleep():
+    delay = uniform(1.0, 4.0)
+    print(f"{COLOR_DBG}{str(delay)[0:4]}s sleep{COLOR_ENDC}")
+    sleep(delay)
+
+
+def check_screen_on(device_id):
     status = os.popen(
         f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys power"
     )
     data = status.read()
-    return re.search("mWakefulness=(Awake|Asleep)", data)
+    flag = re.search("mWakefulness=(Awake|Asleep)", data)
+    if flag.group(1) == "Asleep":
+        return True
+    else:
+        return False
 
 
 def check_screen_locked(device_id):
@@ -102,18 +104,22 @@ def check_screen_locked(device_id):
         f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys window"
     )
     data = status.read()
-    return re.search("mDreamingLockscreen=(true|false)", data)
+    flag = re.search("mDreamingLockscreen=(true|false)", data)
+    if flag.group(1) == "true":
+        return True
+    else:
+        return False
 
 
 def screen_unlock(device_id, MENU_BUTTON):
-    flag = check_screen_locked(device_id)
-    if flag.group(1) == "true":
+    is_locked = check_screen_locked(device_id)
+    if is_locked:
         print("Device is locked! I'll try to unlock it!")
         os.popen(
             f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {MENU_BUTTON}"
         )
         sleep(2)
-        if check_screen_locked(device_id).group(1) == "true":
+        if check_screen_locked(device_id):
             sys.exit(
                 "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
             )
@@ -123,19 +129,18 @@ def screen_sleep(device_id, mode):
     POWER_BUTTON = 26
     MENU_BUTTON = 82
     if mode == "on":
-        flag = check_screen_status(device_id)
-        if flag is not None:
-            if flag.group(1) == "Asleep":
-                os.popen(
-                    f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
-                )
-                print("Device screen turned ON!")
-                sleep(2)
-                screen_unlock(device_id, MENU_BUTTON)
-            else:
-                print("Device screen already turned ON!")
-                sleep(2)
-                screen_unlock(device_id, MENU_BUTTON)
+        is_not_awake = check_screen_on(device_id)
+        if is_not_awake:
+            os.popen(
+                f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
+            )
+            print("Device screen turned ON!")
+            sleep(2)
+            screen_unlock(device_id, MENU_BUTTON)
+        else:
+            print("Device screen already turned ON!")
+            sleep(2)
+            screen_unlock(device_id, MENU_BUTTON)
     else:
         os.popen(
             f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
@@ -155,7 +160,7 @@ def save_crash(device):
         )
         return
 
-    screenshot_format = ".png" if device.is_old() else ".jpg"
+    screenshot_format = ".png"
     try:
         device.screenshot(
             "crashes/" + directory_name + "/screenshot" + screenshot_format
