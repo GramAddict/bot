@@ -1,7 +1,14 @@
+import os
 import json
+from GramAddict.core.utils import (
+    COLOR_OKGREEN,
+    COLOR_FAIL,
+    COLOR_ENDC,
+    print_timeless,
+    print,
+)
 
-from src.counters_parser import parse
-from src.utils import *
+from GramAddict.core.views import ProfileView
 
 FILENAME_CONDITIONS = "filter.json"
 FIELD_SKIP_BUSINESS = "skip_business"
@@ -144,22 +151,10 @@ class Filter:
     @staticmethod
     def _get_followers_and_followings(device):
         followers = 0
-        followers_text_view = device.find(
-            resourceId="com.instagram.android:id/row_profile_header_textview_followers_count",
-            className="android.widget.TextView",
-        )
-        if followers_text_view.exists():
-            followers_text = followers_text_view.get_text()
-            if followers_text:
-                followers = parse(device, followers_text)
-            else:
-                print_timeless(
-                    COLOR_FAIL
-                    + "Cannot get followers count text, default is "
-                    + str(followers)
-                    + COLOR_ENDC
-                )
-        else:
+        profileView = ProfileView(device)
+        try:
+            followers = profileView.getFollowersCount()
+        except Exception:
             print_timeless(
                 COLOR_FAIL
                 + "Cannot find followers count view, default is "
@@ -168,22 +163,9 @@ class Filter:
             )
 
         followings = 0
-        followings_text_view = device.find(
-            resourceId="com.instagram.android:id/row_profile_header_textview_following_count",
-            className="android.widget.TextView",
-        )
-        if followings_text_view.exists():
-            followings_text = followings_text_view.get_text()
-            if followings_text:
-                followings = parse(device, followings_text)
-            else:
-                print_timeless(
-                    COLOR_FAIL
-                    + "Cannot get followings count text, default is "
-                    + str(followings)
-                    + COLOR_ENDC
-                )
-        else:
+        try:
+            followings = profileView.getFollowingCount()
+        except Exception:
             print_timeless(
                 COLOR_FAIL
                 + "Cannot find followings count view, default is "

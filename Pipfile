@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 black = "*"
+pyflakes = "*"
 
 [packages]
 uiautomator2 = "*"

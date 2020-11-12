@@ -4,7 +4,7 @@
 
 [español](https://github.com/GramAddict/bot/blob/master/res/README_es.md) | [português](https://github.com/GramAddict/bot/blob/master/res/README_pt_BR.md)
 
-Liking and following automatically on your Android phone/tablet. No root required: it works on [UI Automator](https://developer.android.com/training/testing/ui-automator), which is an official Android UI testing framework.
+Liking and following automatically on your Android phone/tablet. No root required: it works on [uiautomator2](https://github.com/openatx/uiautomator2), which is a faster and more efficient fork of the official Android UI testing framework [UI Automator](https://developer.android.com/training/testing/ui-automator). This is a completely free and open source project that is forked from the freemium project [Insomniac](https://github.com/alexal1/Insomniac/). You can check them out, but you'll probably like us better. 😊
 
 <img src="https://github.com/GramAddict/bot/raw/master/res/demo.gif">
 
@@ -48,15 +48,18 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 5. Type `adb devices` in terminal. It will display attached devices. There should be exactly one device. Then run the script (it works on Python 3):
 ```
 cd <path-to-project>/gramaddict
-python run.py --interact <username1> <username2> ...
+python run.py --blogger-followers <username1> <username2> ...
 ```
 Make sure that the screen is turned on and device is unblocked. You don't have to open Instagram app, script opens it and closes when it's finished. Just make sure that Instagram app is installed. If everything's fine, script will open each blogger's followers and like their posts.
 
 ### Usage
 Full list of command line arguments:
 ```
-  --interact username1 [username2 ...]
+  --blogger-followers username1 [username2 ...]
                         list of usernames with whose followers you want to
+                        interact
+  --hashtag-likers hashtag1 [hashtag2 ...]
+                        list of hashtags with whose post likers you want to
                         interact
   --likes-count 2-4     number of likes for each interacted user, 2 by
                         default. It can be a number (e.g. 2) or a range (e.g.
@@ -114,13 +117,13 @@ Full list of command line arguments:
 - [x] Follow private accounts
 - [x] Filter by followers/followings count, ratio, business/non-business
 - [x] Screen-sleep for turning on and off your phone screen
+- [x] Interaction by hashtags
 - [ ] Randomize the single click for a better human-like behaviour
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
-- [ ] Interaction by hashtags
 - [ ] Commenting during interaction
 
 ### Why GramAddict?
-There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account. There is also [Insomniac](https://github.com/alexal1/Insomniac/) which is the origin of this project, but they decided to charge a monthly fee for features that used to be free and we wanted to keep this project completely free and open source.
+There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account. There is also [Insomniac](https://github.com/alexal1/Insomniac/) which is the origin of this project, but there were issues that cropped up when the project organizers decided to monetize it. We wanted to keep this project completely free and open source so we forked it!
 
 Our objective is to make a free solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so don't fail to be careful. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
 
