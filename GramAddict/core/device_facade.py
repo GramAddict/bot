@@ -81,10 +81,34 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
+        def left(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.left(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
         def right(self, *args, **kwargs):
 
             try:
                 view = self.viewV2.right(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
+        def up(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.up(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
+        def down(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.down(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
