@@ -1,3 +1,5 @@
+import code
+
 from random import shuffle, randint
 from typing import Tuple
 
@@ -27,10 +29,12 @@ def interact_with_user(
     username,
     my_username,
     likes_count,
+    stories_count,
     on_like,
+    on_watch,
     can_follow,
     follow_percentage,
-    profile_filter,
+    profile_filter
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -64,6 +68,19 @@ def interact_with_user(
             followed = False
             print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
         return False, followed
+
+    # stories_percentage = 100
+    stories_value = get_value(stories_count, "Stories count: {}", 2)
+    if stories_value > 6:
+        print(COLOR_FAIL + "Max number of stories per user is 6" + COLOR_ENDC)
+        stories_value = 6
+
+    watched_amount = _watch_stories(device, username, stories_value)  # , stories_percentage, )
+    print(COLOR_OKGREEN + "We have watched {} stories of @{}".format(watched_amount, username) + "." + COLOR_ENDC)
+    for _iter in range(0, watched_amount):  # Another way to do this?
+        on_watch()  # +=1
+
+    # return False, False
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
@@ -238,3 +255,63 @@ def _follow(device, username, follow_percentage):
     print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
     random_sleep()
     return True
+
+
+def _on_watch(sessions, session_state):
+    session_state = sessions[-1]
+    session_state.totalWatched += 1
+
+
+def _watch_stories(device, username, stories_value):  # , stories_percentage):
+    # stories_chance = randint(1, 100)
+    # if stories_chance > stories_percentage:
+    #     return 0
+
+    if stories_value == 0:
+        return 0
+
+    reel_ring = device.find(
+        resourceId="com.instagram.android:id/reel_ring",
+        className="android.view.View",
+    )
+    if reel_ring.exists():
+        stories_to_watch = randint(1, stories_value)
+        print("This user have a stories, going to watch {}/or max stories".format(stories_to_watch))
+        profile_picture = device.find(
+            resourceId="com.instagram.android:id/row_profile_header_imageview",
+            className="android.widget.ImageView",
+        )
+        profile_picture.click()  # Open the first story
+        random_sleep(2, 6)
+        if stories_to_watch > 1:
+            for watched_amount in range(0, stories_to_watch):
+                reel_viewer_title = device.find(
+                    resourceId="com.instagram.android:id/reel_viewer_title",
+                    className="android.widget.TextView"
+                )
+                if reel_viewer_title.exists():
+                    storie_frame = device.find(
+                        resourceId="com.instagram.android:id/reel_viewer_image_view",
+                        className="android.widget.FrameLayout",
+                    )
+                    if storie_frame.exists() and watched_amount != stories_to_watch:
+                        storie_frame.click("right")
+                        random_sleep(2, 6)
+                else:
+                    # print("We are again in profile page")
+                    break
+        else:
+            watched_amount = 0
+
+        # Iteartion completed, please check again if we are in story view
+        reel_viewer_title = device.find(
+            resourceId="com.instagram.android:id/reel_viewer_title",
+            className="android.widget.TextView"
+        )
+        if reel_viewer_title.exists():
+            print("Back to user page")
+            device.back()
+        random_sleep(3, 6)
+        # It's not really accurate, becase the stories can reach the max time for example
+        return watched_amount + 1
+    return 0
