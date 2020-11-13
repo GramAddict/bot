@@ -1,23 +1,15 @@
-import code
-
-from random import shuffle, randint
+import logging
+from random import randint, shuffle
 from typing import Tuple
 
+from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    COLOR_BOLD,
-    save_crash,
-    get_value,
-    random_sleep,
-    detect_block,
-    print,
-)
+from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
 from GramAddict.core.views import LanguageNotEnglishException, ProfileView
+
+logger = logging.getLogger(__name__)
 
 TEXTVIEW_OR_BUTTON_REGEX = "android.widget.TextView|android.widget.Button"
 FOLLOW_REGEX = "Follow|Follow Back"
@@ -40,7 +32,7 @@ def interact_with_user(
     :return: (whether interaction succeed, whether @username was followed during the interaction)
     """
     if username == my_username:
-        print("It's you, skip.")
+        logger.info("It's you, skip.")
         return False, False
 
     random_sleep()
@@ -50,7 +42,7 @@ def interact_with_user(
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
     if likes_value > 12:
-        print(COLOR_FAIL + "Max number of likes per user is 12" + COLOR_ENDC)
+        logger.error("Max number of likes per user is 12")
         likes_value = 12
 
     profile_view = ProfileView(device)
@@ -60,26 +52,31 @@ def interact_with_user(
 
     if is_private or is_empty:
         private_empty = "Private" if is_private else "Empty"
-
-        print(COLOR_OKGREEN + f"{private_empty} account." + COLOR_ENDC)
+        logger.info(
+            f"{private_empty} account.",
+            extra={"color": f"{Fore.GREEN}"},
+        )
         if can_follow and profile_filter.can_follow_private_or_empty():
             followed = _follow(device, username, follow_percentage)
         else:
             followed = False
-            print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
+            logger.info(
+                "Skip user.",
+                extra={"color": f"{Fore.GREEN}"},
+            )
         return False, followed
 
     # stories_percentage = 100
     stories_value = get_value(stories_count, "Stories count: {}", 2)
     if stories_value > 6:
-        print(COLOR_FAIL + "Max number of stories per user is 6" + COLOR_ENDC)
+        logger.error("Max number of stories per user is 6")
         stories_value = 6
 
     _watch_stories(device, username, stories_value, on_watch)
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
-        print("Scrolled down to see more posts.")
+        logger.info("Scrolled down to see more posts.")
     random_sleep()
     number_of_rows_to_use = min((likes_value * 2) // 3 + 1, 4)
     photos_indices = list(range(0, number_of_rows_to_use * 3))
@@ -90,26 +87,17 @@ def interact_with_user(
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
-
-        print(
-            "Open post #"
-            + str(i + 1)
-            + " ("
-            + str(row + 1)
-            + " row, "
-            + str(column + 1)
-            + " column)"
-        )
+        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column")
         opened_post_view = posts_tab_view.navigateToPost(row, column)
         random_sleep()
 
         like_succeed = False
         if opened_post_view:
-            print("Double click post")
+            logger.info("Double click post")
             opened_post_view.likePost()
             random_sleep()
             if not opened_post_view.isPostLiked():
-                print("Double click failed. Try the like button.")
+                logger.debug("Double click failed. Try the like button.")
                 opened_post_view.likePost(click_btn_like=True)
                 random_sleep()
 
@@ -118,14 +106,12 @@ def interact_with_user(
                 detect_block(device)
                 on_like()
 
-            print("Back to profile")
+            logger.info("Back to profile")
             device.back()
 
         if not opened_post_view or not like_succeed:
             reason = "open" if not opened_post_view else "like"
-            print(
-                f"{COLOR_BOLD}Could not {reason} photo. Posts count: {posts_count} {COLOR_ENDC}"
-            )
+            logger.info(f"Could not {reason} photo. Posts count: {posts_count}")
 
             if can_follow and profile_filter.can_follow_private_or_empty():
                 followed = _follow(device, username, follow_percentage)
@@ -133,7 +119,10 @@ def interact_with_user(
                 followed = False
 
             if not followed:
-                print(COLOR_OKGREEN + "Skip user." + COLOR_ENDC)
+                logger.info(
+                    "Skip user.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
             return False, followed
 
         random_sleep()
@@ -173,7 +162,7 @@ def _on_interaction(
     can_continue = True
 
     if session_state.totalLikes >= likes_limit:
-        print("Reached total likes limit, finish.")
+        logger.info("Reached total likes limit, finish.")
         on_likes_limit_reached()
         can_continue = False
 
@@ -182,10 +171,8 @@ def _on_interaction(
         successful_interactions_count
         and successful_interactions_count >= interactions_limit
     ):
-        print(
-            "Made "
-            + str(successful_interactions_count)
-            + " successful interactions, finish."
+        logger.info(
+            f"Made {successful_interactions_count} successful interactions, finish."
         )
         can_continue = False
 
@@ -204,7 +191,7 @@ def _follow(device, username, follow_percentage):
     if follow_chance > follow_percentage:
         return False
 
-    print("Following...")
+    logger.info("Following...")
     coordinator_layout = device.find(
         resourceId="com.instagram.android:id/coordinator_root_layout"
     )
@@ -218,7 +205,7 @@ def _follow(device, username, follow_percentage):
         className="android.widget.LinearLayout",
     )
     if not profile_header_actions_layout.exists():
-        print(COLOR_FAIL + "Cannot find profile actions." + COLOR_ENDC)
+        logger.error("Cannot find profile actions.")
         return False
 
     follow_button = profile_header_actions_layout.child(
@@ -233,13 +220,14 @@ def _follow(device, username, follow_percentage):
             textMatches=UNFOLLOW_REGEX,
         )
         if unfollow_button.exists():
-            print(COLOR_OKGREEN + "You already follow @" + username + "." + COLOR_ENDC)
+            logger.info(
+                f"You already follow @{username}.",
+                extra={"color": f"{Fore.GREEN}"},
+            )
             return False
         else:
-            print(
-                COLOR_FAIL
-                + "Cannot find neither Follow button, nor Unfollow button. Maybe not "
-                "English language is set?" + COLOR_ENDC
+            logger.error(
+                "Cannot find neither Follow button, nor Unfollow button. Maybe not English language is set?"
             )
             save_crash(device)
             switch_to_english(device)
@@ -247,7 +235,10 @@ def _follow(device, username, follow_percentage):
 
     follow_button.click()
     detect_block(device)
-    print(COLOR_OKGREEN + "Followed @" + username + COLOR_ENDC)
+    logger.info(
+        f"Followed @{username}",
+        extra={"color": f"{Fore.GREEN}"},
+    )
     random_sleep()
     return True
 

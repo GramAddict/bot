@@ -1,21 +1,17 @@
-from GramAddict.core.navigation import switch_to_english
-from enum import unique, Enum
+import logging
+from enum import Enum, unique
 from random import seed
+
+from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    random_sleep,
-    save_crash,
-    detect_block,
-    print,
-)
-
+from GramAddict.core.utils import detect_block, random_sleep, save_crash
 from GramAddict.core.views import LanguageNotEnglishException
+
+logger = logging.getLogger(__name__)
 
 FOLLOWING_BUTTON_ID_REGEX = (
     "com.instagram.android:id/row_profile_header_following_container"
@@ -95,7 +91,7 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.ANY
 
         if count <= 0:
-            print(
+            logger.info(
                 "You want to unfollow "
                 + str(count)
                 + ", you have "
@@ -121,7 +117,7 @@ class ActionUnfollowFollowers(Plugin):
                 self.unfollow_type,
                 self.session_state.my_username,
             )
-            print("Unfollowed " + str(self.state.unfollowed_count) + ", finish.")
+            logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
             self.state.is_job_completed = True
 
         while not self.state.is_job_completed and self.state.unfollowed_count < count:
@@ -143,21 +139,19 @@ class ActionUnfollowFollowers(Plugin):
         self.session_state.totalUnfollowed += 1
 
     def open_my_followings(self, device):
-        print("Open my followings")
+        logger.info("Open my followings")
         followings_button = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
         followings_button.click()
 
     def sort_followings_by_date(self, device):
-        print("Sort followings by date: from oldest to newest.")
+        logger.info("Sort followings by date: from oldest to newest.")
         sort_button = device.find(
             resourceId="com.instagram.android:id/sorting_entry_row_icon",
             className="android.widget.ImageView",
         )
         if not sort_button.exists():
-            print(
-                COLOR_FAIL
-                + "Cannot find button to sort followings. Continue without sorting."
-                + COLOR_ENDC
+            logger.error(
+                "Cannot find button to sort followings. Continue without sorting."
             )
             return
         sort_button.click()
@@ -166,10 +160,8 @@ class ActionUnfollowFollowers(Plugin):
             resourceId="com.instagram.android:id/follow_list_sorting_options_recycler_view"
         )
         if not sort_options_recycler_view.exists():
-            print(
-                COLOR_FAIL
-                + "Cannot find options to sort followings. Continue without sorting."
-                + COLOR_ENDC
+            logger.error(
+                "Cannot find options to sort followings. Continue without sorting."
             )
             return
 
@@ -186,7 +178,7 @@ class ActionUnfollowFollowers(Plugin):
 
         unfollowed_count = 0
         while True:
-            print("Iterate over visible followings")
+            logger.info("Iterate over visible followings")
             random_sleep()
             screen_iterated_followings = 0
 
@@ -197,10 +189,9 @@ class ActionUnfollowFollowers(Plugin):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 if not user_name_view.exists(quick=True):
-                    print(
-                        COLOR_OKGREEN
-                        + "Next item not found: probably reached end of the screen."
-                        + COLOR_ENDC
+                    logger.info(
+                        "Next item not found: probably reached end of the screen.",
+                        extra={"color": f"{Fore.GREEN}"},
                     )
                     break
 
@@ -208,7 +199,7 @@ class ActionUnfollowFollowers(Plugin):
                 screen_iterated_followings += 1
 
                 if storage.is_user_in_whitelist(username):
-                    print(f"@{username} is in whitelist. Skip.")
+                    logger.info(f"@{username} is in whitelist. Skip.")
                     continue
 
                 if (
@@ -218,28 +209,20 @@ class ActionUnfollowFollowers(Plugin):
                 ):
                     following_status = storage.get_following_status(username)
                     if not following_status == FollowingStatus.FOLLOWED:
-                        print(
-                            "Skip @"
-                            + username
-                            + ". Following status: "
-                            + following_status.name
-                            + "."
+                        logger.info(
+                            f"Skip @{username}. Following status: {following_status.name}."
                         )
                         continue
 
                 if unfollow_restriction == UnfollowRestriction.ANY:
                     following_status = storage.get_following_status(username)
                     if following_status == FollowingStatus.UNFOLLOWED:
-                        print(
-                            "Skip @"
-                            + username
-                            + ". Following status: "
-                            + following_status.name
-                            + "."
+                        logger.info(
+                            f"Skip @{username}. Following status: {following_status.name}."
                         )
                         continue
 
-                print("Unfollow @" + username)
+                logger.info("Unfollow @" + username)
                 unfollowed = self.do_unfollow(
                     device,
                     username,
@@ -257,14 +240,15 @@ class ActionUnfollowFollowers(Plugin):
                     return
 
             if screen_iterated_followings > 0:
-                print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+                logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
                 list_view = device.find(
                     resourceId="android:id/list", className="android.widget.ListView"
                 )
                 list_view.scroll(DeviceFacade.Direction.BOTTOM)
             else:
-                print(
-                    COLOR_OKGREEN + "No followings were iterated, finish." + COLOR_ENDC
+                logger.info(
+                    "No followings were iterated, finish.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return
 
@@ -278,15 +262,15 @@ class ActionUnfollowFollowers(Plugin):
             text=username,
         )
         if not username_view.exists():
-            print(COLOR_FAIL + "Cannot find @" + username + ", skip." + COLOR_ENDC)
+            logger.error("Cannot find @" + username + ", skip.")
             return False
         username_view.click()
 
         if check_if_is_follower and self.check_is_follower(
             device, username, my_username
         ):
-            print("Skip @" + username + ". This user is following you.")
-            print("Back to the followings list.")
+            logger.info(f"Skip @{username}. This user is following you.")
+            logger.info("Back to the followings list.")
             device.back()
             return False
 
@@ -308,10 +292,8 @@ class ActionUnfollowFollowers(Plugin):
                 break
 
         if not unfollow_button.exists():
-            print(
-                COLOR_FAIL
-                + "Cannot find Following button. Maybe not English language is set?"
-                + COLOR_ENDC
+            logger.error(
+                "Cannot find Following button. Maybe not English language is set?"
             )
             save_crash(device)
             switch_to_english(device)
@@ -323,7 +305,7 @@ class ActionUnfollowFollowers(Plugin):
             className="android.widget.TextView",
         )
         if not confirm_unfollow_button.exists():
-            print(COLOR_FAIL + "Cannot confirm unfollow." + COLOR_ENDC)
+            logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
             return False
@@ -333,13 +315,13 @@ class ActionUnfollowFollowers(Plugin):
         self.close_confirm_dialog_if_shown(device)
         detect_block(device)
 
-        print("Back to the followings list.")
+        logger.info("Back to the followings list.")
         device.back()
         return True
 
     def check_is_follower(self, device, username, my_username):
-        print(
-            COLOR_OKGREEN + "Check if @" + username + " is following you." + COLOR_ENDC
+        logger.info(
+            f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
         following_container = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
         following_container.click()
@@ -352,7 +334,7 @@ class ActionUnfollowFollowers(Plugin):
             text=my_username,
         )
         result = my_username_view.exists()
-        print("Back to the profile.")
+        logger.info("Back to the profile.")
         device.back()
         return result
 
@@ -372,7 +354,9 @@ class ActionUnfollowFollowers(Plugin):
         if not user_avatar_view.exists():
             return
 
-        print(COLOR_OKGREEN + "Dialog shown, confirm unfollowing." + COLOR_ENDC)
+        logger.info(
+            "Dialog shown, confirm unfollowing.", extra={"color": f"{Fore.GREEN}"}
+        )
         random_sleep()
         unfollow_button = dialog_root_view.child(
             resourceId="com.instagram.android:id/primary_button",

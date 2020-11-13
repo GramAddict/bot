@@ -1,14 +1,11 @@
-import os
 import json
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    print_timeless,
-    print,
-)
+import logging
+import os
 
+from colorama import Fore
 from GramAddict.core.views import ProfileView
+
+logger = logging.getLogger(__name__)
 
 FILENAME_CONDITIONS = "filter.json"
 FIELD_SKIP_BUSINESS = "skip_business"
@@ -47,21 +44,15 @@ class Filter:
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
             if field_skip_business and has_business_category is True:
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has business account, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has business account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
             if field_skip_non_business and has_business_category is False:
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has non business account, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has non business account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
 
@@ -74,65 +65,40 @@ class Filter:
         ):
             followers, followings = self._get_followers_and_followings(device)
             if field_min_followers is not None and followers < int(field_min_followers):
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has less than "
-                    + str(field_min_followers)
-                    + " followers, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has less than {field_min_followers} followers, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
             if field_max_followers is not None and followers > int(field_max_followers):
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has more than "
-                    + str(field_max_followers)
-                    + " followers, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has has more than {field_max_followers} followers, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
             if field_min_followings is not None and followings < int(
                 field_min_followings
             ):
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has less than "
-                    + str(field_min_followings)
-                    + " followings, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has less than {field_min_followings} followers, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
             if field_max_followings is not None and followings > int(
                 field_max_followings
             ):
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + " has more than "
-                    + str(field_max_followings)
-                    + " followings, skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username} has more than {field_max_followings} followings, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
             if field_min_potency_ratio is not None and (
                 int(followings) == 0
                 or followers / followings < float(field_min_potency_ratio)
             ):
-                print(
-                    COLOR_OKGREEN
-                    + "@"
-                    + username
-                    + "'s potency ratio is less than "
-                    + str(field_min_potency_ratio)
-                    + ", skip."
-                    + COLOR_ENDC
+                logger.info(
+                    f"@{username}'s potency ratio is less than {field_min_potency_ratio}, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
         return True
@@ -155,23 +121,13 @@ class Filter:
         try:
             followers = profileView.getFollowersCount()
         except Exception:
-            print_timeless(
-                COLOR_FAIL
-                + "Cannot find followers count view, default is "
-                + str(followers)
-                + COLOR_ENDC
-            )
+            logger.error(f"Cannot find followers count view, default is {followers}")
 
         followings = 0
         try:
             followings = profileView.getFollowingCount()
         except Exception:
-            print_timeless(
-                COLOR_FAIL
-                + "Cannot find followings count view, default is "
-                + str(followings)
-                + COLOR_ENDC
-            )
+            logger.error(f"Cannot find followings count view, default is {followings}")
 
         return followers, followings
 

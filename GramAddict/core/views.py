@@ -1,14 +1,10 @@
+import logging
 from enum import Enum, auto
+
 from GramAddict.core.device_facade import DeviceFacade
-from GramAddict.core.utils import (
-    COLOR_DBG,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    random_sleep,
-    save_crash,
-    print_timeless,
-    print,
-)
+from GramAddict.core.utils import random_sleep, save_crash
+
+logger = logging.getLogger(__name__)
 
 
 def case_insensitive_re(str_list):
@@ -85,7 +81,7 @@ class TabBarView:
 
     def _navigateTo(self, tab: TabBarTabs):
         tab_name = tab.name
-        print(f"{COLOR_DBG}Navigate to {tab_name}{COLOR_ENDC}")
+        logger.debug(f"Navigate to {tab_name}")
         button = None
         tabBarView = self._getTabBar()
         if tab == TabBarTabs.HOME:
@@ -98,7 +94,7 @@ class TabBarView:
             )
             if not button.exists():
                 # Some accounts display the search btn only in Home -> action bar
-                print("Didn't find search in the tab bar...")
+                logger.debug("Didn't find search in the tab bar...")
                 home_view = self.navigateToHome()
                 home_view.navigateToSearch()
                 return
@@ -126,10 +122,8 @@ class TabBarView:
 
             return
 
-        print(
-            COLOR_FAIL
-            + f"Didn't find tab {tab_name} in the tab bar... Maybe English language is not set!?"
-            + COLOR_ENDC
+        logger.error(
+            f"Didn't find tab {tab_name} in the tab bar... Maybe English language is not set!?"
         )
 
         raise LanguageNotEnglishException()
@@ -156,7 +150,7 @@ class HomeView(ActionBarView):
         self.device = device
 
     def navigateToSearch(self):
-        print(f"{COLOR_DBG}Navigate to Search{COLOR_ENDC}")
+        logger.debug("Navigate to Search")
         search_btn = self.action_bar.child(
             descriptionMatches=case_insensitive_re(TabBarView.SEARCH_CONTENT_DESC)
         )
@@ -217,8 +211,41 @@ class SearchView:
         )
         return tab_text_view
 
+    def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
+        tab_layout = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/fixed_tabbar_tabs_container"
+            ),
+            className="android.widget.LinearLayout",
+        )
+        search_edit_text = self._getSearchEditText()
+
+        fixed_text = "Search {}".format(tab.name if tab.name != "TAGS" else "hashtags")
+        logger.debug(
+            "Going to check if the search bar have as placeholder: {}".format(
+                fixed_text
+            )
+        )
+        for item in tab_layout.child(
+            resourceId="com.instagram.android:id/tab_button_fallback_icon",
+            className="android.widget.ImageView",
+        ):
+            item.click()
+            # random_sleep()
+
+            # Little trick for force-update the ui and placeholder text
+            search_edit_text.click()
+            self.device.back()
+
+            if self.device.find(
+                className="android.widget.TextView",
+                textMatches=case_insensitive_re(fixed_text),
+            ).exists():
+                return item
+        return None
+
     def navigateToUsername(self, username):
-        print("Navigate to profile @" + username)
+        logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
@@ -226,9 +253,7 @@ class SearchView:
         username_view = self._getUsernameRow(username)
 
         if not username_view.exists():
-            print_timeless(
-                COLOR_FAIL + "Cannot find user @" + username + ", abort." + COLOR_ENDC
-            )
+            logger.error("Cannot find user @" + username + ", abort.")
             return None
 
         username_view.click()
@@ -236,26 +261,25 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        print("Navigate to hashtag #" + hashtag)
+        logger.debug(f"Navigate to hashtag #{hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-            hashtag_tab = self._getTabTextView(SearchTabs.Tags)
-        if not hashtag_tab.exists():
-            print(COLOR_FAIL + "Cannot find tab: TAGS." + COLOR_ENDC)
-            return None
+            # logger.debug("Cannot find tab: TAGS. Going to attempt al buttons tab and search for place holder")
+            hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            if hashtag_tab is None:
+                logger.error("Cannot find tab: TAGS.")
+                return None
         hashtag_tab.click()
 
-        search_edit_text.set_text(hashtag)
+        search_edit_text.set_text("#" + hashtag if hashtag[0] != "#" else hashtag)
         hashtag_view = self._getHashtagRow(hashtag)
 
         if not hashtag_view.exists():
-            print_timeless(
-                COLOR_FAIL + "Cannot find hashtag #" + hashtag + ", abort." + COLOR_ENDC
-            )
+            logger.error(f"Cannot find hashtag #{hashtag} , abort.")
             return None
 
         hashtag_view.click()
@@ -268,7 +292,7 @@ class LanguageView:
         self.device = device
 
     def setLanguage(self, language: str):
-        print(f"Set language to {language}")
+        logger.debug(f"Set language to {language}")
         search_edit_text = self.device.find(
             resourceId="com.instagram.android:id/search",
             className="android.widget.EditText",
@@ -288,7 +312,7 @@ class AccountView:
         self.device = device
 
     def navigateToLanguage(self):
-        print(f"{COLOR_DBG}Navigate to Language{COLOR_ENDC}")
+        logger.debug("Navigate to Language")
         button = self.device.find(
             textMatches=case_insensitive_re("Language"),
             resourceId="com.instagram.android:id/row_simple_text_textview",
@@ -304,7 +328,7 @@ class SettingsView:
         self.device = device
 
     def navigateToAccount(self):
-        print(f"{COLOR_DBG}Navigate to Account{COLOR_ENDC}")
+        logger.debug("Navigate to Account")
         button = self.device.find(
             textMatches=case_insensitive_re("Account"),
             resourceId="com.instagram.android:id/row_simple_text_textview",
@@ -319,7 +343,7 @@ class OptionsView:
         self.device = device
 
     def navigateToSettings(self):
-        print(f"{COLOR_DBG}Navigate to Settings{COLOR_ENDC}")
+        logger.debug("Navigate to Settings")
         button = self.device.find(
             textMatches=case_insensitive_re("Settings"),
             resourceId="com.instagram.android:id/menu_settings_row",
@@ -342,7 +366,7 @@ class OpenedPostView:
         if like_btn_view.exists():
             return like_btn_view.get_selected()
 
-        print(COLOR_FAIL + "Cannot find button like" + COLOR_ENDC)
+        logger.error("Cannot find button like")
 
         return False
 
@@ -369,17 +393,17 @@ class OpenedPostView:
                 if like_btn_top_bound >= image_bottom_bound:
                     like_btn_view.click()
                 else:
-                    print("Like btn out of current view. Don't click, just ignore.")
+                    logger.debug(
+                        "Like btn out of current view. Don't click, just ignore."
+                    )
             else:
-                print(COLOR_FAIL + "Cannot find button like to click" + COLOR_ENDC)
+                logger.error("Cannot find button like to click")
         else:
 
             if post_media_view.exists():
                 post_media_view.double_click()
             else:
-                print(
-                    COLOR_FAIL + "Could not find post area to double click" + COLOR_ENDC
-                )
+                logger.error("Could not find post area to double click")
 
 
 class PostsGridView:
@@ -421,7 +445,7 @@ class ProfileView(ActionBarView):
         self.is_own_profile = is_own_profile
 
     def navigateToOptions(self):
-        print(f"{COLOR_DBG}Navigate to Options{COLOR_ENDC}")
+        logger.debug("Navigate to Options")
         button = self.action_bar.child(
             descriptionMatches=case_insensitive_re("Options")
         )
@@ -446,7 +470,7 @@ class ProfileView(ActionBarView):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
             return title_view.get_text()
-        print(COLOR_FAIL + "Cannot get username" + COLOR_ENDC)
+        logger.error("Cannot get username")
         return ""
 
     def _parseCounter(self, text):
@@ -462,13 +486,7 @@ class ProfileView(ActionBarView):
         try:
             count = int(float(text) * multiplier)
         except ValueError:
-            print_timeless(
-                COLOR_FAIL
-                + 'Cannot parse "'
-                + text
-                + '". Probably wrong language.'
-                + COLOR_ENDC
-            )
+            logger.error(f"Cannot parse {text}. Probably wrong language ?!")
             raise LanguageNotEnglishException()
         return count
 
@@ -489,9 +507,9 @@ class ProfileView(ActionBarView):
             if followers_text:
                 followers = self._parseCounter(followers_text)
             else:
-                print(COLOR_FAIL + "Cannot get your followers count text" + COLOR_ENDC)
+                logger.error("Cannot get your followers count text")
         else:
-            print(COLOR_FAIL + "Cannot find your followers count view" + COLOR_ENDC)
+            logger.error("Cannot find your followers count view")
 
         return followers
 
@@ -512,9 +530,9 @@ class ProfileView(ActionBarView):
             if following_text:
                 following = self._parseCounter(following_text)
             else:
-                print(COLOR_FAIL + "Cannot get following count text" + COLOR_ENDC)
+                logger.error("Cannot get following count text")
         else:
-            print(COLOR_FAIL + "Cannot find following count view" + COLOR_ENDC)
+            logger.error("Cannot find following count view")
 
         return following
 
@@ -528,7 +546,7 @@ class ProfileView(ActionBarView):
         if post_count_view.exists():
             return self._parseCounter(post_count_view.get_text())
         else:
-            print(COLOR_FAIL + "Cannot get posts count text" + COLOR_ENDC)
+            logger.error("Cannot get posts count text")
             return 0
 
     def getProfileInfo(self):
@@ -551,7 +569,7 @@ class ProfileView(ActionBarView):
         return private_profile_view.exists()
 
     def navigateToFollowers(self):
-        print(f"{COLOR_DBG}Navigate to Followers{COLOR_ENDC}")
+        logger.debug("Navigate to Followers")
         FOLLOWERS_BUTTON_ID_REGEX = case_insensitive_re(
             [
                 "com.instagram.android:id/row_profile_header_followers_container",
@@ -609,9 +627,7 @@ class ProfileView(ActionBarView):
             className=TAB_CLASS_NAME,
         )
         if not button.exists():
-            print(
-                COLOR_FAIL + f"Cannot navigate to to tab '{description}'" + COLOR_ENDC
-            )
+            logger.error(f"Cannot navigate to to tab '{description}'")
             save_crash(self.device)
         else:
             button.click()
