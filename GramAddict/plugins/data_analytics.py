@@ -171,9 +171,7 @@ class DataAnalytics(Plugin):
             if finish_time is None:
                 continue
 
-            setup = (
-                f"--likes-count {str(likes_count)}\n--follow-percentage {str(follow_percentage)}"
-            )
+            setup = f"--likes-count {str(likes_count)}\n--follow-percentage {str(follow_percentage)}"
             start_time = self.get_start_time(session)
             time_per_interaction = (finish_time - start_time) / successful_interactions
             setups_map[setup] = time_per_interaction.total_seconds()
