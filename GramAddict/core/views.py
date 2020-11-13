@@ -211,6 +211,35 @@ class SearchView:
         )
         return tab_text_view
 
+    def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
+        tab_layout = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/fixed_tabbar_tabs_container"
+            ),
+            className="android.widget.LinearLayout",
+        )
+        search_edit_text = self._getSearchEditText()
+
+        fixed_text = "Search {}".format(tab.name if tab.name != "TAGS" else "hashtags")
+        logger.debug("Going to check if the search bar have as placeholder: {}".format(fixed_text))
+        for item in tab_layout.child(
+            resourceId="com.instagram.android:id/tab_button_fallback_icon",
+            className="android.widget.ImageView",
+        ):
+            item.click()
+            # random_sleep()
+
+            # Little trick for force-update the ui and placeholder text
+            search_edit_text.click()
+            self.device.back()
+
+            if self.device.find(
+                className="android.widget.TextView",
+                textMatches=case_insensitive_re(fixed_text),
+            ).exists():
+                return item
+        return None
+
     def navigateToUsername(self, username):
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
@@ -235,13 +264,14 @@ class SearchView:
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-            hashtag_tab = self._getTabTextView(SearchTabs.Tags)
-        if not hashtag_tab.exists():
-            logger.error("Cannot find tab: TAGS.")
-            return None
+            # logger.debug("Cannot find tab: TAGS. Going to attempt al buttons tab and search for place holder")
+            hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            if hashtag_tab is None:
+                logger.error("Cannot find tab: TAGS.")
+                return None
         hashtag_tab.click()
 
-        search_edit_text.set_text(hashtag)
+        search_edit_text.set_text("#" + hashtag if hashtag[0] != "#" else hashtag)
         hashtag_view = self._getHashtagRow(hashtag)
 
         if not hashtag_view.exists():
