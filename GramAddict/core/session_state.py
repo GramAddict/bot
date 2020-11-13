@@ -13,6 +13,7 @@ class SessionState:
     successfulInteractions = {}
     totalFollowed = {}
     totalLikes = 0
+    totalWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
     startTime = None

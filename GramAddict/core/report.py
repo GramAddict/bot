@@ -47,6 +47,9 @@ def print_full_report(sessions):
                 COLOR_WARNING + "Total likes: " + str(session.totalLikes) + COLOR_ENDC
             )
             print_timeless(
+                COLOR_WARNING + "Total watched: " + str(session.totalWatched) + COLOR_ENDC
+            )
+            print_timeless(
                 COLOR_WARNING
                 + "Total unfollowed: "
                 + str(session.totalUnfollowed)
@@ -123,6 +126,9 @@ def print_full_report(sessions):
 
     total_likes = sum(session.totalLikes for session in sessions)
     print_timeless(COLOR_WARNING + "Total likes: " + str(total_likes) + COLOR_ENDC)
+
+    total_watched = sum(session.totalWatched for session in sessions)
+    print_timeless(COLOR_WARNING + "Total watched: " + str(total_watched) + COLOR_ENDC)
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     print_timeless(
