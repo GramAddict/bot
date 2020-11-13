@@ -221,7 +221,11 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
 
         fixed_text = "Search {}".format(tab.name if tab.name != "TAGS" else "hashtags")
-        logger.debug("Going to check if the search bar have as placeholder: {}".format(fixed_text))
+        logger.debug(
+            "Going to check if the search bar have as placeholder: {}".format(
+                fixed_text
+            )
+        )
         for item in tab_layout.child(
             resourceId="com.instagram.android:id/tab_button_fallback_icon",
             className="android.widget.ImageView",
