@@ -23,7 +23,7 @@ class PluginLoader(object):
     def reload_plugins(self):
         self.plugins = []
         self.seen_paths = []
-        logger.debug("Loading plugins . . .")
+        logger.info("Loading plugins . . .")
         self.walk_package(self.plugin_package)
 
     def walk_package(self, package):
@@ -37,5 +37,5 @@ class PluginLoader(object):
                 clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
                 for (_, c) in clsmembers:
                     if issubclass(c, Plugin) & (c is not Plugin):
-                        logger.debug(f"  - {c.__name__}: {c.__doc__}")
+                        logger.info(f"  - {c.__name__}: {c.__doc__}")
                         self.plugins.append(c())
