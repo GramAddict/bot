@@ -118,7 +118,7 @@ Full list of command line arguments:
 - [x] Filter by followers/followings count, ratio, business/non-business
 - [x] Screen-sleep for turning on and off your phone screen
 - [x] Interaction by hashtags
-- [ ] Randomize the single click for a better human-like behaviour
+- [x] Randomize the single click for a better human-like behaviour
 - [ ] Add random actions to behave more like a human (watch your own feed, stories, etc.)
 - [ ] Commenting during interaction
 
