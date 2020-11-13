@@ -10,3 +10,4 @@ crashes
 filter.json
 whitelist.txt
 Pipfile.lock
+*.pdf
