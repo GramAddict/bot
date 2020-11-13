@@ -1,44 +1,37 @@
 import argparse
-from time import sleep
-import colorama
+import logging
 import sys
+from datetime import datetime
+from time import sleep
 
-# from http.client import HTTPException
-# from socket import timeout
+from colorama import Fore, Style
 
 from GramAddict.core.device_facade import create_device
+from GramAddict.core.log import configure_logger
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.plugin_loader import PluginLoader
 from GramAddict.core.report import print_full_report
-from GramAddict.core.session_state import (
-    SessionState,
-    SessionStateEncoder,
-)
+from GramAddict.core.session_state import SessionState, SessionStateEncoder
 from GramAddict.core.storage import Storage
-from datetime import datetime
 from GramAddict.core.utils import (
-    COLOR_HEADER,
-    COLOR_WARNING,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    get_version,
     check_adb_connection,
-    get_instagram_version,
-    open_instagram,
     close_instagram,
-    screen_sleep,
-    save_crash,
+    get_instagram_version,
     get_value,
-    print_timeless,
-    print,
+    get_version,
+    open_instagram,
+    save_crash,
+    screen_sleep,
 )
 from GramAddict.core.views import TabBarView
 
-
-# Script Initialization
-print_timeless(COLOR_HEADER + "GramAddict " + get_version() + COLOR_ENDC)
-colorama.init()
+# Logging initialization
+configure_logger()
+logger = logging.getLogger(__name__)
+logger.info(
+    "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+)
 
 # Global Variables
 device_id = None
@@ -72,7 +65,7 @@ def load_plugins():
                     if arg.get("operation", False):
                         actions[arg["arg"]] = plugin
                 except Exception as e:
-                    print_timeless(
+                    logger.error(
                         f"Error while importing arguments of plugin {plugin.__class__.__name__}. Error: Missing key from arguments dictionary - {e}"
                     )
     return actions
@@ -86,11 +79,8 @@ def get_args():
     args, unknown_args = parser.parse_known_args()
 
     if unknown_args:
-        print(
-            COLOR_FAIL
-            + "Unknown arguments: "
-            + ", ".join(str(arg) for arg in unknown_args)
-            + COLOR_ENDC
+        logger.error(
+            "Unknown arguments: " + ", ".join(str(arg) for arg in unknown_args)
         )
         parser.print_help()
         return False
@@ -110,8 +100,8 @@ def run():
     for k in loaded:
         if dargs[k.replace("-", "_")[2:]] != None:
             if k == "--interact":
-                print_timeless(
-                    f'{COLOR_WARNING}Warning: Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.{COLOR_ENDC}'
+                logger.warn(
+                    'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
                 )
                 if "#" in args.interact[0]:
                     enabled.append("--hashtag-likers")
@@ -124,18 +114,11 @@ def run():
     enabled = list(dict.fromkeys(enabled))
 
     if len(enabled) < 1:
-        print_timeless(
-            COLOR_FAIL
-            + "You have to specify one of the actions: "
-            + ", ".join(loaded)
-            + COLOR_ENDC
-        )
+        logger.error("You have to specify one of the actions: " + ", ".join(loaded))
         return
     if len(enabled) > 1:
-        print_timeless(
-            COLOR_FAIL
-            + "Running GramAddict with two or more actions is not supported yet."
-            + COLOR_ENDC
+        logger.error(
+            "Running GramAddict with two or more actions is not supported yet."
         )
         return
 
@@ -146,18 +129,14 @@ def run():
     device_id = args.device
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
-
-    print("Instagram version: " + get_instagram_version())
+    logger.info("Instagram version: " + get_instagram_version())
     device = create_device(device_id)
     if device is None:
         return
     while True:
-        print_timeless(
-            COLOR_WARNING
-            + "\n-------- START: "
-            + str(session_state.startTime)
-            + " --------"
-            + COLOR_ENDC
+        logger.info(
+            "-------- START: " + str(session_state.startTime) + " --------",
+            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
         if args.screen_sleep:
@@ -172,7 +151,7 @@ def run():
                 session_state.my_following_count,
             ) = profileView.getProfileInfo()
         except Exception as e:
-            print(f"Exception: {e}")
+            logger.error(f"Exception: {e}")
             save_crash(device)
             switch_to_english(device)
             # Try again on the correct language
@@ -188,17 +167,14 @@ def run():
             or not session_state.my_followers_count
             or not session_state.my_following_count
         ):
-            print(COLOR_FAIL + "Could not get profile info" + COLOR_ENDC)
+            logger.critical("Could not get profile info")
             exit(1)
 
-        report_string = ""
-        report_string += "Hello, @" + session_state.my_username + "! "
-        report_string += (
-            "You have " + str(session_state.my_followers_count) + " followers"
-        )
-        report_string += " and " + str(session_state.my_following_count) + " followings"
-        report_string += " so far."
-        print(report_string)
+        username = session_state.my_username
+        followers = session_state.my_followers_count
+        following = session_state.my_following_count
+        report_string = f"Hello, @{username}! You have {followers} followers and {following} followings so far."
+        logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
 
@@ -210,17 +186,13 @@ def run():
         if args.screen_sleep:
             screen_sleep(device_id, "off")  # Turn off the device screen
 
-        print_timeless(
-            COLOR_WARNING
-            + "-------- FINISH: "
-            + str(session_state.finishTime)
-            + " --------"
-            + COLOR_ENDC
+        logger.info(
+            "-------- FINISH: " + str(session_state.finishTime) + " --------",
+            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
         if args.repeat:
             print_full_report(sessions)
-            print_timeless("")
             repeat = get_value(args.repeat, "Sleep for {} minutes", 180)
             try:
                 sleep(60 * repeat)

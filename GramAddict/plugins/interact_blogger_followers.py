@@ -1,28 +1,24 @@
-from random import seed, shuffle
+import logging
 from functools import partial
+from random import seed, shuffle
+
+from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
-    interact_with_user,
-    is_follow_limit_reached_for_source,
     _on_interaction,
     _on_like,
     _on_likes_limit_reached,
+    interact_with_user,
+    is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    COLOR_BOLD,
-    random_sleep,
-    get_value,
-    print_timeless,
-    print,
-)
+from GramAddict.core.utils import get_value, random_sleep
+
+logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import TabBarView
 
@@ -73,14 +69,8 @@ class InteractBloggerFollowers(Plugin):
         for source in sources:
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
-            print_timeless("")
-            print(
-                COLOR_BOLD
-                + "Handle "
-                + source
-                + (is_myself and " (it's you)" or "")
-                + COLOR_ENDC
-            )
+            its_you = is_myself and " (it's you)" or ""
+            logger.info(f"Handle {source} {its_you}")
 
             on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
 
@@ -172,7 +162,7 @@ class InteractBloggerFollowers(Plugin):
 
     def open_user_followers(self, device, username):
         if username is None:
-            print("Open your followers")
+            logger.info("Open your followers")
             profile_view = TabBarView(device).navigateToProfile()
             profile_view.navigateToFollowers()
         else:
@@ -182,13 +172,13 @@ class InteractBloggerFollowers(Plugin):
             if not profile_view:
                 return False
 
-            print("Open @" + username + " followers")
+            logger.info(f"Open @{username} followers")
             profile_view.navigateToFollowers()
 
         return True
 
     def scroll_to_bottom(self, device):
-        print("Scroll to bottom")
+        logger.info("Scroll to bottom")
 
         def is_end_reached():
             see_all_button = device.find(
@@ -203,7 +193,7 @@ class InteractBloggerFollowers(Plugin):
         while not is_end_reached():
             list_view.swipe(DeviceFacade.Direction.BOTTOM)
 
-        print("Scroll back to the first follower")
+        logger.info("Scroll back to the first follower")
 
         def is_at_least_one_follower():
             follower = device.find(
@@ -239,7 +229,7 @@ class InteractBloggerFollowers(Plugin):
 
         scroll_end_detector = ScrollEndDetector()
         while True:
-            print("Iterate over visible followers")
+            logger.info("Iterate over visible followers")
             random_sleep()
             screen_iterated_followers = []
             screen_skipped_followers_count = 0
@@ -253,10 +243,9 @@ class InteractBloggerFollowers(Plugin):
                     user_info_view = item.child(index=1)
                     user_name_view = user_info_view.child(index=0).child()
                     if not user_name_view.exists(quick=True):
-                        print(
-                            COLOR_OKGREEN
-                            + "Next item not found: probably reached end of the screen."
-                            + COLOR_ENDC
+                        logger.info(
+                            "Next item not found: probably reached end of the screen.",
+                            extra={"color": f"{Fore.GREEN}"},
                         )
                         break
 
@@ -265,21 +254,19 @@ class InteractBloggerFollowers(Plugin):
                     scroll_end_detector.notify_username_iterated(username)
 
                     if storage.is_user_in_blacklist(username):
-                        print("@" + username + " is in blacklist. Skip.")
+                        logger.info(f"@{username} is in blacklist. Skip.")
                     elif not is_myself and storage.check_user_was_interacted(username):
-                        print("@" + username + ": already interacted. Skip.")
+                        logger.info(f"@{username}: already interacted. Skip.")
                         screen_skipped_followers_count += 1
                     elif is_myself and storage.check_user_was_interacted_recently(
                         username
                     ):
-                        print(
-                            "@"
-                            + username
-                            + ": already interacted in the last week. Skip."
+                        logger.info(
+                            f"@{username}: already interacted in the last week. Skip."
                         )
                         screen_skipped_followers_count += 1
                     else:
-                        print("@" + username + ": interact")
+                        logger.info(f"@{username}: interact")
                         user_name_view.click()
 
                         can_follow = (
@@ -300,18 +287,18 @@ class InteractBloggerFollowers(Plugin):
                         if not can_continue:
                             return
 
-                        print("Back to followers list")
+                        logger.info("Back to followers list")
                         device.back()
                         random_sleep()
             except IndexError:
-                print(
-                    COLOR_FAIL
-                    + "Cannot get next item: probably reached end of the screen."
-                    + COLOR_ENDC
+                logger.error(
+                    "Cannot get next item: probably reached end of the screen."
                 )
 
             if is_myself and scrolled_to_top():
-                print(COLOR_OKGREEN + "Scrolled to top, finish." + COLOR_ENDC)
+                logger.info(
+                    "Scrolled to top, finish.", extra={"color": f"{Fore.GREEN}"}
+                )
                 return
             elif len(screen_iterated_followers) > 0:
                 load_more_button = device.find(
@@ -329,10 +316,8 @@ class InteractBloggerFollowers(Plugin):
                     resourceId="android:id/list", className="android.widget.ListView"
                 )
                 if not list_view.exists():
-                    print(
-                        COLOR_FAIL
-                        + "Cannot find the list of followers. Trying to press back again."
-                        + COLOR_ENDC
+                    logger.error(
+                        "Cannot find the list of followers. Trying to press back again."
                     )
                     device.back()
                     list_view = device.find(
@@ -341,7 +326,7 @@ class InteractBloggerFollowers(Plugin):
                     )
 
                 if is_myself:
-                    print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+                    logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
                     list_view.scroll(DeviceFacade.Direction.TOP)
                 else:
                     pressed_retry = False
@@ -350,23 +335,25 @@ class InteractBloggerFollowers(Plugin):
                             className="android.widget.ImageView"
                         )
                         if retry_button.exists():
-                            print('Press "Load" button')
+                            logger.info('Press "Load" button')
                             retry_button.click()
                             random_sleep()
                             pressed_retry = True
 
                     if need_swipe and not pressed_retry:
-                        print(
-                            COLOR_OKGREEN
-                            + "All followers skipped, let's do a swipe"
-                            + COLOR_ENDC
+                        logger.info(
+                            "All followers skipped, let's do a swipe",
+                            extra={"color": f"{Fore.GREEN}"},
                         )
                         list_view.swipe(DeviceFacade.Direction.BOTTOM)
                     else:
-                        print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+                        logger.info(
+                            "Need to scroll now", extra={"color": f"{Fore.GREEN}"}
+                        )
                         list_view.scroll(DeviceFacade.Direction.BOTTOM)
             else:
-                print(
-                    COLOR_OKGREEN + "No followers were iterated, finish." + COLOR_ENDC
+                logger.info(
+                    "No followers were iterated, finish.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return

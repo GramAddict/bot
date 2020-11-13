@@ -1,13 +1,10 @@
-import os
-from datetime import timedelta, datetime
-from enum import Enum, unique
 import json
-from GramAddict.core.utils import (
-    COLOR_FAIL,
-    COLOR_ENDC,
-    print,
-)
+import logging
+import os
+from datetime import datetime, timedelta
+from enum import Enum, unique
 
+logger = logging.getLogger(__name__)
 
 FILENAME_INTERACTED_USERS = "interacted_users.json"
 USER_LAST_INTERACTION = "last_interaction"
@@ -25,10 +22,8 @@ class Storage:
 
     def __init__(self, my_username):
         if my_username is None:
-            print(
-                COLOR_FAIL
-                + "No username, thus the script won't get access to interacted users and sessions data"
-                + COLOR_ENDC
+            logger.error(
+                "No username, thus the script won't get access to interacted users and sessions data"
             )
             return
 

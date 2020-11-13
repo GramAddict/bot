@@ -1,5 +1,8 @@
 import inspect
+import logging
 import pkgutil
+
+logger = logging.getLogger(__name__)
 
 
 class Plugin(object):
@@ -20,10 +23,8 @@ class PluginLoader(object):
     def reload_plugins(self):
         self.plugins = []
         self.seen_paths = []
-        print()
-        print("Loading plugins . . .")
+        logger.debug("Loading plugins . . .")
         self.walk_package(self.plugin_package)
-        print()
 
     def walk_package(self, package):
         imported_package = __import__(package, fromlist=["plugins"])
@@ -36,5 +37,5 @@ class PluginLoader(object):
                 clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
                 for (_, c) in clsmembers:
                     if issubclass(c, Plugin) & (c is not Plugin):
-                        print(f"  - {c.__name__}: {c.__doc__}")
+                        logger.debug(f"  - {c.__name__}: {c.__doc__}")
                         self.plugins.append(c())

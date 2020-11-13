@@ -1,11 +1,10 @@
+import logging
 from enum import Enum, unique
-import uiautomator2
-from GramAddict.core.utils import (
-    COLOR_FAIL,
-    COLOR_ENDC,
-    print,
-)
 from random import uniform
+
+import uiautomator2
+
+logger = logging.getLogger(__name__)
 
 # How long we're waiting until UI element appears (loading content + animation)
 UI_TIMEOUT_LONG = 5
@@ -13,11 +12,11 @@ UI_TIMEOUT_SHORT = 1
 
 
 def create_device(device_id):
-    print("Using uiautomator v2")
+    logger.debug("Using uiautomator v2")
     try:
         return DeviceFacade(device_id)
     except ImportError as e:
-        print(COLOR_FAIL + str(e) + COLOR_ENDC)
+        logger.error(str(e))
         return None
 
 
