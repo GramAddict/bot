@@ -75,12 +75,7 @@ def interact_with_user(
         print(COLOR_FAIL + "Max number of stories per user is 6" + COLOR_ENDC)
         stories_value = 6
 
-    watched_amount = _watch_stories(device, username, stories_value)  # , stories_percentage, )
-    print(COLOR_OKGREEN + "We have watched {} stories of @{}".format(watched_amount, username) + "." + COLOR_ENDC)
-    for _iter in range(0, watched_amount):  # Another way to do this?
-        on_watch()  # +=1
-
-    # return False, False
+    _watch_stories(device, username, stories_value, on_watch)
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
@@ -262,13 +257,9 @@ def _on_watch(sessions, session_state):
     session_state.totalWatched += 1
 
 
-def _watch_stories(device, username, stories_value):  # , stories_percentage):
-    # stories_chance = randint(1, 100)
-    # if stories_chance > stories_percentage:
-    #     return 0
-
+def _watch_stories(device, username, stories_value, on_watch):
     if stories_value == 0:
-        return 0
+        return False
 
     reel_ring = device.find(
         resourceId="com.instagram.android:id/reel_ring",
@@ -282,36 +273,34 @@ def _watch_stories(device, username, stories_value):  # , stories_percentage):
             className="android.widget.ImageView",
         )
         profile_picture.click()  # Open the first story
-        random_sleep(2, 6)
+        on_watch()
+        random_sleep(2, 4)
         if stories_to_watch > 1:
-            for watched_amount in range(0, stories_to_watch):
-                reel_viewer_title = device.find(
-                    resourceId="com.instagram.android:id/reel_viewer_title",
-                    className="android.widget.TextView"
+            for _iter in range(0, stories_to_watch):
+                storie_frame = device.find(
+                    resourceId="com.instagram.android:id/reel_viewer_image_view",
+                    className="android.widget.FrameLayout",
                 )
-                if reel_viewer_title.exists():
+                if storie_frame.exists():
                     storie_frame = device.find(
                         resourceId="com.instagram.android:id/reel_viewer_image_view",
                         className="android.widget.FrameLayout",
                     )
-                    if storie_frame.exists() and watched_amount != stories_to_watch:
+                    if storie_frame.exists() and _iter != stories_to_watch:
                         storie_frame.click("right")
-                        random_sleep(2, 6)
+                        on_watch()
+                        random_sleep(2, 4)
                 else:
-                    # print("We are again in profile page")
                     break
-        else:
-            watched_amount = 0
 
         # Iteartion completed, please check again if we are in story view
-        reel_viewer_title = device.find(
-            resourceId="com.instagram.android:id/reel_viewer_title",
-            className="android.widget.TextView"
+        storie_frame = device.find(
+            resourceId="com.instagram.android:id/reel_viewer_image_view",
+            className="android.widget.FrameLayout",
         )
-        if reel_viewer_title.exists():
+        if storie_frame.exists():
             print("Back to user page")
             device.back()
         random_sleep(3, 6)
-        # It's not really accurate, becase the stories can reach the max time for example
-        return watched_amount + 1
-    return 0
+        return True
+    return False
