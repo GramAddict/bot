@@ -1,10 +1,17 @@
+import logging
 import os
+import subprocess
 import re
 import shutil
 import sys
 from datetime import datetime
-from random import uniform, randint
+from random import randint, uniform
 from time import sleep
+
+from colorama import Fore, Style
+from GramAddict.core.log import get_logs
+
+logger = logging.getLogger(__name__)
 
 COLOR_HEADER = "\033[95m"
 COLOR_OKBLUE = "\033[94m"
@@ -39,14 +46,11 @@ def check_adb_connection(is_device_id_provided):
         is_ok = False
         message = "Use --device to specify a device."
 
-    print(
-        ("" if is_ok else COLOR_FAIL)
-        + "Connected devices via adb: "
-        + str(devices_count)
-        + ". "
-        + message
-        + COLOR_ENDC
-    )
+    if is_ok:
+        logger.debug(f"Connected devices via adb: {devices_count}. {message}")
+    else:
+        logger.error(f"Connected devices via adb: {devices_count}. {message}")
+
     return is_ok
 
 
@@ -63,17 +67,21 @@ def get_instagram_version():
 
 
 def open_instagram(device_id):
-    print("Open Instagram app")
-    os.popen(
+    logger.info("Open Instagram app")
+    cmd = (
         "adb"
         + ("" if device_id is None else " -s " + device_id)
         + " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity"
-    ).close()
+    )
+    cmd_res = subprocess.run(cmd, capture_output=True, shell=True, encoding="utf8")
+    err = cmd_res.stderr.strip()
+    if err:
+        logger.debug(err)
     random_sleep()
 
 
 def close_instagram(device_id):
-    print("Close Instagram app")
+    logger.info("Close Instagram app")
     os.popen(
         "adb"
         + ("" if device_id is None else " -s " + device_id)
@@ -83,7 +91,7 @@ def close_instagram(device_id):
 
 def random_sleep():
     delay = uniform(1.0, 4.0)
-    print(f"{COLOR_DBG}{str(delay)[0:4]}s sleep{COLOR_ENDC}")
+    logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
 
@@ -114,7 +122,7 @@ def check_screen_locked(device_id):
 def screen_unlock(device_id, MENU_BUTTON):
     is_locked = check_screen_locked(device_id)
     if is_locked:
-        print("Device is locked! I'll try to unlock it!")
+        logger.info("Device is locked! I'll try to unlock it!")
         os.popen(
             f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {MENU_BUTTON}"
         )
@@ -134,18 +142,18 @@ def screen_sleep(device_id, mode):
             os.popen(
                 f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
             )
-            print("Device screen turned ON!")
+            logger.info("Device screen turned ON!")
             sleep(2)
             screen_unlock(device_id, MENU_BUTTON)
         else:
-            print("Device screen already turned ON!")
+            logger.debug("Device screen already turned ON!")
             sleep(2)
             screen_unlock(device_id, MENU_BUTTON)
     else:
         os.popen(
             f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
         )
-        print("Device screen turned OFF!")
+        logger.debug("Device screen turned OFF!")
 
 
 def save_crash(device):
@@ -155,9 +163,7 @@ def save_crash(device):
     try:
         os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
     except OSError:
-        print(
-            COLOR_FAIL + "Directory " + directory_name + " already exists." + COLOR_ENDC
-        )
+        logger.error("Directory " + directory_name + " already exists.")
         return
 
     screenshot_format = ".png"
@@ -166,7 +172,7 @@ def save_crash(device):
             "crashes/" + directory_name + "/screenshot" + screenshot_format
         )
     except RuntimeError:
-        print(COLOR_FAIL + "Cannot save screenshot." + COLOR_ENDC)
+        logger.error("Cannot save screenshot.")
 
     view_hierarchy_format = ".xml"
     try:
@@ -174,29 +180,30 @@ def save_crash(device):
             "crashes/" + directory_name + "/view_hierarchy" + view_hierarchy_format
         )
     except RuntimeError:
-        print(COLOR_FAIL + "Cannot save view hierarchy." + COLOR_ENDC)
+        logger.error("Cannot save view hierarchy.")
 
-    with open("crashes/" + directory_name + "/logs.txt", "w") as outfile:
-        outfile.write(print_log)
+    with open(
+        "crashes/" + directory_name + "/logs.txt", "w", encoding="utf-8"
+    ) as outfile:
+        outfile.write(get_logs())
 
     shutil.make_archive(
         "crashes/" + directory_name, "zip", "crashes/" + directory_name + "/"
     )
     shutil.rmtree("crashes/" + directory_name + "/")
 
-    print(
-        COLOR_OKGREEN
-        + 'Crash saved as "crashes/'
-        + directory_name
-        + '.zip".'
-        + COLOR_ENDC
+    logger.info(
+        'Crash saved as "crashes/' + directory_name + '.zip".',
+        extra={"color": Fore.GREEN},
     )
-    print(
-        COLOR_OKGREEN
-        + "Please attach this file if you gonna report the crash at"
-        + COLOR_ENDC
+    logger.info(
+        "Please attach this file if you gonna report the crash at",
+        extra={"color": Fore.GREEN},
     )
-    print(COLOR_OKGREEN + "https://github.com/GramAddict/bot/issues\n" + COLOR_ENDC)
+    logger.info(
+        "https://github.com/GramAddict/bot/issues\n",
+        extra={"color": Fore.GREEN},
+    )
 
 
 def detect_block(device):
@@ -206,7 +213,7 @@ def detect_block(device):
     )
     is_blocked = block_dialog.exists()
     if is_blocked:
-        print(COLOR_FAIL + "Probably block dialog is shown." + COLOR_ENDC)
+        logger.error("Probably block dialog is shown.")
         raise ActionBlockedError(
             "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
             " with limits!"
@@ -231,11 +238,10 @@ def _print_with_time_decorator(standard_print, print_time):
 
 def get_value(count, name, default):
     def print_error():
-        print(
-            COLOR_FAIL
-            + name.format(default)
+        logger.error(
+            name.format(default)
             + f'. Using default value instead of "{count}", because it must be '
-            "either a number (e.g. 2) or a range (e.g. 2-4)." + COLOR_ENDC
+            "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
 
     parts = count.split("-")
@@ -245,14 +251,14 @@ def get_value(count, name, default):
     elif len(parts) == 1:
         try:
             value = int(count)
-            print(COLOR_BOLD + name.format(value) + COLOR_ENDC)
+            logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
     elif len(parts) == 2:
         try:
             value = randint(int(parts[0]), int(parts[1]))
-            print(COLOR_BOLD + name.format(value) + COLOR_ENDC)
+            logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
@@ -263,8 +269,6 @@ def get_value(count, name, default):
 
 
 print_log = ""
-print_timeless = _print_with_time_decorator(print, False)
-print = _print_with_time_decorator(print, True)
 
 
 class ActionBlockedError(Exception):
