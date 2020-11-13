@@ -69,7 +69,7 @@ class CoreArguments(Plugin):
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
                 "metavar": ("@username1", "@username2"),
-                "default": [],
+                "default": None,
                 "operation": True,
             },
         ]
