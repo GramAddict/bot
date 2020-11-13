@@ -39,13 +39,6 @@ class CoreArguments(Plugin):
                 "default": "1-2",
             },
             {
-                "arg": "--total-stories-limit",
-                "nargs": None,
-                "help": "limit on total amount of stories to watch during the session, 300 by default",
-                "metavar": "300",
-                "default": "300",
-            },
-            {
                 "arg": "--interactions-count",
                 "nargs": None,
                 "help": "number of interactions per each blogger, 70 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",

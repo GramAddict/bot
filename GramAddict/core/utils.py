@@ -89,8 +89,8 @@ def close_instagram(device_id):
     ).close()
 
 
-def random_sleep(start=1.0, end=4.0):
-    delay = uniform(start, end)
+def random_sleep():
+    delay = uniform(1.0, 4.0)
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 

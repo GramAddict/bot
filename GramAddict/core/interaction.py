@@ -258,40 +258,41 @@ def _watch_stories(device, username, stories_value, on_watch):
     )
     if reel_ring.exists():
         stories_to_watch = randint(1, stories_value)
-        print("This user have a stories, going to watch {}/or max stories".format(stories_to_watch))
+        logger.debug("This user have a stories, going to watch {}/or max stories".format(stories_to_watch))
         profile_picture = device.find(
             resourceId="com.instagram.android:id/row_profile_header_imageview",
             className="android.widget.ImageView",
         )
         profile_picture.click()  # Open the first story
         on_watch()
-        random_sleep(2, 4)
+        random_sleep()
         if stories_to_watch > 1:
             for _iter in range(0, stories_to_watch):
-                storie_frame = device.find(
-                    resourceId="com.instagram.android:id/reel_viewer_image_view",
-                    className="android.widget.FrameLayout",
+                reel_viewer_title = device.find(
+                    resourceId="com.instagram.android:id/reel_viewer_title",
+                    className="android.widget.TextView"
                 )
-                if storie_frame.exists():
-                    storie_frame = device.find(
-                        resourceId="com.instagram.android:id/reel_viewer_image_view",
-                        className="android.widget.FrameLayout",
-                    )
-                    if storie_frame.exists() and _iter != stories_to_watch:
-                        storie_frame.click("right")
-                        on_watch()
-                        random_sleep(2, 4)
+                if reel_viewer_title.exists():
+                    try:
+                        storie_frame = device.find(
+                            resourceId="com.instagram.android:id/reel_viewer_image_view",
+                            className="android.widget.FrameLayout",
+                        )
+                        if storie_frame.exists() and _iter != stories_to_watch:
+                            storie_frame.click("right")
+                            on_watch()
+                            random_sleep()
+                    except Exception:
+                        break
                 else:
                     break
 
-        # Iteartion completed, please check again if we are in story view
-        storie_frame = device.find(
-            resourceId="com.instagram.android:id/reel_viewer_image_view",
-            className="android.widget.FrameLayout",
-        )
-        if storie_frame.exists():
-            print("Back to user page")
+        while not device.find(
+            resourceId="com.instagram.android:id/action_bar_textview_title",
+            className="android.widget.TextView",
+            textMatches=username
+        ).exists():
             device.back()
-        random_sleep(3, 6)
+            random_sleep()
         return True
     return False

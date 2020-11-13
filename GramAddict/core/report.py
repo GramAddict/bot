@@ -89,10 +89,11 @@ def print_full_report(sessions):
 
 def print_short_report(source, session_state):
     total_likes = session_state.totalLikes
+    total_watched = session_state.totalWatched
     total_followed = sum(session_state.totalFollowed.values())
     interactions = session_state.successfulInteractions.get(source, 0)
     logger.warn(
-        f"Session progress: {total_likes} likes, {total_followed} followed, {interactions} successful interaction(s) for {source}"
+        f"Session progress: {total_likes} likes,, {total_watched} watched, {total_followed} followed, {interactions} successful interaction(s) for {source}"
     )
 
 

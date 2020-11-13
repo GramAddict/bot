@@ -70,9 +70,6 @@ Full list of command line arguments:
   --stories-count 2-4   number of stories for each interacted user, 2 by
                         default. It can be a number (e.g. 2) or a range (e.g.
                         2-4)
-  --total-stories-limit 300
-                        limit on total amount of stories during the session, 300
-                        by default
   --interactions-count 60-80
                         number of interactions per each blogger, 70 by
                         default. It can be a number (e.g. 70) or a range (e.g.
