@@ -26,6 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        fail-fast: false
         python-version: [3.6, 3.7, 3.8]
     steps:
       - name: Clone Repository
