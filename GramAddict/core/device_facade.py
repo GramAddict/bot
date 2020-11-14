@@ -1,6 +1,7 @@
 import logging
 from enum import Enum, unique
 from random import uniform
+from time import sleep
 
 import uiautomator2
 
@@ -181,16 +182,13 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         def _double_click_v2(self):
-
-            visible_bounds = self.get_bounds()
-            horizontal_offset = visible_bounds["left"]
-            horizontal_diff = visible_bounds["right"] - visible_bounds["left"]
-            vertical_offset = visible_bounds["top"]
-            vertical_diff = visible_bounds["bottom"] - visible_bounds["top"]
-            center_x = horizontal_offset + ((horizontal_diff) / 2)
-            center_y = vertical_offset + ((vertical_diff) / 2)
+            offset_x = uniform(0.15, 0.85)
+            offset_y = uniform(0.15, 0.85)
+            sleep_between_clicks = uniform(0.0, 0.2)
             try:
-                self.deviceV2.double_click(center_x, center_y, duration=0)
+                self.viewV2.click(offset=(offset_x, offset_y))
+                sleep(sleep_between_clicks)
+                self.viewV2.click(offset=(offset_x, offset_y))
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
