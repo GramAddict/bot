@@ -164,8 +164,10 @@ def run():
             not session_state.my_username
             or not session_state.my_followers_count
             or not session_state.my_following_count
-        ):C
-            logger.critical("Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case.")
+        ):
+            logger.critical(
+                "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+            )
             save_crash(device)
             exit(1)
 
