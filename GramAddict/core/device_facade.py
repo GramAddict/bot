@@ -95,34 +95,21 @@ class DeviceFacade:
                 if mode == "whole":
                     self.viewV2.click(
                         UI_TIMEOUT_LONG,
-                        offset=(
-                            uniform(0.15, 0.85),
-                            uniform(0.15, 0.85),
-                        ),
+                        offset=(uniform(0.15, 0.85), uniform(0.15, 0.85)),
                     )
                 elif mode == "left":
                     self.viewV2.click(
                         UI_TIMEOUT_LONG,
-                        offset=(
-                            uniform(0.15, 0.4),
-                            uniform(0.15, 0.85),
-                        ),
+                        offset=(uniform(0.15, 0.4), uniform(0.15, 0.85)),
                     )
                 elif mode == "center":
                     self.viewV2.click(
-                        UI_TIMEOUT_LONG,
-                        offset=(
-                            uniform(0.4, 0.6),
-                            uniform(0.15, 0.85),
-                        ),
+                        UI_TIMEOUT_LONG, offset=(uniform(0.4, 0.6), uniform(0.15, 0.85))
                     )
                 elif mode == "right":
                     self.viewV2.click(
                         UI_TIMEOUT_LONG,
-                        offset=(
-                            uniform(0.6, 0.85),
-                            uniform(0.15, 0.85),
-                        ),
+                        offset=(uniform(0.6, 0.85), uniform(0.15, 0.85)),
                     )
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)

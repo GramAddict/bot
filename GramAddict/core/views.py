@@ -211,6 +211,39 @@ class SearchView:
         )
         return tab_text_view
 
+    def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
+        tab_layout = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/fixed_tabbar_tabs_container"
+            ),
+            className="android.widget.LinearLayout",
+        )
+        search_edit_text = self._getSearchEditText()
+
+        fixed_text = "Search {}".format(tab.name if tab.name != "TAGS" else "hashtags")
+        logger.debug(
+            "Going to check if the search bar have as placeholder: {}".format(
+                fixed_text
+            )
+        )
+        for item in tab_layout.child(
+            resourceId="com.instagram.android:id/tab_button_fallback_icon",
+            className="android.widget.ImageView",
+        ):
+            item.click()
+            # random_sleep()
+
+            # Little trick for force-update the ui and placeholder text
+            search_edit_text.click()
+            self.device.back()
+
+            if self.device.find(
+                className="android.widget.TextView",
+                textMatches=case_insensitive_re(fixed_text),
+            ).exists():
+                return item
+        return None
+
     def navigateToUsername(self, username):
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
@@ -228,24 +261,29 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        logger.debug(f"Navigate to hashtag #{hashtag}")
+        logger.debug(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-            hashtag_tab = self._getTabTextView(SearchTabs.Tags)
-        if not hashtag_tab.exists():
-            logger.error("Cannot find tab: TAGS.")
-            return None
+            logger.debug(
+                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs"
+            )
+            hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            if hashtag_tab is None:
+                logger.error("Cannot find tab: Tags.")
+                save_crash(self.device)
+                return None
         hashtag_tab.click()
 
         search_edit_text.set_text(hashtag)
-        hashtag_view = self._getHashtagRow(hashtag)
+        hashtag_view = self._getHashtagRow(hashtag[1:])
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag #{hashtag} , abort.")
+            logger.error(f"Cannot find hashtag {hashtag}, abort.")
+            save_crash(self.device)
             return None
 
         hashtag_view.click()
@@ -344,8 +382,7 @@ class OpenedPostView:
             ]
         )
         post_media_view = self.device.find(
-            resourceIdMatches=MEDIA_GROUP_RE,
-            className="android.widget.FrameLayout",
+            resourceIdMatches=MEDIA_GROUP_RE, className="android.widget.FrameLayout"
         )
 
         if click_btn_like:
@@ -428,8 +465,7 @@ class ProfileView(ActionBarView):
             ]
         )
         return self.action_bar.child(
-            resourceIdMatches=re_case_insensitive,
-            className="android.widget.TextView",
+            resourceIdMatches=re_case_insensitive, className="android.widget.TextView"
         )
 
     def getUsername(self):

@@ -61,6 +61,8 @@ class InteractHashtagLikers(Plugin):
 
         for source in sources:
             self.state = State()
+            if source[0] != "#":
+                source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
@@ -90,7 +92,7 @@ class InteractHashtagLikers(Plugin):
             def job():
                 self.handle_hashtag(
                     device,
-                    source[1:] if "#" in source else source,
+                    source,
                     args.likes_count,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,

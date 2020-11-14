@@ -191,8 +191,7 @@ def save_crash(device):
         extra={"color": Fore.GREEN},
     )
     logger.info(
-        "https://github.com/GramAddict/bot/issues\n",
-        extra={"color": Fore.GREEN},
+        "https://github.com/GramAddict/bot/issues\n", extra={"color": Fore.GREEN}
     )
 
 
