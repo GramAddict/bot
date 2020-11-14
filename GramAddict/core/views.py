@@ -226,10 +226,6 @@ class SearchView:
                 fixed_text
             )
         )
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
         for item in tab_layout.child(
             resourceId="com.instagram.android:id/tab_button_fallback_icon",
             className="android.widget.ImageView",
