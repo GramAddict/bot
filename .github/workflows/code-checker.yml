@@ -32,8 +32,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Check for errors and run reviewdog
-        uses: reviewdog/action-pyflakes@master
-        with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-check
+      - name: Install Pyflakes
+        run: |
+          pip3 install --upgrade pip
+          pip3 install pyflakes
+
+      - name: Detect errors with pyflakes
+        run: pyflakes .
