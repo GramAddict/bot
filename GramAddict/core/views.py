@@ -261,7 +261,8 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        if hashtag[0] != "#": hashtag = "#" + hashtag 
+        if hashtag[0] != "#":
+            hashtag = "#" + hashtag
         logger.debug(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
@@ -269,7 +270,9 @@ class SearchView:
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-            logger.debug("Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs")
+            logger.debug(
+                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs"
+            )
             hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
             if hashtag_tab is None:
                 logger.error("Cannot find tab: Tags.")
@@ -379,8 +382,7 @@ class OpenedPostView:
             ]
         )
         post_media_view = self.device.find(
-            resourceIdMatches=MEDIA_GROUP_RE,
-            className="android.widget.FrameLayout",
+            resourceIdMatches=MEDIA_GROUP_RE, className="android.widget.FrameLayout"
         )
 
         if click_btn_like:
@@ -463,8 +465,7 @@ class ProfileView(ActionBarView):
             ]
         )
         return self.action_bar.child(
-            resourceIdMatches=re_case_insensitive,
-            className="android.widget.TextView",
+            resourceIdMatches=re_case_insensitive, className="android.widget.TextView"
         )
 
     def getUsername(self):

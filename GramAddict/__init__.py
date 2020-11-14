@@ -50,9 +50,7 @@ def load_plugins():
                     action = arg.get("action", None)
                     if action:
                         parser.add_argument(
-                            arg["arg"],
-                            help=arg["help"],
-                            action=arg.get("action", None),
+                            arg["arg"], help=arg["help"], action=arg.get("action", None)
                         )
                     else:
                         parser.add_argument(
