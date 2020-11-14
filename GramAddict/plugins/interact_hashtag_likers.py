@@ -31,7 +31,9 @@ class InteractHashtagLikers(Plugin):
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with hashtags likers"
+        self.description = (
+            "This plugin handles the functionality of interacting with hashtags likers"
+        )
         self.arguments = [
             {
                 "arg": "--hashtag-likers",
