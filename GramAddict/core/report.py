@@ -59,7 +59,6 @@ def print_full_report(sessions):
             else:
                 total_followed[source] += count
 
-
     logger.warn(f"Total interactions: {_stringify_interactions(total_interactions)}")
     logger.warn(
         f"Successful interactions: {_stringify_interactions(successful_interactions)}"
@@ -71,7 +70,6 @@ def print_full_report(sessions):
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     logger.warn(f"Total unfollowed: {total_unfollowed} ")
-
 
 
 def print_short_report(source, session_state):
