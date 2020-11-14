@@ -1,15 +1,15 @@
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_ENDC,
-    print,
-)
+import logging
+
+from colorama import Fore
 from GramAddict.core.views import TabBarView
+
+logger = logging.getLogger(__name__)
 
 
 def switch_to_english(device):
-    print(COLOR_OKGREEN + "Switching to English locale" + COLOR_ENDC)
+    logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
     profile_view = TabBarView(device).navigateToProfile()
-    print("Changing language in settings")
+    logger.info("Changing language in settings")
 
     options_view = profile_view.navigateToOptions()
     settingts_view = options_view.navigateToSettings()
