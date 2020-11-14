@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_version():
-    fin = open("GramAddict/version.txt")
+    fin = open('GramAddict/version.txt')
     version = fin.readline().strip()
     fin.close()
     return version
