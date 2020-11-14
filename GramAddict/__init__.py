@@ -50,9 +50,7 @@ def load_plugins():
                     action = arg.get("action", None)
                     if action:
                         parser.add_argument(
-                            arg["arg"],
-                            help=arg["help"],
-                            action=arg.get("action", None),
+                            arg["arg"], help=arg["help"], action=arg.get("action", None)
                         )
                     else:
                         parser.add_argument(
@@ -167,7 +165,10 @@ def run():
             or not session_state.my_followers_count
             or not session_state.my_following_count
         ):
-            logger.critical("Could not get profile info")
+            logger.critical(
+                "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+            )
+            save_crash(device)
             exit(1)
 
         username = session_state.my_username

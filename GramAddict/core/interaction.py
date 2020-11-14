@@ -52,18 +52,12 @@ def interact_with_user(
 
     if is_private or is_empty:
         private_empty = "Private" if is_private else "Empty"
-        logger.info(
-            f"{private_empty} account.",
-            extra={"color": f"{Fore.GREEN}"},
-        )
+        logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
             followed = _follow(device, username, follow_percentage)
         else:
             followed = False
-            logger.info(
-                "Skip user.",
-                extra={"color": f"{Fore.GREEN}"},
-            )
+            logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
 
     # stories_percentage = 100
@@ -119,10 +113,7 @@ def interact_with_user(
                 followed = False
 
             if not followed:
-                logger.info(
-                    "Skip user.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
+                logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
             return False, followed
 
         random_sleep()
@@ -221,8 +212,7 @@ def _follow(device, username, follow_percentage):
         )
         if unfollow_button.exists():
             logger.info(
-                f"You already follow @{username}.",
-                extra={"color": f"{Fore.GREEN}"},
+                f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
             )
             return False
         else:
@@ -235,10 +225,7 @@ def _follow(device, username, follow_percentage):
 
     follow_button.click()
     detect_block(device)
-    logger.info(
-        f"Followed @{username}",
-        extra={"color": f"{Fore.GREEN}"},
-    )
+    logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
     random_sleep()
     return True
 

@@ -10,28 +10,30 @@ Liking and following automatically on your Android phone/tablet. No root require
 
 ## Requirements
 
-- Python 3.8
-- pipenv [how to install](https://github.com/pypa/pipenv#installation)
+- Python 3.6+
 
 ### How to install
 1. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
 2. Go to GramAddict folder: `cd gramaddict`
-3. Install required libraries: `pipenv install`
-4. Download and unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), move them to a directory where you won't delete them accidentally, e.g.
+3. (Optionally) Use virtualenv or similar to make a virtual environment `virtualenv -p python3 .venv` and enter the virtual environment `source .venv/bin/activate`
+4. Install required libraries: `pip3 install -r requirements.txt`
+5. Download and unzip [Android platform tools](https://developer.android.com/studio/releases/platform-tools), move them to a directory where you won't delete them accidentally, e.g.
 ```
 mkdir -p ~/Library/Android/sdk
 mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 ```
-5. [Add platform-tools path to the PATH environment variable](https://github.com/GramAddict/bot/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command prompt command `adb devices` will print `List of devices attached`
-6. Activate pipenv shell: `pipenv shell`
+6. [Add platform-tools path to the PATH environment variable](https://github.com/GramAddict/bot/wiki/Adding-platform-tools-to-the-PATH-environment-variable). If you do it correctly, terminal / command prompt command `adb devices` will print `List of devices attached`
+7. Run the script `python3 run.py --blogger-followers username`
 
 ### How to install on Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
-2. Install ADB, Fastboot and Pipenv: `sudo apt-get install -y android-tools-adb android-tools-fastboot pipenv`
+2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
 4. Go to GramAddict folder: `cd gramaddict`
-5. Install required libraries: `pipenv install`
-6. Activate pipenv shell: `pipenv shell`
+5. (Optionally) Use virtualenv or similar to make a virtual environment `virtualenv -p python3 .venv` and enter the virtual environment `source .venv/bin/activate`
+6. Install required libraries: `pip3 install -r requirements.txt`
+7. Run the script `python3 run.py --blogger-followers username`
+
 
 ### Get started
 1. Connect Android device to your computer with a USB cable
