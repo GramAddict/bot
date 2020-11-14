@@ -11,3 +11,4 @@ filter.json
 whitelist.txt
 Pipfile.lock
 *.pdf
+.venv
