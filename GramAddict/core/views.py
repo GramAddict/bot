@@ -226,7 +226,7 @@ class SearchView:
                 fixed_text
             )
         )
-        mode = "test"
+        async = 3
         for item in tab_layout.child(
             resourceId="com.instagram.android:id/tab_button_fallback_icon",
             className="android.widget.ImageView",
