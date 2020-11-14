@@ -267,7 +267,7 @@ def _watch_stories(device, username, stories_value, on_watch):
         on_watch()
         random_sleep()
         if stories_to_watch > 1:
-            for _iter in range(0, stories_to_watch):
+            for _iter in range(0, stories_to_watch - 1):
                 reel_viewer_title = device.find(
                     resourceId="com.instagram.android:id/reel_viewer_title",
                     className="android.widget.TextView"
@@ -287,12 +287,15 @@ def _watch_stories(device, username, stories_value, on_watch):
                 else:
                     break
 
-        while not device.find(
-            resourceId="com.instagram.android:id/action_bar_textview_title",
-            className="android.widget.TextView",
-            textMatches=username
-        ).exists():
-            device.back()
-            random_sleep()
+        for attempt in range(0, 5):
+            if not device.find(
+                resourceId="com.instagram.android:id/action_bar_textview_title",
+                className="android.widget.TextView",
+                textMatches=username
+            ).exists():
+                device.back()
+                random_sleep()
+            else:
+                break
         return True
     return False
