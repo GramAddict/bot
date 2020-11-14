@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView
@@ -16,6 +17,8 @@ FIELD_MIN_FOLLOWINGS = "min_followings"
 FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
+FIELD_BLACKLIST_WORDS = "blacklist_words"
+FIELD_MANDATORY_WORDS = "mandatory_words"
 
 
 class Filter:
@@ -40,6 +43,8 @@ class Filter:
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
         field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
+        field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)  # Array of words
+        field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)  # Array of words
 
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
@@ -101,6 +106,29 @@ class Filter:
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
+
+        if field_blacklist_words is not None or field_mandatory_words is not None:
+            biography_text = self._get_profile_biography(device)
+            # logger.info(f"@{username} Biography {biography_text}")
+            # If we found a blacklist word return False
+            if field_blacklist_words is not None:
+                for w in field_blacklist_words:
+                    if re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search(biography_text) is not None:
+                        logger.info(
+                            f"@{username} found a blacklisted word '{w}' in biography, skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+
+            # For continue we need to find at least one of mandatory word
+            if field_mandatory_words is not None:
+                if [w for w in field_mandatory_words if re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search(biography_text) is not None] == []:
+                    logger.info(
+                        f"@{username} mandatory words not found in biography, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
         return True
 
     def can_follow_private_or_empty(self):
@@ -138,3 +166,8 @@ class Filter:
             className="android.widget.TextView",
         )
         return business_category_view.exists()
+
+    @staticmethod
+    def _get_profile_biography(device):
+        profileView = ProfileView(device)
+        return profileView.getProfileBiography()

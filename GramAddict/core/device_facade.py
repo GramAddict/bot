@@ -111,6 +111,16 @@ class DeviceFacade:
                         UI_TIMEOUT_LONG,
                         offset=(uniform(0.6, 0.85), uniform(0.15, 0.85)),
                     )
+                elif mode == "bottom":
+                    self.viewV2.click(
+                        UI_TIMEOUT_LONG,
+                        offset=(uniform(0.15, 0.85), uniform(0.6, 0.85)),
+                    )
+                elif mode == "top":
+                    self.viewV2.click(
+                        UI_TIMEOUT_LONG,
+                        offset=(uniform(0.15, 0.85), uniform(0.15, 0.4)),
+                    )
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

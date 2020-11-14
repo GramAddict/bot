@@ -1,4 +1,5 @@
 import logging
+import re
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
@@ -559,6 +560,22 @@ class ProfileView(ActionBarView):
         following = self.getFollowingCount()
 
         return username, followers, following
+
+    def getProfileBiography(self):
+        biography = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/profile_header_bio_text"
+            ),
+            className="android.widget.TextView",
+        )
+        if biography.exists():
+            biography_text = biography.get_text()
+            # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
+            if re.compile(r'\b({0})\b'.format('more'), flags=re.IGNORECASE).search(biography_text) is not None:
+                biography.click("bottom")
+                return biography.get_text()
+            return biography_text
+        return ""
 
     def isPrivateAccount(self):
         private_profile_view = self.device.find(
