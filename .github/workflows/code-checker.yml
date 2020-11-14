@@ -17,7 +17,7 @@ jobs:
       - name: Run black
         uses: psf/black@stable
 
-  check-for-errors:
+  static-check:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -31,9 +31,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      
-      - name: Install Pyflakes
-        run: pip3 install --upgrade pip && pip3 install pyflakes
 
-      - name: Detect errors with pyflakes
-        run: pyflakes .
+      - name: Check for errors and run reviewdog
+        uses: reviewdog/action-pyflakes@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-check
