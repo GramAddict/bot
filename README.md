@@ -10,8 +10,7 @@ Liking and following automatically on your Android phone/tablet. No root require
 
 ## Requirements
 
-- Python 3.8
-- pipenv [how to install](https://github.com/pypa/pipenv#installation)
+- Python 3.6+
 
 ### How to install
 1. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
@@ -28,7 +27,7 @@ mv <path-to-downloads>/platform-tools/ ~/Library/Android/sdk
 
 ### How to install on Raspberry Pi OS
 1. Update apt-get: `sudo apt-get update`
-2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot pipenv`
+2. Install ADB and Fastboot: `sudo apt-get install -y android-tools-adb android-tools-fastboot`
 3. Clone project: `git clone https://github.com/GramAddict/bot.git gramaddict`
 4. Go to GramAddict folder: `cd gramaddict`
 5. (Optionally) Use virtualenv or similar to make a virtual environment `virtualenv -p python3 .venv` and enter the virtual environment `source .venv/bin/activate`
