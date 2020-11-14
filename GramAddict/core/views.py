@@ -261,25 +261,26 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        logger.debug(f"Navigate to hashtag #{hashtag}")
+        if hashtag[0] != "#": hashtag = "#" + hashtag 
+        logger.debug(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-            # logger.debug("Cannot find tab: TAGS. Going to attempt al buttons tab and search for place holder")
+            logger.debug("Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs")
             hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
             if hashtag_tab is None:
-                logger.error("Cannot find tab: TAGS.")
+                logger.error("Cannot find tab: Tags.")
                 return None
         hashtag_tab.click()
 
-        search_edit_text.set_text("#" + hashtag if hashtag[0] != "#" else hashtag)
+        search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag)
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag #{hashtag} , abort.")
+            logger.error(f"Cannot find hashtag {hashtag} , abort.")
             return None
 
         hashtag_view.click()
