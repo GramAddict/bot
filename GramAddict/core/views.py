@@ -226,7 +226,10 @@ class SearchView:
                 fixed_text
             )
         )
-        async = 3
+
+        def f(a, b, /, c, d, *, e, f):
+            print(a, b, c, d, e, f)
+
         for item in tab_layout.child(
             resourceId="com.instagram.android:id/tab_button_fallback_icon",
             className="android.widget.ImageView",
