@@ -31,9 +31,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       
-      - name: Install Dependencies
-        run: pip3 install --upgrade pip
-        run: pip3 install pyflakes
+      - name: Install Pyflakes
+        run: pip3 install --upgrade pip && pip3 install pyflakes
 
       - name: Detect errors with pyflakes
         run: pyflakes .
