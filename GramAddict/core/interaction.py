@@ -26,7 +26,7 @@ def interact_with_user(
     on_watch,
     can_follow,
     follow_percentage,
-    profile_filter
+    profile_filter,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -245,7 +245,11 @@ def _watch_stories(device, username, stories_value, on_watch):
     )
     if reel_ring.exists():
         stories_to_watch = randint(1, stories_value)
-        logger.debug("This user have a stories, going to watch {}/or max stories".format(stories_to_watch))
+        logger.debug(
+            "This user have a stories, going to watch {}/or max stories".format(
+                stories_to_watch
+            )
+        )
         profile_picture = device.find(
             resourceId="com.instagram.android:id/row_profile_header_imageview",
             className="android.widget.ImageView",
@@ -257,7 +261,7 @@ def _watch_stories(device, username, stories_value, on_watch):
             for _iter in range(0, stories_to_watch - 1):
                 reel_viewer_title = device.find(
                     resourceId="com.instagram.android:id/reel_viewer_title",
-                    className="android.widget.TextView"
+                    className="android.widget.TextView",
                 )
                 if reel_viewer_title.exists():
                     try:
@@ -278,7 +282,7 @@ def _watch_stories(device, username, stories_value, on_watch):
             if not device.find(
                 resourceId="com.instagram.android:id/action_bar_textview_title",
                 className="android.widget.TextView",
-                textMatches=username
+                textMatches=username,
             ).exists():
                 device.back()
                 random_sleep()
