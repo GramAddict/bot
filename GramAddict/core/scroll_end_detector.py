@@ -1,8 +1,8 @@
-from GramAddict.core.utils import (
-    COLOR_OKBLUE,
-    COLOR_ENDC,
-    print,
-)
+import logging
+
+from colorama import Fore
+
+logger = logging.getLogger(__name__)
 
 
 class ScrollEndDetector:
@@ -35,16 +35,14 @@ class ScrollEndDetector:
             repeats += 1
 
         if is_the_end:
-            print(
-                COLOR_OKBLUE
-                + f"Same users iterated {repeats} times. End of the list, finish."
-                + COLOR_ENDC
+            logger.info(
+                f"Same users iterated {repeats} times. End of the list, finish.",
+                extra={"color": f"{Fore.BLUE}"},
             )
         elif repeats > 1:
-            print(
-                COLOR_OKBLUE
-                + f"Same users iterated {repeats} times. Continue."
-                + COLOR_ENDC
+            logger.info(
+                f"Same users iterated {repeats} times. Continue.",
+                extra={"color": f"{Fore.BLUE}"},
             )
 
         return is_the_end

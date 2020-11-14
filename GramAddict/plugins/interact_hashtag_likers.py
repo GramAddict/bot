@@ -1,29 +1,25 @@
+import logging
 from functools import partial
 from random import seed, shuffle
+
+from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
-    is_follow_limit_reached_for_source,
-    interact_with_user,
     _on_interaction,
     _on_like,
     _on_likes_limit_reached,
+    interact_with_user,
+    is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import (
-    COLOR_OKGREEN,
-    COLOR_FAIL,
-    COLOR_ENDC,
-    COLOR_BOLD,
-    random_sleep,
-    get_value,
-    print_timeless,
-    print,
-)
+from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import TabBarView
+
+logger = logging.getLogger(__name__)
 
 # Script Initialization
 seed()
@@ -65,8 +61,7 @@ class InteractHashtagLikers(Plugin):
 
         for source in sources:
             self.state = State()
-            print_timeless("")
-            print(COLOR_BOLD + "Handle " + source + COLOR_ENDC)
+            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
 
@@ -147,7 +142,7 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
-        print("Opening the first result")
+        logger.info("Opening the first result")
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
@@ -165,11 +160,13 @@ class InteractHashtagLikers(Plugin):
 
         while True:
             if not self.open_likers(device):
-                print(COLOR_OKGREEN + "No likes, let's scroll down." + COLOR_ENDC)
+                logger.info(
+                    "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
+                )
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
                 continue
 
-            print("List of likers is opened.")
+            logger.info("List of likers is opened.")
             posts_end_detector.notify_new_page()
             random_sleep()
             likes_list_view = device.find(
@@ -177,7 +174,7 @@ class InteractHashtagLikers(Plugin):
             )
             prev_screen_iterated_likers = []
             while True:
-                print("Iterate over visible likers.")
+                logger.info("Iterate over visible likers.")
                 screen_iterated_likers = []
 
                 try:
@@ -190,10 +187,9 @@ class InteractHashtagLikers(Plugin):
                             className="android.widget.TextView",
                         )
                         if not username_view.exists(quick=True):
-                            print(
-                                COLOR_OKGREEN
-                                + "Next item not found: probably reached end of the screen."
-                                + COLOR_ENDC
+                            logger.info(
+                                "Next item not found: probably reached end of the screen.",
+                                extra={"color": f"{Fore.GREEN}"},
                             )
                             break
 
@@ -202,13 +198,13 @@ class InteractHashtagLikers(Plugin):
                         posts_end_detector.notify_username_iterated(username)
 
                         if storage.is_user_in_blacklist(username):
-                            print("@" + username + " is in blacklist. Skip.")
+                            logger.info(f"@{username} is in blacklist. Skip.")
                             continue
                         elif storage.check_user_was_interacted(username):
-                            print("@" + username + ": already interacted. Skip.")
+                            logger.info(f"@{username}: already interacted. Skip.")
                             continue
                         else:
-                            print("@" + username + ": interact")
+                            logger.info(f"@{username}: interact")
                             username_view.click()
 
                         can_follow = (
@@ -227,30 +223,28 @@ class InteractHashtagLikers(Plugin):
                         if not can_continue:
                             return
 
-                        print("Back to likers list")
+                        logger.info("Back to likers list")
                         device.back()
                         random_sleep()
                 except IndexError:
-                    print(
-                        COLOR_FAIL
-                        + "Cannot get next item: probably reached end of the screen."
-                        + COLOR_ENDC
+                    logger.info(
+                        "Cannot get next item: probably reached end of the screen.",
+                        extra={"color": f"{Fore.GREEN}"},
                     )
 
                 if screen_iterated_likers == prev_screen_iterated_likers:
-                    print(
-                        COLOR_OKGREEN
-                        + "Iterated exactly the same likers twice, finish."
-                        + COLOR_ENDC
+                    logger.info(
+                        "Iterated exactly the same likers twice, finish.",
+                        extra={"color": f"{Fore.GREEN}"},
                     )
-                    print(f"Back to #{hashtag}")
+                    logger.info(f"Back to #{hashtag}")
                     device.back()
                     break
 
                 prev_screen_iterated_likers.clear()
                 prev_screen_iterated_likers += screen_iterated_likers
 
-                print(COLOR_OKGREEN + "Need to scroll now" + COLOR_ENDC)
+                logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
                 likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
@@ -264,7 +258,7 @@ class InteractHashtagLikers(Plugin):
             className="android.widget.TextView",
         )
         if likes_view.exists():
-            print("Opening post likers")
+            logger.info("Opening post likers")
             random_sleep()
             likes_view.click("right")
             return True
