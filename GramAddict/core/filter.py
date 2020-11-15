@@ -43,8 +43,12 @@ class Filter:
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
         field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
-        field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)  # Array of words
-        field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)  # Array of words
+        field_blacklist_words = self.conditions.get(
+            FIELD_BLACKLIST_WORDS
+        )  # Array of words
+        field_mandatory_words = self.conditions.get(
+            FIELD_MANDATORY_WORDS
+        )  # Array of words
 
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
@@ -113,7 +117,12 @@ class Filter:
             # If we found a blacklist word return False
             if field_blacklist_words is not None:
                 for w in field_blacklist_words:
-                    if re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search(biography_text) is not None:
+                    if (
+                        re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
+                            biography_text
+                        )
+                        is not None
+                    ):
                         logger.info(
                             f"@{username} found a blacklisted word '{w}' in biography, skip.",
                             extra={"color": f"{Fore.GREEN}"},
@@ -122,7 +131,14 @@ class Filter:
 
             # For continue we need to find at least one of mandatory word
             if field_mandatory_words is not None:
-                if [w for w in field_mandatory_words if re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search(biography_text) is not None] == []:
+                if [
+                    w
+                    for w in field_mandatory_words
+                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
+                        biography_text
+                    )
+                    is not None
+                ] == []:
                     logger.info(
                         f"@{username} mandatory words not found in biography, skip.",
                         extra={"color": f"{Fore.GREEN}"},
