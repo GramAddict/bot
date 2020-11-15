@@ -77,18 +77,7 @@ def interact_with_user(
 
         like_succeed = False
         if opened_post_view:
-            logger.info("Double click post")
-            opened_post_view.likePost()
-            random_sleep()
-            if not opened_post_view.isPostLiked():
-                logger.debug("Double click failed. Try the like button.")
-                opened_post_view.likePost(click_btn_like=True)
-                random_sleep()
-
-            like_succeed = opened_post_view.isPostLiked()
-            if like_succeed:
-                detect_block(device)
-                on_like()
+            like_succeed = do_like(opened_post_view, device, on_like)
 
             logger.info("Back to profile")
             device.back()
@@ -112,6 +101,25 @@ def interact_with_user(
         return True, _follow(device, username, follow_percentage)
 
     return True, False
+
+
+def do_like(opened_post_view, device, on_like):
+    logger.info("Double click post")
+    if not opened_post_view.isPostLiked():
+        opened_post_view.likePost()
+        random_sleep()
+
+    if not opened_post_view.isPostLiked():
+        logger.debug("Double click failed. Try the like button.")
+        opened_post_view.likePost(click_btn_like=True)
+        random_sleep()
+
+    like_succeed = opened_post_view.isPostLiked()
+    if like_succeed:
+        detect_block(device)
+        on_like()
+        return True
+    return False
 
 
 def is_follow_limit_reached_for_source(session_state, follow_limit, source):
