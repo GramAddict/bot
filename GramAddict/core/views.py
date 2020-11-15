@@ -474,7 +474,7 @@ class ProfileView(ActionBarView):
         if title_view.exists():
             return title_view.get_text()
         logger.error("Cannot get username")
-        return ""
+        return None
 
     def _parseCounter(self, text):
         multiplier = 1
