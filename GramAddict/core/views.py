@@ -571,7 +571,12 @@ class ProfileView(ActionBarView):
         if biography.exists():
             biography_text = biography.get_text()
             # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
-            if re.compile(r'\b({0})\b'.format('more'), flags=re.IGNORECASE).search(biography_text) is not None:
+            if (
+                re.compile(r"\b({0})\b".format("more"), flags=re.IGNORECASE).search(
+                    biography_text
+                )
+                is not None
+            ):
                 biography.click("bottom")
                 return biography.get_text()
             return biography_text
