@@ -7,7 +7,11 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
-from GramAddict.core.views import LanguageNotEnglishException, ProfileView, CurrentStoryView
+from GramAddict.core.views import (
+    LanguageNotEnglishException,
+    ProfileView,
+    CurrentStoryView,
+)
 
 logger = logging.getLogger(__name__)
 

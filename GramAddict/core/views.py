@@ -673,16 +673,25 @@ class CurrentStoryView:
         )
         if reel_viewer_timestamp.exists():
             timestamp = reel_viewer_timestamp.get_text().strip()
-            value = int(re.sub('[^0-9]', '', timestamp))
-            if timestamp[-1] == 's':
-                return datetime.timestamp(datetime.datetime.now() - datetime.timedelta(seconds=value))
-            elif timestamp[-1] == 'm':
-                return datetime.timestamp(datetime.datetime.now() - datetime.timedelta(minutes=value))
-            elif timestamp[-1] == 'h':
-                return datetime.timestamp(datetime.datetime.now() - datetime.timedelta(hours=value))
+            value = int(re.sub("[^0-9]", "", timestamp))
+            if timestamp[-1] == "s":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(seconds=value)
+                )
+            elif timestamp[-1] == "m":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(minutes=value)
+                )
+            elif timestamp[-1] == "h":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(hours=value)
+                )
             else:
-                return datetime.timestamp(datetime.datetime.now() - datetime.timedelta(days=value))
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(days=value)
+                )
         return ""
+
 
 class LanguageNotEnglishException(Exception):
     pass
