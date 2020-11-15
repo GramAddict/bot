@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from random import randint, shuffle
 from typing import Tuple
 
@@ -272,10 +273,15 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                     else:
                         break
 
-            for attempt in range(0, 3):
+            for attempt in range(0, 4):
                 if profile_view.getUsername() != username:
-                    device.back()
-                    random_sleep()
+                    if attempt != 0:
+                        device.back()
+                        random_sleep()
+                    # Maybe it's just an error please one half seconds before search again for username tab
+                    # This little delay prevent too much back tap and to see more stories than stories_to_watch value
+                    else:
+                        sleep(0.5)
                 else:
                     break
             return True
