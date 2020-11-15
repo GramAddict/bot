@@ -272,9 +272,11 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                     else:
                         break
 
-            for attempt in range(0, 3):
+            # Just a little improvement, do a check with a random sleep after that start with go back
+            for attempt in range(0, 4):
                 if profile_view.getUsername() != username:
-                    device.back()
+                    if attempt != 0:
+                        device.back()
                     random_sleep()
                 else:
                     break
