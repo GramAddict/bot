@@ -7,7 +7,7 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
-from GramAddict.core.views import LanguageNotEnglishException, ProfileView
+from GramAddict.core.views import LanguageNotEnglishException, ProfileView, CurrentStoryView
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def interact_with_user(
         logger.error("Max number of stories per user is 6")
         stories_value = 6
 
-    _watch_stories(device, username, stories_value, on_watch)
+    _watch_stories(device, profile_view, username, stories_value, on_watch)
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
@@ -235,58 +235,44 @@ def _on_watch(sessions, session_state):
     session_state.totalWatched += 1
 
 
-def _watch_stories(device, username, stories_value, on_watch):
+def _watch_stories(device, profile_view, username, stories_value, on_watch):
     if stories_value == 0:
         return False
 
-    reel_ring = device.find(
-        resourceId="com.instagram.android:id/reel_ring",
-        className="android.view.View",
-    )
-    if reel_ring.exists():
+    if profile_view.haveStory():
         stories_to_watch = randint(1, stories_value)
         logger.debug(
             "This user have a stories, going to watch {}/or max stories".format(
                 stories_to_watch
             )
         )
-        profile_picture = device.find(
-            resourceId="com.instagram.android:id/row_profile_header_imageview",
-            className="android.widget.ImageView",
-        )
-        profile_picture.click()  # Open the first story
-        on_watch()
-        random_sleep()
-        if stories_to_watch > 1:
-            for _iter in range(0, stories_to_watch - 1):
-                reel_viewer_title = device.find(
-                    resourceId="com.instagram.android:id/reel_viewer_title",
-                    className="android.widget.TextView",
-                )
-                if reel_viewer_title.exists():
-                    try:
-                        storie_frame = device.find(
-                            resourceId="com.instagram.android:id/reel_viewer_image_view",
-                            className="android.widget.FrameLayout",
-                        )
-                        if storie_frame.exists() and _iter != stories_to_watch:
-                            storie_frame.click("right")
-                            on_watch()
-                            random_sleep()
-                    except Exception:
+
+        profile_picture = profile_view.profileImage()
+        if profile_picture.exists():
+            profile_picture.click()  # Open the first story
+            on_watch()
+            random_sleep()
+
+            if stories_to_watch > 1:
+                story_view = CurrentStoryView(device)
+                for _iter in range(0, stories_to_watch - 1):
+                    if story_view.getUsername() == username:
+                        try:
+                            storie_frame = story_view.getStoryFrame()
+                            if storie_frame.exists() and _iter != stories_to_watch:
+                                storie_frame.click("right")
+                                on_watch()
+                                random_sleep()
+                        except Exception:
+                            break
+                    else:
                         break
+
+            for attempt in range(0, 5):
+                if profile_view.getUsername() != username:
+                    device.back()
+                    random_sleep()
                 else:
                     break
-
-        for attempt in range(0, 5):
-            if not device.find(
-                resourceId="com.instagram.android:id/action_bar_textview_title",
-                className="android.widget.TextView",
-                textMatches=username,
-            ).exists():
-                device.back()
-                random_sleep()
-            else:
-                break
-        return True
+            return True
     return False
