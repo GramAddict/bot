@@ -24,9 +24,6 @@ def print_full_report(sessions):
             )
             logger.warn(f"Total likes: {session.totalLikes}")
             logger.warn(f"Total unfollowed: {session.totalUnfollowed}")
-            logger.warn(
-                f"Removed mass followers: {_stringify_removed_mass_followers(session.removedMassFollowers)}"
-            )
 
     logger.warn("")
     logger.warn("TOTAL")
@@ -43,7 +40,6 @@ def print_full_report(sessions):
     total_interactions = {}
     successful_interactions = {}
     total_followed = {}
-    total_removed_mass_followers = []
     for session in sessions:
         for source, count in session.totalInteractions.items():
             if total_interactions.get(source) is None:
@@ -63,9 +59,6 @@ def print_full_report(sessions):
             else:
                 total_followed[source] += count
 
-        for username in session.removedMassFollowers:
-            total_removed_mass_followers.append(username)
-
     logger.warn(f"Total interactions: {_stringify_interactions(total_interactions)}")
     logger.warn(
         f"Successful interactions: {_stringify_interactions(successful_interactions)}"
@@ -77,10 +70,6 @@ def print_full_report(sessions):
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     logger.warn(f"Total unfollowed: {total_unfollowed} ")
-
-    logger.warn(
-        f"Removed mass followers: {_stringify_removed_mass_followers(total_removed_mass_followers)}"
-    )
 
 
 def print_short_report(source, session_state):
@@ -101,10 +90,3 @@ def _stringify_interactions(interactions):
         result += str(count) + " for " + source + ", "
     result = result[:-2]
     return result
-
-
-def _stringify_removed_mass_followers(removed_mass_followers):
-    if len(removed_mass_followers) == 0:
-        return "none"
-    else:
-        return "@" + ", @".join(removed_mass_followers)
