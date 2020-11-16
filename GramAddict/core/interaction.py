@@ -236,7 +236,7 @@ def _unfollow(device, username, my_username, check_if_is_follower):
 
     while True:
         unfollow_button = device.find(
-            classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+            classNameMatches=BUTTON_REGEX,
             clickable=True,
             textMatches=UNFOLLOW_REGEX,
         )
