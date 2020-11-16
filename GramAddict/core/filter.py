@@ -108,7 +108,7 @@ class Filter:
                     return False
             else:
                 logger.critical(
-                    f"Either followers, followings, or possibly both are undefined. Cannot filter."
+                    "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
                 return False
         return True
