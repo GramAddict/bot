@@ -18,6 +18,7 @@ FOLLOWING_BUTTON_ID_REGEX = (
     "|com.instagram.android:id/row_profile_header_container_following"
 )
 BUTTON_REGEX = "android.widget.Button"
+BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
 UNFOLLOW_REGEX = "^Following|^Requested"
 
 # Script Initialization
@@ -279,7 +280,7 @@ class ActionUnfollowFollowers(Plugin):
 
         while True:
             unfollow_button = device.find(
-                classNameMatches=BUTTON_REGEX,
+                classNameMatches=BUTTON_OR_TEXTVIEW_REGEX,
                 clickable=True,
                 textMatches=UNFOLLOW_REGEX,
             )
