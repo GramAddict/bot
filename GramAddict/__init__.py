@@ -161,12 +161,15 @@ def run():
             ) = profileView.getProfileInfo()
 
         if (
-            not session_state.my_username
-            or not session_state.my_followers_count
-            or not session_state.my_following_count
+            session_state.my_username == None
+            or session_state.my_followers_count == None
+            or session_state.my_following_count == None
         ):
             logger.critical(
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+            )
+            logger.critical(
+                f"Username: {getattr(session_state,'my_username')}, Followers: {getattr(session_state,'my_followers_count')}, Following: {getattr(session_state,'my_following_count')}"
             )
             save_crash(device)
             exit(1)

@@ -11,9 +11,10 @@ from GramAddict.core.views import LanguageNotEnglishException, ProfileView
 
 logger = logging.getLogger(__name__)
 
-TEXTVIEW_OR_BUTTON_REGEX = "android.widget.TextView|android.widget.Button"
-FOLLOW_REGEX = "Follow|Follow Back"
-UNFOLLOW_REGEX = "Following|Requested"
+BUTTON_REGEX = "android.widget.Button"
+FOLLOW_REGEX = "^Follow$"
+FOLLOWBACK_REGEX = "^Follow Back$"
+UNFOLLOW_REGEX = "^Following|^Requested"
 
 
 def interact_with_user(
@@ -107,7 +108,6 @@ def interact_with_user(
             return False, followed
 
         random_sleep()
-
     if can_follow:
         return True, _follow(device, username, follow_percentage)
 
@@ -181,33 +181,36 @@ def _follow(device, username, follow_percentage):
 
     random_sleep()
 
-    profile_header_actions_layout = device.find(
-        resourceId="com.instagram.android:id/profile_header_actions_top_row",
-        className="android.widget.LinearLayout",
-    )
-    if not profile_header_actions_layout.exists():
-        logger.error("Cannot find profile actions.")
-        return False
-
-    follow_button = profile_header_actions_layout.child(
-        classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+    follow_button = device.find(
+        classNameMatches=BUTTON_REGEX,
         clickable=True,
         textMatches=FOLLOW_REGEX,
     )
+
     if not follow_button.exists():
-        unfollow_button = profile_header_actions_layout.child(
-            classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+        unfollow_button = device.find(
+            classNameMatches=BUTTON_REGEX,
             clickable=True,
             textMatches=UNFOLLOW_REGEX,
+        )
+        followback_button = device.find(
+            classNameMatches=BUTTON_REGEX,
+            clickable=True,
+            textMatches=FOLLOWBACK_REGEX,
         )
         if unfollow_button.exists():
             logger.info(
                 f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
             )
             return False
+        elif followback_button.exists():
+            logger.info(
+                f"@{username} already follows you.", extra={"color": f"{Fore.GREEN}"}
+            )
+            return False
         else:
             logger.error(
-                "Cannot find neither Follow button, nor Unfollow button. Maybe not English language is set?"
+                "Cannot find neither Follow button, Follow Back button, nor Unfollow button. Maybe not English language is set?"
             )
             save_crash(device)
             switch_to_english(device)
