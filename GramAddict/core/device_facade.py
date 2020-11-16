@@ -87,35 +87,62 @@ class DeviceFacade:
                 view = self.viewV2.right(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(view=view, device=self.deviceV2)  # is_old =false
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def click(self, mode="whole"):
 
             try:
+                x_abs = -1
+                y_abs = -1
+                visible_bounds = self.get_bounds()
                 if mode == "whole":
-                    self.viewV2.click(
-                        UI_TIMEOUT_LONG,
-                        offset=(uniform(0.15, 0.85), uniform(0.15, 0.85)),
-                    )
+                    x_offset = uniform(0.15, 0.85)
+                    y_offset = uniform(0.15, 0.85)
+
                 elif mode == "left":
-                    self.viewV2.click(
-                        UI_TIMEOUT_LONG,
-                        offset=(uniform(0.15, 0.4), uniform(0.15, 0.85)),
-                    )
+                    x_offset = uniform(0.15, 0.4)
+                    y_offset = uniform(0.15, 0.85)
+
                 elif mode == "center":
-                    self.viewV2.click(
-                        UI_TIMEOUT_LONG, offset=(uniform(0.4, 0.6), uniform(0.15, 0.85))
-                    )
+                    x_offset = uniform(0.4, 0.6)
+                    y_offset = uniform(0.15, 0.85)
+
                 elif mode == "right":
-                    self.viewV2.click(
-                        UI_TIMEOUT_LONG,
-                        offset=(uniform(0.6, 0.85), uniform(0.15, 0.85)),
-                    )
+                    x_offset = uniform(0.6, 0.85)
+                    y_offset = uniform(0.15, 0.85)
+                else:
+                    x_offset = 0.5
+                    y_offset = 0.5
+
+                x_abs = int(
+                    visible_bounds["left"]
+                    + (visible_bounds["right"] - visible_bounds["left"]) * x_offset
+                )
+                y_abs = int(
+                    visible_bounds["top"]
+                    + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
+                )
+                logger.debug(f"Single click in x={x_abs}; y={y_abs}")
+                self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
+
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
         def double_click(self):
-            self._double_click_v2()
+            visible_bounds = self.get_bounds()
+            random_x = int(
+                uniform(visible_bounds["left"] + 1, visible_bounds["right"] - 1)
+            )
+            random_y = int(
+                uniform(visible_bounds["top"] + 1, visible_bounds["bottom"] - 1)
+            )
+            try:
+                logger.debug(f"Double click in x={random_x}; y={random_y}")
+                self.deviceV2.double_click(
+                    random_x, random_y, duration=uniform(0, 0.200)
+                )
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
 
         def scroll(self, direction):
 
@@ -177,20 +204,6 @@ class DeviceFacade:
         def set_text(self, text):
             try:
                 self.viewV2.set_text(text)
-            except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
-
-        def _double_click_v2(self):
-
-            visible_bounds = self.get_bounds()
-            horizontal_offset = visible_bounds["left"]
-            horizontal_diff = visible_bounds["right"] - visible_bounds["left"]
-            vertical_offset = visible_bounds["top"]
-            vertical_diff = visible_bounds["bottom"] - visible_bounds["top"]
-            center_x = horizontal_offset + ((horizontal_diff) / 2)
-            center_y = vertical_offset + ((vertical_diff) / 2)
-            try:
-                self.deviceV2.double_click(center_x, center_y, duration=0)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
