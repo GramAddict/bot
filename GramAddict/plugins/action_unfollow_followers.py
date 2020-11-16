@@ -5,6 +5,7 @@ from random import seed
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.interaction import _unfollow
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
@@ -17,7 +18,6 @@ FOLLOWING_BUTTON_ID_REGEX = (
     "com.instagram.android:id/row_profile_header_following_container"
     "|com.instagram.android:id/row_profile_header_container_following"
 )
-TEXTVIEW_OR_BUTTON_REGEX = "android.widget.TextView|android.widget.Button"
 
 # Script Initialization
 seed()
@@ -223,7 +223,7 @@ class ActionUnfollowFollowers(Plugin):
                         continue
 
                 logger.info("Unfollow @" + username)
-                unfollowed = self.do_unfollow(
+                unfollowed = _unfollow(
                     device,
                     username,
                     my_username,
@@ -251,73 +251,6 @@ class ActionUnfollowFollowers(Plugin):
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 return
-
-    def do_unfollow(self, device, username, my_username, check_if_is_follower):
-        """
-        :return: whether unfollow was successful
-        """
-        username_view = device.find(
-            resourceId="com.instagram.android:id/follow_list_username",
-            className="android.widget.TextView",
-            text=username,
-        )
-        if not username_view.exists():
-            logger.error("Cannot find @" + username + ", skip.")
-            return False
-        username_view.click()
-
-        if check_if_is_follower and self.check_is_follower(
-            device, username, my_username
-        ):
-            logger.info(f"Skip @{username}. This user is following you.")
-            logger.info("Back to the followings list.")
-            device.back()
-            return False
-
-        attempts = 0
-
-        while True:
-            unfollow_button = device.find(
-                classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
-                clickable=True,
-                text="Following",
-            )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(
-                    classNameMatches="androidx.viewpager.widget.ViewPager"
-                )
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
-                break
-
-        if not unfollow_button.exists():
-            logger.error(
-                "Cannot find Following button. Maybe not English language is set?"
-            )
-            save_crash(device)
-            switch_to_english(device)
-            raise LanguageNotEnglishException()
-        unfollow_button.click()
-
-        confirm_unfollow_button = device.find(
-            resourceId="com.instagram.android:id/follow_sheet_unfollow_row",
-            className="android.widget.TextView",
-        )
-        if not confirm_unfollow_button.exists():
-            logger.error("Cannot confirm unfollow.")
-            save_crash(device)
-            device.back()
-            return False
-        confirm_unfollow_button.click()
-
-        random_sleep()
-        self.close_confirm_dialog_if_shown(device)
-        detect_block(device)
-
-        logger.info("Back to the followings list.")
-        device.back()
-        return True
 
     def check_is_follower(self, device, username, my_username):
         logger.info(
