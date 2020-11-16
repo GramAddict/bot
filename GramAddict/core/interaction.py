@@ -12,7 +12,7 @@ from GramAddict.core.views import LanguageNotEnglishException, ProfileView
 logger = logging.getLogger(__name__)
 
 BUTTON_REGEX = "android.widget.Button"
-FOLLOW_REGEX = "^Follow|^Follow Back"
+FOLLOW_REGEX = "^Follow"
 UNFOLLOW_REGEX = "^Following|^Requested"
 
 

@@ -281,7 +281,7 @@ class ActionUnfollowFollowers(Plugin):
             unfollow_button = device.find(
                 classNameMatches=BUTTON_REGEX,
                 clickable=True,
-                textMatch=UNFOLLOW_REGEX,
+                textMatches=UNFOLLOW_REGEX,
             )
             if not unfollow_button.exists() and attempts <= 1:
                 scrollable = device.find(
