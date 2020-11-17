@@ -175,13 +175,27 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def double_click(self):
+        def double_click(self, padding=0.3):
+            """Double click randomly in the selected view using padding
+            padding: % of how far from the borders we want the double
+                    click to happen.
+            """
             visible_bounds = self.get_bounds()
+            horizontal_len = visible_bounds["right"] - visible_bounds["left"]
+            vertical_len = visible_bounds["bottom"] - visible_bounds["top"]
+            horizintal_padding = int(padding * horizontal_len)
+            vertical_padding = int(padding * vertical_len)
             random_x = int(
-                uniform(visible_bounds["left"] + 1, visible_bounds["right"] - 1)
+                uniform(
+                    visible_bounds["left"] + horizintal_padding,
+                    visible_bounds["right"] - horizintal_padding,
+                )
             )
             random_y = int(
-                uniform(visible_bounds["top"] + 1, visible_bounds["bottom"] - 1)
+                uniform(
+                    visible_bounds["top"] + vertical_padding,
+                    visible_bounds["bottom"] - vertical_padding,
+                )
             )
             try:
                 logger.debug(f"Double click in x={random_x}; y={random_y}")
