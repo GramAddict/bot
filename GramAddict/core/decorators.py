@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+from colorama import Fore, Style
 from datetime import datetime
 from http.client import HTTPException
 from socket import timeout
@@ -26,7 +27,10 @@ def run_safely(device, device_id, sessions, session_state):
                 func(*args, **kwargs)
             except KeyboardInterrupt:
                 close_instagram(device_id)
-                logger.warn(f"-------- FINISH: {datetime.now().time()} --------")
+                logger.info(
+                    f"-------- FINISH: {datetime.now().time()} --------",
+                    extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                )
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 sys.exit(0)

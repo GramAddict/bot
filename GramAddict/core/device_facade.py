@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, unique
+from enum import Enum, auto
 from random import uniform
 
 import uiautomator2
@@ -55,6 +55,29 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
+        """Swipe finger in the `direction`.
+        Scale is the sliding distance. Default to 50% of the screen width
+        """
+        swipe_dir = ""
+        if direction == DeviceFacade.Direction.TOP:
+            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.BOTTOM:
+            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.LEFT:
+            swipe_dir = "left"
+        elif direction == DeviceFacade.Direction.BOTTOM:
+            swipe_dir = "down"
+
+        logger.debug(f"Swipe {swipe_dir}, scale={scale}")
+        self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+
+    def get_info(self):
+        # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
+        # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
+        #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
+        return self.deviceV2.info
+
     class View:
         deviceV2 = None  # uiautomator2
         viewV2 = None  # uiautomator2
@@ -81,10 +104,34 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
+        def left(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.left(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
         def right(self, *args, **kwargs):
 
             try:
                 view = self.viewV2.right(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
+        def up(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.up(*args, **kwargs)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
+
+        def down(self, *args, **kwargs):
+
+            try:
+                view = self.viewV2.down(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
@@ -122,19 +169,33 @@ class DeviceFacade:
                     visible_bounds["top"]
                     + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                 )
-                logger.debug(f"Single click in x={x_abs}; y={y_abs}")
+                logger.debug(f"Single click ({x_abs}, {y_abs})")
                 self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def double_click(self):
+        def double_click(self, padding=0.3):
+            """Double click randomly in the selected view using padding
+            padding: % of how far from the borders we want the double
+                    click to happen.
+            """
             visible_bounds = self.get_bounds()
+            horizontal_len = visible_bounds["right"] - visible_bounds["left"]
+            vertical_len = visible_bounds["bottom"] - visible_bounds["top"]
+            horizintal_padding = int(padding * horizontal_len)
+            vertical_padding = int(padding * vertical_len)
             random_x = int(
-                uniform(visible_bounds["left"] + 1, visible_bounds["right"] - 1)
+                uniform(
+                    visible_bounds["left"] + horizintal_padding,
+                    visible_bounds["right"] - horizintal_padding,
+                )
             )
             random_y = int(
-                uniform(visible_bounds["top"] + 1, visible_bounds["bottom"] - 1)
+                uniform(
+                    visible_bounds["top"] + vertical_padding,
+                    visible_bounds["bottom"] - vertical_padding,
+                )
             )
             try:
                 logger.debug(f"Double click in x={random_x}; y={random_y}")
@@ -154,7 +215,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def swipe(self, direction):
+        def fling(self, direction):
 
             try:
                 if direction == DeviceFacade.Direction.TOP:
@@ -207,10 +268,11 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-    @unique
     class Direction(Enum):
-        TOP = 0
-        BOTTOM = 1
+        TOP = auto()
+        BOTTOM = auto()
+        RIGHT = auto()
+        LEFT = auto()
 
     class JsonRpcError(Exception):
         pass
