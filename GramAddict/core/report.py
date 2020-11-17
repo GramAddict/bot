@@ -55,7 +55,7 @@ def print_full_report(sessions):
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     logger.info(
-        f"TOTAL",
+        "TOTAL",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 
