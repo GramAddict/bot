@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, unique
+from enum import Enum, auto
 from random import uniform
 
 import uiautomator2
@@ -54,6 +54,29 @@ class DeviceFacade:
 
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
+
+    def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
+        """Swipe finger in the `direction`.
+        Scale is the sliding distance. Default to 50% of the screen width
+        """
+        swipe_dir = ""
+        if direction == DeviceFacade.Direction.TOP:
+            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.BOTTOM:
+            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.LEFT:
+            swipe_dir = "left"
+        elif direction == DeviceFacade.Direction.BOTTOM:
+            swipe_dir = "down"
+
+        logger.debug(f"Swipe {swipe_dir}, scale={scale}")
+        self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+
+    def get_info(self):
+        # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
+        # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
+        #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
+        return self.deviceV2.info
 
     class View:
         deviceV2 = None  # uiautomator2
@@ -146,7 +169,7 @@ class DeviceFacade:
                     visible_bounds["top"]
                     + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                 )
-                logger.debug(f"Single click in x={x_abs}; y={y_abs}")
+                logger.debug(f"Single click ({x_abs}, {y_abs})")
                 self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
             except uiautomator2.JSONRPCError as e:
@@ -178,7 +201,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def swipe(self, direction):
+        def fling(self, direction):
 
             try:
                 if direction == DeviceFacade.Direction.TOP:
@@ -231,10 +254,11 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-    @unique
     class Direction(Enum):
-        TOP = 0
-        BOTTOM = 1
+        TOP = auto()
+        BOTTOM = auto()
+        RIGHT = auto()
+        LEFT = auto()
 
     class JsonRpcError(Exception):
         pass

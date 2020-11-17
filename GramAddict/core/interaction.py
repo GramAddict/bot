@@ -79,17 +79,18 @@ def interact_with_user(
         like_succeed = False
         if opened_post_view:
             logger.info("Double click post")
-            opened_post_view.likePost()
-            random_sleep()
-            if not opened_post_view.isPostLiked():
-                logger.debug("Double click failed. Try the like button.")
-                opened_post_view.likePost(click_btn_like=True)
-                random_sleep()
 
-            like_succeed = opened_post_view.isPostLiked()
+            like_succeed = opened_post_view.likePost()
+            if not like_succeed:
+                logger.debug("Double click failed. Try the like button.")
+                like_succeed = opened_post_view.likePost(click_btn_like=True)
+
             if like_succeed:
+                logger.debug("Like succeed. Check for block.")
                 detect_block(device)
                 on_like()
+            else:
+                logger.warning("Fail to like post. Let's continue...")
 
             logger.info("Back to profile")
             device.back()
