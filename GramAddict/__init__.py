@@ -136,8 +136,10 @@ def run():
         return
     logger.info("Instagram version: " + get_instagram_version())
     device = create_device(device_id)
+
     if device is None:
         return
+
     while True:
         logger.info(
             "-------- START: " + str(session_state.startTime) + " --------",

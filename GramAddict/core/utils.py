@@ -195,12 +195,10 @@ def save_crash(device):
         extra={"color": Fore.GREEN},
     )
     logger.info(
-        "Please attach this file if you gonna report the crash at",
+        "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
-    logger.info(
-        "https://github.com/GramAddict/bot/issues\n", extra={"color": Fore.GREEN}
-    )
+    logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
 
 
 def detect_block(device):
