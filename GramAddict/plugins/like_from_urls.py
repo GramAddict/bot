@@ -2,14 +2,12 @@ import logging
 import os
 import validators
 from functools import partial
-from random import seed, shuffle
+from random import seed
 
-from colorama import Fore
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value, random_sleep, open_instagram_with_url
+from GramAddict.core.utils import random_sleep, open_instagram_with_url
 
 logger = logging.getLogger(__name__)
 
