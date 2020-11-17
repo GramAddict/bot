@@ -403,14 +403,26 @@ class OpenedPostView:
             threshold = int((0.3) * self.device.get_info()["displayHeight"])
             like_btn_top_bound = like_btn_view.get_bounds()["top"]
             is_like_btn_in_the_bottom = like_btn_top_bound > threshold
+
             if not is_like_btn_in_the_bottom:
                 logger.debug(
                     f"Like button is to high ({like_btn_top_bound} px). Threshold is {threshold} px"
                 )
+
+            post_view_area_bottom_bound = post_view_area.get_bounds()["bottom"]
+            is_like_btn_visible = like_btn_top_bound <= post_view_area_bottom_bound
+            if not is_like_btn_visible:
+                logger.debug(
+                    f"Like btn out of current clickable area. Like btn top ({like_btn_top_bound}) recycler_view bottom ({post_view_area_bottom_bound})"
+                )
         else:
             logger.debug("Like button not found bellow the post.")
 
-        if not like_btn_view.exists() or not is_like_btn_in_the_bottom:
+        if (
+            not like_btn_view.exists()
+            or not is_like_btn_in_the_bottom
+            or not is_like_btn_visible
+        ):
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
@@ -424,16 +436,6 @@ class OpenedPostView:
             if not scroll_to_find or not like_btn_view.exists():
                 logger.error("Could not find like button bellow the post")
                 return None
-
-        like_btn_top_bound = like_btn_view.get_bounds()["bottom"]
-        post_view_area_bottom_bound = post_view_area.get_bounds()["bottom"]
-
-        # to avoid clicking in a like button that is past tab bar
-        if like_btn_top_bound >= post_view_area_bottom_bound:
-            logger.debug(
-                "Like btn out of current clickable area. like_btn {like_btn_top_bound} recycler_view {post_view_area_bottom_bound}"
-            )
-            return None
 
         return like_btn_view
 
