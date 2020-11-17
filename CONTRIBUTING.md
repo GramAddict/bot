@@ -165,7 +165,6 @@ While the prerequisites above must be satisfied prior to having your pull reques
     * :lock: `:lock:` when dealing with security
     * :arrow_up: `:arrow_up:` when upgrading dependencies
     * :arrow_down: `:arrow_down:` when downgrading dependencies
-    * :shirt: `:shirt:` when removing linter warnings
     * :gift: `:gift:` when adding a new feature
     * :neckbeard: `:neckbeard:` when fixing or improving an existing feature
     * :rage: `:rage:` when fixing something the linter complained about
