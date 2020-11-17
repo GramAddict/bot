@@ -160,6 +160,6 @@ class Filter:
         try:
             private = profileView.isPrivateAccount()
         except Exception:
-            logger.error(f"Cannot find whether it is private or not")
+            logger.error("Cannot find whether it is private or not")
 
         return private
