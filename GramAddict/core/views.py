@@ -262,7 +262,7 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        logger.debug(f"Navigate to hashtag {hashtag}")
+        logger.info(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
