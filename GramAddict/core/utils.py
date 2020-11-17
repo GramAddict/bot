@@ -120,7 +120,7 @@ def screen_unlock(device_id, MENU_BUTTON):
         os.popen(
             f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {MENU_BUTTON}"
         )
-        sleep(2)
+        sleep(3)
         if check_screen_locked(device_id):
             sys.exit(
                 "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"

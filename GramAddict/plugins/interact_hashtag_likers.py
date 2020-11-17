@@ -145,6 +145,7 @@ class InteractHashtagLikers(Plugin):
             return
 
         logger.info("Opening the first result")
+        random_sleep()
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
