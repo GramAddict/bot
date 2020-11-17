@@ -19,19 +19,25 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
-    get_version,
     open_instagram,
     save_crash,
     screen_sleep,
+    update_available,
 )
 from GramAddict.core.views import TabBarView
+from GramAddict.version import __version__
 
 # Logging initialization
 configure_logger()
 logger = logging.getLogger(__name__)
+if update_available():
+    logger.warn(
+        "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+    )
 logger.info(
-    "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+    f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+
 
 # Global Variables
 device_id = None
@@ -70,6 +76,7 @@ def load_plugins():
 
 
 def get_args():
+    logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
     if not len(sys.argv) > 1:
         parser.print_help()
         return False
@@ -129,8 +136,10 @@ def run():
         return
     logger.info("Instagram version: " + get_instagram_version())
     device = create_device(device_id)
+
     if device is None:
         return
+
     while True:
         logger.info(
             "-------- START: " + str(session_state.startTime) + " --------",
@@ -161,12 +170,15 @@ def run():
             ) = profileView.getProfileInfo()
 
         if (
-            not session_state.my_username
-            or not session_state.my_followers_count
-            or not session_state.my_following_count
+            session_state.my_username == None
+            or session_state.my_followers_count == None
+            or session_state.my_following_count == None
         ):
             logger.critical(
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+            )
+            logger.critical(
+                f"Username: {getattr(session_state,'my_username')}, Followers: {getattr(session_state,'my_followers_count')}, Following: {getattr(session_state,'my_following_count')}"
             )
             save_crash(device)
             exit(1)
