@@ -256,14 +256,22 @@ class InteractHashtagLikers(Plugin):
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
     def open_likers(self, device):
-        likes_view = device.find(
-            resourceId="com.instagram.android:id/row_feed_textview_likes",
-            className="android.widget.TextView",
-        )
-        if likes_view.exists():
-            logger.info("Opening post likers")
-            random_sleep()
-            likes_view.click("right")
-            return True
-        else:
-            return False
+        attempts = 0
+        while True:
+            likes_view = device.find(
+                resourceId="com.instagram.android:id/row_feed_textview_likes",
+                className="android.widget.TextView",
+            )
+            if likes_view.exists():
+                logger.info("Opening post likers")
+                random_sleep()
+                likes_view.click("right")
+                return True
+            else:
+                if attempts < 1:
+                    attempts += 1
+                    logger.info("Can't find likers, trying small swipe")
+                    device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+                    continue
+                else:
+                    return False
