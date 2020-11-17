@@ -398,18 +398,19 @@ class OpenedPostView:
             resourceIdMatches=case_insensitive_re(OpenedPostView.BTN_LIKE_RES_ID)
         )
 
-        # threshold of 30% of the display height
-        threshold = int((0.3) * self.device.get_info()["displayHeight"])
-        like_btn_top_bound = like_btn_view.get_bounds()["top"]
-        is_like_btn_in_the_bottom = like_btn_top_bound > threshold
-        if not is_like_btn_in_the_bottom:
-            logger.debug(
-                f"Like button is to high ({like_btn_top_bound} px). Threshold is {threshold} px"
-            )
-        if not like_btn_view.exists():
+        if like_btn_view.exists():
+            # threshold of 30% of the display height
+            threshold = int((0.3) * self.device.get_info()["displayHeight"])
+            like_btn_top_bound = like_btn_view.get_bounds()["top"]
+            is_like_btn_in_the_bottom = like_btn_top_bound > threshold
+            if not is_like_btn_in_the_bottom:
+                logger.debug(
+                    f"Like button is to high ({like_btn_top_bound} px). Threshold is {threshold} px"
+                )
+        else:
             logger.debug("Like button not found bellow the post.")
 
-        if not is_like_btn_in_the_bottom or not like_btn_view.exists():
+        if not like_btn_view.exists() or not is_like_btn_in_the_bottom:
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
@@ -420,7 +421,7 @@ class OpenedPostView:
                     )
                 )
 
-            if not scroll_to_find or scroll_to_find and not like_btn_view.exists():
+            if not scroll_to_find or not like_btn_view.exists():
                 logger.error("Could not find like button bellow the post")
                 return None
 
