@@ -23,15 +23,22 @@ from GramAddict.core.utils import (
     open_instagram,
     save_crash,
     screen_sleep,
+    update_available,
 )
 from GramAddict.core.views import TabBarView
+from GramAddict.version import __version__
 
 # Logging initialization
 configure_logger()
 logger = logging.getLogger(__name__)
+if update_available():
+    logger.warn(
+        "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+    )
 logger.info(
     "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+
 
 # Global Variables
 device_id = None

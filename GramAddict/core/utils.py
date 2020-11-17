@@ -4,21 +4,29 @@ import subprocess
 import re
 import shutil
 import sys
+import urllib3
 from datetime import datetime
 from random import randint, uniform
 from time import sleep
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_logs
+from GramAddict.version import __version__
 
+http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
 
 def get_version():
-    fin = open("GramAddict/version.txt")
-    version = fin.readline().strip()
-    fin.close()
-    return version
+    return __version__
+
+
+def update_available():
+    r = http.request(
+        "GET",
+        "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
+    )
+    return r.data.decode("utf-8").split('"')[1] > get_version()
 
 
 def check_adb_connection(is_device_id_provided):
