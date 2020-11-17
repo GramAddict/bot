@@ -364,16 +364,85 @@ class OpenedPostView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def isPostLiked(self):
-        like_btn_view = self.device.find(
+    def _getPostLikeButton(self, scroll_to_find=True):
+        """Find the like button right bellow a post.
+        Note: sometimes the like button from the post above or bellow are
+        dumped as well, so we need handle that situation.
+
+        scroll_to_find: if the like button is not found, scroll a bit down
+                        to try to find it. Default: True
+        """
+        MEDIA_GROUP_RE = case_insensitive_re(
+            [
+                "com.instagram.android:id/media_group",
+                "com.instagram.android:id/carousel_media_group",
+            ]
+        )
+        post_view_area = self.device.find(
+            resourceIdMatches=case_insensitive_re("android:id/list")
+        )
+        if not post_view_area.exists():
+            logger.debug("Cannot find post recycler view area")
+            return None
+
+        post_media_view = self.device.find(
+            resourceIdMatches=MEDIA_GROUP_RE,
+            className="android.widget.FrameLayout",
+        )
+
+        if not post_media_view.exists():
+            logger.debug("Cannot find post media view area")
+            return None
+
+        like_btn_view = post_media_view.down(
             resourceIdMatches=case_insensitive_re(OpenedPostView.BTN_LIKE_RES_ID)
         )
-        if like_btn_view.exists():
-            return like_btn_view.get_selected()
 
-        logger.error("Cannot find button like")
+        # threshold of 30% of the display height
+        threshold = int((0.3) * self.device.get_info()["displayHeight"])
+        like_btn_top_bound = like_btn_view.get_bounds()["top"]
+        is_like_btn_in_the_bottom = like_btn_top_bound > threshold
+        if not is_like_btn_in_the_bottom:
+            logger.debug(
+                f"Like button is to high ({like_btn_top_bound} px). Threshold is {threshold} px"
+            )
+        if not like_btn_view.exists():
+            logger.debug("Like button not found bellow the post.")
 
-        return False
+        if not is_like_btn_in_the_bottom or not like_btn_view.exists():
+            if scroll_to_find:
+                logger.debug("Try to scroll tiny bit down...")
+                # Remember: to scroll down we need to swipe up :)
+                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+                like_btn_view = post_media_view.down(
+                    resourceIdMatches=case_insensitive_re(
+                        OpenedPostView.BTN_LIKE_RES_ID
+                    )
+                )
+
+            if not scroll_to_find or scroll_to_find and not like_btn_view.exists():
+                logger.error("Could not find like button bellow the post")
+                return None
+
+        like_btn_top_bound = like_btn_view.get_bounds()["bottom"]
+        post_view_area_bottom_bound = post_view_area.get_bounds()["bottom"]
+
+        # to avoid clicking in a like button that is past tab bar
+        if like_btn_top_bound >= post_view_area_bottom_bound:
+            logger.debug(
+                "Like btn out of current clickable area. like_btn {like_btn_top_bound} recycler_view {post_view_area_bottom_bound}"
+            )
+            return None
+
+        return like_btn_view
+
+    def _isPostLiked(self):
+
+        like_btn_view = self._getPostLikeButton()
+        if not like_btn_view:
+            return False
+
+        return like_btn_view.get_selected()
 
     def likePost(self, click_btn_like=False):
         MEDIA_GROUP_RE = case_insensitive_re(
@@ -387,27 +456,21 @@ class OpenedPostView:
         )
 
         if click_btn_like:
-            like_btn_view = self.device.find(
-                resourceIdMatches=case_insensitive_re(OpenedPostView.BTN_LIKE_RES_ID)
-            )
-            if post_media_view.exists() and like_btn_view.exists():
-                image_bottom_bound = post_media_view.get_bounds()["bottom"]
-                like_btn_top_bound = like_btn_view.get_bounds()["top"]
-                # to avoid clicking in a like button that is for another picture (previous one)
-                if like_btn_top_bound >= image_bottom_bound:
-                    like_btn_view.click()
-                else:
-                    logger.debug(
-                        "Like btn out of current view. Don't click, just ignore."
-                    )
-            else:
-                logger.error("Cannot find button like to click")
+            like_btn_view = self._getPostLikeButton()
+            if not like_btn_view:
+                return False
+            like_btn_view.click()
         else:
 
             if post_media_view.exists():
                 post_media_view.double_click()
             else:
                 logger.error("Could not find post area to double click")
+                return False
+
+        random_sleep()
+
+        return self._isPostLiked()
 
 
 class PostsGridView:
