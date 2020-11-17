@@ -31,11 +31,11 @@ class ColoredFormatter(logging.Formatter):
 def configure_logger():
     init_colorama()
     logger = logging.getLogger()  # root logger
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     # Formatters
     datefmt = r"[%m/%d %H:%M:%S]"
-    console_fmt = "%(asctime)s %(levelname)8s | %(message)s (%(filename)s:%(lineno)d)"
+    console_fmt = "%(asctime)s %(levelname)8s | %(message)s"
     console_formatter = ColoredFormatter(fmt=console_fmt, datefmt=datefmt)
     crash_report_fmt = (
         "%(asctime)s %(levelname)8s | %(message)s (%(filename)s:%(lineno)d)"
