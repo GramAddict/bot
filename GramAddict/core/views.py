@@ -262,18 +262,13 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-<<<<<<< HEAD
         logger.debug(f"Navigate to hashtag {hashtag}")
-=======
-        logger.debug(f"Navigate to hashtag #{hashtag}")
->>>>>>> master
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
 
         random_sleep()
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
-<<<<<<< HEAD
             logger.debug(
                 "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs"
             )
@@ -282,24 +277,14 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
-=======
-            hashtag_tab = self._getTabTextView(SearchTabs.Tags)
-        if not hashtag_tab.exists():
-            logger.error("Cannot find tab: TAGS.")
-            return None
->>>>>>> master
         hashtag_tab.click()
 
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
 
         if not hashtag_view.exists():
-<<<<<<< HEAD
             logger.error(f"Cannot find hashtag {hashtag}, abort.")
             save_crash(self.device)
-=======
-            logger.error(f"Cannot find hashtag #{hashtag} , abort.")
->>>>>>> master
             return None
 
         hashtag_view.click()
@@ -436,13 +421,9 @@ class OpenedPostView:
                     )
                 )
 
-<<<<<<< HEAD
             if not scroll_to_find or not like_btn_view.exists():
                 logger.error("Could not find like button bellow the post")
                 return None
-=======
-        logger.error("Cannot find button like")
->>>>>>> master
 
         like_btn_top_bound = like_btn_view.get_bounds()["bottom"]
         post_view_area_bottom_bound = post_view_area.get_bounds()["bottom"]
@@ -476,42 +457,21 @@ class OpenedPostView:
         )
 
         if click_btn_like:
-<<<<<<< HEAD
             like_btn_view = self._getPostLikeButton()
             if not like_btn_view:
                 return False
             like_btn_view.click()
-=======
-            like_btn_view = self.device.find(
-                resourceIdMatches=case_insensitive_re(OpenedPostView.BTN_LIKE_RES_ID)
-            )
-            if post_media_view.exists() and like_btn_view.exists():
-                image_bottom_bound = post_media_view.get_bounds()["bottom"]
-                like_btn_top_bound = like_btn_view.get_bounds()["top"]
-                # to avoid clicking in a like button that is for another picture (previous one)
-                if like_btn_top_bound >= image_bottom_bound:
-                    like_btn_view.click()
-                else:
-                    logger.debug(
-                        "Like btn out of current view. Don't click, just ignore."
-                    )
-            else:
-                logger.error("Cannot find button like to click")
->>>>>>> master
         else:
 
             if post_media_view.exists():
                 post_media_view.double_click()
             else:
                 logger.error("Could not find post area to double click")
-<<<<<<< HEAD
                 return False
 
         random_sleep()
 
         return self._isPostLiked()
-=======
->>>>>>> master
 
 
 class PostsGridView:
@@ -578,11 +538,7 @@ class ProfileView(ActionBarView):
         if title_view.exists():
             return title_view.get_text()
         logger.error("Cannot get username")
-<<<<<<< HEAD
         return None
-=======
-        return ""
->>>>>>> master
 
     def _parseCounter(self, text):
         multiplier = 1

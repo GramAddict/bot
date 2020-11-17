@@ -11,7 +11,6 @@ from time import sleep
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_logs
-<<<<<<< HEAD
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -24,17 +23,6 @@ def update_available():
         "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
     )
     return r.data.decode("utf-8").split('"')[1] > __version__
-=======
-
-logger = logging.getLogger(__name__)
-
-
-def get_version():
-    fin = open("GramAddict/version.txt")
-    version = fin.readline().strip()
-    fin.close()
-    return version
->>>>>>> master
 
 
 def check_adb_connection(is_device_id_provided):
@@ -201,24 +189,12 @@ def save_crash(device):
     logger.info(
         'Crash saved as "crashes/' + directory_name + '.zip".',
         extra={"color": Fore.GREEN},
-<<<<<<< HEAD
     )
     logger.info(
         "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
     logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
-=======
-    )
-    logger.info(
-        "Please attach this file if you gonna report the crash at",
-        extra={"color": Fore.GREEN},
-    )
-    logger.info(
-        "https://github.com/GramAddict/bot/issues\n",
-        extra={"color": Fore.GREEN},
-    )
->>>>>>> master
 
 
 def detect_block(device):

@@ -61,11 +61,8 @@ class InteractHashtagLikers(Plugin):
 
         for source in sources:
             self.state = State()
-<<<<<<< HEAD
             if source[0] != "#":
                 source = "#" + source
-=======
->>>>>>> master
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
@@ -148,10 +145,7 @@ class InteractHashtagLikers(Plugin):
             return
 
         logger.info("Opening the first result")
-<<<<<<< HEAD
         random_sleep()
-=======
->>>>>>> master
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
@@ -262,7 +256,6 @@ class InteractHashtagLikers(Plugin):
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
     def open_likers(self, device):
-<<<<<<< HEAD
         attempts = 0
         while True:
             likes_view = device.find(
@@ -282,16 +275,3 @@ class InteractHashtagLikers(Plugin):
                     continue
                 else:
                     return False
-=======
-        likes_view = device.find(
-            resourceId="com.instagram.android:id/row_feed_textview_likes",
-            className="android.widget.TextView",
-        )
-        if likes_view.exists():
-            logger.info("Opening post likers")
-            random_sleep()
-            likes_view.click("right")
-            return True
-        else:
-            return False
->>>>>>> master
