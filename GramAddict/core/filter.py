@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import unicodedata
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView
@@ -19,6 +20,7 @@ FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
+FIELD_SPESIFIC_ALPHABET = "spesific_alphabet"
 
 
 class Filter:
@@ -49,6 +51,7 @@ class Filter:
         field_mandatory_words = self.conditions.get(
             FIELD_MANDATORY_WORDS
         )  # Array of words
+        field_spesific_alphabet = self.conditions.get(FIELD_SPESIFIC_ALPHABET)
 
         if field_skip_business is not None or field_skip_non_business is not None:
             has_business_category = self._has_business_category(device)
@@ -145,6 +148,20 @@ class Filter:
                     )
                     return False
 
+        if field_spesific_alphabet is not None:
+            biography_text = self._get_profile_biography(device)
+            # logger.info(f"@{username} Biography {biography_text}")
+            if biography_text is not "":
+                biography_text = biography_text.replace("\n", "")
+                alphabet = self._find_alphabeth(biography_text)
+
+                if alphabet != field_spesific_alphabet:
+                    logger.info(
+                        f"@{username}'s alphabet is not wanted. ({alphabet})",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
         return True
 
     def can_follow_private_or_empty(self):
@@ -187,3 +204,16 @@ class Filter:
     def _get_profile_biography(device):
         profileView = ProfileView(device)
         return profileView.getProfileBiography()
+
+    @staticmethod
+    def _find_alphabeth(biography):
+        a_dict = {}
+        for x in range(0, len(biography)):
+            a = unicodedata.name(biography[x]).split(" ")[0]
+            if a in a_dict:
+                a_dict[a] += 1
+            else:
+                a_dict[a] = 1
+        max_alph = max(a_dict, key=lambda k: a_dict[k])
+
+        return max_alph
