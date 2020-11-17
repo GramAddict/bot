@@ -1,5 +1,9 @@
 import logging
+<<<<<<< HEAD
 from enum import Enum, auto
+=======
+from enum import Enum, unique
+>>>>>>> master
 from random import uniform
 
 import uiautomator2

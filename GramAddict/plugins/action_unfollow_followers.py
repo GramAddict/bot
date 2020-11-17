@@ -350,6 +350,35 @@ class ActionUnfollowFollowers(Plugin):
         device.back()
         return result
 
+<<<<<<< HEAD
+=======
+    def close_confirm_dialog_if_shown(self, device):
+        dialog_root_view = device.find(
+            resourceId="com.instagram.android:id/dialog_root_view",
+            className="android.widget.FrameLayout",
+        )
+        if not dialog_root_view.exists():
+            return
+
+        # Avatar existence is the way to distinguish confirm dialog from block dialog
+        user_avatar_view = device.find(
+            resourceId="com.instagram.android:id/circular_image",
+            className="android.widget.ImageView",
+        )
+        if not user_avatar_view.exists():
+            return
+
+        logger.info(
+            "Dialog shown, confirm unfollowing.", extra={"color": f"{Fore.GREEN}"}
+        )
+        random_sleep()
+        unfollow_button = dialog_root_view.child(
+            resourceId="com.instagram.android:id/primary_button",
+            className="android.widget.TextView",
+        )
+        unfollow_button.click()
+
+>>>>>>> master
 
 @unique
 class UnfollowRestriction(Enum):

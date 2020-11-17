@@ -15,12 +15,26 @@ def print_full_report(sessions):
             logger.warn(f"Duration: {finish_time - session.startTime}")
             logger.warn(
                 f"Total interactions: {_stringify_interactions(session.totalInteractions)}"
+<<<<<<< HEAD
             )
             logger.warn(
                 f"Successful interactions: {_stringify_interactions(session.successfulInteractions)}"
             )
             logger.warn(
                 f"Total followed: {_stringify_interactions(session.totalFollowed)}"
+=======
+            )
+            logger.warn(
+                f"Successful interactions: {_stringify_interactions(session.successfulInteractions)}"
+            )
+            logger.warn(
+                f"Total followed: {_stringify_interactions(session.totalFollowed)}"
+            )
+            logger.warn(f"Total likes: {session.totalLikes}")
+            logger.warn(f"Total unfollowed: {session.totalUnfollowed}")
+            logger.warn(
+                f"Removed mass followers: {_stringify_removed_mass_followers(session.removedMassFollowers)}"
+>>>>>>> master
             )
             logger.warn(f"Total likes: {session.totalLikes}")
             logger.warn(f"Total unfollowed: {session.totalUnfollowed}")
@@ -59,6 +73,12 @@ def print_full_report(sessions):
             else:
                 total_followed[source] += count
 
+<<<<<<< HEAD
+=======
+        for username in session.removedMassFollowers:
+            total_removed_mass_followers.append(username)
+
+>>>>>>> master
     logger.warn(f"Total interactions: {_stringify_interactions(total_interactions)}")
     logger.warn(
         f"Successful interactions: {_stringify_interactions(successful_interactions)}"
@@ -70,6 +90,13 @@ def print_full_report(sessions):
 
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     logger.warn(f"Total unfollowed: {total_unfollowed} ")
+<<<<<<< HEAD
+=======
+
+    logger.warn(
+        f"Removed mass followers: {_stringify_removed_mass_followers(total_removed_mass_followers)}"
+    )
+>>>>>>> master
 
 
 def print_short_report(source, session_state):

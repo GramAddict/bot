@@ -19,10 +19,17 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
+<<<<<<< HEAD
     open_instagram,
     save_crash,
     screen_sleep,
     update_available,
+=======
+    get_version,
+    open_instagram,
+    save_crash,
+    screen_sleep,
+>>>>>>> master
 )
 from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
@@ -38,6 +45,15 @@ logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
 
+<<<<<<< HEAD
+=======
+# Logging initialization
+configure_logger()
+logger = logging.getLogger(__name__)
+logger.info(
+    "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+)
+>>>>>>> master
 
 # Global Variables
 device_id = None
@@ -174,6 +190,7 @@ def run():
             or session_state.my_followers_count == None
             or session_state.my_following_count == None
         ):
+<<<<<<< HEAD
             logger.critical(
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
             )
@@ -181,6 +198,9 @@ def run():
                 f"Username: {getattr(session_state,'my_username')}, Followers: {getattr(session_state,'my_followers_count')}, Following: {getattr(session_state,'my_following_count')}"
             )
             save_crash(device)
+=======
+            logger.critical("Could not get profile info")
+>>>>>>> master
             exit(1)
 
         username = session_state.my_username
