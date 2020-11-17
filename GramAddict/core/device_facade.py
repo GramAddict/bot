@@ -139,7 +139,6 @@ class DeviceFacade:
         def click(self, mode="whole"):
             x_abs = -1
             y_abs = -1
-            visible_bounds = self.get_bounds()
             if mode == "whole":
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
@@ -158,16 +157,16 @@ class DeviceFacade:
             else:
                 x_offset = 0.5
                 y_offset = 0.5
-
-            x_abs = int(
-                visible_bounds["left"]
-                + (visible_bounds["right"] - visible_bounds["left"]) * x_offset
-            )
-            y_abs = int(
-                visible_bounds["top"]
-                + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
-            )
             try:
+                visible_bounds = self.get_bounds()
+                x_abs = int(
+                    visible_bounds["left"]
+                    + (visible_bounds["right"] - visible_bounds["left"]) * x_offset
+                )
+                y_abs = int(
+                    visible_bounds["top"]
+                    + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
+                )
                 logger.debug(f"Single click ({x_abs}, {y_abs})")
                 self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
