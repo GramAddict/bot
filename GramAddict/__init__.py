@@ -19,7 +19,6 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
-    get_version,
     open_instagram,
     save_crash,
     screen_sleep,
@@ -36,7 +35,7 @@ if update_available():
         "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
     )
 logger.info(
-    "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+    f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
 
 
