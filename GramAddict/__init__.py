@@ -70,6 +70,7 @@ def load_plugins():
 
 
 def get_args():
+    logger.info(f"Arguments used: {' '.join(sys.argv[1:])}")
     if not len(sys.argv) > 1:
         parser.print_help()
         return False
