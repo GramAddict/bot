@@ -137,38 +137,37 @@ class DeviceFacade:
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def click(self, mode="whole"):
+            x_abs = -1
+            y_abs = -1
+            visible_bounds = self.get_bounds()
+            if mode == "whole":
+                x_offset = uniform(0.15, 0.85)
+                y_offset = uniform(0.15, 0.85)
 
+            elif mode == "left":
+                x_offset = uniform(0.15, 0.4)
+                y_offset = uniform(0.15, 0.85)
+
+            elif mode == "center":
+                x_offset = uniform(0.4, 0.6)
+                y_offset = uniform(0.15, 0.85)
+
+            elif mode == "right":
+                x_offset = uniform(0.6, 0.85)
+                y_offset = uniform(0.15, 0.85)
+            else:
+                x_offset = 0.5
+                y_offset = 0.5
+
+            x_abs = int(
+                visible_bounds["left"]
+                + (visible_bounds["right"] - visible_bounds["left"]) * x_offset
+            )
+            y_abs = int(
+                visible_bounds["top"]
+                + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
+            )
             try:
-                x_abs = -1
-                y_abs = -1
-                visible_bounds = self.get_bounds()
-                if mode == "whole":
-                    x_offset = uniform(0.15, 0.85)
-                    y_offset = uniform(0.15, 0.85)
-
-                elif mode == "left":
-                    x_offset = uniform(0.15, 0.4)
-                    y_offset = uniform(0.15, 0.85)
-
-                elif mode == "center":
-                    x_offset = uniform(0.4, 0.6)
-                    y_offset = uniform(0.15, 0.85)
-
-                elif mode == "right":
-                    x_offset = uniform(0.6, 0.85)
-                    y_offset = uniform(0.15, 0.85)
-                else:
-                    x_offset = 0.5
-                    y_offset = 0.5
-
-                x_abs = int(
-                    visible_bounds["left"]
-                    + (visible_bounds["right"] - visible_bounds["left"]) * x_offset
-                )
-                y_abs = int(
-                    visible_bounds["top"]
-                    + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
-                )
                 logger.debug(f"Single click ({x_abs}, {y_abs})")
                 self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
@@ -197,10 +196,14 @@ class DeviceFacade:
                     visible_bounds["bottom"] - vertical_padding,
                 )
             )
+            time_between_clicks = uniform(0.050, 0.200)
+
             try:
-                logger.debug(f"Double click in x={random_x}; y={random_y}")
+                logger.debug(
+                    f"Double click in x={random_x}; y={random_y} with t={int(time_between_clicks*1000)}ms"
+                )
                 self.deviceV2.double_click(
-                    random_x, random_y, duration=uniform(0, 0.200)
+                    random_x, random_y, duration=time_between_clicks
                 )
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
