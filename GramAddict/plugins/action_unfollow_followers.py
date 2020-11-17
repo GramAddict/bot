@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, unique
-from random import seed
+from random import seed, randint
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -81,8 +81,14 @@ class ActionUnfollowFollowers(Plugin):
         self.session_state = sessions[-1]
         self.sessions = sessions
         self.unfollow_type = enabled[0][2:]
+        range_arg = getattr(args, self.unfollow_type.replace("-", "_")).split("-")
+        if len(range_arg) > 1:
+            count_arg = randint(int(range_arg[0]), int(range_arg[1]))
+        else:
+            count_arg = int(range_arg[0])
+
         count = min(
-            int(getattr(args, self.unfollow_type.replace("-", "_"))),
+            count_arg,
             self.session_state.my_following_count - int(args.min_following),
         )
 
