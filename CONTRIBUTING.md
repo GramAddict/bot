@@ -168,6 +168,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
     * :shirt: `:shirt:` when removing linter warnings
     * :gift: `:gift:` when adding a new feature
     * :neckbeard: `:neckbeard:` when fixing or improving an existing feature
+    * :rage: `:rage:` when fixing something the linter complained about
 
 ### Python Styleguide
 
