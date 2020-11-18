@@ -3,6 +3,7 @@ from enum import Enum, auto
 from random import uniform
 
 import uiautomator2
+from uiautomator2 import Device
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class DeviceFacade:
         return self.deviceV2.info
 
     class View:
-        deviceV2 = None  # uiautomator2
+        deviceV2: Device = None  # uiautomator2
         viewV2 = None  # uiautomator2
 
         def __init__(self, view, device):
@@ -230,6 +231,13 @@ class DeviceFacade:
         def exists(self, quick=False):
 
             try:
+                # Currently the methods left, rigth, up and down from
+                # uiautomator2 return None when a Selector does not exist.
+                # All other selectors return an UiObject with exists() == False.
+                # We will open a ticket to uiautomator2 to fix this incosistency.
+                if self.viewV2 == None:
+                    return False
+
                 return self.viewV2.exists(
                     UI_TIMEOUT_SHORT if quick else UI_TIMEOUT_LONG
                 )
