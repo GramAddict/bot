@@ -26,7 +26,7 @@ def update_available():
         return r.data.decode("utf-8").split('"')[1] > __version__
     except Exception as e:
         logger.error(f"There was an error retreiving the latest version of GramAddict: {e}")
-        return "unknown"
+        return False
 
 
 
