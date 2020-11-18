@@ -154,7 +154,7 @@ class Filter:
                     biography_text = biography_text.replace("\n", "")
                     alphabet = self._find_alphabeth(biography_text)
 
-                    if alphabet != field_spesific_alphabet and alphabet != "DIGIT":
+                    if alphabet != field_spesific_alphabet and alphabet != "":
                         logger.info(
                             f"@{username}'s biography alphabet is not wanted. ({alphabet})",
                             extra={"color": f"{Fore.GREEN}"},
@@ -165,7 +165,7 @@ class Filter:
                     
                     if fullname != "":
                         alphabet = self._find_alphabeth(fullname)
-                        if alphabet != field_spesific_alphabet and alphabet != "DIGIT":
+                        if alphabet != field_spesific_alphabet and alphabet != "":
                             logger.info(
                                 f"@{username}'s name alphabet is not wanted. ({alphabet})",
                                 extra={"color": f"{Fore.GREEN}"},
@@ -219,13 +219,16 @@ class Filter:
     @staticmethod
     def _find_alphabeth(biography):
         a_dict = {}
+        max_alph = ""
         for x in range(0, len(biography)):
-            a = unicodedata.name(biography[x]).split(" ")[0]
-            if a in a_dict:
-                a_dict[a] += 1
-            else:
-                a_dict[a] = 1
-        max_alph = max(a_dict, key=lambda k: a_dict[k])
+            if biography[x].isalpha():
+                a = unicodedata.name(biography[x]).split(" ")[0]
+                if a in a_dict:
+                    a_dict[a] += 1
+                else:
+                    a_dict[a] = 1
+        if bool(a_dict):            
+            max_alph = max(a_dict, key=lambda k: a_dict[k])
 
         return max_alph
 
