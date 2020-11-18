@@ -1,9 +1,12 @@
 import logging
-from io import StringIO
-from logging import LogRecord
-
+import os
 from colorama import Fore, Style
 from colorama import init as init_colorama
+from io import StringIO
+from logging import LogRecord
+from logging.handlers import RotatingFileHandler
+
+
 
 COLORS = {
     "DEBUG": Style.DIM,
@@ -29,9 +32,19 @@ class ColoredFormatter(logging.Formatter):
 
 
 def configure_logger():
+    rollover = False
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    if os.path.isfile("logs/run.log"):
+        rollover = True
     init_colorama()
     logger = logging.getLogger()  # root logger
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
+    file_handler = RotatingFileHandler("logs/run.log",
+                                       mode="a",
+                                       backupCount=10)
+    if rollover:
+        file_handler.doRollover()
 
     # Formatters
     datefmt = r"[%m/%d %H:%M:%S]"
@@ -49,7 +62,7 @@ def configure_logger():
 
     # Console handler (limited colored log)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(console_formatter)
     console_handler.addFilter(FilterGramAddictOnly())
 
@@ -60,10 +73,13 @@ def configure_logger():
     crash_report_handler.setLevel(logging.DEBUG)
     crash_report_handler.setFormatter(crash_report_formatter)
     crash_report_handler.addFilter(FilterGramAddictOnly())
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(crash_report_formatter)
+    file_handler.addFilter(FilterGramAddictOnly())
 
     logger.addHandler(console_handler)
     logger.addHandler(crash_report_handler)
-
+    logger.addHandler(file_handler)
 
 def get_logs():
     # log_stream is a StringIO() created when configure_logger() is called
