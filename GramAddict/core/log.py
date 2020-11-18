@@ -38,7 +38,7 @@ def configure_logger():
     init_colorama()
     logger = logging.getLogger()  # root logger
     logger.setLevel(logging.DEBUG)
-    file_handler = RotatingFileHandler(f"logs/{log_name}", mode="a", backupCount=10)
+    file_handler = RotatingFileHandler(f"logs/{log_name}", mode="a", backupCount=10, maxBytes=1000000, encoding="utf-8")
 
     # Formatters
     datefmt = r"[%m/%d %H:%M:%S]"
