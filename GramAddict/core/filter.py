@@ -115,7 +115,11 @@ class Filter:
                 )
                 return False
 
-        if field_blacklist_words is not None or field_mandatory_words is not None or field_spesific_alphabet is not None:
+        if (
+            field_blacklist_words is not None
+            or field_mandatory_words is not None
+            or field_spesific_alphabet is not None
+        ):
             biography_text = self._get_profile_biography(device)
             # logger.info(f"@{username} Biography {biography_text}")
             # If we found a blacklist word return False
@@ -149,7 +153,7 @@ class Filter:
                     )
                     return False
 
-            if field_spesific_alphabet is not None: 
+            if field_spesific_alphabet is not None:
                 if biography_text != "":
                     biography_text = biography_text.replace("\n", "")
                     alphabet = self._find_alphabeth(biography_text)
@@ -162,7 +166,7 @@ class Filter:
                         return False
                 else:
                     fullname = self._get_fullname(device)
-                    
+
                     if fullname != "":
                         alphabet = self._find_alphabeth(fullname)
                         if alphabet != field_spesific_alphabet and alphabet != "":
@@ -171,7 +175,6 @@ class Filter:
                                 extra={"color": f"{Fore.GREEN}"},
                             )
                             return False
-            
 
         return True
 
@@ -227,7 +230,7 @@ class Filter:
                     a_dict[a] += 1
                 else:
                     a_dict[a] = 1
-        if bool(a_dict):            
+        if bool(a_dict):
             max_alph = max(a_dict, key=lambda k: a_dict[k])
 
         return max_alph
