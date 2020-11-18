@@ -67,6 +67,8 @@ def configure_logger():
     crash_report_handler.setLevel(logging.DEBUG)
     crash_report_handler.setFormatter(crash_report_formatter)
     crash_report_handler.addFilter(FilterGramAddictOnly())
+
+    # File logging handler
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(crash_report_formatter)
     file_handler.addFilter(FilterGramAddictOnly())
