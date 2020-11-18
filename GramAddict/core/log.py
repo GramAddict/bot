@@ -2,6 +2,7 @@ import logging
 import os
 from colorama import Fore, Style
 from colorama import init as init_colorama
+from datetime import datetime
 from io import StringIO
 from logging import LogRecord
 from logging.handlers import RotatingFileHandler
@@ -31,17 +32,13 @@ class ColoredFormatter(logging.Formatter):
 
 
 def configure_logger():
-    rollover = False
+    log_name = datetime.now().strftime("%Y-%m-%dT%H-%M-%S.%f_run.log")
     if not os.path.exists("logs"):
         os.makedirs("logs")
-    if os.path.isfile("logs/run.log"):
-        rollover = True
     init_colorama()
     logger = logging.getLogger()  # root logger
     logger.setLevel(logging.DEBUG)
-    file_handler = RotatingFileHandler("logs/run.log", mode="a", backupCount=10)
-    if rollover:
-        file_handler.doRollover()
+    file_handler = RotatingFileHandler(f"logs/{log_name}", mode="a", backupCount=10)
 
     # Formatters
     datefmt = r"[%m/%d %H:%M:%S]"
