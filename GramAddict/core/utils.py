@@ -25,9 +25,10 @@ def update_available():
         )
         return r.data.decode("utf-8").split('"')[1] > __version__
     except Exception as e:
-        logger.error(f"There was an error retreiving the latest version of GramAddict: {e}")
+        logger.error(
+            f"There was an error retreiving the latest version of GramAddict: {e}"
+        )
         return False
-
 
 
 def check_adb_connection(is_device_id_provided):

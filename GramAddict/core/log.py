@@ -7,7 +7,6 @@ from logging import LogRecord
 from logging.handlers import RotatingFileHandler
 
 
-
 COLORS = {
     "DEBUG": Style.DIM,
     "INFO": Fore.WHITE,
@@ -33,16 +32,14 @@ class ColoredFormatter(logging.Formatter):
 
 def configure_logger():
     rollover = False
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
     if os.path.isfile("logs/run.log"):
         rollover = True
     init_colorama()
     logger = logging.getLogger()  # root logger
     logger.setLevel(logging.DEBUG)
-    file_handler = RotatingFileHandler("logs/run.log",
-                                       mode="a",
-                                       backupCount=10)
+    file_handler = RotatingFileHandler("logs/run.log", mode="a", backupCount=10)
     if rollover:
         file_handler.doRollover()
 
@@ -80,6 +77,7 @@ def configure_logger():
     logger.addHandler(console_handler)
     logger.addHandler(crash_report_handler)
     logger.addHandler(file_handler)
+
 
 def get_logs():
     # log_stream is a StringIO() created when configure_logger() is called
