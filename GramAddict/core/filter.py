@@ -151,7 +151,7 @@ class Filter:
 
             if field_spesific_alphabet is not None: 
                 if biography_text != "":
-                    biography_text = biography_text.replace("\n", "")
+                    biography_text = biography_text.replace("\n", " ")
                     alphabet = self._find_alphabeth(biography_text)
 
                     if alphabet != field_spesific_alphabet and alphabet != "DIGIT":
