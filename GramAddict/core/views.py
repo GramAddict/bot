@@ -581,6 +581,18 @@ class ProfileView(ActionBarView):
                 return biography.get_text()
             return biography_text
         return ""
+    def getFullName(self):
+        full_name_view = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/profile_header_full_name"
+            ),
+            className="android.widget.TextView",
+        )
+        if full_name_view.exists():
+            fullname_text = full_name_view.get_text()
+            if fullname_text is not None:
+                return fullname_text
+        return ""
 
     def isPrivateAccount(self):
         private_profile_view = self.device.find(

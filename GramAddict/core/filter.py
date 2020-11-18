@@ -7,6 +7,7 @@ import unicodedata
 from colorama import Fore
 from GramAddict.core.views import ProfileView
 
+
 logger = logging.getLogger(__name__)
 
 FILENAME_CONDITIONS = "filter.json"
@@ -114,7 +115,7 @@ class Filter:
                 )
                 return False
 
-        if field_blacklist_words is not None or field_mandatory_words is not None:
+        if field_blacklist_words is not None or field_mandatory_words is not None or field_spesific_alphabet is not None:
             biography_text = self._get_profile_biography(device)
             # logger.info(f"@{username} Biography {biography_text}")
             # If we found a blacklist word return False
@@ -148,19 +149,29 @@ class Filter:
                     )
                     return False
 
-        if field_spesific_alphabet is not None:
-            biography_text = self._get_profile_biography(device)
-            # logger.info(f"@{username} Biography {biography_text}")
-            if biography_text is not "":
-                biography_text = biography_text.replace("\n", "")
-                alphabet = self._find_alphabeth(biography_text)
+            if field_spesific_alphabet is not None: 
+                if biography_text != "":
+                    biography_text = biography_text.replace("\n", "")
+                    alphabet = self._find_alphabeth(biography_text)
 
-                if alphabet != field_spesific_alphabet:
-                    logger.info(
-                        f"@{username}'s alphabet is not wanted. ({alphabet})",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
+                    if alphabet != field_spesific_alphabet and alphabet != "DIGIT":
+                        logger.info(
+                            f"@{username}'s biography alphabet is not wanted. ({alphabet})",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+                else:
+                    fullname = self._get_fullname(device)
+                    
+                    if fullname != "":
+                        alphabet = self._find_alphabeth(fullname)
+                        if alphabet != field_spesific_alphabet and alphabet != "DIGIT":
+                            logger.info(
+                                f"@{username}'s name alphabet is not wanted. ({alphabet})",
+                                extra={"color": f"{Fore.GREEN}"},
+                            )
+                            return False
+            
 
         return True
 
@@ -217,3 +228,13 @@ class Filter:
         max_alph = max(a_dict, key=lambda k: a_dict[k])
 
         return max_alph
+
+    @staticmethod
+    def _get_fullname(device):
+        profileView = ProfileView(device)
+        fullname = ""
+        try:
+            fullname = profileView.getFullName()
+        except Exception:
+            logger.error(f"Cannot find fullname.")
+        return fullname
