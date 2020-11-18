@@ -18,11 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 def update_available():
-    r = http.request(
-        "GET",
-        "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
-    )
-    return r.data.decode("utf-8").split('"')[1] > __version__
+    try:
+        r = http.request(
+            "GET",
+            "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
+        )
+        return r.data.decode("utf-8").split('"')[1] > __version__
+    except Exception as e:
+        logger.error(f"There was an error retreiving the latest version of GramAddict: {e}")
+        return "unknown"
+
 
 
 def check_adb_connection(is_device_id_provided):
