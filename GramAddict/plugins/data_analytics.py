@@ -30,7 +30,7 @@ class DataAnalytics(Plugin):
                 "metavar": "username1",
                 "default": None,
                 "operation": True,
-            },
+            }
         ]
 
     def run(self, device, device_id, args, enabled, storage, sessions):

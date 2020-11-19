@@ -7,7 +7,7 @@ from time import sleep
 from colorama import Fore, Style
 
 from GramAddict.core.device_facade import create_device
-from GramAddict.core.log import configure_logger
+from GramAddict.core.log import configure_logger, update_log_file_name
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.plugin_loader import PluginLoader
@@ -19,22 +19,29 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
-    get_version,
     open_instagram,
     save_crash,
     screen_sleep,
+    update_available,
 )
 from GramAddict.core.views import TabBarView
+from GramAddict.version import __version__
 
 # Logging initialization
 configure_logger()
 logger = logging.getLogger(__name__)
+if update_available():
+    logger.warn(
+        "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+    )
 logger.info(
-    "GramAddict " + get_version(), extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+    f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+
 
 # Global Variables
 device_id = None
+first_run = True
 plugins = PluginLoader("GramAddict.plugins").plugins
 sessions = PersistentList("sessions", SessionStateEncoder)
 parser = argparse.ArgumentParser(description="GramAddict Instagram Bot")
@@ -50,9 +57,7 @@ def load_plugins():
                     action = arg.get("action", None)
                     if action:
                         parser.add_argument(
-                            arg["arg"],
-                            help=arg["help"],
-                            action=arg.get("action", None),
+                            arg["arg"], help=arg["help"], action=arg.get("action", None)
                         )
                     else:
                         parser.add_argument(
@@ -72,6 +77,7 @@ def load_plugins():
 
 
 def get_args():
+    logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
     if not len(sys.argv) > 1:
         parser.print_help()
         return False
@@ -90,6 +96,7 @@ def get_args():
 
 def run():
     global device_id
+    global first_run
     loaded = load_plugins()
     args = get_args()
     enabled = []
@@ -122,18 +129,20 @@ def run():
         )
         return
 
-    session_state = SessionState()
-    session_state.args = args.__dict__
-    sessions.append(session_state)
-
     device_id = args.device
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
-    logger.info("Instagram version: " + get_instagram_version())
+    logger.info("Instagram version: " + get_instagram_version(device_id))
     device = create_device(device_id)
+
     if device is None:
         return
+
     while True:
+        session_state = SessionState()
+        session_state.args = args.__dict__
+        sessions.append(session_state)
+
         logger.info(
             "-------- START: " + str(session_state.startTime) + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
@@ -141,6 +150,7 @@ def run():
 
         if args.screen_sleep:
             screen_sleep(device_id, "on")  # Turn on the device screen
+
         open_instagram(device_id)
 
         try:
@@ -163,17 +173,29 @@ def run():
             ) = profileView.getProfileInfo()
 
         if (
-            not session_state.my_username
-            or not session_state.my_followers_count
-            or not session_state.my_following_count
+            session_state.my_username == None
+            or session_state.my_followers_count == None
+            or session_state.my_following_count == None
         ):
-            logger.critical("Could not get profile info")
+            logger.critical(
+                "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+            )
+            logger.critical(
+                f"Username: {session_state.my_username}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
+            )
+            save_crash(device)
             exit(1)
+        if first_run:
+            try:
+                update_log_file_name(session_state.my_username)
+            except Exception as e:
+                logger.error(
+                    f"Failed to update log file name. Will continue anyway. {e}"
+                )
+                save_crash(device)
 
-        username = session_state.my_username
-        followers = session_state.my_followers_count
-        following = session_state.my_following_count
-        report_string = f"Hello, @{username}! You have {followers} followers and {following} followings so far."
+        report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
+
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
@@ -202,6 +224,8 @@ def run():
                 sys.exit(0)
         else:
             break
+
+        first_run = False
 
     print_full_report(sessions)
     sessions.persist(directory=session_state.my_username)

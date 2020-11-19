@@ -1,0 +1,45 @@
+name: code-checker
+
+on:
+  push:
+    # only build each push to develop and master, other branches are built through pull requests
+    branches: [develop, master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '>=3.6'
+
+      - name: Run black
+        uses: psf/black@stable
+
+  static-check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Pyflakes
+        run: |
+          pip3 install --upgrade pip
+          pip3 install pyflakes
+
+      - name: Detect errors with pyflakes
+        run: pyflakes .

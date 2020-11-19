@@ -78,41 +78,51 @@ class Filter:
             or field_min_potency_ratio is not None
         ):
             followers, followings = self._get_followers_and_followings(device)
-            if field_min_followers is not None and followers < int(field_min_followers):
-                logger.info(
-                    f"@{username} has less than {field_min_followers} followers, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            if field_max_followers is not None and followers > int(field_max_followers):
-                logger.info(
-                    f"@{username} has has more than {field_max_followers} followers, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            if field_min_followings is not None and followings < int(
-                field_min_followings
-            ):
-                logger.info(
-                    f"@{username} has less than {field_min_followings} followers, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            if field_max_followings is not None and followings > int(
-                field_max_followings
-            ):
-                logger.info(
-                    f"@{username} has more than {field_max_followings} followings, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            if field_min_potency_ratio is not None and (
-                int(followings) == 0
-                or followers / followings < float(field_min_potency_ratio)
-            ):
-                logger.info(
-                    f"@{username}'s potency ratio is less than {field_min_potency_ratio}, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+            if followers != None and followings != None:
+                if field_min_followers is not None and followers < int(
+                    field_min_followers
+                ):
+                    logger.info(
+                        f"@{username} has less than {field_min_followers} followers, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+                if field_max_followers is not None and followers > int(
+                    field_max_followers
+                ):
+                    logger.info(
+                        f"@{username} has has more than {field_max_followers} followers, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+                if field_min_followings is not None and followings < int(
+                    field_min_followings
+                ):
+                    logger.info(
+                        f"@{username} has less than {field_min_followings} followings, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+                if field_max_followings is not None and followings > int(
+                    field_max_followings
+                ):
+                    logger.info(
+                        f"@{username} has more than {field_max_followings} followings, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+                if field_min_potency_ratio is not None and (
+                    int(followings) == 0
+                    or followers / followings < float(field_min_potency_ratio)
+                ):
+                    logger.info(
+                        f"@{username}'s potency ratio is less than {field_min_potency_ratio}, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+            else:
+                logger.critical(
+                    "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
                 return False
         return True

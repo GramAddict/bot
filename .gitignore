@@ -9,6 +9,8 @@ screenshots
 crashes
 filter.json
 whitelist.txt
+Pipfile
 Pipfile.lock
 *.pdf
 .venv
+*.log*

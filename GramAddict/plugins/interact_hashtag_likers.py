@@ -61,6 +61,8 @@ class InteractHashtagLikers(Plugin):
 
         for source in sources:
             self.state = State()
+            if source[0] != "#":
+                source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
@@ -90,7 +92,7 @@ class InteractHashtagLikers(Plugin):
             def job():
                 self.handle_hashtag(
                     device,
-                    source[1:] if "#" in source else source,
+                    source,
                     args.likes_count,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
@@ -143,6 +145,7 @@ class InteractHashtagLikers(Plugin):
             return
 
         logger.info("Opening the first result")
+        random_sleep()
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
@@ -253,14 +256,22 @@ class InteractHashtagLikers(Plugin):
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
     def open_likers(self, device):
-        likes_view = device.find(
-            resourceId="com.instagram.android:id/row_feed_textview_likes",
-            className="android.widget.TextView",
-        )
-        if likes_view.exists():
-            logger.info("Opening post likers")
-            random_sleep()
-            likes_view.click("right")
-            return True
-        else:
-            return False
+        attempts = 0
+        while True:
+            likes_view = device.find(
+                resourceId="com.instagram.android:id/row_feed_textview_likes",
+                className="android.widget.TextView",
+            )
+            if likes_view.exists():
+                logger.info("Opening post likers")
+                random_sleep()
+                likes_view.click("right")
+                return True
+            else:
+                if attempts < 1:
+                    attempts += 1
+                    logger.info("Can't find likers, trying small swipe")
+                    device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+                    continue
+                else:
+                    return False

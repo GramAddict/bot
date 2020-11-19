@@ -1,0 +1,231 @@
+"""
+This is a very hacky test plugin for interacting with a single specific user
+
+DO NOT use this if you aren't testing something that requires a specific user test
+
+It does the following:
+- Like photo(s)
+- Follow based on percentage
+- Unfollow
+
+NOTICE: The unfollow code is local to here because unfollow would need to be steeply refactored for it to work
+"""
+
+import logging
+from enum import Enum, unique
+from functools import partial
+from random import seed, shuffle
+
+from colorama import Fore
+from GramAddict.core.decorators import run_safely
+from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.filter import Filter
+from GramAddict.core.interaction import (
+    _on_interaction,
+    _on_like,
+    _on_likes_limit_reached,
+    interact_with_user,
+    is_follow_limit_reached_for_source,
+)
+from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
+from GramAddict.core.storage import FollowingStatus
+from GramAddict.core.utils import get_value, random_sleep, save_crash
+
+logger = logging.getLogger(__name__)
+
+from GramAddict.core.views import TabBarView
+
+BUTTON_REGEX = "android.widget.Button"
+BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
+FOLLOWING_REGEX = "^Following|^Requested"
+UNFOLLOW_REGEX = "^Unfollow"
+
+
+# Script Initialization
+seed()
+
+
+class ForceIteract(Plugin):
+    """Force interact with user - mostly for testing"""
+
+    def __init__(self):
+        super().__init__()
+        self.description = "Force interact with user - mostly for testing"
+        self.arguments = [
+            {
+                "arg": "--force-interact",
+                "nargs": "+",
+                "help": "force interact with user - mostly for testing",
+                "metavar": ("username1", "username2"),
+                "default": None,
+                "operation": True,
+            }
+        ]
+
+    def run(self, device, device_id, args, enabled, storage, sessions):
+        class State:
+            def __init__(self):
+                pass
+
+            is_job_completed = False
+            is_likes_limit_reached = False
+
+        self.device_id = device_id
+        self.state = None
+        self.sessions = sessions
+        self.session_state = sessions[-1]
+        profile_filter = Filter()
+
+        # IMPORTANT: in each job we assume being on the top of the Profile tab already
+        sources = [source for source in args.force_interact]
+        shuffle(sources)
+
+        for source in sources:
+            self.state = State()
+            is_myself = source[1:] == self.session_state.my_username
+            its_you = is_myself and " (it's you)" or ""
+            logger.info(f"Handle {source} {its_you}")
+
+            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
+
+            on_interaction = partial(
+                _on_interaction,
+                on_likes_limit_reached=on_likes_limit_reached,
+                likes_limit=int(args.total_likes_limit),
+                source=source,
+                interactions_limit=get_value(
+                    args.interactions_count, "Interactions count: {}", 70
+                ),
+                sessions=self.sessions,
+                session_state=self.session_state,
+            )
+
+            on_like = partial(
+                _on_like, sessions=self.sessions, session_state=self.session_state
+            )
+
+            @run_safely(
+                device=device,
+                device_id=self.device_id,
+                sessions=self.sessions,
+                session_state=self.session_state,
+            )
+            def job():
+                self.handle_blogger(
+                    device,
+                    source[1:] if "@" in source else source,
+                    args.likes_count,
+                    int(args.follow_percentage),
+                    int(args.follow_limit) if args.follow_limit else None,
+                    storage,
+                    profile_filter,
+                    on_like,
+                    on_interaction,
+                )
+                self.state.is_job_completed = True
+
+            while (
+                not self.state.is_job_completed
+                and not self.state.is_likes_limit_reached
+            ):
+                job()
+
+            if self.state.is_likes_limit_reached:
+                break
+
+    def handle_blogger(
+        self,
+        device,
+        username,
+        likes_count,
+        follow_percentage,
+        follow_limit,
+        storage,
+        profile_filter,
+        on_like,
+        on_interaction,
+    ):
+        is_myself = username == self.session_state.my_username
+        interaction = partial(
+            interact_with_user,
+            my_username=self.session_state.my_username,
+            likes_count=likes_count,
+            follow_percentage=follow_percentage,
+            on_like=on_like,
+            profile_filter=profile_filter,
+        )
+        is_follow_limit_reached = partial(
+            is_follow_limit_reached_for_source,
+            follow_limit=follow_limit,
+            source=username,
+            session_state=self.session_state,
+        )
+
+        if not self.open_user(device, username):
+            return
+        can_follow = (
+            not is_myself
+            and not is_follow_limit_reached()
+            and storage.get_following_status(username) == FollowingStatus.NONE
+        )
+
+        interaction_succeed, followed = interaction(
+            device, username=username, can_follow=can_follow
+        )
+        storage.add_interacted_user(username, followed=followed)
+        can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
+        logger.info("Unfollow @" + username)
+        attempts = 0
+
+        while True:
+            unfollow_button = device.find(
+                classNameMatches=BUTTON_REGEX,
+                clickable=True,
+                textMatches=FOLLOWING_REGEX,
+            )
+            if not unfollow_button.exists() and attempts <= 1:
+                scrollable = device.find(
+                    classNameMatches="androidx.viewpager.widget.ViewPager"
+                )
+                scrollable.scroll(DeviceFacade.Direction.TOP)
+                attempts += 1
+            else:
+                break
+
+        if not unfollow_button.exists():
+            logger.error("Cannot find Following button.")
+            save_crash(device)
+
+        unfollow_button.click()
+
+        confirm_unfollow_button = device.find(
+            resourceId="com.instagram.android:id/follow_sheet_unfollow_row",
+            className="android.widget.TextView",
+        )
+        if not confirm_unfollow_button.exists():
+            logger.error("Cannot confirm unfollow.")
+            save_crash(device)
+            device.back()
+            return False
+        confirm_unfollow_button.click()
+
+        # Check if private account confirmation
+        private_unfollow_button = device.find(
+            classNameMatches=BUTTON_OR_TEXTVIEW_REGEX,
+            textMatches=UNFOLLOW_REGEX,
+        )
+
+        if private_unfollow_button.exists():
+            private_unfollow_button.click()
+
+        return
+
+    def open_user(self, device, username):
+        search_view = TabBarView(device).navigateToSearch()
+        profile_view = search_view.navigateToUsername(username)
+        random_sleep()
+        if not profile_view:
+            return False
+
+        return True
