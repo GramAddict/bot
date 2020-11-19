@@ -646,6 +646,7 @@ class ProfileView(ActionBarView):
                 return biography.get_text()
             return biography_text
         return ""
+
     def getFullName(self):
         full_name_view = self.device.find(
             resourceIdMatches=case_insensitive_re(

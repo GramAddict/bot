@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import re
+import unicodedata
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView
