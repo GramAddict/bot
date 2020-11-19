@@ -10,7 +10,7 @@ from random import randint, uniform
 from time import sleep
 
 from colorama import Fore, Style
-from GramAddict.core.log import get_logs
+from GramAddict.core.log import get_log_file_config
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -157,7 +157,6 @@ def screen_sleep(device_id, mode):
 
 
 def save_crash(device):
-    global print_log
 
     directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     try:
@@ -182,10 +181,10 @@ def save_crash(device):
     except RuntimeError:
         logger.error("Cannot save view hierarchy.")
 
-    with open(
-        "crashes/" + directory_name + "/logs.txt", "w", encoding="utf-8"
-    ) as outfile:
-        outfile.write(get_logs())
+    g_log_file_name, g_logs_dir, _, _ = get_log_file_config()
+    src_file = f"{g_logs_dir}/{g_log_file_name}"
+    target_file = f"crashes/{directory_name}/logs.txt"
+    shutil.copy(src_file, target_file)
 
     shutil.make_archive(
         "crashes/" + directory_name, "zip", "crashes/" + directory_name + "/"
@@ -215,22 +214,6 @@ def detect_block(device):
             "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
             " with limits!"
         )
-
-
-def _print_with_time_decorator(standard_print, print_time):
-    def wrapper(*args, **kwargs):
-        global print_log
-        if print_time:
-            time = datetime.now().strftime("%m/%d %H:%M:%S")
-            print_log += re.sub(
-                r"\[\d+m", "", ("[" + time + "] " + str(*args, **kwargs) + "\n")
-            )
-            return standard_print("[" + time + "]", *args, **kwargs)
-        else:
-            print_log += re.sub(r"\[\d+m", "", (str(*args, **kwargs) + "\n"))
-            return standard_print(*args, **kwargs)
-
-    return wrapper
 
 
 def get_value(count, name, default):
@@ -263,9 +246,6 @@ def get_value(count, name, default):
         value = default
         print_error()
     return value
-
-
-print_log = ""
 
 
 class ActionBlockedError(Exception):
