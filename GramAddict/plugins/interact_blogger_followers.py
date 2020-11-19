@@ -201,7 +201,7 @@ class InteractBloggerFollowers(Plugin):
             resourceId="android:id/list", className="android.widget.ListView"
         )
         while not is_end_reached():
-            list_view.swipe(DeviceFacade.Direction.BOTTOM)
+            list_view.fling(DeviceFacade.Direction.BOTTOM)
 
         logger.info("Scroll back to the first follower")
 
@@ -355,7 +355,7 @@ class InteractBloggerFollowers(Plugin):
                             "All followers skipped, let's do a swipe",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        list_view.swipe(DeviceFacade.Direction.BOTTOM)
+                        list_view.fling(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(
                             "Need to scroll now", extra={"color": f"{Fore.GREEN}"}

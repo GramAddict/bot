@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, unique
-from random import seed
+from random import seed, randint
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -17,7 +17,10 @@ FOLLOWING_BUTTON_ID_REGEX = (
     "com.instagram.android:id/row_profile_header_following_container"
     "|com.instagram.android:id/row_profile_header_container_following"
 )
-TEXTVIEW_OR_BUTTON_REGEX = "android.widget.TextView|android.widget.Button"
+BUTTON_REGEX = "android.widget.Button"
+BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
+FOLLOWING_REGEX = "^Following|^Requested"
+UNFOLLOW_REGEX = "^Unfollow"
 
 # Script Initialization
 seed()
@@ -78,8 +81,14 @@ class ActionUnfollowFollowers(Plugin):
         self.session_state = sessions[-1]
         self.sessions = sessions
         self.unfollow_type = enabled[0][2:]
+        range_arg = getattr(args, self.unfollow_type.replace("-", "_")).split("-")
+        if len(range_arg) > 1:
+            count_arg = randint(int(range_arg[0]), int(range_arg[1]))
+        else:
+            count_arg = int(range_arg[0])
+
         count = min(
-            int(getattr(args, self.unfollow_type.replace("-", "_"))),
+            count_arg,
             self.session_state.my_following_count - int(args.min_following),
         )
 
@@ -278,9 +287,9 @@ class ActionUnfollowFollowers(Plugin):
 
         while True:
             unfollow_button = device.find(
-                classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+                classNameMatches=BUTTON_REGEX,
                 clickable=True,
-                text="Following",
+                textMatches=FOLLOWING_REGEX,
             )
             if not unfollow_button.exists() and attempts <= 1:
                 scrollable = device.find(
@@ -312,7 +321,16 @@ class ActionUnfollowFollowers(Plugin):
         confirm_unfollow_button.click()
 
         random_sleep()
-        self.close_confirm_dialog_if_shown(device)
+
+        # Check if private account confirmation
+        private_unfollow_button = device.find(
+            classNameMatches=BUTTON_OR_TEXTVIEW_REGEX,
+            textMatches=UNFOLLOW_REGEX,
+        )
+
+        if private_unfollow_button.exists():
+            private_unfollow_button.click()
+
         detect_block(device)
 
         logger.info("Back to the followings list.")
@@ -337,32 +355,6 @@ class ActionUnfollowFollowers(Plugin):
         logger.info("Back to the profile.")
         device.back()
         return result
-
-    def close_confirm_dialog_if_shown(self, device):
-        dialog_root_view = device.find(
-            resourceId="com.instagram.android:id/dialog_root_view",
-            className="android.widget.FrameLayout",
-        )
-        if not dialog_root_view.exists():
-            return
-
-        # Avatar existence is the way to distinguish confirm dialog from block dialog
-        user_avatar_view = device.find(
-            resourceId="com.instagram.android:id/circular_image",
-            className="android.widget.ImageView",
-        )
-        if not user_avatar_view.exists():
-            return
-
-        logger.info(
-            "Dialog shown, confirm unfollowing.", extra={"color": f"{Fore.GREEN}"}
-        )
-        random_sleep()
-        unfollow_button = dialog_root_view.child(
-            resourceId="com.instagram.android:id/primary_button",
-            className="android.widget.TextView",
-        )
-        unfollow_button.click()
 
 
 @unique

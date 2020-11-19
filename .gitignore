@@ -13,4 +13,4 @@ Pipfile
 Pipfile.lock
 *.pdf
 .venv
-/env*
+*.log*
