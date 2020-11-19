@@ -196,7 +196,7 @@ def run():
                 update_log_file_name(session_state.my_username)
             except Exception as e:
                 logger.error(
-                    "Failed to update log file name. Will continue anyway. {e}"
+                    f"Failed to update log file name. Will continue anyway. {e}"
                 )
                 save_crash(device)
 
