@@ -41,6 +41,7 @@ logger.info(
 
 # Global Variables
 device_id = None
+first_run = True
 plugins = PluginLoader("GramAddict.plugins").plugins
 sessions = PersistentList("sessions", SessionStateEncoder)
 parser = argparse.ArgumentParser(description="GramAddict Instagram Bot")
@@ -95,6 +96,7 @@ def get_args():
 
 def run():
     global device_id
+    global first_run
     loaded = load_plugins()
     args = get_args()
     enabled = []
@@ -183,12 +185,14 @@ def run():
             )
             save_crash(device)
             exit(1)
-
-        try:
-            update_log_file_name(session_state.my_username)
-        except:
-            logger.error("Failed to update log file name. Will continue anyway.")
-            save_crash(device)
+        if first_run:
+            try:
+                update_log_file_name(session_state.my_username)
+            except Exception as e:
+                logger.error(
+                    f"Failed to update log file name. Will continue anyway. {e}"
+                )
+                save_crash(device)
 
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
 
@@ -220,6 +224,8 @@ def run():
                 sys.exit(0)
         else:
             break
+
+        first_run = False
 
     print_full_report(sessions)
     sessions.persist(directory=session_state.my_username)
