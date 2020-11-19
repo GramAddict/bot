@@ -86,7 +86,7 @@ def interact_with_user(
                 like_succeed = opened_post_view.likePost(click_btn_like=True)
 
             if like_succeed:
-                logger.info("Like succeed!")
+                logger.info("Like succeeded!")
                 detect_block(device)
                 on_like()
             else:

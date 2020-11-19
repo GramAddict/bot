@@ -39,7 +39,7 @@ def create_log_file_handler(filename):
         filename,
         mode="a",
         backupCount=10,
-        maxBytes=1000000,
+        maxBytes=15 * 1000000,
         encoding="utf-8",
     )
 
