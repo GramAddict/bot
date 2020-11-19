@@ -1,11 +1,6 @@
 import logging
 from enum import Enum, auto
 from random import uniform
-from time import sleep
-
-import uiautomator2
-
-logger = logging.getLogger(__name__)
 
 import uiautomator2
 from uiautomator2 import Device
