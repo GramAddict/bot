@@ -7,7 +7,7 @@ from time import sleep
 from colorama import Fore, Style
 
 from GramAddict.core.device_facade import create_device
-from GramAddict.core.log import configure_logger
+from GramAddict.core.log import configure_logger, update_log_file_name
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.plugin_loader import PluginLoader
@@ -184,7 +184,17 @@ def run():
             save_crash(device)
             exit(1)
 
-        report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
+        username = session_state.my_username
+        followers = session_state.my_followers_count
+        following = session_state.my_following_count
+        try:
+            update_log_file_name(username)
+        except:
+            logger.error("Failed to update log file name. Will continue anyway.")
+            save_crash(device)
+
+        report_string = f"Hello, @{username}! You have {followers} followers and {following} followings so far."
+
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
