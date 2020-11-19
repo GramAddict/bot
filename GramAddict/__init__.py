@@ -185,7 +185,7 @@ def run():
             exit(1)
 
         try:
-            update_log_file_name(username)
+            update_log_file_name(session_state.my_username)
         except:
             logger.error("Failed to update log file name. Will continue anyway.")
             save_crash(device)
