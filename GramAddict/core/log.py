@@ -59,10 +59,12 @@ def configure_logger():
     global g_log_file_name
     global g_logs_dir
     global g_file_handler
+    global g_log_file_updated
 
     g_session_id = uuid4()
     g_logs_dir = "logs"
     g_log_file_name = f"{g_session_id}.log"
+    g_log_file_updated = False
 
     init_colorama()
 
@@ -95,13 +97,17 @@ def get_log_file_config():
     return g_log_file_name, g_logs_dir, g_file_handler, g_session_id
 
 
-def update_log_file_name(username: str):
-    unamed_log_file_name, logs_dir, file_handler, _ = get_log_file_config()
-    unamed_full_filename = f"{logs_dir}/{unamed_log_file_name}"
+def is_log_file_updated():
+    return g_log_file_updated
 
-    init_logger = logging.getLogger(__name__)
+
+def update_log_file_name(username: str):
+    old_log_file_name, logs_dir, file_handler, _ = get_log_file_config()
+    old_full_filename = f"{logs_dir}/{old_log_file_name}"
+
+    current_logger = logging.getLogger(__name__)
     if not username:
-        init_logger.error(f"No username found, using log file {unamed_full_filename}")
+        current_logger.error(f"No username found, using log file {old_full_filename}")
         return
     named_log_file_name = f"{username}.log"
     named_full_filename = f"{logs_dir}/{named_log_file_name}"
@@ -114,19 +120,23 @@ def update_log_file_name(username: str):
         named_file_handler.doRollover()
 
     # copy existing runtime logs (uidd4.log) to named log file (username.log)
-    with open(unamed_full_filename, "r") as unamed_file, open(
-        named_full_filename, "a"
+    with open(old_full_filename, "r", encoding="utf-8") as unamed_file, open(
+        named_full_filename, "a", encoding="utf-8"
     ) as named_file:
         for line in unamed_file:
             named_file.write(line)
 
     root_logger = logging.getLogger()
     root_logger.removeHandler(file_handler)
-    os.remove(unamed_full_filename)
+    os.remove(old_full_filename)
     root_logger.addHandler(named_file_handler)
-    root_logger.debug(f"Updated log file: {named_full_filename}")
+
+    current_logger = logging.getLogger(__name__)
+    current_logger.debug(f"Updated log file: {named_full_filename}")
 
     global g_log_file_name
     global g_file_handler
+    global g_log_file_updated
     g_log_file_name = named_log_file_name
     g_file_handler = named_file_handler
+    g_log_file_updated = True

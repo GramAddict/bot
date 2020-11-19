@@ -207,6 +207,7 @@ def save_crash(device):
 
 
 def detect_block(device):
+    logger.debug("Detect block!")
     block_dialog = device.find(
         resourceId="com.instagram.android:id/dialog_root_view",
         className="android.widget.FrameLayout",
