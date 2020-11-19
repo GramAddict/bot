@@ -251,5 +251,5 @@ class Filter:
         try:
             fullname = profileView.getFullName()
         except Exception:
-            logger.error(f"Cannot find fullname.")
+            logger.error("Cannot find fullname.")
         return fullname

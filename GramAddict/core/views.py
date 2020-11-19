@@ -1,4 +1,5 @@
 import logging
+import re
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
