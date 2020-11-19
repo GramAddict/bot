@@ -179,7 +179,11 @@ def run():
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
             )
             logger.critical(
+<<<<<<< HEAD
                 f"Username: {session_state.my_username}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
+=======
+                f"Username: {getattr(session_state,'my_username')}, Followers: {getattr(session_state,'my_followers_count')}, Following: {getattr(session_state,'my_following_count')}"
+>>>>>>> 67cded7eca6b280c43577f90f620301c6bbeec38
             )
             save_crash(device)
             exit(1)
