@@ -194,11 +194,14 @@ def run():
         if not is_log_file_updated():
             try:
                 update_log_file_name(session_state.my_username)
-            except:
-                logger.error("Failed to update log file name. Will continue anyway.")
+            except Exception as e:
+                logger.error(
+                    "Failed to update log file name. Will continue anyway. {e}"
+                )
                 save_crash(device)
 
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
+
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
