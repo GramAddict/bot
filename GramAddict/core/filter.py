@@ -99,7 +99,7 @@ class Filter:
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
-                if field_min_potency_ratio is not None and (
+                if field_min_potency_ratio is not None and field_max_potency_ratio is not None and (
                     int(followings) == 0
                     or followers / followings < float(field_min_potency_ratio)
                     or followers / followings > float(field_max_potency_ratio)
