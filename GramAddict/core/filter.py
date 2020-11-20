@@ -131,15 +131,14 @@ class Filter:
                 return False
         return True
 
-        if (
-            field_blacklist_words is not None
-            or field_mandatory_words is not None
-        ):
+        if field_blacklist_words is not None or field_mandatory_words is not None:
             biography_text = self._get_profile_biography(device)
             # If we found a blacklist word return False
             if field_blacklist_words is not None:
                 for w in field_blacklist_words:
-                    blacklist_words = re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(biography_text)
+                    blacklist_words = re.compile(
+                        r"\b({0})\b".format(w), flags=re.IGNORECASE
+                    ).search(biography_text)
                     if blacklist_words is not None:
                         logger.info(
                             f"@{username} found a blacklisted word '{w}' in biography, skip.",
@@ -152,7 +151,10 @@ class Filter:
                 mandatory_words = [
                     w
                     for w in field_mandatory_words
-                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(biography_text) is not None
+                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
+                        biography_text
+                    )
+                    is not None
                 ]
                 if mandatory_words == []:
                     logger.info(
