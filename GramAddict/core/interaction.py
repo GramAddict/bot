@@ -72,7 +72,7 @@ def interact_with_user(
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
-        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column")
+        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} col)")
         opened_post_view = posts_tab_view.navigateToPost(row, column)
         random_sleep()
 
@@ -86,7 +86,7 @@ def interact_with_user(
                 like_succeed = opened_post_view.likePost(click_btn_like=True)
 
             if like_succeed:
-                logger.debug("Like succeed. Check for block.")
+                logger.info("Like succeeded!")
                 detect_block(device)
                 on_like()
             else:
