@@ -70,6 +70,22 @@ def get_instagram_version(device_id):
     return version
 
 
+def open_instagram_with_url(device_id, url):
+    logger.info("Open Instagram app with url: {}".format(url))
+    cmd = (
+        "adb"
+        + ("" if device_id is None else " -s " + device_id)
+        + " shell am start -a android.intent.action.VIEW -d {}".format(url)
+    )
+    cmd_res = subprocess.run(cmd, capture_output=True, shell=True, encoding="utf8")
+    err = cmd_res.stderr.strip()
+    random_sleep()
+    if err:
+        logger.debug(err)
+        return False
+    return True
+
+
 def open_instagram(device_id):
     logger.info("Open Instagram app")
     cmd = (
