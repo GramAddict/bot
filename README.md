@@ -105,8 +105,9 @@ Full list of command line arguments:
                         --repeat) - disable the passcode for unlocking the phone
                         if you want to use that function!
 ```
-Full list of filters:
 
+Full list of filters:
+```
   "skip_business"             If it is true, business acounts won't be interacted.
                               (e.g. "skip_business": true)
   "skip_non_business"         If it is true, private accounts and public accounts won't be interacted.
@@ -147,9 +148,6 @@ Full list of filters:
   "max_digits_in_profile_name"  You can set a upper digit bound so that accounts which have more digits 
                                 than the limit won't be interacted.
                                 (e.g. "max_digits_in_profile_name": 4)
-
-
-```
 
 ```
 
