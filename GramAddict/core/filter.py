@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView
@@ -17,6 +18,8 @@ FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_FOLLOW_ONLY_PRIVATE = "follow_only_private"
+FIELD_BLACKLIST_WORDS = "blacklist_words"
+FIELD_MANDATORY_WORDS = "mandatory_words"
 
 
 class Filter:
@@ -41,7 +44,8 @@ class Filter:
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
         field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
-
+        field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)
+        field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
 
         if field_follow_only_private is not None:
@@ -78,7 +82,7 @@ class Filter:
             or field_min_potency_ratio is not None
         ):
             followers, followings = self._get_followers_and_followings(device)
-            if followers != None and followings != None:
+            if followers is not None and followings is not None:
                 if field_min_followers is not None and followers < int(
                     field_min_followers
                 ):
@@ -127,6 +131,36 @@ class Filter:
                 return False
         return True
 
+        if (
+            field_blacklist_words is not None
+            or field_mandatory_words is not None
+        ):
+            biography_text = self._get_profile_biography(device)
+            # If we found a blacklist word return False
+            if field_blacklist_words is not None:
+                for w in field_blacklist_words:
+                    blacklist_words = re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(biography_text)
+                    if blacklist_words is not None:
+                        logger.info(
+                            f"@{username} found a blacklisted word '{w}' in biography, skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+
+            # For continue we need to find at least one of mandatory word
+            if field_mandatory_words is not None:
+                mandatory_words = [
+                    w
+                    for w in field_mandatory_words
+                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(biography_text) is not None
+                ]
+                if mandatory_words == []:
+                    logger.info(
+                        f"@{username} mandatory words not found in biography, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
     def can_follow_private_or_empty(self):
         if self.conditions is None:
             return False
@@ -173,3 +207,8 @@ class Filter:
             logger.error("Cannot find whether it is private or not")
 
         return private
+
+    @staticmethod
+    def _get_profile_biography(device):
+        profileView = ProfileView(device)
+        return profileView.getProfileBiography()
