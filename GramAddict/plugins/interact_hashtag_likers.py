@@ -149,7 +149,7 @@ class InteractHashtagLikers(Plugin):
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
-            className="androidx.recyclerview.widget.RecyclerView",
+            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
         )
 
         first_result_view.child(index=3).click()
@@ -157,7 +157,7 @@ class InteractHashtagLikers(Plugin):
 
         posts_list_view = device.find(
             resourceId="android:id/list",
-            className="androidx.recyclerview.widget.RecyclerView",
+            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
         )
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
 
