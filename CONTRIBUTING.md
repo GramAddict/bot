@@ -152,7 +152,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally after the first line
 * Consider starting the commit message with an applicable emoji:
-    * :cat2: `:cat2:` when improving the format/structure of the code
+    * :cat2: `:cat2:` when fixing or improving existing code
     * :racehorse: `:racehorse:` when improving performance
     * :memo: `:memo:` when writing docs
     * :penguin: `:penguin:` when fixing something on Linux
@@ -166,7 +166,6 @@ While the prerequisites above must be satisfied prior to having your pull reques
     * :arrow_up: `:arrow_up:` when upgrading dependencies
     * :arrow_down: `:arrow_down:` when downgrading dependencies
     * :gift: `:gift:` when adding a new feature
-    * :neckbeard: `:neckbeard:` when fixing or improving an existing feature
     * :rage: `:rage:` when fixing something the linter complained about
 
 ### Python Styleguide
