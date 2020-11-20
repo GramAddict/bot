@@ -11,9 +11,10 @@ from GramAddict.core.views import LanguageNotEnglishException, ProfileView
 
 logger = logging.getLogger(__name__)
 
-TEXTVIEW_OR_BUTTON_REGEX = "android.widget.TextView|android.widget.Button"
-FOLLOW_REGEX = "Follow|Follow Back"
-UNFOLLOW_REGEX = "Following|Requested"
+BUTTON_REGEX = "android.widget.Button"
+FOLLOW_REGEX = "^Follow$"
+FOLLOWBACK_REGEX = "^Follow Back$"
+UNFOLLOW_REGEX = "^Following|^Requested"
 
 
 def interact_with_user(
@@ -78,17 +79,18 @@ def interact_with_user(
         like_succeed = False
         if opened_post_view:
             logger.info("Double click post")
-            opened_post_view.likePost()
-            random_sleep()
-            if not opened_post_view.isPostLiked():
-                logger.debug("Double click failed. Try the like button.")
-                opened_post_view.likePost(click_btn_like=True)
-                random_sleep()
 
-            like_succeed = opened_post_view.isPostLiked()
+            like_succeed = opened_post_view.likePost()
+            if not like_succeed:
+                logger.debug("Double click failed. Try the like button.")
+                like_succeed = opened_post_view.likePost(click_btn_like=True)
+
             if like_succeed:
+                logger.debug("Like succeed. Check for block.")
                 detect_block(device)
                 on_like()
+            else:
+                logger.warning("Fail to like post. Let's continue...")
 
             logger.info("Back to profile")
             device.back()
@@ -107,7 +109,6 @@ def interact_with_user(
             return False, followed
 
         random_sleep()
-
     if can_follow:
         return True, _follow(device, username, follow_percentage)
 
@@ -181,33 +182,36 @@ def _follow(device, username, follow_percentage):
 
     random_sleep()
 
-    profile_header_actions_layout = device.find(
-        resourceId="com.instagram.android:id/profile_header_actions_top_row",
-        className="android.widget.LinearLayout",
-    )
-    if not profile_header_actions_layout.exists():
-        logger.error("Cannot find profile actions.")
-        return False
-
-    follow_button = profile_header_actions_layout.child(
-        classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+    follow_button = device.find(
+        classNameMatches=BUTTON_REGEX,
         clickable=True,
         textMatches=FOLLOW_REGEX,
     )
+
     if not follow_button.exists():
-        unfollow_button = profile_header_actions_layout.child(
-            classNameMatches=TEXTVIEW_OR_BUTTON_REGEX,
+        unfollow_button = device.find(
+            classNameMatches=BUTTON_REGEX,
             clickable=True,
             textMatches=UNFOLLOW_REGEX,
+        )
+        followback_button = device.find(
+            classNameMatches=BUTTON_REGEX,
+            clickable=True,
+            textMatches=FOLLOWBACK_REGEX,
         )
         if unfollow_button.exists():
             logger.info(
                 f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
             )
             return False
+        elif followback_button.exists():
+            logger.info(
+                f"@{username} already follows you.", extra={"color": f"{Fore.GREEN}"}
+            )
+            return False
         else:
             logger.error(
-                "Cannot find neither Follow button, nor Unfollow button. Maybe not English language is set?"
+                "Cannot find neither Follow button, Follow Back button, nor Unfollow button. Maybe not English language is set?"
             )
             save_crash(device)
             switch_to_english(device)
