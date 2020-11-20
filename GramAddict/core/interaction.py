@@ -1,5 +1,5 @@
 import logging
-from random import randint, shuffle
+from random import randint, shuffle, uniform
 from typing import Tuple
 from time import sleep
 from colorama import Fore
@@ -236,6 +236,7 @@ def _follow(device, username, follow_percentage):
     random_sleep()
     return True
 
+
 def _on_watch(sessions, session_state):
     session_state = sessions[-1]
     session_state.totalWatched += 1
@@ -257,7 +258,7 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
         if profile_picture.exists():
             profile_picture.click()  # Open the first story
             on_watch()
-            random_sleep()
+            sleep(uniform(1.5, 2.5))
 
             if stories_to_watch > 1:
                 story_view = CurrentStoryView(device)
@@ -268,13 +269,13 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                             if storie_frame.exists() and _iter != stories_to_watch:
                                 storie_frame.click("right")
                                 on_watch()
-                                random_sleep()
+                                sleep(uniform(1.5, 2.5))
                         except Exception:
                             break
                     else:
                         break
 
-            for attempt in range(0, 4):
+            for attempt in range(0, 3):
                 if profile_view.getUsername() != username:
                     if attempt != 0:
                         device.back()
@@ -282,7 +283,7 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                     # Maybe it's just an error please one half seconds before search again for username tab
                     # This little delay prevent too much back tap and to see more stories than stories_to_watch value
                     else:
-                        sleep(0.5)
+                        sleep(uniform(0.5, 0.7))
                 else:
                     break
             return True

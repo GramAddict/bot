@@ -84,6 +84,10 @@ class InteractHashtagLikers(Plugin):
                 _on_like, sessions=self.sessions, session_state=self.session_state
             )
 
+            on_watch = partial(
+                _on_watch, sessions=self.sessions, session_state=self.session_state
+            )
+
             @run_safely(
                 device=device,
                 device_id=self.device_id,
@@ -247,7 +251,7 @@ class InteractHashtagLikers(Plugin):
                         "Iterated exactly the same likers twice, finish.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    logger.info(f"Back to #{hashtag}")
+                    logger.info(f"Back to {hashtag}")
                     device.back()
                     break
 

@@ -529,6 +529,7 @@ class ProfileView(ActionBarView):
         re_case_insensitive = case_insensitive_re(
             [
                 "com.instagram.android:id/title_view",
+                "com.instagram.android:id/action_bar_title",
                 "com.instagram.android:id/action_bar_large_title",
                 "com.instagram.android:id/action_bar_textview_title",
             ]
