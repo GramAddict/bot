@@ -242,18 +242,11 @@ def _on_watch(sessions, session_state):
     session_state.totalWatched += 1
 
 
-def _watch_stories(device, profile_view, username, stories_value, on_watch):
-    if stories_value == 0:
+def _watch_stories(device, profile_view, username, stories_to_watch, on_watch):
+    if stories_to_watch == 0:
         return False
 
     if profile_view.haveStory():
-        stories_to_watch = randint(1, stories_value)
-        logger.debug(
-            "This user have a stories, going to watch {}/or max stories".format(
-                stories_to_watch
-            )
-        )
-
         profile_picture = profile_view.profileImage()
         if profile_picture.exists():
             profile_picture.click()  # Open the first story
@@ -265,9 +258,9 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                 for _iter in range(0, stories_to_watch - 1):
                     if story_view.getUsername() == username:
                         try:
-                            storie_frame = story_view.getStoryFrame()
-                            if storie_frame.exists() and _iter != stories_to_watch:
-                                storie_frame.click("right")
+                            story_frame = story_view.getStoryFrame()
+                            if story_frame.exists() and _iter <= stories_to_watch - 1:
+                                story_frame.click("right")
                                 on_watch()
                                 sleep(uniform(1.5, 2.5))
                         except Exception:
@@ -275,15 +268,13 @@ def _watch_stories(device, profile_view, username, stories_value, on_watch):
                     else:
                         break
 
-            for attempt in range(0, 3):
+            for attempt in range(0, 4):
                 if profile_view.getUsername() != username:
                     if attempt != 0:
                         device.back()
-                        random_sleep()
                     # Maybe it's just an error please one half seconds before search again for username tab
                     # This little delay prevent too much back tap and to see more stories than stories_to_watch value
-                    else:
-                        sleep(uniform(0.5, 0.7))
+                    sleep(uniform(0.5, 1))
                 else:
                     break
             return True
