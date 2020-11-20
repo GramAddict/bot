@@ -130,9 +130,11 @@ Full list of filters:
                               (e.g. "max_followings": 800)
 
   "min_potency_ratio"         These provides us to filter accounts according their followers/followings ratio.
-  "max_potency_ratio"         If an account's followers/following ratio is not between these ratios, it won't be interacted.
+  "max_potency_ratio"         If an account's followers/following ratio is not between these ratios, 
+                              it won't be interacted.
                               (e.g. EXACC has 500 followers and 1000 followings. That means its ratio is 0.5 
-                              If you set your "min_potency_ratio": 0.2 and "max_potency_ratio": 0.7 It will be interacted.)
+                              If you set your "min_potency_ratio": 0.2 and 
+                              "max_potency_ratio": 0.7 It will be interacted.)
   
   "follow_private_or_empty"   If it is false, private accounts or public accounts 
                               that has no posts won't be interacted. 
