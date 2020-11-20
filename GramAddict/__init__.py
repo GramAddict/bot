@@ -7,7 +7,11 @@ from time import sleep
 from colorama import Fore, Style
 
 from GramAddict.core.device_facade import create_device
-from GramAddict.core.log import configure_logger, update_log_file_name
+from GramAddict.core.log import (
+    configure_logger,
+    update_log_file_name,
+    is_log_file_updated,
+)
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.plugin_loader import PluginLoader
@@ -20,6 +24,7 @@ from GramAddict.core.utils import (
     get_instagram_version,
     get_value,
     open_instagram,
+    random_sleep,
     save_crash,
     screen_sleep,
     update_available,
@@ -41,7 +46,6 @@ logger.info(
 
 # Global Variables
 device_id = None
-first_run = True
 plugins = PluginLoader("GramAddict.plugins").plugins
 sessions = PersistentList("sessions", SessionStateEncoder)
 parser = argparse.ArgumentParser(description="GramAddict Instagram Bot")
@@ -96,7 +100,6 @@ def get_args():
 
 def run():
     global device_id
-    global first_run
     loaded = load_plugins()
     args = get_args()
     enabled = []
@@ -155,6 +158,7 @@ def run():
 
         try:
             profileView = TabBarView(device).navigateToProfile()
+            random_sleep()
             (
                 session_state.my_username,
                 session_state.my_followers_count,
@@ -166,6 +170,7 @@ def run():
             switch_to_english(device)
             # Try again on the correct language
             profileView = TabBarView(device).navigateToProfile()
+            random_sleep()
             (
                 session_state.my_username,
                 session_state.my_followers_count,
@@ -185,7 +190,8 @@ def run():
             )
             save_crash(device)
             exit(1)
-        if first_run:
+
+        if not is_log_file_updated():
             try:
                 update_log_file_name(session_state.my_username)
             except Exception as e:
@@ -224,8 +230,6 @@ def run():
                 sys.exit(0)
         else:
             break
-
-        first_run = False
 
     print_full_report(sessions)
     sessions.persist(directory=session_state.my_username)
