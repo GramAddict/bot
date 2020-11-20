@@ -56,8 +56,8 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 
 #### Before Submitting A Bug Report
 
-* **Check the [docs](https://doc.gramaddict.org).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of GramAddict](https://doc.gramaddict.org).
-* **Check the [FAQs on the docs site](https://doc.gramaddict.org)** for a list of common questions and problems.
+* **Check the [docs](https://docs.gramaddict.org).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of GramAddict](https://github.com/GramAddict/bot/releases/latest).
+* **Check the [FAQs on the docs site](https://docs.gramaddict.org/#/?id=faq)** for a list of common questions and problems.
 * **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Agramaddict)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Bug Report?
@@ -73,6 +73,9 @@ Explain the problem and include additional details to help maintainers reproduce
 * **Explain which behavior you expected to see instead and why.**
 * **If you're reporting that GramAddict crashed**, please open a ticket on discord, upload the crash file there, and then provide the ticket number in the issue.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
+* **Specify the name and version of the OS you're using.**
+* **Specify the model of phone/tablet or name and version number of the emulator you are using.**
+* **Specify the version of Instagram you are running.**
 
 Provide more context by answering these questions:
 
@@ -93,7 +96,7 @@ Before creating enhancement suggestions, please check [this list](#before-submit
 
 #### Before Submitting An Enhancement Suggestion
 
-* **Check the [docs](https://doc.gramaddict.org).**  for tips — you might discover that the enhancement is already available. Most importantly, check if you're using [the latest version of GramAddict](https://doc.gramaddict.org).
+* **Check the [docs](https://doc.gramaddict.org).**  for tips — you might discover that the enhancement is already available. Most importantly, check if you're using [in the latest version of GramAddict](https://github.com/GramAddict/bot/releases/latest).
 * **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Agramaddict)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
@@ -108,6 +111,10 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Explain why this enhancement would be useful** to most GramAddict users.
 * **Specify which version of GramAddict you're using.** You can get the exact version by checking the log when you run the script.
 * **Specify the name and version of the OS you're using.**
+* **Specify the model of phone/tablet or name and version number of the emulator you are using.**
+* **Specify the version of Instagram you are running.**
+
+
 
 ### Your First Code Contribution
 
@@ -120,9 +127,24 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 
 If you want to read about using GramAddict or developing packages in GramAddict, the [GramAddict Docs](https://doc.gramaddict.org) are available to assist with every aspect of GramAddict.
 
-#### Local development
 
-GramAddict can be developed locally. For instructions on how to do this, see the following sections in the [GramAddict Docs](https://doc.gramaddict.org):
+### Making Changes
+
+* Create a topic branch from where you want to base your work.
+  * This is almost always the develop branch.
+  * To quickly create a topic branch based on develop, run `git checkout -b
+    feature-mybranch develop`. Please avoid working directly on the
+    `develop` branch.
+* Make commits using the [styleguides](#styleguides)
+* Make sure to [Blacken](https://github.com/psf/black) your code before committing
+* Make sure your commit messages are in the proper format. If the commit addresses an issue filed in the GitHub, end the first line of the commit with the issue number prefaced by a #.
+
+Example:
+  ```
+      :cat2: Fixing an encoding bug with the logging system #31
+
+      - Without utf-8 encoding, certain logs cannot be written and will cause an exception
+  ```
 
 ### Pull Requests
 
@@ -135,7 +157,7 @@ The process described here has several goals:
 
 Please follow these steps to have your contribution considered by the maintainers:
 
-1. Follow all instructions in [the template](PULL_REQUEST_TEMPLATE.md)
+1. Follow all instructions in [the template](.github/PULL_REQUEST_TEMPLATE.md)
 2. Follow the [styleguides](#styleguides)
 3. After you submit your pull request, verify that all [status checks](https://help.github.com/articles/about-status-checks/) are passing <details><summary>What if the status checks are failing?</summary>If a status check is failing, and you believe that the failure is unrelated to your change, please leave a comment on the pull request explaining why you believe the failure is unrelated. A maintainer will re-run the status check for you. If we conclude that the failure was a false positive, then we will open an issue to track that problem with our status check suite.</details>
 
