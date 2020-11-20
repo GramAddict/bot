@@ -164,6 +164,11 @@ class HomeView(ActionBarView):
 class HashTagView:
     def __init__(self, device: DeviceFacade):
         self.device = device
+    
+    def _getRecyclerView(self):
+        CLASSNAME="(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+
+        return self.device.find(classNameMatches=CLASSNAME)
 
 
 class SearchView:
@@ -477,6 +482,43 @@ class OpenedPostView:
 
         return self._isPostLiked()
 
+    def open_likers(self):
+        attempts = 0
+        while True:
+            likes_view = self.device.find(
+                resourceId="com.instagram.android:id/row_feed_textview_likes",
+                className="android.widget.TextView",
+            )
+            if likes_view.exists():
+                logger.info("Opening post likers")
+                random_sleep()
+                likes_view.click("right")
+                return True
+            else:
+                if attempts < 1:
+                    attempts += 1
+                    logger.info("Can't find likers, trying small swipe")
+                    self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+                    continue
+                else:
+                    return False
+    
+    def _getListViewLikers(self):
+        return self.device.find(
+                resourceId="android:id/list", className="android.widget.ListView"
+            )
+    
+    def _getUserCountainer(self):
+        return self.device.find(
+                        resourceId="com.instagram.android:id/row_user_container_base",
+                        className="android.widget.LinearLayout",
+                    )
+    def _getUserName(self, countainer):
+        return countainer.child(
+                            resourceId="com.instagram.android:id/row_user_primary_name",
+                            className="android.widget.TextView",
+                        )
+
 
 class PostsGridView:
     def __init__(self, device: DeviceFacade):
@@ -508,6 +550,8 @@ class PostsGridView:
         post_view.click()
 
         return OpenedPostView(self.device)
+    
+
 
 
 class ProfileView(ActionBarView):
@@ -748,6 +792,11 @@ class ProfileView(ActionBarView):
             save_crash(self.device)
         else:
             button.click()
+    
+    def _getRecyclerView(self):
+        CLASSNAME="(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+
+        return self.device.find(classNameMatches=CLASSNAME)
 
 
 class CurrentStoryView:
