@@ -1,13 +1,17 @@
 import logging
 from random import randint, shuffle
 from typing import Tuple
-
+from time import sleep
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
-from GramAddict.core.views import LanguageNotEnglishException, ProfileView
+from GramAddict.core.views import (
+    LanguageNotEnglishException,
+    ProfileView,
+    CurrentStoryView,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +27,8 @@ def interact_with_user(
     my_username,
     likes_count,
     on_like,
+    stories_count,
+    on_watch,
     can_follow,
     follow_percentage,
     profile_filter,
@@ -58,6 +64,13 @@ def interact_with_user(
             followed = False
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
+
+    stories_value = get_value(stories_count, "Stories count: {}", 2)
+    if stories_value > 6:
+        logger.error("Max number of stories per user is 6")
+        stories_value = 6
+
+    _watch_stories(device, profile_view, username, stories_value, on_watch)
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
@@ -222,3 +235,55 @@ def _follow(device, username, follow_percentage):
     logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
     random_sleep()
     return True
+
+def _on_watch(sessions, session_state):
+    session_state = sessions[-1]
+    session_state.totalWatched += 1
+
+
+def _watch_stories(device, profile_view, username, stories_value, on_watch):
+    if stories_value == 0:
+        return False
+
+    if profile_view.haveStory():
+        stories_to_watch = randint(1, stories_value)
+        logger.debug(
+            "This user have a stories, going to watch {}/or max stories".format(
+                stories_to_watch
+            )
+        )
+
+        profile_picture = profile_view.profileImage()
+        if profile_picture.exists():
+            profile_picture.click()  # Open the first story
+            on_watch()
+            random_sleep()
+
+            if stories_to_watch > 1:
+                story_view = CurrentStoryView(device)
+                for _iter in range(0, stories_to_watch - 1):
+                    if story_view.getUsername() == username:
+                        try:
+                            storie_frame = story_view.getStoryFrame()
+                            if storie_frame.exists() and _iter != stories_to_watch:
+                                storie_frame.click("right")
+                                on_watch()
+                                random_sleep()
+                        except Exception:
+                            break
+                    else:
+                        break
+
+            for attempt in range(0, 4):
+                if profile_view.getUsername() != username:
+                    if attempt != 0:
+                        device.back()
+                        random_sleep()
+                    # Maybe it's just an error please one half seconds before search again for username tab
+                    # This little delay prevent too much back tap and to see more stories than stories_to_watch value
+                    else:
+                        sleep(0.5)
+                else:
+                    break
+            return True
+    return False

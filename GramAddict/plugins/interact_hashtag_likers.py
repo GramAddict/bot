@@ -10,6 +10,7 @@ from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
     _on_likes_limit_reached,
+    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -26,11 +27,11 @@ seed()
 
 
 class InteractHashtagLikers(Plugin):
-    """This plugin handles the functionality of interacting with a bloggers followers"""
+    """This plugin handles the functionality of interacting with a hashtags likers"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with a bloggers followers"
+        self.description = "This plugin handles the functionality of interacting with a hashtags likers"
         self.arguments = [
             {
                 "arg": "--hashtag-likers",
@@ -94,11 +95,13 @@ class InteractHashtagLikers(Plugin):
                     device,
                     source,
                     args.likes_count,
+                    args.stories_count,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     storage,
                     profile_filter,
                     on_like,
+                    on_watch,
                     on_interaction,
                 )
                 self.state.is_job_completed = True
@@ -117,19 +120,23 @@ class InteractHashtagLikers(Plugin):
         device,
         hashtag,
         likes_count,
+        stories_count,
         follow_percentage,
         follow_limit,
         storage,
         profile_filter,
         on_like,
+        on_watch,
         on_interaction,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=likes_count,
+            stories_count=stories_count,
             follow_percentage=follow_percentage,
             on_like=on_like,
+            on_watch=on_watch,
             profile_filter=profile_filter,
         )
 
