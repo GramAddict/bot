@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import unicodedata
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView
@@ -20,6 +21,7 @@ FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_FOLLOW_ONLY_PRIVATE = "follow_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
+FIELD_SPESIFIC_ALPHABET = "spesific_alphabet"
 
 
 class Filter:
@@ -47,6 +49,7 @@ class Filter:
         field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)
         field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
+        field_spesific_alphabet = self.conditions.get(FIELD_SPESIFIC_ALPHABET)
 
         if field_follow_only_private is not None:
             is_private = self._is_private_account(device)
@@ -131,7 +134,11 @@ class Filter:
                 return False
         return True
 
-        if field_blacklist_words is not None or field_mandatory_words is not None:
+        if (
+            field_blacklist_words is not None
+            or field_mandatory_words is not None
+            or field_spesific_alphabet is not None
+        ):
             biography_text = self._get_profile_biography(device)
             # If we found a blacklist word return False
             if field_blacklist_words is not None:
@@ -162,6 +169,30 @@ class Filter:
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
+
+            if field_spesific_alphabet is not None:
+                if biography_text != "":
+                    biography_text = biography_text.replace("\n", "")
+                    alphabet = self._find_alphabeth(biography_text)
+
+                    if alphabet != field_spesific_alphabet and alphabet != "":
+                        logger.info(
+                            f"@{username}'s biography alphabet is not wanted. ({alphabet})",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+                else:
+                    fullname = self._get_fullname(device)
+
+                    if fullname != "":
+                        alphabet = self._find_alphabeth(fullname)
+                        if alphabet != field_spesific_alphabet and alphabet != "":
+                            logger.info(
+                                f"@{username}'s name alphabet is not wanted. ({alphabet})",
+                                extra={"color": f"{Fore.GREEN}"},
+                            )
+                            return False
+        return True
 
     def can_follow_private_or_empty(self):
         if self.conditions is None:
@@ -214,3 +245,29 @@ class Filter:
     def _get_profile_biography(device):
         profileView = ProfileView(device)
         return profileView.getProfileBiography()
+
+    @staticmethod
+    def _find_alphabeth(biography):
+        a_dict = {}
+        max_alph = ""
+        for x in range(0, len(biography)):
+            if biography[x].isalpha():
+                a = unicodedata.name(biography[x]).split(" ")[0]
+                if a in a_dict:
+                    a_dict[a] += 1
+                else:
+                    a_dict[a] = 1
+        if bool(a_dict):
+            max_alph = max(a_dict, key=lambda k: a_dict[k])
+
+        return max_alph
+
+    @staticmethod
+    def _get_fullname(device):
+        profileView = ProfileView(device)
+        fullname = ""
+        try:
+            fullname = profileView.getFullName()
+        except Exception:
+            logger.error("Cannot find fullname.")
+        return fullname
