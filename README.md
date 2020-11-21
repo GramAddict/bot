@@ -131,7 +131,8 @@ Full list of filters:
 
   "min_potency_ratio"         These provides us to filter accounts according their followers/followings ratio.
   "max_potency_ratio"         If an account's followers/following ratio is not between these ratios, 
-                              it won't be interacted.
+                              it won't be interacted. You don't have to set both of them though. You can just
+                              set min_potency or just max_potency. Their default values are 0 and 999.
                               (e.g. EXACC has 500 followers and 1000 followings. That means its ratio is 0.5 
                               If you set your "min_potency_ratio": 0.2 and 
                               "max_potency_ratio": 0.7 It will be interacted.)

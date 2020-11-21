@@ -78,6 +78,7 @@ class Filter:
             or field_min_followings is not None
             or field_max_followings is not None
             or field_min_potency_ratio is not None
+            or field_max_potency_ratio is not None
         ):
             followers, followings = self._get_followers_and_followings(device)
             if followers != None and followings != None:
@@ -113,20 +114,26 @@ class Filter:
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
+
                 if (
                     field_min_potency_ratio is not None
-                    and field_max_potency_ratio is not None
-                    and (
+                    or field_max_potency_ratio is not None
+                ):
+                    if field_min_potency_ratio is None:
+                        field_min_potency_ratio = 0
+                    if field_max_potency_ratio is None:
+                        field_max_potency_ratio = 999
+                    if (
                         int(followings) == 0
                         or followers / followings < float(field_min_potency_ratio)
                         or followers / followings > float(field_max_potency_ratio)
-                    )
-                ):
-                    logger.info(
-                        f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
+                    ):
+                        logger.info(
+                            f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+
             else:
                 logger.critical(
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
