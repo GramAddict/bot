@@ -17,11 +17,12 @@ FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
 FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
+FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_FOLLOW_ONLY_PRIVATE = "follow_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
-FIELD_SPESIFIC_ALPHABET = "spesific_alphabet"
+FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
 
 
 class Filter:
@@ -45,11 +46,12 @@ class Filter:
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
-        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
+        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO, 0)
+        field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
         field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)
         field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
-        field_spesific_alphabet = self.conditions.get(FIELD_SPESIFIC_ALPHABET)
+        field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
         if field_follow_only_private is not None:
             is_private = self._is_private_account(device)
@@ -83,6 +85,7 @@ class Filter:
             or field_min_followings is not None
             or field_max_followings is not None
             or field_min_potency_ratio is not None
+            or field_max_potency_ratio is not None
         ):
             followers, followings = self._get_followers_and_followings(device)
             if followers is not None and followings is not None:
@@ -118,15 +121,19 @@ class Filter:
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
-                if field_min_potency_ratio is not None and (
-                    int(followings) == 0
-                    or followers / followings < float(field_min_potency_ratio)
-                ):
-                    logger.info(
-                        f"@{username}'s potency ratio is less than {field_min_potency_ratio}, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
+
+                if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
+                    if (
+                        int(followings) == 0
+                        or followers / followings < float(field_min_potency_ratio)
+                        or followers / followings > float(field_max_potency_ratio)
+                    ):
+                        logger.info(
+                            f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+
             else:
                 logger.critical(
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
@@ -170,12 +177,12 @@ class Filter:
                     )
                     return False
 
-            if field_spesific_alphabet is not None:
+            if field_specific_alphabet is not None:
                 if biography_text != "":
                     biography_text = biography_text.replace("\n", "")
-                    alphabet = self._find_alphabeth(biography_text)
+                    alphabet = self._find_alphabet(biography_text)
 
-                    if alphabet != field_spesific_alphabet and alphabet != "":
+                    if alphabet != field_specific_alphabet and alphabet != "":
                         logger.info(
                             f"@{username}'s biography alphabet is not wanted. ({alphabet})",
                             extra={"color": f"{Fore.GREEN}"},
@@ -247,7 +254,7 @@ class Filter:
         return profileView.getProfileBiography()
 
     @staticmethod
-    def _find_alphabeth(biography):
+    def _find_alphabet(biography):
         a_dict = {}
         max_alph = ""
         for x in range(0, len(biography)):

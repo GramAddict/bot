@@ -106,6 +106,54 @@ Full list of command line arguments:
                         if you want to use that function!
 ```
 
+Full list of filters:
+```
+  "skip_business"             If it is true, business acounts won't be interacted.
+                              (e.g. "skip_business": true)
+  "skip_non_business"         If it is true, private accounts and public accounts won't be interacted.
+                              (e.g. "skip_non_business": true)
+
+  "min_followers"             It is the lower follower bound for an account that can be interacted.
+                              If an account has less followers than this amount, it wont be interacted. 
+                              (e.g. "min_followers": 100)
+
+  "max_followers"             It is the upper follower bound for an account that can be interacted.
+                              If an account has more followers than this amount, it wont be interacted. 
+                              (e.g "max_followers": 1000)
+
+  "min_followings"            It is the lower following bound for an account that can be interacted.
+                              If an account has less followings than this amount, it wont be interacted. 
+                              (e.g. "min_followings": 300)
+  
+  "max_followings"            It is the upper following bound for an account that can be interacted.
+                              If an account has more followings than this amount, it wont be interacted. 
+                              (e.g. "max_followings": 800)
+
+  "min_potency_ratio"         These provides us to filter accounts according their followers/followings ratio.
+  "max_potency_ratio"         If an account's followers/following ratio is not between these ratios, 
+                              it won't be interacted. You don't have to set both of them though. You can just
+                              set min_potency or just max_potency. Their default values are 0 and 999.
+                              (e.g. EXACC has 500 followers and 1000 followings. That means its ratio is 0.5 
+                              If you set your "min_potency_ratio": 0.2 and 
+                              "max_potency_ratio": 0.7 It will be interacted.)
+  
+  "follow_private_or_empty"   If it is false, private accounts or public accounts 
+                              that has no posts won't be interacted. 
+                              (e.g. "follow_private_or_empty": false)
+
+  "follow_only_private"       Be careful this filter is for only following, no likes. It will follow
+                              an account if it is private. 
+                              (e.g. "follow_only_private": true)
+
+  "min_posts"                 You can specify the minumum post number that an account should have. 
+                              (e.g. "min_posts": 7)
+
+  "max_digits_in_profile_name"  You can set a upper digit bound so that accounts which have more digits 
+                                than the limit won't be interacted.
+                                (e.g. "max_digits_in_profile_name": 4)
+
+```
+
 ### FAQ
 - How to stop the script? _Ctrl+C (control+C for Mac)_
 - Can I prevent my phone from falling asleep while the script is working? _Yes. Settings -> Developer Options -> Stay awake._
