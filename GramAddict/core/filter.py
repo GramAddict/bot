@@ -19,7 +19,7 @@ FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
-FIELD_FOLLOW_ONLY_PRIVATE = "follow_only_private"
+FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
@@ -50,13 +50,13 @@ class Filter:
         field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
         field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS, [])
         field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS, [])
-        field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
+        field_interact_only_private = self.conditions.get(FIELD_INTERACT_ONLY_PRIVATE)
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
-        if field_follow_only_private is not None:
+        if field_interact_only_private is not None:
             is_private = self._is_private_account(device)
 
-            if field_follow_only_private and is_private is False:
+            if field_interact_only_private and is_private is False:
 
                 logger.info(
                     f"@{username} has public account, skip.",

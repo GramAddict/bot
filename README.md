@@ -141,8 +141,8 @@ Full list of filters:
                               that has no posts won't be interacted. 
                               (e.g. "follow_private_or_empty": false)
 
-  "follow_only_private"       Be careful this filter is for only following, no likes. It will follow
-                              an account if it is private. 
+  "interact_only_private"     If it is set to true, only private accounts will be interacted with. 
+                              No public accounts will be interacted with.
                               (e.g. "follow_only_private": true)
 
   "min_posts"                 You can specify the minumum post number that an account should have. 
