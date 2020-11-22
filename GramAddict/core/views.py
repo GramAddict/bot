@@ -629,6 +629,38 @@ class ProfileView(ActionBarView):
 
         return username, followers, following
 
+    def getProfileBiography(self):
+        biography = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/profile_header_bio_text"
+            ),
+            className="android.widget.TextView",
+        )
+        if biography.exists():
+            biography_text = biography.get_text()
+            # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
+            is_long_bio = re.compile(
+                r"\b({0})\b".format("more"), flags=re.IGNORECASE
+            ).search(biography_text)
+            if is_long_bio is not None:
+                biography.click("bottom")
+                return biography.get_text()
+            return biography_text
+        return ""
+
+    def getFullName(self):
+        full_name_view = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                "com.instagram.android:id/profile_header_full_name"
+            ),
+            className="android.widget.TextView",
+        )
+        if full_name_view.exists():
+            fullname_text = full_name_view.get_text()
+            if fullname_text is not None:
+                return fullname_text
+        return ""
+
     def isPrivateAccount(self):
         private_profile_view = self.device.find(
             resourceIdMatches=case_insensitive_re(
