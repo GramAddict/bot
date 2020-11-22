@@ -3,6 +3,7 @@ import os
 import subprocess
 import re
 import shutil
+from subprocess import PIPE
 import sys
 import urllib3
 from datetime import datetime
@@ -78,7 +79,7 @@ def open_instagram_with_url(device_id, url):
         + ("" if device_id is None else " -s " + device_id)
         + " shell am start -a android.intent.action.VIEW -d {}".format(url)
     )
-    cmd_res = subprocess.run(cmd, capture_output=True, shell=True, encoding="utf8")
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     random_sleep()
     if err:
@@ -94,7 +95,7 @@ def open_instagram(device_id):
         + ("" if device_id is None else " -s " + device_id)
         + " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity"
     )
-    cmd_res = subprocess.run(cmd, capture_output=True, shell=True, encoding="utf8")
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     if err:
         logger.debug(err)
