@@ -40,8 +40,8 @@ class Filter:
         if self.conditions is None:
             return True
 
-        field_skip_business = self.conditions.get(FIELD_SKIP_BUSINESS)
-        field_skip_non_business = self.conditions.get(FIELD_SKIP_NON_BUSINESS)
+        field_skip_business = self.conditions.get(FIELD_SKIP_BUSINESS, False)
+        field_skip_non_business = self.conditions.get(FIELD_SKIP_NON_BUSINESS, False)
         field_min_followers = self.conditions.get(FIELD_MIN_FOLLOWERS)
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
@@ -50,10 +50,13 @@ class Filter:
         field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
         field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS, [])
         field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS, [])
-        field_interact_only_private = self.conditions.get(FIELD_INTERACT_ONLY_PRIVATE)
+        field_interact_only_private = self.conditions.get(
+            FIELD_INTERACT_ONLY_PRIVATE, False
+        )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
-        if field_interact_only_private is not None:
+        if field_interact_only_private:
+            logger.debug("Checking if account is private...")
             is_private = self._is_private_account(device)
 
             if field_interact_only_private and is_private is False:
@@ -64,7 +67,8 @@ class Filter:
                 )
                 return False
 
-        if field_skip_business is not None or field_skip_non_business is not None:
+        if field_skip_business or field_skip_non_business:
+            logger.debug("Checking if account is a business...")
             has_business_category = self._has_business_category(device)
             if field_skip_business and has_business_category is True:
                 logger.info(
@@ -87,6 +91,9 @@ class Filter:
             or field_min_potency_ratio is not None
             or field_max_potency_ratio is not None
         ):
+            logger.debug(
+                "Checking if account is within follower/following parameters..."
+            )
             followers, followings = self._get_followers_and_followings(device)
             if followers is not None and followings is not None:
                 if field_min_followers is not None and followers < int(
@@ -139,58 +146,70 @@ class Filter:
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
                 return False
+        if (
+            len(field_blacklist_words) > 0
+            or len(field_mandatory_words) > 0
+            or field_specific_alphabet is not None
+        ):
+            logger.debug("Pulling biography...")
+            biography = self._get_profile_biography(device)
 
-        if len(field_blacklist_words) > 0:
-            # If we found a blacklist word return False
-            for w in field_blacklist_words:
-                blacklist_words = re.compile(
-                    r"\b({0})\b".format(w), flags=re.IGNORECASE
-                ).search(self._get_profile_biography(device))
-                if blacklist_words is not None:
-                    logger.info(
-                        f"@{username} found a blacklisted word '{w}' in biography, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
-
-        if len(field_mandatory_words) > 0:
-            mandatory_words = [
-                w
-                for w in field_mandatory_words
-                if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
-                    self._get_profile_biography(device)
+            if len(field_blacklist_words) > 0:
+                logger.debug(
+                    "Checking if account has blacklisted words in biography..."
                 )
-                is not None
-            ]
-            if mandatory_words == []:
-                logger.info(
-                    f"@{username} mandatory words not found in biography, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-
-        if field_specific_alphabet is not None:
-            if self._get_profile_biography(device) != "":
-                biography_text = self._get_profile_biography(device).replace("\n", "")
-                alphabet = self._find_alphabet(biography_text)
-
-                if alphabet != field_specific_alphabet and alphabet != "":
-                    logger.info(
-                        f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
-            else:
-                fullname = self._get_fullname(device)
-
-                if fullname != "":
-                    alphabet = self._find_alphabet(fullname)
-                    if alphabet != field_specific_alphabet and alphabet != "":
+                # If we found a blacklist word return False
+                for w in field_blacklist_words:
+                    blacklist_words = re.compile(
+                        r"\b({0})\b".format(w), flags=re.IGNORECASE
+                    ).search(biography)
+                    if blacklist_words is not None:
                         logger.info(
-                            f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
+                            f"@{username} found a blacklisted word '{w}' in biography, skip.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
                         return False
+
+            if len(field_mandatory_words) > 0:
+                logger.debug("Checking if account has mandatory words in biography...")
+                mandatory_words = [
+                    w
+                    for w in field_mandatory_words
+                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
+                        biography
+                    )
+                    is not None
+                ]
+                if mandatory_words == []:
+                    logger.info(
+                        f"@{username} mandatory words not found in biography, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
+            if field_specific_alphabet is not None:
+                logger.debug("Checking primary character set of account biography...")
+                if biography != "":
+                    biography = biography.replace("\n", "")
+                    alphabet = self._find_alphabet(biography)
+
+                    if alphabet != field_specific_alphabet and alphabet != "":
+                        logger.info(
+                            f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+                else:
+                    fullname = self._get_fullname(device)
+
+                    if fullname != "":
+                        alphabet = self._find_alphabet(fullname)
+                        if alphabet != field_specific_alphabet and alphabet != "":
+                            logger.info(
+                                f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
+                                extra={"color": f"{Fore.GREEN}"},
+                            )
+                            return False
 
         # If no filters return false, we are good to proceed
         return True
