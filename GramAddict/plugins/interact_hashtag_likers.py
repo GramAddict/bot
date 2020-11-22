@@ -88,7 +88,7 @@ class InteractHashtagLikers(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if args.stories_count != 0:
+            if args.stories_count != "0":
                 stories_percentage = get_value(
                     args.stories_percentage, "Chance of watching stories: {}%", 40
                 )
