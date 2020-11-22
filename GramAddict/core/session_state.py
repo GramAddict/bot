@@ -13,6 +13,7 @@ class SessionState:
     successfulInteractions = {}
     totalFollowed = {}
     totalLikes = 0
+    totalWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
     startTime = None
@@ -28,6 +29,7 @@ class SessionState:
         self.successfulInteractions = {}
         self.totalFollowed = {}
         self.totalLikes = 0
+        self.totalWatched = 0
         self.totalUnfollowed = 0
         self.removedMassFollowers = []
         self.startTime = datetime.now()
@@ -65,6 +67,7 @@ class SessionStateEncoder(JSONEncoder):
             ),
             "total_followed": sum(session_state.totalFollowed.values()),
             "total_likes": session_state.totalLikes,
+            "total_watched": session_state.totalWatched,
             "total_unfollowed": session_state.totalUnfollowed,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),

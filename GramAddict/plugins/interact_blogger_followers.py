@@ -10,6 +10,7 @@ from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
     _on_likes_limit_reached,
+    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -90,6 +91,17 @@ class InteractBloggerFollowers(Plugin):
                 _on_like, sessions=self.sessions, session_state=self.session_state
             )
 
+            on_watch = partial(
+                _on_watch, sessions=self.sessions, session_state=self.session_state
+            )
+
+            if args.stories_count != "0":
+                stories_percentage = get_value(
+                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                )
+            else:
+                stories_percentage = 0
+
             @run_safely(
                 device=device,
                 device_id=self.device_id,
@@ -101,11 +113,14 @@ class InteractBloggerFollowers(Plugin):
                     device,
                     source[1:] if "@" in source else source,
                     args.likes_count,
+                    args.stories_count,
+                    stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     storage,
                     profile_filter,
                     on_like,
+                    on_watch,
                     on_interaction,
                 )
                 self.state.is_job_completed = True
@@ -124,11 +139,14 @@ class InteractBloggerFollowers(Plugin):
         device,
         username,
         likes_count,
+        stories_count,
+        stories_percentage,
         follow_percentage,
         follow_limit,
         storage,
         profile_filter,
         on_like,
+        on_watch,
         on_interaction,
     ):
         is_myself = username == self.session_state.my_username
@@ -136,8 +154,11 @@ class InteractBloggerFollowers(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=likes_count,
+            stories_count=stories_count,
+            stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             on_like=on_like,
+            on_watch=on_watch,
             profile_filter=profile_filter,
         )
         is_follow_limit_reached = partial(

@@ -1,5 +1,6 @@
 import logging
 import re
+import datetime
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
@@ -528,6 +529,7 @@ class ProfileView(ActionBarView):
         re_case_insensitive = case_insensitive_re(
             [
                 "com.instagram.android:id/title_view",
+                "com.instagram.android:id/action_bar_title",
                 "com.instagram.android:id/action_bar_large_title",
                 "com.instagram.android:id/action_bar_textview_title",
             ]
@@ -536,11 +538,12 @@ class ProfileView(ActionBarView):
             resourceIdMatches=re_case_insensitive, className="android.widget.TextView"
         )
 
-    def getUsername(self):
+    def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
             return title_view.get_text()
-        logger.error("Cannot get username")
+        if error:
+            logger.error("Cannot get username")
         return None
 
     def _parseCounter(self, text):
@@ -670,6 +673,18 @@ class ProfileView(ActionBarView):
         )
         return private_profile_view.exists()
 
+    def haveStory(self):
+        return self.device.find(
+            resourceId="com.instagram.android:id/reel_ring",
+            className="android.view.View",
+        ).exists()
+
+    def profileImage(self):
+        return self.device.find(
+            resourceId="com.instagram.android:id/row_profile_header_imageview",
+            className="android.widget.ImageView",
+        )
+
     def navigateToFollowers(self):
         logger.debug("Navigate to Followers")
         FOLLOWERS_BUTTON_ID_REGEX = case_insensitive_re(
@@ -733,6 +748,50 @@ class ProfileView(ActionBarView):
             save_crash(self.device)
         else:
             button.click()
+
+
+class CurrentStoryView:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def getStoryFrame(self):
+        return self.device.find(
+            resourceId="com.instagram.android:id/reel_viewer_image_view",
+            className="android.widget.FrameLayout",
+        )
+
+    def getUsername(self):
+        reel_viewer_title = self.device.find(
+            resourceId="com.instagram.android:id/reel_viewer_title",
+            className="android.widget.TextView",
+        )
+        return "" if not reel_viewer_title.exists() else reel_viewer_title.get_text()
+
+    def getTimestamp(self):
+        reel_viewer_timestamp = self.device.find(
+            resourceId="com.instagram.android:id/reel_viewer_timestamp",
+            className="android.widget.TextView",
+        )
+        if reel_viewer_timestamp.exists():
+            timestamp = reel_viewer_timestamp.get_text().strip()
+            value = int(re.sub("[^0-9]", "", timestamp))
+            if timestamp[-1] == "s":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(seconds=value)
+                )
+            elif timestamp[-1] == "m":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(minutes=value)
+                )
+            elif timestamp[-1] == "h":
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(hours=value)
+                )
+            else:
+                return datetime.timestamp(
+                    datetime.datetime.now() - datetime.timedelta(days=value)
+                )
+        return ""
 
 
 class LanguageNotEnglishException(Exception):

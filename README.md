@@ -66,6 +66,9 @@ Full list of command line arguments:
   --likes-count 2-4     number of likes for each interacted user, 2 by
                         default. It can be a number (e.g. 2) or a range (e.g.
                         2-4)
+  --stories-count 2-4   number of stories for each interacted user, 2 by
+                        default. It can be a number (e.g. 2) or a range (e.g.
+                        2-4)
   --total-likes-limit 300
                         limit on total amount of likes during the session, 300
                         by default
