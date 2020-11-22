@@ -55,6 +55,18 @@ class Filter:
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
+        if field_interact_only_private:
+            logger.debug("Checking if account is private...")
+            is_private = self._is_private_account(device)
+
+            if field_interact_only_private and is_private is False:
+
+                logger.info(
+                    f"@{username} has public account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
         if (
             field_min_followers is not None
             or field_max_followers is not None
@@ -116,18 +128,6 @@ class Filter:
             else:
                 logger.critical(
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
-                )
-                return False
-
-        if field_interact_only_private:
-            logger.debug("Checking if account is private...")
-            is_private = self._is_private_account(device)
-
-            if field_interact_only_private and is_private is False:
-
-                logger.info(
-                    f"@{username} has public account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
 
