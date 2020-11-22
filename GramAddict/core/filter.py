@@ -41,9 +41,8 @@ class Filter:
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
-        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
-        field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO)
-
+        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO, 0)
+        field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
 
         if field_follow_only_private is not None:
@@ -115,14 +114,7 @@ class Filter:
                     )
                     return False
 
-                if (
-                    field_min_potency_ratio is not None
-                    or field_max_potency_ratio is not None
-                ):
-                    if field_min_potency_ratio is None:
-                        field_min_potency_ratio = 0
-                    if field_max_potency_ratio is None:
-                        field_max_potency_ratio = 999
+                if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
                     if (
                         int(followings) == 0
                         or followers / followings < float(field_min_potency_ratio)
