@@ -15,6 +15,7 @@ FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
 FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
+FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_FOLLOW_ONLY_PRIVATE = "follow_only_private"
 
@@ -40,8 +41,8 @@ class Filter:
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
-        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO)
-
+        field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO, 0)
+        field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
 
         if field_follow_only_private is not None:
@@ -76,6 +77,7 @@ class Filter:
             or field_min_followings is not None
             or field_max_followings is not None
             or field_min_potency_ratio is not None
+            or field_max_potency_ratio is not None
         ):
             followers, followings = self._get_followers_and_followings(device)
             if followers != None and followings != None:
@@ -111,15 +113,19 @@ class Filter:
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
-                if field_min_potency_ratio is not None and (
-                    int(followings) == 0
-                    or followers / followings < float(field_min_potency_ratio)
-                ):
-                    logger.info(
-                        f"@{username}'s potency ratio is less than {field_min_potency_ratio}, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return False
+
+                if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
+                    if (
+                        int(followings) == 0
+                        or followers / followings < float(field_min_potency_ratio)
+                        or followers / followings > float(field_max_potency_ratio)
+                    ):
+                        logger.info(
+                            f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        return False
+
             else:
                 logger.critical(
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
