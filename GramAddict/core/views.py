@@ -538,11 +538,12 @@ class ProfileView(ActionBarView):
             resourceIdMatches=re_case_insensitive, className="android.widget.TextView"
         )
 
-    def getUsername(self):
+    def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
             return title_view.get_text()
-        logger.error("Cannot get username")
+        if error:
+            logger.error("Cannot get username")
         return None
 
     def _parseCounter(self, text):

@@ -28,6 +28,7 @@ def interact_with_user(
     likes_count,
     on_like,
     stories_count,
+    stories_percentage,
     on_watch,
     can_follow,
     follow_percentage,
@@ -65,12 +66,9 @@ def interact_with_user(
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
 
-    stories_value = get_value(stories_count, "Stories count: {}", 2)
-    if stories_value > 6:
-        logger.error("Max number of stories per user is 6")
-        stories_value = 6
-
-    _watch_stories(device, profile_view, username, stories_value, on_watch)
+    _watch_stories(
+        device, profile_view, username, stories_count, stories_percentage, on_watch
+    )
 
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
@@ -248,7 +246,19 @@ def _on_watch(sessions, session_state):
     session_state.totalWatched += 1
 
 
-def _watch_stories(device, profile_view, username, stories_to_watch, on_watch):
+def _watch_stories(
+    device, profile_view, username, stories_to_watch, stories_percentage, on_watch
+):
+    story_chance = randint(1, 100)
+    if story_chance > stories_percentage:
+        return False
+
+    stories_to_watch = get_value(stories_to_watch, "Stories count: {}", 0)
+
+    if stories_to_watch > 6:
+        logger.error("Max number of stories per user is 6")
+        stories_to_watch = 6
+
     if stories_to_watch == 0:
         return False
 
@@ -262,7 +272,7 @@ def _watch_stories(device, profile_view, username, stories_to_watch, on_watch):
             if stories_to_watch > 1:
                 story_view = CurrentStoryView(device)
                 for _iter in range(0, stories_to_watch - 1):
-                    if story_view.getUsername() == username:
+                    if story_view.getUsername(error=False) == username:
                         try:
                             story_frame = story_view.getStoryFrame()
                             if story_frame.exists() and _iter <= stories_to_watch - 1:
@@ -275,7 +285,7 @@ def _watch_stories(device, profile_view, username, stories_to_watch, on_watch):
                         break
 
             for attempt in range(0, 4):
-                if profile_view.getUsername() != username:
+                if profile_view.getUsername(error=False) != username:
                     if attempt != 0:
                         device.back()
                     # Maybe it's just an error please one half seconds before search again for username tab

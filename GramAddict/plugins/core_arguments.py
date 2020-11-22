@@ -34,9 +34,16 @@ class CoreArguments(Plugin):
             {
                 "arg": "--stories-count",
                 "nargs": None,
-                "help": "number of stories to watch for each user, 2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "help": "number of stories to watch for each user, 0 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
                 "metavar": "2-4",
-                "default": "1-2",
+                "default": "0",
+            },
+            {
+                "arg": "--stories-percentage",
+                "nargs": None,
+                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "metavar": "50-70",
+                "default": "30-40",
             },
             {
                 "arg": "--interactions-count",
