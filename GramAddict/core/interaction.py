@@ -80,12 +80,12 @@ def interact_with_user(
         if opened_post_view:
             like_succeed = do_like(opened_post_view, device, on_like)
 
-            logger.info("Back to profile")
-            device.back()
-
         if not opened_post_view or not like_succeed:
             reason = "open" if not opened_post_view else "like"
             logger.info(f"Could not {reason} photo. Posts count: {posts_count}")
+
+            logger.info("Back to profile")
+            device.back()
 
             if can_follow and profile_filter.can_follow_private_or_empty():
                 followed = _follow(device, username, follow_percentage)
@@ -117,6 +117,8 @@ def do_like(opened_post_view, device, on_like):
         on_like()
     else:
         logger.warning("Fail to like post. Let's continue...")
+
+    return like_succeed
 
 
 def is_follow_limit_reached_for_source(session_state, follow_limit, source):
