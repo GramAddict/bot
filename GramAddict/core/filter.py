@@ -48,8 +48,8 @@ class Filter:
         field_max_followings = self.conditions.get(FIELD_MAX_FOLLOWINGS)
         field_min_potency_ratio = self.conditions.get(FIELD_MIN_POTENCY_RATIO, 0)
         field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
-        field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS)
-        field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS)
+        field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS, [])
+        field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS, [])
         field_follow_only_private = self.conditions.get(FIELD_FOLLOW_ONLY_PRIVATE)
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
@@ -139,20 +139,14 @@ class Filter:
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
                 return False
-        return True
 
-        if (
-            field_blacklist_words is not None
-            or field_mandatory_words is not None
-            or field_spesific_alphabet is not None
-        ):
-            biography_text = self._get_profile_biography(device)
+        if len(field_blacklist_words) > 0:
             # If we found a blacklist word return False
-            if field_blacklist_words is not None:
+            if len(field_blacklist_words is not None:
                 for w in field_blacklist_words:
                     blacklist_words = re.compile(
                         r"\b({0})\b".format(w), flags=re.IGNORECASE
-                    ).search(biography_text)
+                    ).search(self._get_profile_biography(device))
                     if blacklist_words is not None:
                         logger.info(
                             f"@{username} found a blacklisted word '{w}' in biography, skip.",
@@ -160,45 +154,46 @@ class Filter:
                         )
                         return False
 
-            # For continue we need to find at least one of mandatory word
-            if field_mandatory_words is not None:
-                mandatory_words = [
-                    w
-                    for w in field_mandatory_words
-                    if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
-                        biography_text
-                    )
-                    is not None
-                ]
-                if mandatory_words == []:
+        if len(field_mandatory_words) > 0:
+            mandatory_words = [
+                w
+                for w in field_mandatory_words
+                if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
+                    self._get_profile_biography(device)
+                )
+                is not None
+            ]
+            if mandatory_words == []:
+                logger.info(
+                    f"@{username} mandatory words not found in biography, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
+        if field_specific_alphabet is not None:
+            if self._get_profile_biography(device) != "":
+                biography_text = self._get_profile_biography(device).replace("\n", "")
+                alphabet = self._find_alphabet(biography_text)
+
+                if alphabet != field_specific_alphabet and alphabet != "":
                     logger.info(
-                        f"@{username} mandatory words not found in biography, skip.",
+                        f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
+            else:
+                fullname = self._get_fullname(device)
 
-            if field_specific_alphabet is not None:
-                if biography_text != "":
-                    biography_text = biography_text.replace("\n", "")
-                    alphabet = self._find_alphabet(biography_text)
-
+                if fullname != "":
+                    alphabet = self._find_alphabet(fullname)
                     if alphabet != field_specific_alphabet and alphabet != "":
                         logger.info(
-                            f"@{username}'s biography alphabet is not wanted. ({alphabet})",
+                            f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip",
                             extra={"color": f"{Fore.GREEN}"},
                         )
                         return False
-                else:
-                    fullname = self._get_fullname(device)
-
-                    if fullname != "":
-                        alphabet = self._find_alphabeth(fullname)
-                        if alphabet != field_spesific_alphabet and alphabet != "":
-                            logger.info(
-                                f"@{username}'s name alphabet is not wanted. ({alphabet})",
-                                extra={"color": f"{Fore.GREEN}"},
-                            )
-                            return False
+    
+        # If no filters return false, we are good to proceed
         return True
 
     def can_follow_private_or_empty(self):
@@ -276,5 +271,5 @@ class Filter:
         try:
             fullname = profileView.getFullName()
         except Exception:
-            logger.error("Cannot find fullname.")
+            logger.error("Cannot find full name.")
         return fullname

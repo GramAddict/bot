@@ -11,7 +11,7 @@
     "follow_only_private": false,
     "min_posts": 7,
     "max_digits_in_profile_name": 4,
-    "blacklist_words": ["sex", "nude", "hot"],
-    "mandatory_words": ["pasta", "food", "pizza"],
-    "spesific_alphabet": "LATIN"
+    "blacklist_words": [],
+    "mandatory_words": [],
+    "specific_alphabet": "LATIN"
 }
