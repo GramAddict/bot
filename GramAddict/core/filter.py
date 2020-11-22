@@ -55,34 +55,6 @@ class Filter:
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
 
-        if field_interact_only_private:
-            logger.debug("Checking if account is private...")
-            is_private = self._is_private_account(device)
-
-            if field_interact_only_private and is_private is False:
-
-                logger.info(
-                    f"@{username} has public account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-
-        if field_skip_business or field_skip_non_business:
-            logger.debug("Checking if account is a business...")
-            has_business_category = self._has_business_category(device)
-            if field_skip_business and has_business_category is True:
-                logger.info(
-                    f"@{username} has business account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            if field_skip_non_business and has_business_category is False:
-                logger.info(
-                    f"@{username} has non business account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-
         if (
             field_min_followers is not None
             or field_max_followers is not None
@@ -146,6 +118,35 @@ class Filter:
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
                 return False
+
+        if field_interact_only_private:
+            logger.debug("Checking if account is private...")
+            is_private = self._is_private_account(device)
+
+            if field_interact_only_private and is_private is False:
+
+                logger.info(
+                    f"@{username} has public account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
+        if field_skip_business or field_skip_non_business:
+            logger.debug("Checking if account is a business...")
+            has_business_category = self._has_business_category(device)
+            if field_skip_business and has_business_category is True:
+                logger.info(
+                    f"@{username} has business account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+            if field_skip_non_business and has_business_category is False:
+                logger.info(
+                    f"@{username} has non business account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
         if (
             len(field_blacklist_words) > 0
             or len(field_mandatory_words) > 0
@@ -188,8 +189,10 @@ class Filter:
                     return False
 
             if field_specific_alphabet is not None:
-                logger.debug("Checking primary character set of account biography...")
                 if biography != "":
+                    logger.debug(
+                        "Checking primary character set of account biography..."
+                    )
                     biography = biography.replace("\n", "")
                     alphabet = self._find_alphabet(biography)
 
@@ -200,6 +203,7 @@ class Filter:
                         )
                         return False
                 else:
+                    logger.debug("Checking primary character set of name...")
                     fullname = self._get_fullname(device)
 
                     if fullname != "":
