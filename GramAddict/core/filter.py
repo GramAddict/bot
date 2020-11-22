@@ -23,6 +23,7 @@ FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
+IGNORE_CHARSETS = ["MATHEMATICAL"]
 
 
 class Filter:
@@ -277,10 +278,11 @@ class Filter:
         for x in range(0, len(biography)):
             if biography[x].isalpha():
                 a = unicodedata.name(biography[x]).split(" ")[0]
-                if a in a_dict:
-                    a_dict[a] += 1
-                else:
-                    a_dict[a] = 1
+                if a not in IGNORE_CHARSETS:
+                    if a in a_dict:
+                        a_dict[a] += 1
+                    else:
+                        a_dict[a] = 1
         if bool(a_dict):
             max_alph = max(a_dict, key=lambda k: a_dict[k])
 
