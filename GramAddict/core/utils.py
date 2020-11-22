@@ -8,6 +8,7 @@ import urllib3
 from datetime import datetime
 from random import randint, uniform
 from time import sleep
+from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
@@ -267,6 +268,14 @@ def get_value(count, name, default):
         value = default
         print_error()
     return value
+
+
+def validate_url(x):
+    try:
+        result = urlparse(x)
+        return all([result.scheme, result.netloc, result.path])
+    except:
+        return False
 
 
 class ActionBlockedError(Exception):

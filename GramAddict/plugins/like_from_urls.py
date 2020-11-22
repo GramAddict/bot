@@ -1,21 +1,14 @@
 import logging
 import os
-import validators
 from functools import partial
-from random import seed
-
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import random_sleep, open_instagram_with_url
+from GramAddict.core.utils import random_sleep, open_instagram_with_url, validate_url
 
 logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import OpenedPostView
-
-
-# Script Initialization
-seed()
 
 
 class LikeFromURLs(Plugin):
@@ -67,7 +60,7 @@ class LikeFromURLs(Plugin):
         def job():
             for url in self.urls:
                 url = url.strip().replace("\n", "")
-                if validators.url(url) and "instagram.com/p/" in url:
+                if validate_url(url) and "instagram.com/p/" in url:
                     if open_instagram_with_url(self.device_id, url) is True:
                         opened_post_view = OpenedPostView(device)
                         like_succeed = do_like(opened_post_view, device, on_like)
