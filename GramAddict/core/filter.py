@@ -177,7 +177,7 @@ class Filter:
 
                 if alphabet != field_specific_alphabet and alphabet != "":
                     logger.info(
-                        f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip",
+                        f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return False
@@ -188,7 +188,7 @@ class Filter:
                     alphabet = self._find_alphabet(fullname)
                     if alphabet != field_specific_alphabet and alphabet != "":
                         logger.info(
-                            f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip",
+                            f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
                         return False
