@@ -142,17 +142,16 @@ class Filter:
 
         if len(field_blacklist_words) > 0:
             # If we found a blacklist word return False
-            if len(field_blacklist_words is not None:
-                for w in field_blacklist_words:
-                    blacklist_words = re.compile(
-                        r"\b({0})\b".format(w), flags=re.IGNORECASE
-                    ).search(self._get_profile_biography(device))
-                    if blacklist_words is not None:
-                        logger.info(
-                            f"@{username} found a blacklisted word '{w}' in biography, skip.",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        return False
+            for w in field_blacklist_words:
+                blacklist_words = re.compile(
+                    r"\b({0})\b".format(w), flags=re.IGNORECASE
+                ).search(self._get_profile_biography(device))
+                if blacklist_words is not None:
+                    logger.info(
+                        f"@{username} found a blacklisted word '{w}' in biography, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
 
         if len(field_mandatory_words) > 0:
             mandatory_words = [
@@ -192,7 +191,7 @@ class Filter:
                             extra={"color": f"{Fore.GREEN}"},
                         )
                         return False
-    
+
         # If no filters return false, we are good to proceed
         return True
 
