@@ -272,7 +272,7 @@ def _watch_stories(
             if stories_to_watch > 1:
                 story_view = CurrentStoryView(device)
                 for _iter in range(0, stories_to_watch - 1):
-                    if story_view.getUsername(error=False) == username:
+                    if story_view.getUsername() == username:
                         try:
                             story_frame = story_view.getStoryFrame()
                             if story_frame.exists() and _iter <= stories_to_watch - 1:
