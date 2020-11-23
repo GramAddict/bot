@@ -1,8 +1,8 @@
 import logging
-from enum import Enum, unique
+
 from functools import partial
 from random import randint, seed, shuffle
-from time import sleep
+
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -18,12 +18,11 @@ from GramAddict.core.interaction import (
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep, save_crash
-from GramAddict.core.views import LanguageNotEnglishException, ProfileView
+from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.views import ProfileView
 
 logger = logging.getLogger(__name__)
 
-from GramAddict.core.views import TabBarView
 
 from GramAddict.core.navigation import open_user, open_likers
 
@@ -157,8 +156,6 @@ class InteractPostLikers(Plugin):
             return
 
         profile_view = ProfileView(device)
-        is_private = profile_view.isPrivateAccount()
-        posts_count = profile_view.getPostsCount()
         posts_tab_view = profile_view.navigateToPostsTab()
         if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
             logger.info("Scrolled down to see more posts.")
