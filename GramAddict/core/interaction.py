@@ -262,7 +262,7 @@ def _watch_stories(
     if stories_to_watch == 0:
         return False
 
-    if profile_view.haveStory():
+    if profile_view.isStoryAvailable():
         profile_picture = profile_view.profileImage()
         if profile_picture.exists():
             profile_picture.click()  # Open the first story

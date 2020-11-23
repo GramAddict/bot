@@ -673,7 +673,7 @@ class ProfileView(ActionBarView):
         )
         return private_profile_view.exists()
 
-    def haveStory(self):
+    def isStoryAvailable(self):
         return self.device.find(
             resourceId="com.instagram.android:id/reel_ring",
             className="android.view.View",
