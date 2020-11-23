@@ -63,7 +63,7 @@ class SessionState:
         total_followed = sum(self.totalFollowed.values()) >= int(
             args.total_follows_limit
         )
-        total_watched = self.totalWatched >= int(args.total_watch_limit)
+        total_watched = self.totalWatched >= int(args.total_watches_limit)
         total_successful = sum(self.successfulInteractions.values()) >= int(
             args.total_successful_interactions_limit
         )
@@ -75,7 +75,7 @@ class SessionState:
             "Checking session limits:",
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.total_likes_limit})",
             f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.total_follows_limit})",
-            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.total_watch_limit})",
+            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.total_watches_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.total_successful_interactions_limit})",
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.total_interactions_limit})",
         ]
@@ -88,11 +88,8 @@ class SessionState:
                 for line in session_info:
                     logger.debug(line)
 
-            return (
-                total_likes
-                and total_followed
-                and total_unfollowed
-                and (total_interactions or total_successful)
+            return (total_likes and total_followed) or (
+                total_interactions or total_successful
             )
 
         elif limit_type == "LIKES":

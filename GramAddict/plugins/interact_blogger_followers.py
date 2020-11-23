@@ -9,7 +9,6 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
-    _on_likes_limit_reached,
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
@@ -55,12 +54,12 @@ class InteractBloggerFollowers(Plugin):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
+        self.args = args
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -77,11 +76,8 @@ class InteractBloggerFollowers(Plugin):
             its_you = is_myself and " (it's you)" or ""
             logger.info(f"Handle {source} {its_you}")
 
-            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
-
             on_interaction = partial(
                 _on_interaction,
-                on_likes_limit_reached=on_likes_limit_reached,
                 likes_limit=int(args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
@@ -89,7 +85,7 @@ class InteractBloggerFollowers(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
-                args=args,
+                args=self.args,
             )
 
             on_like = partial(
@@ -164,6 +160,8 @@ class InteractBloggerFollowers(Plugin):
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,

@@ -34,7 +34,6 @@ class LikeFromURLs(Plugin):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None

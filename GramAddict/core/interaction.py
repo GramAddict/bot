@@ -33,6 +33,8 @@ def interact_with_user(
     can_follow,
     follow_percentage,
     profile_filter,
+    args,
+    session_state,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -60,14 +62,21 @@ def interact_with_user(
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
-            followed = _follow(device, username, follow_percentage)
+            followed = _follow(device, username, follow_percentage, args, session_state)
         else:
             followed = False
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
 
     _watch_stories(
-        device, profile_view, username, stories_count, stories_percentage, on_watch
+        device,
+        profile_view,
+        username,
+        stories_count,
+        stories_percentage,
+        on_watch,
+        args,
+        session_state,
     )
 
     posts_tab_view = profile_view.navigateToPostsTab()
@@ -99,7 +108,9 @@ def interact_with_user(
             logger.info(f"Could not {reason} photo. Posts count: {posts_count}")
 
             if can_follow and profile_filter.can_follow_private_or_empty():
-                followed = _follow(device, username, follow_percentage)
+                followed = _follow(
+                    device, username, follow_percentage, args, session_state
+                )
             else:
                 followed = False
 
@@ -109,7 +120,7 @@ def interact_with_user(
 
         random_sleep()
     if can_follow:
-        return True, _follow(device, username, follow_percentage)
+        return True, _follow(device, username, follow_percentage, args, session_state)
 
     return True, False
 
@@ -151,7 +162,6 @@ def _on_interaction(
     followed,
     interactions_limit,
     likes_limit,
-    on_likes_limit_reached,
     sessions,
     session_state,
     args,
@@ -162,15 +172,7 @@ def _on_interaction(
     can_continue = True
 
     if session_state.check_limit(args, limit_type="LIKES", output=False):
-        logger.info("Reached total likes limit, finish.")
-        can_continue = False
-
-    if session_state.check_limit(args, limit_type="SUCCESS", output=False):
-        logger.info("Reached total successful interactions limit, finish.")
-        can_continue = False
-
-    if session_state.check_limit(args, limit_type="TOTAL", output=False):
-        logger.info("Reached total interactions limit, finish.")
+        logger.info("Reached interaction limit, finish.")
         can_continue = False
 
     successful_interactions_count = session_state.successfulInteractions.get(source)
@@ -189,7 +191,7 @@ def _on_interaction(
     return can_continue
 
 
-def _follow(device, username, follow_percentage):
+def _follow(device, username, follow_percentage, args, session_state):
     if not session_state.check_limit(args, limit_type="FOLLOWS", output=False):
         follow_chance = randint(1, 100)
         if follow_chance > follow_percentage:
@@ -256,7 +258,14 @@ def _on_watch(sessions, session_state):
 
 
 def _watch_stories(
-    device, profile_view, username, stories_to_watch, stories_percentage, on_watch
+    device,
+    profile_view,
+    username,
+    stories_to_watch,
+    stories_percentage,
+    on_watch,
+    args,
+    session_state,
 ):
     if not session_state.check_limit(args, limit_type="WATCH", output=False):
         story_chance = randint(1, 100)

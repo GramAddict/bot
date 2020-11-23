@@ -23,7 +23,6 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
-    _on_likes_limit_reached,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -69,7 +68,6 @@ class ForceIteract(Plugin):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None
@@ -87,11 +85,8 @@ class ForceIteract(Plugin):
             its_you = is_myself and " (it's you)" or ""
             logger.info(f"Handle {source} {its_you}")
 
-            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
-
             on_interaction = partial(
                 _on_interaction,
-                on_likes_limit_reached=on_likes_limit_reached,
                 likes_limit=int(args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
@@ -137,12 +132,8 @@ class ForceIteract(Plugin):
 
             while (
                 not self.state.is_job_completed
-                and not self.state.is_likes_limit_reached
             ):
                 job()
-
-            if self.state.is_likes_limit_reached:
-                break
 
     def handle_blogger(
         self,
