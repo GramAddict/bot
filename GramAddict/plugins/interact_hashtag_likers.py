@@ -128,9 +128,8 @@ class InteractHashtagLikers(Plugin):
                 )
                 self.state.is_job_completed = True
 
-            while (
-                not self.state.is_job_completed
-                and not self.state.is_likes_limit_reached
+            while not self.state.is_job_completed and (
+                not self.state.is_likes_limit_reached or not limit_reached
             ):
                 job()
 

@@ -113,12 +113,13 @@ def run():
                 logger.warn(
                     'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
                 )
-                if "#" in args.interact[0]:
-                    enabled.append("--hashtag-likers")
-                    args.hashtag_likers = args.interact
-                else:
-                    enabled.append("--blogger-followers")
-                    args.blogger_followers = args.interact
+                for source in args.interact
+                    if "@" in source:
+                        enabled.append("--blogger-followers")
+                        args.blogger_followers = args.interact
+                    else:
+                        enabled.append("--hashtag-likers")
+                        args.hashtag_likers = args.interact
             else:
                 enabled.append(k)
     enabled = list(dict.fromkeys(enabled))
@@ -207,6 +208,7 @@ def run():
                 logger.info(
                     "Successful or Total Interactions limit reached. Ending session."
                 )
+                break
 
         close_instagram(device_id)
         session_state.finishTime = datetime.now()
