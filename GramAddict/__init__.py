@@ -126,11 +126,6 @@ def run():
     if len(enabled) < 1:
         logger.error("You have to specify one of the actions: " + ", ".join(loaded))
         return
-    if len(enabled) > 1:
-        logger.error(
-            "Running GramAddict with two or more actions is not supported yet."
-        )
-        return
 
     device_id = args.device
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
