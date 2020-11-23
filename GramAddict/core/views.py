@@ -791,7 +791,7 @@ class CurrentStoryView:
                 return datetime.timestamp(
                     datetime.datetime.now() - datetime.timedelta(days=value)
                 )
-        return ""
+        return None
 
 
 class LanguageNotEnglishException(Exception):
