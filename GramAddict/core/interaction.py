@@ -154,15 +154,23 @@ def _on_interaction(
     on_likes_limit_reached,
     sessions,
     session_state,
+    args,
 ):
     session_state = sessions[-1]
     session_state.add_interaction(source, succeed, followed)
 
     can_continue = True
 
-    if session_state.totalLikes >= likes_limit:
+    if session_state.check_limit(args, limit_type="LIKES", output=False):
         logger.info("Reached total likes limit, finish.")
-        on_likes_limit_reached()
+        can_continue = False
+
+    if session_state.check_limit(args, limit_type="SUCCESS", output=False):
+        logger.info("Reached total successful interactions limit, finish.")
+        can_continue = False
+
+    if session_state.check_limit(args, limit_type="TOTAL", output=False):
+        logger.info("Reached total interactions limit, finish.")
         can_continue = False
 
     successful_interactions_count = session_state.successfulInteractions.get(source)
@@ -181,64 +189,65 @@ def _on_interaction(
     return can_continue
 
 
-def _on_likes_limit_reached(state):
-    state.is_likes_limit_reached = True
-
-
 def _follow(device, username, follow_percentage):
-    follow_chance = randint(1, 100)
-    if follow_chance > follow_percentage:
+    if not session_state.check_limit(args, limit_type="FOLLOWS", output=False):
+        follow_chance = randint(1, 100)
+        if follow_chance > follow_percentage:
+            return False
+
+        logger.info("Following...")
+        coordinator_layout = device.find(
+            resourceId="com.instagram.android:id/coordinator_root_layout"
+        )
+        if coordinator_layout.exists():
+            coordinator_layout.scroll(DeviceFacade.Direction.TOP)
+
+        random_sleep()
+
+        follow_button = device.find(
+            classNameMatches=BUTTON_REGEX,
+            clickable=True,
+            textMatches=FOLLOW_REGEX,
+        )
+
+        if not follow_button.exists():
+            unfollow_button = device.find(
+                classNameMatches=BUTTON_REGEX,
+                clickable=True,
+                textMatches=UNFOLLOW_REGEX,
+            )
+            followback_button = device.find(
+                classNameMatches=BUTTON_REGEX,
+                clickable=True,
+                textMatches=FOLLOWBACK_REGEX,
+            )
+            if unfollow_button.exists():
+                logger.info(
+                    f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
+                )
+                return False
+            elif followback_button.exists():
+                logger.info(
+                    f"@{username} already follows you.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+            else:
+                logger.error(
+                    "Cannot find neither Follow button, Follow Back button, nor Unfollow button. Maybe not English language is set?"
+                )
+                save_crash(device)
+                switch_to_english(device)
+                raise LanguageNotEnglishException()
+
+        follow_button.click()
+        detect_block(device)
+        logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
+        random_sleep()
+        return True
+    else:
+        logger.info("Reached total follows limit, not following.")
         return False
-
-    logger.info("Following...")
-    coordinator_layout = device.find(
-        resourceId="com.instagram.android:id/coordinator_root_layout"
-    )
-    if coordinator_layout.exists():
-        coordinator_layout.scroll(DeviceFacade.Direction.TOP)
-
-    random_sleep()
-
-    follow_button = device.find(
-        classNameMatches=BUTTON_REGEX,
-        clickable=True,
-        textMatches=FOLLOW_REGEX,
-    )
-
-    if not follow_button.exists():
-        unfollow_button = device.find(
-            classNameMatches=BUTTON_REGEX,
-            clickable=True,
-            textMatches=UNFOLLOW_REGEX,
-        )
-        followback_button = device.find(
-            classNameMatches=BUTTON_REGEX,
-            clickable=True,
-            textMatches=FOLLOWBACK_REGEX,
-        )
-        if unfollow_button.exists():
-            logger.info(
-                f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
-            )
-            return False
-        elif followback_button.exists():
-            logger.info(
-                f"@{username} already follows you.", extra={"color": f"{Fore.GREEN}"}
-            )
-            return False
-        else:
-            logger.error(
-                "Cannot find neither Follow button, Follow Back button, nor Unfollow button. Maybe not English language is set?"
-            )
-            save_crash(device)
-            switch_to_english(device)
-            raise LanguageNotEnglishException()
-
-    follow_button.click()
-    detect_block(device)
-    logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
-    random_sleep()
-    return True
 
 
 def _on_watch(sessions, session_state):
@@ -249,49 +258,56 @@ def _on_watch(sessions, session_state):
 def _watch_stories(
     device, profile_view, username, stories_to_watch, stories_percentage, on_watch
 ):
-    story_chance = randint(1, 100)
-    if story_chance > stories_percentage:
-        return False
+    if not session_state.check_limit(args, limit_type="WATCH", output=False):
+        story_chance = randint(1, 100)
+        if story_chance > stories_percentage:
+            return False
 
-    stories_to_watch = get_value(stories_to_watch, "Stories count: {}", 0)
+        stories_to_watch = get_value(stories_to_watch, "Stories count: {}", 0)
 
-    if stories_to_watch > 6:
-        logger.error("Max number of stories per user is 6")
-        stories_to_watch = 6
+        if stories_to_watch > 6:
+            logger.error("Max number of stories per user is 6")
+            stories_to_watch = 6
 
-    if stories_to_watch == 0:
-        return False
+        if stories_to_watch == 0:
+            return False
 
-    if profile_view.isStoryAvailable():
-        profile_picture = profile_view.profileImage()
-        if profile_picture.exists():
-            profile_picture.click()  # Open the first story
-            on_watch()
-            sleep(uniform(1.5, 2.5))
+        if profile_view.isStoryAvailable():
+            profile_picture = profile_view.profileImage()
+            if profile_picture.exists():
+                profile_picture.click()  # Open the first story
+                on_watch()
+                sleep(uniform(1.5, 2.5))
 
-            if stories_to_watch > 1:
-                story_view = CurrentStoryView(device)
-                for _iter in range(0, stories_to_watch - 1):
-                    if story_view.getUsername() == username:
-                        try:
-                            story_frame = story_view.getStoryFrame()
-                            if story_frame.exists() and _iter <= stories_to_watch - 1:
-                                story_frame.click("right")
-                                on_watch()
-                                sleep(uniform(1.5, 2.5))
-                        except Exception:
+                if stories_to_watch > 1:
+                    story_view = CurrentStoryView(device)
+                    for _iter in range(0, stories_to_watch - 1):
+                        if story_view.getUsername() == username:
+                            try:
+                                story_frame = story_view.getStoryFrame()
+                                if (
+                                    story_frame.exists()
+                                    and _iter <= stories_to_watch - 1
+                                ):
+                                    story_frame.click("right")
+                                    on_watch()
+                                    sleep(uniform(1.5, 2.5))
+                            except Exception:
+                                break
+                        else:
                             break
+
+                for attempt in range(0, 4):
+                    if profile_view.getUsername(error=False) != username:
+                        if attempt != 0:
+                            device.back()
+                        # Maybe it's just an error please one half seconds before search again for username tab
+                        # This little delay prevent too much back tap and to see more stories than stories_to_watch value
+                        sleep(uniform(0.5, 1))
                     else:
                         break
-
-            for attempt in range(0, 4):
-                if profile_view.getUsername(error=False) != username:
-                    if attempt != 0:
-                        device.back()
-                    # Maybe it's just an error please one half seconds before search again for username tab
-                    # This little delay prevent too much back tap and to see more stories than stories_to_watch value
-                    sleep(uniform(0.5, 1))
-                else:
-                    break
-            return True
-    return False
+                return True
+        return False
+    else:
+        logger.info("Reached total watch limit, not watching stories.")
+        return False

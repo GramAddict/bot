@@ -113,7 +113,7 @@ def run():
                 logger.warn(
                     'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
                 )
-                for source in args.interact
+                for source in args.interact:
                     if "@" in source:
                         enabled.append("--blogger-followers")
                         args.blogger_followers = args.interact

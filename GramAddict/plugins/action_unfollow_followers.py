@@ -83,11 +83,6 @@ class ActionUnfollowFollowers(Plugin):
         self.unfollow_type = enabled[0][2:]
         limit_reached = self.session_state.check_limit(args, limit_type="UNFOLLOWS")
 
-        if limit_reached:
-            logger.info("Limit reached, cannot unfollow this run.")
-            self.session_state.check_limit(args, limit_type="ALL", output=True)
-            return
-
         range_arg = getattr(args, self.unfollow_type.replace("-", "_")).split("-")
         if len(range_arg) > 1:
             count_arg = randint(int(range_arg[0]), int(range_arg[1]))
@@ -137,8 +132,7 @@ class ActionUnfollowFollowers(Plugin):
             self.state.is_job_completed = True
 
         while not self.state.is_job_completed and (
-            self.state.unfollowed_count < count
-            or not limit_reached)
+            self.state.unfollowed_count < count or not limit_reached
         ):
             job()
 

@@ -99,6 +99,7 @@ class ForceIteract(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
+                args=args,
             )
 
             on_like = partial(
