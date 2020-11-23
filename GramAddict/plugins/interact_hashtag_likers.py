@@ -61,6 +61,16 @@ class InteractHashtagLikers(Plugin):
         shuffle(sources)
 
         for source in sources:
+            limit_reached = self.session_state.check_limit(
+                args, limit_type="LIKES"
+            ) and self.session_state.check_limit(args, limit_type="FOLLOWS")
+            if limit_reached:
+                logger.info(
+                    f"Likes and follows limit reached, cannot interact with {source} this run."
+                )
+                self.session_state.check_limit(args, limit_type="ALL", output=True)
+                return
+
             self.state = State()
             if source[0] != "#":
                 source = "#" + source

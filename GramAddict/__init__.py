@@ -205,8 +205,13 @@ def run():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-
-        loaded[enabled[0]].run(device, device_id, args, enabled, storage, sessions)
+        for plugin in enabled:
+            if not session_state.check_limit(args, limit_type="ALL", output=False):
+                loaded[plugin].run(device, device_id, args, enabled, storage, sessions)
+            else:
+                logger.info(
+                    "Successful or Total Interactions limit reached. Ending session."
+                )
 
         close_instagram(device_id)
         session_state.finishTime = datetime.now()
