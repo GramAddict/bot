@@ -276,7 +276,7 @@ def validate_url(x):
         result = urlparse(x)
         return all([result.scheme, result.netloc, result.path])
     except Exception as e:
-        logger.debug(f"Error validating URL: {e}")
+        logger.error(f"Error validating URL {x}. Error: {e}")
         return False
 
 
