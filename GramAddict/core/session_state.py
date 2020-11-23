@@ -3,8 +3,6 @@ import uuid
 from datetime import datetime
 from json import JSONEncoder
 
-from GramAddict.core.log import configure_logger
-
 logger = logging.getLogger(__name__)
 
 
