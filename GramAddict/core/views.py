@@ -167,7 +167,15 @@ class HashTagView:
         CLASSNAME="(androidx.recyclerview.widget.RecyclerView|android.view.View)"
 
         return self.device.find(classNameMatches=CLASSNAME)
+    
+    def _getFistImageView(self,recycler):
+        return recycler.child(className="android.widget.ImageView")
 
+    def _getRecentTab(self):
+        return self.device.find(
+            className="android.widget.TextView",
+            text="Recent",
+        )
 
 class SearchView:
     def __init__(self, device: DeviceFacade):
@@ -282,8 +290,17 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
+            
         hashtag_tab.click()
+        DeviceFacade.back(self.device)
+        #check if that hashtag already exist in the recent search list -> act as human
+        hashtag_view_recent = self._getHashtagRow(hashtag[1:])
+        
+        if hashtag_view_recent.exists():
+            hashtag_view_recent.click()
+            return HashTagView(self.device)
 
+        logger.info(f"{hashtag} is not in recent searching hystory..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
 
@@ -740,7 +757,7 @@ class ProfileView(ActionBarView):
             className=TAB_CLASS_NAME,
         )
         if not button.exists():
-            logger.error(f"Cannot navigate to to tab '{description}'")
+            logger.error(f"Cannot navigate to tab '{description}'")
             save_crash(self.device)
         else:
             button.click()
