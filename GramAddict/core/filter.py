@@ -68,6 +68,13 @@ class Filter:
                 )
                 return False
 
+            elif field_interact_only_private and is_private is None:
+                logger.info(
+                    f"Could not determine if @{username} is public or private, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
         if (
             field_min_followers is not None
             or field_max_followers is not None
@@ -257,7 +264,7 @@ class Filter:
 
     @staticmethod
     def _is_private_account(device):
-        private = False
+        private = None
         profileView = ProfileView(device)
         try:
             private = profileView.isPrivateAccount()
