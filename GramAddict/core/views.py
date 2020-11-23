@@ -162,13 +162,13 @@ class HomeView(ActionBarView):
 class HashTagView:
     def __init__(self, device: DeviceFacade):
         self.device = device
-    
+
     def _getRecyclerView(self):
-        CLASSNAME="(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+        CLASSNAME = "(androidx.recyclerview.widget.RecyclerView|android.view.View)"
 
         return self.device.find(classNameMatches=CLASSNAME)
-    
-    def _getFistImageView(self,recycler):
+
+    def _getFistImageView(self, recycler):
         return recycler.child(className="android.widget.ImageView")
 
     def _getRecentTab(self):
@@ -176,6 +176,7 @@ class HashTagView:
             className="android.widget.TextView",
             text="Recent",
         )
+
 
 class SearchView:
     def __init__(self, device: DeviceFacade):
@@ -290,12 +291,12 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
-            
+
         hashtag_tab.click()
         DeviceFacade.back(self.device)
-        #check if that hashtag already exist in the recent search list -> act as human
+        # check if that hashtag already exist in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
-        
+
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
             return HashTagView(self.device)
@@ -517,22 +518,23 @@ class OpenedPostView:
                     continue
                 else:
                     return False
-    
+
     def _getListViewLikers(self):
         return self.device.find(
-                resourceId="android:id/list", className="android.widget.ListView"
-            )
-    
+            resourceId="android:id/list", className="android.widget.ListView"
+        )
+
     def _getUserCountainer(self):
         return self.device.find(
-                        resourceId="com.instagram.android:id/row_user_container_base",
-                        className="android.widget.LinearLayout",
-                    )
+            resourceId="com.instagram.android:id/row_user_container_base",
+            className="android.widget.LinearLayout",
+        )
+
     def _getUserName(self, countainer):
         return countainer.child(
-                            resourceId="com.instagram.android:id/row_user_primary_name",
-                            className="android.widget.TextView",
-                        )
+            resourceId="com.instagram.android:id/row_user_primary_name",
+            className="android.widget.TextView",
+        )
 
 
 class PostsGridView:
@@ -565,8 +567,6 @@ class PostsGridView:
         post_view.click()
 
         return OpenedPostView(self.device)
-    
-
 
 
 class ProfileView(ActionBarView):
@@ -761,9 +761,9 @@ class ProfileView(ActionBarView):
             save_crash(self.device)
         else:
             button.click()
-    
+
     def _getRecyclerView(self):
-        CLASSNAME="(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+        CLASSNAME = "(androidx.recyclerview.widget.RecyclerView|android.view.View)"
 
         return self.device.find(classNameMatches=CLASSNAME)
 
