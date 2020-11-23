@@ -1,4 +1,3 @@
-
 import logging
 from enum import Enum, unique
 from functools import partial
@@ -157,7 +156,6 @@ class InteractPostLikers(Plugin):
         if not open_user(device, username):
             return
 
-        
         profile_view = ProfileView(device)
         is_private = profile_view.isPrivateAccount()
         posts_count = profile_view.getPostsCount()
@@ -170,13 +168,13 @@ class InteractPostLikers(Plugin):
         shuffle(photos_indices)
         photos_indices = sorted(photos_indices)
         print(photos_indices)
-        x = randint(0,len(photos_indices) - 1)
-        photo_index = photos_indices[x] 
+        x = randint(0, len(photos_indices) - 1)
+        photo_index = photos_indices[x]
         opened_post_view = None
         row = 0
         column = 0
-        while(opened_post_view == None):
-            x = randint(0,1)
+        while opened_post_view == None:
+            x = randint(0, 1)
             photo_index = photos_indices[x]
             row = photo_index // 3
             column = photo_index - row * 3
@@ -202,7 +200,6 @@ class InteractPostLikers(Plugin):
             posts_end_detector.notify_new_page()
             random_sleep()
 
-            
             likes_list_view = device.find(
                 resourceId="android:id/list", className="android.widget.ListView"
             )
@@ -285,9 +282,3 @@ class InteractPostLikers(Plugin):
                 break
             else:
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-
-    
-
-    
-        
-    
