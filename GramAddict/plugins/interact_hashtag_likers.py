@@ -1,3 +1,4 @@
+from genericpath import exists
 import logging
 from functools import partial
 from random import seed, shuffle
@@ -40,7 +41,12 @@ class InteractHashtagLikers(Plugin):
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
-            }
+            },
+            {
+                "arg": "--recent-tab",
+                "help": "interact with likers of 'Recent' tab instead of 'Top'",
+                "action": "store_true",
+            },
         ]
 
     def run(self, device, device_id, args, enabled, storage, sessions):
@@ -110,6 +116,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
+                    args.recent_tab,
                     storage,
                     profile_filter,
                     on_like,
@@ -136,6 +143,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        recent_tab,
         storage,
         profile_filter,
         on_like,
@@ -165,12 +173,16 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
+        if recent_tab:
+            logger.info("Switching to Recent tab")
+            HashTagView(device)._getRecentTab().click()
+            random_sleep()
+
         logger.info("Opening the first result")
         random_sleep()
 
         result_view = HashTagView(device)._getRecyclerView()
-
-        result_view.child(index=3).click()
+        HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
         posts_list_view = ProfileView(device)._getRecyclerView()
