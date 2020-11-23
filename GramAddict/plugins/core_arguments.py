@@ -46,6 +46,13 @@ class CoreArguments(Plugin):
                 "default": "20",
             },
             {
+                "arg": "--total-watch-limit",
+                "nargs": None,
+                "help": "limit on total watched stories per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
                 "arg": "--total-successful-interactions-limit",
                 "nargs": None,
                 "help": "limit on total successful interactions per session, 100 by default",

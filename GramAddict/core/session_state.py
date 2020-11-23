@@ -64,6 +64,7 @@ class SessionState:
             args.total_follows_limit
         )
         total_unfollowed = self.totalUnfollowed >= int(args.total_unfollows_limit)
+        total_watched = self.totalWatch >= int(args.total_watch_limit)
         total_successful = sum(self.successfulInteractions.values()) >= int(
             args.total_successful_interactions_limit
         )
@@ -76,6 +77,7 @@ class SessionState:
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.total_likes_limit})",
             f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.total_follows_limit})",
             f"- Total Unfollowed:\t\t\t\t{'Limit Reached' if total_unfollowed else 'OK'} ({self.totalUnfollowed}/{args.total_unfollows_limit})",
+            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatch}/{args.total_watch_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.total_successful_interactions_limit})",
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.total_interactions_limit})",
         ]
@@ -116,18 +118,25 @@ class SessionState:
                 logger.debug(session_info[3])
             return total_unfollowed or (total_interactions or total_successful)
 
-        elif limit_type == "SUCCESS":
+        elif limit_type == "WATCHES":
             if output:
                 logger.info(session_info[4])
             else:
                 logger.debug(session_info[4])
-            return total_successful or total_interactions
+            return total_unfollowed or (total_interactions or total_successful)
 
-        elif limit_type == "TOTAL":
+        elif limit_type == "SUCCESS":
             if output:
                 logger.info(session_info[5])
             else:
                 logger.debug(session_info[5])
+            return total_successful or total_interactions
+
+        elif limit_type == "TOTAL":
+            if output:
+                logger.info(session_info[6])
+            else:
+                logger.debug(session_info[6])
             return total_interactions or total_successful
 
     def is_finished(self):
