@@ -111,7 +111,7 @@ class SessionState:
                 logger.info(session_info[3])
             else:
                 logger.debug(session_info[3])
-            return total_unfollowed or (total_interactions or total_successful)
+            return total_watched or (total_interactions or total_successful)
 
         elif limit_type == "SUCCESS":
             if output:

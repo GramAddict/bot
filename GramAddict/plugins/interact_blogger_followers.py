@@ -130,7 +130,7 @@ class InteractBloggerFollowers(Plugin):
                 job()
 
             if limit_reached:
-                logger.info(f"Likes and follows limit reached.")
+                logger.info("Likes and follows limit reached.")
                 self.session_state.check_limit(args, limit_type="ALL", output=True)
                 break
 
