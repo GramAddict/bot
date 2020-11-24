@@ -171,7 +171,8 @@ class HashTagView:
         return self.device.find(classNameMatches=CLASSNAME)
 
     def _getFistImageView(self, recycler):
-        return recycler.child(className="android.widget.ImageView")
+        return recycler.child(className="android.widget.ImageView",
+                            resourceIdMatches="com.instagram.android:id/image_button")
 
     def _getRecentTab(self):
         return self.device.find(
