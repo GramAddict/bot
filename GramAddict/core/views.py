@@ -295,12 +295,15 @@ class SearchView:
                 return None
 
         hashtag_tab.click()
+        random_sleep()
         DeviceFacade.back(self.device)
-        # check if that hashtag already exist in the recent search list -> act as human
+        random_sleep()
+        # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
 
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
+            random_sleep()
             return HashTagView(self.device)
 
         logger.info(f"{hashtag} is not in recent searching hystory..")
@@ -313,6 +316,7 @@ class SearchView:
             return None
 
         hashtag_view.click()
+        random_sleep()
 
         return HashTagView(self.device)
 

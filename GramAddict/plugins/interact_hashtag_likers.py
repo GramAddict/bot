@@ -179,7 +179,6 @@ class InteractHashtagLikers(Plugin):
             random_sleep()
 
         logger.info("Opening the first result")
-        random_sleep()
 
         result_view = HashTagView(device)._getRecyclerView()
         HashTagView(device)._getFistImageView(result_view).click()
