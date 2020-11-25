@@ -1,7 +1,7 @@
 import logging
 from random import randint, shuffle, uniform
 from typing import Tuple
-from time import sleep
+import time
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
@@ -74,12 +74,20 @@ def interact_with_user(
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
         logger.info("Scrolled down to see more posts.")
     random_sleep()
-    number_of_rows_to_use = min((likes_value * 2) // 3 + 1, 4)
-    photos_indices = list(range(0, number_of_rows_to_use * 3))
-    shuffle(photos_indices)
-    photos_indices = photos_indices[:likes_value]
-    photos_indices = sorted(photos_indices)
-    for i in range(0, likes_value):
+    start_time = time.time()
+    full_rows, columns_last_row = profile_view.count_photo_in_view()
+    end_time = format(time.time() - start_time, ".2f")
+    photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
+    logger.info(
+        f"There are {len(photos_indices)} posts visible. Calculated in {end_time}s"
+    )
+    if likes_value > len(photos_indices):
+        logger.info(f"Only {photos_indices} photos available")
+    else:
+        shuffle(photos_indices)
+        photos_indices = photos_indices[:likes_value]
+        photos_indices = sorted(photos_indices)
+    for i in range(0, len(photos_indices)):
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
