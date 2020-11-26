@@ -259,13 +259,17 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_text(self):
+        def get_text(self, retry=True):
+            max_attempts = 1 if not retry else 3
             attempts = 0
-            while attempts <= 3:
+            while attempts < max_attempts:
                 attempts += 1
                 try:
                     text = self.viewV2.info["text"]
                     if text == None:
+                        logger.debug(
+                            "Could not get text. Waiting 2 seconds and trying again..."
+                        )
                         sleep(2)  # wait 2 seconds and retry
                     else:
                         return text
