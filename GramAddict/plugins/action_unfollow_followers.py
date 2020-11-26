@@ -185,7 +185,7 @@ class ActionUnfollowFollowers(Plugin):
             resourceId="com.instagram.android:id/follow_list_container",
             className="android.widget.LinearLayout",
         ).wait()
-
+        checked = {}
         unfollowed_count = 0
         while True:
             logger.info("Iterate over visible followings")
@@ -206,48 +206,52 @@ class ActionUnfollowFollowers(Plugin):
                     break
 
                 username = user_name_view.get_text()
-                screen_iterated_followings += 1
+                if username not in checked:
+                    checked[username] = None
+                    screen_iterated_followings += 1
 
-                if storage.is_user_in_whitelist(username):
-                    logger.info(f"@{username} is in whitelist. Skip.")
-                    continue
-
-                if (
-                    unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT
-                    or unfollow_restriction
-                    == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
-                ):
-                    following_status = storage.get_following_status(username)
-                    if not following_status == FollowingStatus.FOLLOWED:
-                        logger.info(
-                            f"Skip @{username}. Following status: {following_status.name}."
-                        )
+                    if storage.is_user_in_whitelist(username):
+                        logger.info(f"@{username} is in whitelist. Skip.")
                         continue
 
-                if unfollow_restriction == UnfollowRestriction.ANY:
-                    following_status = storage.get_following_status(username)
-                    if following_status == FollowingStatus.UNFOLLOWED:
-                        logger.info(
-                            f"Skip @{username}. Following status: {following_status.name}."
-                        )
-                        continue
+                    if (
+                        unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT
+                        or unfollow_restriction
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                    ):
+                        following_status = storage.get_following_status(username)
+                        if not following_status == FollowingStatus.FOLLOWED:
+                            logger.info(
+                                f"Skip @{username}. Following status: {following_status.name}."
+                            )
+                            continue
 
-                logger.info("Unfollow @" + username)
-                unfollowed = self.do_unfollow(
-                    device,
-                    username,
-                    my_username,
-                    unfollow_restriction
-                    == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
-                )
-                if unfollowed:
-                    storage.add_interacted_user(username, unfollowed=True)
-                    on_unfollow()
-                    unfollowed_count += 1
+                    if unfollow_restriction == UnfollowRestriction.ANY:
+                        following_status = storage.get_following_status(username)
+                        if following_status == FollowingStatus.UNFOLLOWED:
+                            logger.info(
+                                f"Skip @{username}. Following status: {following_status.name}."
+                            )
+                            continue
 
-                random_sleep()
-                if unfollowed_count >= count:
-                    return
+                    logger.info("Unfollow @" + username)
+                    unfollowed = self.do_unfollow(
+                        device,
+                        username,
+                        my_username,
+                        unfollow_restriction
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                    )
+                    if unfollowed:
+                        storage.add_interacted_user(username, unfollowed=True)
+                        on_unfollow()
+                        unfollowed_count += 1
+
+                    random_sleep()
+                    if unfollowed_count >= count:
+                        return
+                else:
+                    logger.debug(f"Already checked {username}")
 
             if screen_iterated_followings > 0:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
