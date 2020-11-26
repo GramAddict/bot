@@ -87,11 +87,6 @@ class ActionUnfollowFollowers(Plugin):
         count_arg = get_value(
                     getattr(args, self.unfollow_type, "Unfollow count: {}", 70
                 ),
-        range_arg = getattr(args, .replace("-", "_")).split("-")
-        if len(range_arg) > 1:
-            count_arg = randint(int(range_arg[0]), int(range_arg[1]))
-        else:
-            count_arg = int(range_arg[0])
 
         count = min(
             count_arg,
