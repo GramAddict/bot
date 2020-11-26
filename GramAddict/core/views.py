@@ -619,7 +619,7 @@ class ProfileView(ActionBarView):
         if post_count_view.exists():
             count = post_count_view.get_text()
             if count != None:
-                return self._parseCounter()
+                return self._parseCounter(count)
             else:
                 logger.error("Cannot get posts count text")
                 return 0
