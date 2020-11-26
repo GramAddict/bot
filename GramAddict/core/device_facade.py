@@ -1,6 +1,7 @@
 import logging
 from enum import Enum, auto
 from random import uniform
+from time import sleep
 
 import uiautomator2
 from uiautomator2 import Device
@@ -259,11 +260,22 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         def get_text(self):
-
-            try:
-                return self.viewV2.info["text"]
-            except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+            error = ""
+            attempts = 0
+            while attempts <= 3:
+                attempts += 1
+                try:
+                    text = self.viewV2.info["text"]
+                    if text == None:
+                        sleep(2)  # wait 2 seconds and retry
+                    else:
+                        return text
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(error)
+            logger.error(
+                f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
+            )
+            return 0
 
         def get_selected(self) -> bool:
 
