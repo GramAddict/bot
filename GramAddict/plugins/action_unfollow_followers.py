@@ -86,7 +86,7 @@ class ActionUnfollowFollowers(Plugin):
 
         count_arg = get_value(
                     getattr(args, self.unfollow_type, "Unfollow count: {}", 70
-                ),
+                )
 
         count = min(
             count_arg,
