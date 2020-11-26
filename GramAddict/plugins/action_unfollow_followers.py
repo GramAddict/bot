@@ -1,6 +1,5 @@
 import logging
 from enum import Enum, unique
-from random import seed, randint
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -8,7 +7,7 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import detect_block, random_sleep, save_crash
+from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
 from GramAddict.core.views import LanguageNotEnglishException
 
 logger = logging.getLogger(__name__)
@@ -21,9 +20,6 @@ BUTTON_REGEX = "android.widget.Button"
 BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
 FOLLOWING_REGEX = "^Following|^Requested"
 UNFOLLOW_REGEX = "^Unfollow"
-
-# Script Initialization
-seed()
 
 
 class ActionUnfollowFollowers(Plugin):
