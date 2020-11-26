@@ -81,7 +81,9 @@ class ActionUnfollowFollowers(Plugin):
         limit_reached = self.session_state.check_limit(args, limit_type="UNFOLLOWS")
 
         count_arg = get_value(
-            getattr(args, self.unfollow_type), "Unfollow count: {}", 10
+            getattr(args, self.unfollow_type.replace("-", "_")),
+            "Unfollow count: {}",
+            10,
         )
 
         count = min(
