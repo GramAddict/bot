@@ -24,6 +24,7 @@ FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
 IGNORE_CHARSETS = ["MATHEMATICAL"]
+FIELD_MIN_POSTS = "min_posts"
 
 
 class Filter:
@@ -55,6 +56,7 @@ class Filter:
             FIELD_INTERACT_ONLY_PRIVATE, False
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
+        field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -151,6 +153,15 @@ class Filter:
             if field_skip_non_business and has_business_category is False:
                 logger.info(
                     f"@{username} has non business account, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
+        if field_min_posts is not None:
+            posts_count = self._get_posts_count(device)
+            if field_min_posts > posts_count:
+                logger.info(
+                    f"@{username} doesn't have enough posts ({posts_count}), skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 return False
@@ -304,3 +315,9 @@ class Filter:
         except Exception:
             logger.error("Cannot find full name.")
         return fullname
+
+    @staticmethod
+    def _get_posts_count(device):
+        profileView = ProfileView(device)
+        posts_count = profileView.getPostsCount()
+        return posts_count
