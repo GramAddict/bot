@@ -617,7 +617,12 @@ class ProfileView(ActionBarView):
             className="android.widget.TextView",
         )
         if post_count_view.exists():
-            return self._parseCounter(post_count_view.get_text())
+            count = post_count_view.get_text()
+            if count != None:
+                return self._parseCounter()
+            else:
+                logger.error("Cannot get posts count text")
+                return 0
         else:
             logger.error("Cannot get posts count text")
             return 0
