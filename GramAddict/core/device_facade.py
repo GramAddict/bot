@@ -274,7 +274,7 @@ class DeviceFacade:
                     else:
                         return text
                 except uiautomator2.JSONRPCError as e:
-                    raise DeviceFacade.JsonRpcError(error)
+                    raise DeviceFacade.JsonRpcError(e)
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )
