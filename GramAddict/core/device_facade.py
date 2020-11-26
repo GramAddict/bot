@@ -260,7 +260,6 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         def get_text(self):
-            error = ""
             attempts = 0
             while attempts <= 3:
                 attempts += 1
