@@ -3,11 +3,13 @@ import os
 import subprocess
 import re
 import shutil
+from subprocess import PIPE
 import sys
 import urllib3
 from datetime import datetime
 from random import randint, uniform
 from time import sleep
+from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
@@ -70,6 +72,22 @@ def get_instagram_version(device_id):
     return version
 
 
+def open_instagram_with_url(device_id, url):
+    logger.info("Open Instagram app with url: {}".format(url))
+    cmd = (
+        "adb"
+        + ("" if device_id is None else " -s " + device_id)
+        + " shell am start -a android.intent.action.VIEW -d {}".format(url)
+    )
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    err = cmd_res.stderr.strip()
+    random_sleep()
+    if err:
+        logger.debug(err)
+        return False
+    return True
+
+
 def open_instagram(device_id):
     logger.info("Open Instagram app")
     cmd = (
@@ -77,7 +95,7 @@ def open_instagram(device_id):
         + ("" if device_id is None else " -s " + device_id)
         + " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity"
     )
-    cmd_res = subprocess.run(cmd, capture_output=True, shell=True, encoding="utf8")
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     if err:
         logger.debug(err)
@@ -207,6 +225,7 @@ def save_crash(device):
 
 
 def detect_block(device):
+    logger.debug("Checking for block...")
     block_dialog = device.find(
         resourceId="com.instagram.android:id/dialog_root_view",
         className="android.widget.FrameLayout",
@@ -250,6 +269,15 @@ def get_value(count, name, default):
         value = default
         print_error()
     return value
+
+
+def validate_url(x):
+    try:
+        result = urlparse(x)
+        return all([result.scheme, result.netloc, result.path])
+    except Exception as e:
+        logger.error(f"Error validating URL {x}. Error: {e}")
+        return False
 
 
 class ActionBlockedError(Exception):

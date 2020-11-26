@@ -10,6 +10,7 @@ from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
     _on_likes_limit_reached,
+    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -26,11 +27,11 @@ seed()
 
 
 class InteractHashtagLikers(Plugin):
-    """This plugin handles the functionality of interacting with a bloggers followers"""
+    """This plugin handles the functionality of interacting with a hashtags likers"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with a bloggers followers"
+        self.description = "This plugin handles the functionality of interacting with a hashtags likers"
         self.arguments = [
             {
                 "arg": "--hashtag-likers",
@@ -83,6 +84,17 @@ class InteractHashtagLikers(Plugin):
                 _on_like, sessions=self.sessions, session_state=self.session_state
             )
 
+            on_watch = partial(
+                _on_watch, sessions=self.sessions, session_state=self.session_state
+            )
+
+            if args.stories_count != "0":
+                stories_percentage = get_value(
+                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                )
+            else:
+                stories_percentage = 0
+
             @run_safely(
                 device=device,
                 device_id=self.device_id,
@@ -94,11 +106,14 @@ class InteractHashtagLikers(Plugin):
                     device,
                     source,
                     args.likes_count,
+                    args.stories_count,
+                    stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     storage,
                     profile_filter,
                     on_like,
+                    on_watch,
                     on_interaction,
                 )
                 self.state.is_job_completed = True
@@ -117,19 +132,25 @@ class InteractHashtagLikers(Plugin):
         device,
         hashtag,
         likes_count,
+        stories_count,
+        stories_percentage,
         follow_percentage,
         follow_limit,
         storage,
         profile_filter,
         on_like,
+        on_watch,
         on_interaction,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=likes_count,
+            stories_count=stories_count,
+            stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             on_like=on_like,
+            on_watch=on_watch,
             profile_filter=profile_filter,
         )
 
@@ -149,7 +170,7 @@ class InteractHashtagLikers(Plugin):
 
         first_result_view = device.find(
             resourceId="com.instagram.android:id/recycler_view",
-            className="androidx.recyclerview.widget.RecyclerView",
+            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
         )
 
         first_result_view.child(index=3).click()
@@ -157,7 +178,7 @@ class InteractHashtagLikers(Plugin):
 
         posts_list_view = device.find(
             resourceId="android:id/list",
-            className="androidx.recyclerview.widget.RecyclerView",
+            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
         )
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
 
@@ -240,7 +261,7 @@ class InteractHashtagLikers(Plugin):
                         "Iterated exactly the same likers twice, finish.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    logger.info(f"Back to #{hashtag}")
+                    logger.info(f"Back to {hashtag}")
                     device.back()
                     break
 

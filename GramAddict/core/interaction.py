@@ -1,13 +1,17 @@
 import logging
-from random import randint, shuffle
+from random import randint, shuffle, uniform
 from typing import Tuple
-
+from time import sleep
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
-from GramAddict.core.views import LanguageNotEnglishException, ProfileView
+from GramAddict.core.views import (
+    LanguageNotEnglishException,
+    ProfileView,
+    CurrentStoryView,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +27,9 @@ def interact_with_user(
     my_username,
     likes_count,
     on_like,
+    stories_count,
+    stories_percentage,
+    on_watch,
     can_follow,
     follow_percentage,
     profile_filter,
@@ -59,6 +66,10 @@ def interact_with_user(
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
 
+    _watch_stories(
+        device, profile_view, username, stories_count, stories_percentage, on_watch
+    )
+
     posts_tab_view = profile_view.navigateToPostsTab()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
         logger.info("Scrolled down to see more posts.")
@@ -72,25 +83,13 @@ def interact_with_user(
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
-        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column")
+        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} col)")
         opened_post_view = posts_tab_view.navigateToPost(row, column)
         random_sleep()
 
         like_succeed = False
         if opened_post_view:
-            logger.info("Double click post")
-
-            like_succeed = opened_post_view.likePost()
-            if not like_succeed:
-                logger.debug("Double click failed. Try the like button.")
-                like_succeed = opened_post_view.likePost(click_btn_like=True)
-
-            if like_succeed:
-                logger.debug("Like succeed. Check for block.")
-                detect_block(device)
-                on_like()
-            else:
-                logger.warning("Fail to like post. Let's continue...")
+            like_succeed = do_like(opened_post_view, device, on_like)
 
             logger.info("Back to profile")
             device.back()
@@ -113,6 +112,24 @@ def interact_with_user(
         return True, _follow(device, username, follow_percentage)
 
     return True, False
+
+
+def do_like(opened_post_view, device, on_like):
+    logger.info("Double click post")
+
+    like_succeed = opened_post_view.likePost()
+    if not like_succeed:
+        logger.debug("Double click failed. Try the like button.")
+        like_succeed = opened_post_view.likePost(click_btn_like=True)
+
+    if like_succeed:
+        logger.info("Like succeeded!")
+        detect_block(device)
+        on_like()
+    else:
+        logger.warning("Fail to like post. Let's continue...")
+
+    return like_succeed
 
 
 def is_follow_limit_reached_for_source(session_state, follow_limit, source):
@@ -222,3 +239,59 @@ def _follow(device, username, follow_percentage):
     logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
     random_sleep()
     return True
+
+
+def _on_watch(sessions, session_state):
+    session_state = sessions[-1]
+    session_state.totalWatched += 1
+
+
+def _watch_stories(
+    device, profile_view, username, stories_to_watch, stories_percentage, on_watch
+):
+    story_chance = randint(1, 100)
+    if story_chance > stories_percentage:
+        return False
+
+    stories_to_watch = get_value(stories_to_watch, "Stories count: {}", 0)
+
+    if stories_to_watch > 6:
+        logger.error("Max number of stories per user is 6")
+        stories_to_watch = 6
+
+    if stories_to_watch == 0:
+        return False
+
+    if profile_view.isStoryAvailable():
+        profile_picture = profile_view.profileImage()
+        if profile_picture.exists():
+            profile_picture.click()  # Open the first story
+            on_watch()
+            sleep(uniform(1.5, 2.5))
+
+            if stories_to_watch > 1:
+                story_view = CurrentStoryView(device)
+                for _iter in range(0, stories_to_watch - 1):
+                    if story_view.getUsername() == username:
+                        try:
+                            story_frame = story_view.getStoryFrame()
+                            if story_frame.exists() and _iter <= stories_to_watch - 1:
+                                story_frame.click("right")
+                                on_watch()
+                                sleep(uniform(1.5, 2.5))
+                        except Exception:
+                            break
+                    else:
+                        break
+
+            for attempt in range(0, 4):
+                if profile_view.getUsername(error=False) != username:
+                    if attempt != 0:
+                        device.back()
+                    # Maybe it's just an error please one half seconds before search again for username tab
+                    # This little delay prevent too much back tap and to see more stories than stories_to_watch value
+                    sleep(uniform(0.5, 1))
+                else:
+                    break
+            return True
+    return False

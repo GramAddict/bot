@@ -66,6 +66,9 @@ Full list of command line arguments:
   --likes-count 2-4     number of likes for each interacted user, 2 by
                         default. It can be a number (e.g. 2) or a range (e.g.
                         2-4)
+  --stories-count 2-4   number of stories for each interacted user, 2 by
+                        default. It can be a number (e.g. 2) or a range (e.g.
+                        2-4)
   --total-likes-limit 300
                         limit on total amount of likes during the session, 300
                         by default
@@ -104,6 +107,54 @@ Full list of command line arguments:
                         off when when it's ended or sleeping (e.g. when using with
                         --repeat) - disable the passcode for unlocking the phone
                         if you want to use that function!
+```
+
+Full list of filters:
+```
+  "skip_business"             If it is true, business acounts won't be interacted.
+                              (e.g. "skip_business": true)
+  "skip_non_business"         If it is true, private accounts and public accounts won't be interacted.
+                              (e.g. "skip_non_business": true)
+
+  "min_followers"             It is the lower follower bound for an account that can be interacted.
+                              If an account has less followers than this amount, it wont be interacted. 
+                              (e.g. "min_followers": 100)
+
+  "max_followers"             It is the upper follower bound for an account that can be interacted.
+                              If an account has more followers than this amount, it wont be interacted. 
+                              (e.g "max_followers": 1000)
+
+  "min_followings"            It is the lower following bound for an account that can be interacted.
+                              If an account has less followings than this amount, it wont be interacted. 
+                              (e.g. "min_followings": 300)
+  
+  "max_followings"            It is the upper following bound for an account that can be interacted.
+                              If an account has more followings than this amount, it wont be interacted. 
+                              (e.g. "max_followings": 800)
+
+  "min_potency_ratio"         These provides us to filter accounts according their followers/followings ratio.
+  "max_potency_ratio"         If an account's followers/following ratio is not between these ratios, 
+                              it won't be interacted. You don't have to set both of them though. You can just
+                              set min_potency or just max_potency. Their default values are 0 and 999.
+                              (e.g. EXACC has 500 followers and 1000 followings. That means its ratio is 0.5 
+                              If you set your "min_potency_ratio": 0.2 and 
+                              "max_potency_ratio": 0.7 It will be interacted.)
+  
+  "follow_private_or_empty"   If it is false, private accounts or public accounts 
+                              that has no posts won't be interacted. 
+                              (e.g. "follow_private_or_empty": false)
+
+  "interact_only_private"     If it is set to true, only private accounts will be interacted with. 
+                              No public accounts will be interacted with.
+                              (e.g. "follow_only_private": true)
+
+  "min_posts"                 You can specify the minumum post number that an account should have. 
+                              (e.g. "min_posts": 7)
+
+  "max_digits_in_profile_name"  You can set a upper digit bound so that accounts which have more digits 
+                                than the limit won't be interacted.
+                                (e.g. "max_digits_in_profile_name": 4)
+
 ```
 
 ### FAQ

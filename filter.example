@@ -6,7 +6,12 @@
     "min_followings": 10,
     "max_followings": 1000,
     "min_potency_ratio": 1,
+    "max_potency_ratio": 2,
     "follow_private_or_empty": false,
+    "interact_only_private": false,
     "min_posts": 7,
-    "max_digits_in_profile_name": 4
+    "max_digits_in_profile_name": 4,
+    "blacklist_words": [],
+    "mandatory_words": [],
+    "specific_alphabet": "LATIN"
 }
