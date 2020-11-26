@@ -743,11 +743,16 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(TAB_RES_ID),
             className=TAB_CLASS_NAME,
         )
-        if not button.exists():
-            logger.error(f"Cannot navigate to to tab '{description}'")
-            save_crash(self.device)
-        else:
-            button.click()
+        attempts = 0
+        while not button.exists():
+            attempts += 1
+            self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+            if attempts > 2:
+                logger.error(f"Cannot navigate to tab '{description}'")
+                save_crash(self.device)
+                return
+
+        button.click()
 
 
 class CurrentStoryView:

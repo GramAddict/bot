@@ -68,7 +68,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
@@ -80,10 +80,14 @@ class ActionUnfollowFollowers(Plugin):
         self.state = State()
         self.session_state = sessions[-1]
         self.sessions = sessions
-        self.unfollow_type = enabled[0][2:]
+        self.unfollow_type = plugin[2:]
+
         limit_reached = self.session_state.check_limit(args, limit_type="UNFOLLOWS")
 
-        range_arg = getattr(args, self.unfollow_type.replace("-", "_")).split("-")
+        count_arg = get_value(
+                    getattr(args, self.unfollow_type, "Unfollow count: {}", 70
+                ),
+        range_arg = getattr(args, .replace("-", "_")).split("-")
         if len(range_arg) > 1:
             count_arg = randint(int(range_arg[0]), int(range_arg[1]))
         else:

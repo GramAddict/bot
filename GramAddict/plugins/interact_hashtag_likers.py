@@ -42,7 +42,7 @@ class InteractHashtagLikers(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
