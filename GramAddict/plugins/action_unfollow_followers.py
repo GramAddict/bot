@@ -343,6 +343,7 @@ class ActionUnfollowFollowers(Plugin):
         return True
 
     def check_is_follower(self, device, username, my_username):
+        random_sleep()
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
