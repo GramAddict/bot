@@ -158,7 +158,8 @@ def run():
         )
 
         if args.screen_sleep:
-            DeviceFacade(device_id).unlock()
+            DeviceFacade(device_id).press_power()
+            DeviceFacade(device_id).swipe(DeviceFacade.Direction.TOP, 0.8)
             check_screen_locked(device_id)
 
         open_instagram(device_id)
