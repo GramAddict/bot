@@ -57,6 +57,9 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def press_power(self):
+        self.deviceV2.press("power")
+
     def unlock(self):
         self.deviceV2.unlock()
 
