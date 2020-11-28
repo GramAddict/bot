@@ -107,29 +107,35 @@ def run():
         return
     dargs = vars(args)
 
+    for item in sys.argv[1:]:
+        if item in loaded:
+            if item != "--interact":
+                enabled.append(item)
+
     for k in loaded:
         if dargs[k.replace("-", "_")[2:]] != None:
             if k == "--interact":
                 logger.warn(
                     'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
                 )
-                if "#" in args.interact[0]:
-                    enabled.append("--hashtag-likers")
-                    args.hashtag_likers = args.interact
-                else:
-                    enabled.append("--blogger-followers")
-                    args.blogger_followers = args.interact
-            else:
-                enabled.append(k)
+                for source in args.interact:
+                    if "@" in source:
+                        enabled.append("--blogger-followers")
+                        if type(args.blogger_followers) != list:
+                            args.blogger_followers = [source]
+                        else:
+                            args.blogger_followers.append(source)
+                    else:
+                        enabled.append("--hashtag-likers")
+                        if type(args.hashtag_likers) != list:
+                            args.hashtag_likers = [source]
+                        else:
+                            args.hashtag_likers.append(source)
+
     enabled = list(dict.fromkeys(enabled))
 
     if len(enabled) < 1:
         logger.error("You have to specify one of the actions: " + ", ".join(loaded))
-        return
-    if len(enabled) > 1:
-        logger.error(
-            "Running GramAddict with two or more actions is not supported yet."
-        )
         return
 
     device_id = args.device
@@ -205,8 +211,16 @@ def run():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-
-        loaded[enabled[0]].run(device, device_id, args, enabled, storage, sessions)
+        for plugin in enabled:
+            if not session_state.check_limit(args, limit_type="ALL", output=False):
+                loaded[plugin].run(
+                    device, device_id, args, enabled, storage, sessions, plugin
+                )
+            else:
+                logger.info(
+                    "Successful or Total Interactions limit reached. Ending session."
+                )
+                break
 
         close_instagram(device_id)
         session_state.finishTime = datetime.now()

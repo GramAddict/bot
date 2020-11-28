@@ -617,7 +617,12 @@ class ProfileView(ActionBarView):
             className="android.widget.TextView",
         )
         if post_count_view.exists():
-            return self._parseCounter(post_count_view.get_text())
+            count = post_count_view.get_text()
+            if count != None:
+                return self._parseCounter(count)
+            else:
+                logger.error("Cannot get posts count text")
+                return 0
         else:
             logger.error("Cannot get posts count text")
             return 0
@@ -641,7 +646,7 @@ class ProfileView(ActionBarView):
             biography_text = biography.get_text()
             # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
             is_long_bio = re.compile(
-                r"\b({0})\b".format("more"), flags=re.IGNORECASE
+                r"{0}$".format("… more"), flags=re.IGNORECASE
             ).search(biography_text)
             if is_long_bio is not None:
                 biography.click("bottom")
@@ -743,11 +748,16 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(TAB_RES_ID),
             className=TAB_CLASS_NAME,
         )
-        if not button.exists():
-            logger.error(f"Cannot navigate to to tab '{description}'")
-            save_crash(self.device)
-        else:
-            button.click()
+        attempts = 0
+        while not button.exists():
+            attempts += 1
+            self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+            if attempts > 2:
+                logger.error(f"Cannot navigate to tab '{description}'")
+                save_crash(self.device)
+                return
+
+        button.click()
 
 
 class CurrentStoryView:
