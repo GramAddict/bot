@@ -61,7 +61,8 @@ class DeviceFacade:
         self.deviceV2.press("power")
 
     def unlock(self):
-        self.deviceV2.unlock()
+        self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
 
     def screen_off(self):
         self.deviceV2.screen_off()
@@ -73,8 +74,8 @@ class DeviceFacade:
         swipe_dir = ""
         if direction == DeviceFacade.Direction.TOP:
             swipe_dir = "up"
-        elif direction == DeviceFacade.Direction.BOTTOM:
-            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.RIGHT:
+            swipe_dir = "right"
         elif direction == DeviceFacade.Direction.LEFT:
             swipe_dir = "left"
         elif direction == DeviceFacade.Direction.BOTTOM:
