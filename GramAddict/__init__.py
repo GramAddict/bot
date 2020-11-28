@@ -6,7 +6,7 @@ from time import sleep
 
 from colorama import Fore, Style
 
-from GramAddict.core.device_facade import create_device
+from GramAddict.core.device_facade import DeviceFacade, create_device
 from GramAddict.core.log import (
     configure_logger,
     update_log_file_name,
@@ -26,7 +26,7 @@ from GramAddict.core.utils import (
     open_instagram,
     random_sleep,
     save_crash,
-    screen_sleep,
+    check_screen_locked,
     update_available,
 )
 from GramAddict.core.views import TabBarView
@@ -158,7 +158,8 @@ def run():
         )
 
         if args.screen_sleep:
-            screen_sleep(device_id, "on")  # Turn on the device screen
+            DeviceFacade(device_id).unlock()
+            check_screen_locked(device_id)
 
         open_instagram(device_id)
 
@@ -226,7 +227,8 @@ def run():
         session_state.finishTime = datetime.now()
 
         if args.screen_sleep:
-            screen_sleep(device_id, "off")  # Turn off the device screen
+            DeviceFacade(device_id).screen_off()
+            logger.info("Screen turned off for sleeping time")
 
         logger.info(
             "-------- FINISH: " + str(session_state.finishTime) + " --------",

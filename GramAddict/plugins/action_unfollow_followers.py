@@ -220,7 +220,12 @@ class ActionUnfollowFollowers(Plugin):
                         == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
                     ):
                         following_status = storage.get_following_status(username)
-                        if not following_status == FollowingStatus.FOLLOWED:
+                        if following_status == FollowingStatus.NOT_IN_LIST:
+                            logger.info(
+                                f"@{username} has not been followed by this bot. Skip."
+                            )
+                            continue
+                        elif not following_status == FollowingStatus.FOLLOWED:
                             logger.info(
                                 f"Skip @{username}. Following status: {following_status.name}."
                             )

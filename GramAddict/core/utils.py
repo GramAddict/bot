@@ -117,18 +117,6 @@ def random_sleep():
     sleep(delay)
 
 
-def check_screen_on(device_id):
-    status = os.popen(
-        f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys power"
-    )
-    data = status.read()
-    flag = re.search("mWakefulness=(Awake|Asleep)", data)
-    if flag.group(1) == "Asleep":
-        return True
-    else:
-        return False
-
-
 def check_screen_locked(device_id):
     status = os.popen(
         f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys window"
@@ -136,46 +124,12 @@ def check_screen_locked(device_id):
     data = status.read()
     flag = re.search("mDreamingLockscreen=(true|false)", data)
     if flag.group(1) == "true":
-        return True
-    else:
-        return False
-
-
-def screen_unlock(device_id, MENU_BUTTON):
-    is_locked = check_screen_locked(device_id)
-    if is_locked:
-        logger.info("Device is locked! I'll try to unlock it!")
-        os.popen(
-            f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {MENU_BUTTON}"
+        logger.error(
+            "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
         )
-        sleep(3)
-        if check_screen_locked(device_id):
-            sys.exit(
-                "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
-            )
-
-
-def screen_sleep(device_id, mode):
-    POWER_BUTTON = 26
-    MENU_BUTTON = 82
-    if mode == "on":
-        is_not_awake = check_screen_on(device_id)
-        if is_not_awake:
-            os.popen(
-                f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
-            )
-            logger.info("Device screen turned ON!")
-            sleep(2)
-            screen_unlock(device_id, MENU_BUTTON)
-        else:
-            logger.debug("Device screen already turned ON!")
-            sleep(2)
-            screen_unlock(device_id, MENU_BUTTON)
+        sys.exit()
     else:
-        os.popen(
-            f"adb {''if device_id is None else ('-s '+ device_id)} shell input keyevent {POWER_BUTTON}"
-        )
-        logger.debug("Device screen turned OFF!")
+        logger.info("Device is ready to go!")
 
 
 def save_crash(device):
