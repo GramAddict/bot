@@ -123,13 +123,7 @@ def check_screen_locked(device_id):
     )
     data = status.read()
     flag = re.search("mDreamingLockscreen=(true|false)", data)
-    if flag.group(1) == "true":
-        logger.error(
-            "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
-        )
-        sys.exit()
-    else:
-        logger.info("Device is ready to go!")
+    return True if flag.group(1) == "true" else False
 
 
 def save_crash(device):

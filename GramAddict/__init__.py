@@ -157,10 +157,17 @@ def run():
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
-        if args.screen_sleep:
+        if not DeviceFacade(device_id).get_info()["screenOn"]:
             DeviceFacade(device_id).press_power()
-            DeviceFacade(device_id).swipe(DeviceFacade.Direction.TOP, 0.8)
-            check_screen_locked(device_id)
+        if check_screen_locked(device_id):
+            DeviceFacade(device_id).unlock()
+            if check_screen_locked(device_id):
+                logger.error(
+                    "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
+                )
+                sys.exit()
+
+        logger.info("Device screen on and unlocked.")
 
         open_instagram(device_id)
 
