@@ -57,11 +57,10 @@ class Storage:
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
-        return (
-            user is None
-            and FollowingStatus.NONE
-            or FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
-        )
+        if user is None:
+            return FollowingStatus.NOT_IN_LIST
+        else:
+            return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
     def add_interacted_user(self, username, followed=False, unfollowed=False):
         user = self.interacted_users.get(username, {})
@@ -106,3 +105,4 @@ class FollowingStatus(Enum):
     NONE = 0
     FOLLOWED = 1
     UNFOLLOWED = 2
+    NOT_IN_LIST = 3

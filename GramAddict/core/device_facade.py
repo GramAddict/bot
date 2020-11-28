@@ -57,6 +57,12 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def unlock(self):
+        self.deviceV2.unlock()
+
+    def screen_off(self):
+        self.deviceV2.screen_off()
+
     def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
