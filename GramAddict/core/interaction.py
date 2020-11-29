@@ -1,7 +1,7 @@
 import logging
-from random import randint, shuffle, uniform
+from random import randint, shuffle
 from typing import Tuple
-from time import sleep, time
+from time import time
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
@@ -303,7 +303,7 @@ def _watch_stories(
             if profile_picture.exists():
                 profile_picture.click()  # Open the first story
                 on_watch()
-                sleep(uniform(1.5, 2.5))
+                random_sleep()
 
                 if stories_to_watch > 1:
                     story_view = CurrentStoryView(device)
@@ -317,7 +317,7 @@ def _watch_stories(
                                 ):
                                     story_frame.click("right")
                                     on_watch()
-                                    sleep(uniform(1.5, 2.5))
+                                    random_sleep()
                             except Exception:
                                 break
                         else:
@@ -329,7 +329,7 @@ def _watch_stories(
                             device.back()
                         # Maybe it's just an error please one half seconds before search again for username tab
                         # This little delay prevent too much back tap and to see more stories than stories_to_watch value
-                        sleep(uniform(0.5, 1))
+                        random_sleep()
                     else:
                         break
                 return True
