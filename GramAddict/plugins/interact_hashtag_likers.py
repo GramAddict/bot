@@ -1,4 +1,3 @@
-from genericpath import exists
 import logging
 from functools import partial
 from random import seed, shuffle
