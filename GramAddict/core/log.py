@@ -136,7 +136,7 @@ def update_log_file_name(username: str):
     try:
         os.remove(old_full_filename)
     except:
-        logger.debug(f"Failed to remove old file: {old_full_filename}.")
+        current_logger.debug(f"Failed to remove old file: {old_full_filename}.")
 
     global g_log_file_name
     global g_file_handler
