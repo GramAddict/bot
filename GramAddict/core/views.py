@@ -649,7 +649,7 @@ class ProfileView(ActionBarView):
                 r"{0}$".format("… more"), flags=re.IGNORECASE
             ).search(biography_text)
             if is_long_bio is not None:
-                biography.click()
+                biography.click(biography.Location.BOTTOM)
                 return biography.get_text()
             return biography_text
         return ""

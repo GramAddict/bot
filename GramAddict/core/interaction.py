@@ -321,7 +321,7 @@ def _watch_stories(
                                     story_frame.exists()
                                     and _iter <= stories_to_watch - 1
                                 ):
-                                    story_frame.click("right")
+                                    story_frame.click(story_view.Location.RIGHT)
                                     on_watch()
                                     random_sleep()
                             except Exception:

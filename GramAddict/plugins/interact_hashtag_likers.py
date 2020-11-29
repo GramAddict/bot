@@ -294,7 +294,7 @@ class InteractHashtagLikers(Plugin):
             if likes_view.exists():
                 logger.info("Opening post likers")
                 random_sleep()
-                likes_view.click("right")
+                likes_view.click(likes_view.Location.RIGHT)
                 return True
             else:
                 if attempts < 1:

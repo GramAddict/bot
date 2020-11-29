@@ -165,27 +165,30 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
-        def click(self, mode="whole"):
+        def click(self, mode=None):
+            mode = self.Location.WHOLE if mode == None else mode
             x_abs = -1
             y_abs = -1
-            if mode == "whole":
+            if mode == self.Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "left":
+            elif mode == self.Location.LEFT:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "center":
+            elif mode == self.Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "right":
+            elif mode == self.Location.RIGHT:
                 x_offset = uniform(0.6, 0.85)
                 y_offset = uniform(0.15, 0.85)
+
             else:
                 x_offset = 0.5
                 y_offset = 0.5
+
             try:
                 visible_bounds = self.get_bounds()
                 x_abs = int(
@@ -319,6 +322,13 @@ class DeviceFacade:
                 self.viewV2.set_text(text)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
+
+        class Location(Enum):
+            WHOLE = auto()
+            CENTER = auto()
+            BOTTOM = auto()
+            RIGHT = auto()
+            LEFT = auto()
 
     class Direction(Enum):
         TOP = auto()
