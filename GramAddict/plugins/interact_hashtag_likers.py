@@ -211,13 +211,13 @@ class InteractHashtagLikers(Plugin):
         post_description = ""
         while True:
             if first_post:
-                PostsViewList(device).fixed_swipe_hashtags(True)
+                PostsViewList(device).swipe_to_fit_posts(True)
                 first_post = False
             if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
                 )
-                PostsViewList(device).fixed_swipe_hashtags(False)
+                PostsViewList(device).swipe_to_fit_posts(False)
 
                 flag, post_description = PostsViewList(device).check_if_last_post(
                     post_description
