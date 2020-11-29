@@ -11,6 +11,7 @@ from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
     CurrentStoryView,
+    PostsGridView
 )
 
 logger = logging.getLogger(__name__)
@@ -99,7 +100,7 @@ def interact_with_user(
         row = photo_index // 3
         column = photo_index - row * 3
         logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column)")
-        opened_post_view = posts_tab_view.navigateToPost(row, column)
+        opened_post_view = PostsGridView(device).navigateToPost(row, column)
         random_sleep()
 
         like_succeed = False

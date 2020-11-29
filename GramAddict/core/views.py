@@ -374,7 +374,7 @@ class PostsViewList:
         )
         if post_description.exists(True):
             new_description = post_description.get_text().upper()
-            if new_description != last_description:
+            if new_description == last_description:
                 logger.info("This is the last post for this hashtag")
                 return True, new_description
             else:
