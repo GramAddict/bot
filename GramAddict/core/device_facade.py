@@ -84,11 +84,21 @@ class DeviceFacade:
         logger.debug(f"Swipe {swipe_dir}, scale={scale}")
         self.deviceV2.swipe_ext(swipe_dir, scale=scale)
 
+    def swipe_points(self, sx, sy, ex, ey):
+        try:
+            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.6))
+        except uiautomator2.JSONRPCError as e:
+            raise DeviceFacade.JsonRpcError(e)
+
     def get_info(self):
         # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
         # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
         #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
-        return self.deviceV2.info
+        window = self.deviceV2.window_size()
+        d = self.deviceV2.info
+        d["windowWidth"] = window[0]
+        d["windowHeight"] = window[1]
+        return d
 
     class View:
         deviceV2: Device = None  # uiautomator2
