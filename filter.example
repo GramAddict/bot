@@ -10,7 +10,6 @@
     "follow_private_or_empty": false,
     "interact_only_private": false,
     "min_posts": 7,
-    "max_digits_in_profile_name": 4,
     "blacklist_words": [],
     "mandatory_words": [],
     "specific_alphabet": "LATIN"

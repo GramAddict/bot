@@ -1,3 +1,4 @@
 colorama==0.3.7
 matplotlib==3.3.3
 uiautomator2==2.11.2
+numpy==1.19.3

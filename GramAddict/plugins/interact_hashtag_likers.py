@@ -10,7 +10,6 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
-    _on_likes_limit_reached,
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
@@ -55,17 +54,17 @@ class InteractHashtagLikers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.sessions = sessions
         self.session_state = sessions[-1]
+        self.args = args
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -73,16 +72,17 @@ class InteractHashtagLikers(Plugin):
         shuffle(sources)
 
         for source in sources:
+            limit_reached = self.session_state.check_limit(
+                args, limit_type="LIKES"
+            ) and self.session_state.check_limit(args, limit_type="FOLLOWS")
+
             self.state = State()
             if source[0] != "#":
                 source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
-            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
-
             on_interaction = partial(
                 _on_interaction,
-                on_likes_limit_reached=on_likes_limit_reached,
                 likes_limit=int(args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
@@ -90,6 +90,7 @@ class InteractHashtagLikers(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
+                args=self.args,
             )
 
             on_like = partial(
@@ -131,13 +132,12 @@ class InteractHashtagLikers(Plugin):
                 )
                 self.state.is_job_completed = True
 
-            while (
-                not self.state.is_job_completed
-                and not self.state.is_likes_limit_reached
-            ):
+            while not self.state.is_job_completed and not limit_reached:
                 job()
 
-            if self.state.is_likes_limit_reached:
+            if limit_reached:
+                logger.info("Likes and follows limit reached.")
+                self.session_state.check_limit(args, limit_type="ALL", output=True)
                 break
 
     def handle_hashtag(
@@ -166,6 +166,8 @@ class InteractHashtagLikers(Plugin):
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
         )
 
         is_follow_limit_reached = partial(

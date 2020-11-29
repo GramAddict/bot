@@ -1,6 +1,7 @@
 import logging
 from enum import Enum, auto
 from random import uniform
+from time import sleep
 
 import uiautomator2
 from uiautomator2 import Device
@@ -56,6 +57,16 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def press_power(self):
+        self.deviceV2.press("power")
+
+    def unlock(self):
+        self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
+
+    def screen_off(self):
+        self.deviceV2.screen_off()
+
     def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
@@ -63,8 +74,8 @@ class DeviceFacade:
         swipe_dir = ""
         if direction == DeviceFacade.Direction.TOP:
             swipe_dir = "up"
-        elif direction == DeviceFacade.Direction.BOTTOM:
-            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.RIGHT:
+            swipe_dir = "right"
         elif direction == DeviceFacade.Direction.LEFT:
             swipe_dir = "left"
         elif direction == DeviceFacade.Direction.BOTTOM:
@@ -83,7 +94,11 @@ class DeviceFacade:
         # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
         # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
         #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
-        return self.deviceV2.info
+        window = self.deviceV2.window_size()
+        d = self.deviceV2.info
+        d["windowWidth"] = window[0]
+        d["windowHeight"] = window[1]
+        return d
 
     class View:
         deviceV2: Device = None  # uiautomator2
@@ -264,12 +279,26 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_text(self):
-
-            try:
-                return self.viewV2.info["text"]
-            except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+        def get_text(self, retry=True):
+            max_attempts = 1 if not retry else 3
+            attempts = 0
+            while attempts < max_attempts:
+                attempts += 1
+                try:
+                    text = self.viewV2.info["text"]
+                    if text == None:
+                        logger.debug(
+                            "Could not get text. Waiting 2 seconds and trying again..."
+                        )
+                        sleep(2)  # wait 2 seconds and retry
+                    else:
+                        return text
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+            logger.error(
+                f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
+            )
+            return 0
 
         def get_selected(self) -> bool:
 
