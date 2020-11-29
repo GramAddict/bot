@@ -296,7 +296,7 @@ class Filter:
     @staticmethod
     def _find_alphabet(biography):
         a_dict = {}
-        max_alph = field_specific_alphabet
+        max_alph = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
         try:
             for x in range(0, len(biography)):
                 if biography[x].isalpha():
