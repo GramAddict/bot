@@ -23,13 +23,11 @@ UNFOLLOW_REGEX = "^Unfollow"
 
 
 class ActionUnfollowFollowers(Plugin):
-    """This plugin handles the functionality of unfollowing your followers"""
+    """Handles the functionality of unfollowing your followers"""
 
     def __init__(self):
         super().__init__()
-        self.description = (
-            "This plugin handles the functionality of unfollowing your followers"
-        )
+        self.description = "Handles the functionality of unfollowing your followers"
         self.arguments = [
             {
                 "arg": "--unfollow",

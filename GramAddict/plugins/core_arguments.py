@@ -4,11 +4,11 @@ from GramAddict.core.plugin_loader import Plugin
 
 
 class CoreArguments(Plugin):
-    """This plugin simply adds core arguments"""
+    """Simply adds core arguments"""
 
     def __init__(self):
         super().__init__()
-        self.description = "Adds legacy arguments"
+        self.description = "Simply adds core arguments"
         self.arguments = [
             {
                 "arg": "--device",

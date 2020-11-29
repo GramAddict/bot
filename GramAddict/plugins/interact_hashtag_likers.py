@@ -26,11 +26,13 @@ seed()
 
 
 class InteractHashtagLikers(Plugin):
-    """This plugin handles the functionality of interacting with a hashtags likers"""
+    """Handles the functionality of interacting with a hashtags likers"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with a hashtags likers"
+        self.description = (
+            "Handles the functionality of interacting with a hashtags likers"
+        )
         self.arguments = [
             {
                 "arg": "--hashtag-likers",

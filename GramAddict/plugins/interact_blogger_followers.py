@@ -32,11 +32,13 @@ seed()
 
 
 class InteractBloggerFollowers(Plugin):
-    """This plugin handles the functionality of interacting with a bloggers followers"""
+    """Handles the functionality of interacting with a bloggers followers"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with a bloggers followers"
+        self.description = (
+            "Handles the functionality of interacting with a bloggers followers"
+        )
         self.arguments = [
             {
                 "arg": "--blogger-followers",
