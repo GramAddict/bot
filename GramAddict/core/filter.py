@@ -214,7 +214,7 @@ class Filter:
                         "Checking primary character set of account biography..."
                     )
                     biography = biography.replace("\n", "")
-                    alphabet = self._find_alphabet(biography)
+                    alphabet = self._find_alphabet(biography, field_specific_alphabet)
 
                     if alphabet != field_specific_alphabet and alphabet != "":
                         logger.info(
@@ -227,7 +227,9 @@ class Filter:
                     fullname = self._get_fullname(device)
 
                     if fullname != "":
-                        alphabet = self._find_alphabet(fullname)
+                        alphabet = self._find_alphabet(
+                            fullname, field_specific_alphabet
+                        )
                         if alphabet != field_specific_alphabet and alphabet != "":
                             logger.info(
                                 f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
@@ -294,9 +296,9 @@ class Filter:
         return profileView.getProfileBiography()
 
     @staticmethod
-    def _find_alphabet(biography):
+    def _find_alphabet(biography, alphabet):
         a_dict = {}
-        max_alph = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
+        max_alph = alphabet
         try:
             for x in range(0, len(biography)):
                 if biography[x].isalpha():
