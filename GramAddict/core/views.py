@@ -328,7 +328,7 @@ class PostsViewList:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def fixed_swipe_hashtags(self, first_post):
+    def swipe_to_fit_posts(self, first_post):
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view"""
         POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
         displayWidth = self.device.get_info()["displayWidth"]
