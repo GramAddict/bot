@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
 from GramAddict.version import __version__
+from GramAddict.core.device_facade import DeviceFacade
 
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)

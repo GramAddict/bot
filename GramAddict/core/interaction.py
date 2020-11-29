@@ -80,8 +80,7 @@ def interact_with_user(
     )
 
     posts_tab_view = profile_view.navigateToPostsTab()
-    if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
-        logger.info("Scrolled down to see more posts.")
+    ProfileView(device).fixed_swipe()
 
     start_time = time.time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
@@ -89,7 +88,7 @@ def interact_with_user(
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
     logger.info(f"There are {len(photos_indices)} posts. Calculated in {end_time}s")
     if likes_value > len(photos_indices):
-        logger.info(f"Only {photos_indices} photos available")
+        logger.info(f"Only {len(photos_indices)} photos available")
     else:
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]

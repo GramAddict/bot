@@ -130,9 +130,7 @@ class ForceIteract(Plugin):
                 )
                 self.state.is_job_completed = True
 
-            while (
-                not self.state.is_job_completed
-            ):
+            while not self.state.is_job_completed:
                 job()
 
     def handle_blogger(
@@ -169,6 +167,7 @@ class ForceIteract(Plugin):
 
         if not self.open_user(device, username):
             return
+
         can_follow = (
             not is_myself
             and not is_follow_limit_reached()
@@ -180,6 +179,7 @@ class ForceIteract(Plugin):
         )
         storage.add_interacted_user(username, followed=followed)
         can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
+
         logger.info("Unfollow @" + username)
         attempts = 0
 

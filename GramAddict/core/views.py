@@ -708,19 +708,32 @@ class ProfileView(ActionBarView):
             className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
         )
         if grid_post.exists():  # max 4 rows supported
-            for i in range(2, 6):
-                lin_layout = grid_post.child(index=i)
-                if not lin_layout.exists() or i > 4:
+            for i in range(2, 5):
+                lin_layout = grid_post.child(
+                    index=i, className="android.widget.LinearLayout"
+                )
+                if i == 4 or not lin_layout.exists(True):
                     last_index = i - 1
                     last_lin_layout = grid_post.child(index=last_index)
                     for n in range(1, 4):
-                        if not last_lin_layout.child(index=n).exists() or n == 3:
+                        if n == 3 or not last_lin_layout.child(index=n).exists(True):
                             if n == 3:
                                 return last_index, 0
                             else:
                                 return last_index - 1, n
         else:
             return 0, 0
+
+    def fixed_swipe(self):
+        """calculate the right swipe amount necessary to see 12 photos"""
+        screen_height = self.device.get_info()["displayHeight"]
+        element_to_swipe_over = self.device.find(
+            resourceIdMatches="com.instagram.android:id/profile_tabs_container"
+        ).get_bounds()["top"]
+        scale = element_to_swipe_over / screen_height
+        logger.info("Scrolled down to see more posts.")
+        self.device.swipe(DeviceFacade.Direction.BOTTOM, (scale - 0.16))
+        return
 
     def navigateToPostsTab(self):
         self._navigateToTab(ProfileTabs.POSTS)
