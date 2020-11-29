@@ -320,5 +320,9 @@ class Filter:
     @staticmethod
     def _get_posts_count(device):
         profileView = ProfileView(device)
-        posts_count = profileView.getPostsCount()
+        posts_count = 0
+        try:
+            posts_count = profileView.getPostsCount()
+        except Exception:
+            logger.error("Cannot find posts count. Default is 0.")
         return posts_count
