@@ -732,7 +732,7 @@ class ProfileView(ActionBarView):
         ).get_bounds()["top"]
         scale = element_to_swipe_over / window_height
         logger.info("Scrolled down to see more posts.")
-        self.device.swipe(DeviceFacade.Direction.BOTTOM, (scale - 0.08)
+        self.device.swipe(DeviceFacade.Direction.BOTTOM, (scale - 0.08))
         return
 
     def navigateToPostsTab(self):
