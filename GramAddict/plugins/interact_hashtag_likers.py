@@ -17,7 +17,13 @@ from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
-from GramAddict.core.views import TabBarView
+from GramAddict.core.views import (
+    TabBarView,
+    HashTagView,
+    ProfileView,
+    OpenedPostView,
+    PostsViewList,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +41,21 @@ class InteractHashtagLikers(Plugin):
         )
         self.arguments = [
             {
-                "arg": "--hashtag-likers",
+                "arg": "--hashtag-likers-top",
                 "nargs": "+",
-                "help": "list of hashtags with whose likers you want to interact",
+                "help": "list of hashtags in top section with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
-            }
+            },
+            {
+                "arg": "--hashtag-likers-recent",
+                "nargs": "+",
+                "help": "list of hashtags in rece section with whose likers you want to interact",
+                "metavar": ("hashtag1", "hashtag2"),
+                "default": None,
+                "operation": True,
+            },
         ]
 
     def run(self, device, device_id, args, enabled, storage, sessions, plugin):
@@ -58,7 +72,9 @@ class InteractHashtagLikers(Plugin):
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in args.hashtag_likers]
+        sources = [
+            source for source in (args.hashtag_likers_top or args.hashtag_likers_recent)
+        ]
         shuffle(sources)
 
         for source in sources:
@@ -115,6 +131,8 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
+                    args.hashtag_likers_recent,
+                    # args.recent_tab,
                     storage,
                     profile_filter,
                     on_like,
@@ -142,6 +160,8 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        hashtag_likers_recent,
+        # recent_tab,
         storage,
         profile_filter,
         on_like,
@@ -173,51 +193,55 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
+        if hashtag_likers_recent != None:
+            logger.info("Switching to Recent tab")
+            HashTagView(device)._getRecentTab().click()
+            random_sleep()
+            random_sleep()  # wonder if it possible to check if everything is loaded instead of doing multiple random_sleep..
+
         logger.info("Opening the first result")
+
+        result_view = HashTagView(device)._getRecyclerView()
+        HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        first_result_view = device.find(
-            resourceId="com.instagram.android:id/recycler_view",
-            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
-        )
-
-        first_result_view.child(index=3).click()
-        random_sleep()
-
-        posts_list_view = device.find(
-            resourceId="android:id/list",
-            classNameMatches="(androidx.recyclerview.widget.RecyclerView|android.view.View)",
-        )
+        posts_list_view = ProfileView(device)._getRecyclerView()
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
-
+        first_post = True
+        post_description = ""
         while True:
-            if not self.open_likers(device):
+            if first_post:
+                PostsViewList(device).swipe_to_fit_posts(True)
+                first_post = False
+            if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
                 )
-                posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-                continue
+                PostsViewList(device).swipe_to_fit_posts(False)
+
+                flag, post_description = PostsViewList(device).check_if_last_post(
+                    post_description
+                )
+                if not flag:
+                    continue
+                else:
+                    break
 
             logger.info("List of likers is opened.")
             posts_end_detector.notify_new_page()
             random_sleep()
-            likes_list_view = device.find(
-                resourceId="android:id/list", className="android.widget.ListView"
-            )
+
+            likes_list_view = OpenedPostView(device)._getListViewLikers()
             prev_screen_iterated_likers = []
+
             while True:
                 logger.info("Iterate over visible likers.")
                 screen_iterated_likers = []
 
                 try:
-                    for item in device.find(
-                        resourceId="com.instagram.android:id/row_user_container_base",
-                        className="android.widget.LinearLayout",
-                    ):
-                        username_view = item.child(
-                            resourceId="com.instagram.android:id/row_user_primary_name",
-                            className="android.widget.TextView",
-                        )
+                    for item in OpenedPostView(device)._getUserCountainer():
+                        username_view = OpenedPostView(device)._getUserName(item)
+
                         if not username_view.exists(quick=True):
                             logger.info(
                                 "Next item not found: probably reached end of the screen.",
@@ -283,24 +307,3 @@ class InteractHashtagLikers(Plugin):
                 break
             else:
                 posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-
-    def open_likers(self, device):
-        attempts = 0
-        while True:
-            likes_view = device.find(
-                resourceId="com.instagram.android:id/row_feed_textview_likes",
-                className="android.widget.TextView",
-            )
-            if likes_view.exists():
-                logger.info("Opening post likers")
-                random_sleep()
-                likes_view.click(likes_view.Location.RIGHT)
-                return True
-            else:
-                if attempts < 1:
-                    attempts += 1
-                    logger.info("Can't find likers, trying small swipe")
-                    device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
-                    continue
-                else:
-                    return False

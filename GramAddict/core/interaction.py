@@ -11,6 +11,7 @@ from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
     CurrentStoryView,
+    PostsGridView,
 )
 
 logger = logging.getLogger(__name__)
@@ -79,16 +80,17 @@ def interact_with_user(
         session_state,
     )
 
-    posts_tab_view = profile_view.navigateToPostsTab()
     ProfileView(device).swipe_to_fit_posts()
-
+    random_sleep()
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
     end_time = format(time() - start_time, ".2f")
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
-    logger.info(f"There are {len(photos_indices)} posts. Calculated in {end_time}s")
+    logger.info(
+        f"There are {len(photos_indices)} posts visible. Calculated in {end_time}s"
+    )
     if likes_value > len(photos_indices):
-        logger.info(f"Only {len(photos_indices)} photos available")
+        logger.info(f"Only {photos_indices} photos available")
     else:
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]
@@ -98,7 +100,7 @@ def interact_with_user(
         row = photo_index // 3
         column = photo_index - row * 3
         logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column)")
-        opened_post_view = posts_tab_view.navigateToPost(row, column)
+        opened_post_view = PostsGridView(device).navigateToPost(row, column)
         random_sleep()
 
         like_succeed = False

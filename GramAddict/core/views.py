@@ -165,6 +165,23 @@ class HashTagView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
+    def _getRecyclerView(self):
+        CLASSNAME = "(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+
+        return self.device.find(classNameMatches=CLASSNAME)
+
+    def _getFistImageView(self, recycler):
+        return recycler.child(
+            className="android.widget.ImageView",
+            resourceIdMatches="com.instagram.android:id/image_button",
+        )
+
+    def _getRecentTab(self):
+        return self.device.find(
+            className="android.widget.TextView",
+            text="Recent",
+        )
+
 
 class SearchView:
     def __init__(self, device: DeviceFacade):
@@ -279,8 +296,20 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
-        hashtag_tab.click()
 
+        hashtag_tab.click()
+        random_sleep()
+        DeviceFacade.back(self.device)
+        random_sleep()
+        # check if that hashtag already exists in the recent search list -> act as human
+        hashtag_view_recent = self._getHashtagRow(hashtag[1:])
+
+        if hashtag_view_recent.exists():
+            hashtag_view_recent.click()
+            random_sleep()
+            return HashTagView(self.device)
+
+        logger.info(f"{hashtag} is not in recent searching hystory..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
 
@@ -290,8 +319,66 @@ class SearchView:
             return None
 
         hashtag_view.click()
+        random_sleep()
 
         return HashTagView(self.device)
+
+
+class PostsViewList:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def swipe_to_fit_posts(self, first_post):
+        """calculate the right swipe amount necessary to swipe to next post in hashtag post view"""
+        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
+        displayWidth = self.device.get_info()["displayWidth"]
+        if first_post:
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=POST_CONTAINER
+            ).get_bounds()["bottom"]
+
+            logger.info("Scrolled down to see more posts.")
+            self.device.swipe_points(
+                displayWidth / 2,
+                zoomable_view_container,
+                displayWidth / 2,
+                zoomable_view_container * 2 / 3,
+            )
+        else:
+
+            gap_view = self.device.find(
+                resourceIdMatches="com.instagram.android:id/gap_view"
+            ).get_bounds()["top"]
+
+            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=(POST_CONTAINER)
+            )
+
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=POST_CONTAINER
+            ).get_bounds()["bottom"]
+
+            self.device.swipe_points(
+                displayWidth / 2,
+                zoomable_view_container,
+                displayWidth / 2,
+                zoomable_view_container * 2 / 3,
+            )
+        return
+
+    def check_if_last_post(self, last_description):
+        """check if that post has been just interacted"""
+        post_description = self.device.find(
+            resourceId="com.instagram.android:id/row_feed_comment_textview_layout"
+        )
+        if post_description.exists(True):
+            new_description = post_description.get_text().upper()
+            if new_description == last_description:
+                logger.info("This is the last post for this hashtag")
+                return True, new_description
+            else:
+                return False, new_description
 
 
 class LanguageView:
@@ -477,6 +564,41 @@ class OpenedPostView:
 
         return self._isPostLiked()
 
+    def open_likers(self):
+        while True:
+            likes_view = self.device.find(
+                resourceId="com.instagram.android:id/row_feed_textview_likes",
+                className="android.widget.TextView",
+            )
+            if likes_view.exists(True):
+                if likes_view.get_text()[-6:].upper() == "OTHERS":
+                    logger.info("Opening post likers")
+                    random_sleep()
+                    likes_view.click("right")
+                    return True
+                else:
+                    logger.info("This post has only 1 liker, skip")
+                    return False
+            else:
+                return False
+
+    def _getListViewLikers(self):
+        return self.device.find(
+            resourceId="android:id/list", className="android.widget.ListView"
+        )
+
+    def _getUserCountainer(self):
+        return self.device.find(
+            resourceId="com.instagram.android:id/row_user_container_base",
+            className="android.widget.LinearLayout",
+        )
+
+    def _getUserName(self, countainer):
+        return countainer.child(
+            resourceId="com.instagram.android:id/row_user_primary_name",
+            className="android.widget.TextView",
+        )
+
 
 class PostsGridView:
     def __init__(self, device: DeviceFacade):
@@ -627,6 +749,29 @@ class ProfileView(ActionBarView):
             logger.error("Cannot get posts count text")
             return 0
 
+    def count_photo_in_view(self):
+        """return rows filled and the number of post in the last row"""
+        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
+        grid_post = self.device.find(
+            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
+        )
+        if grid_post.exists():  # max 4 rows supported
+            for i in range(2, 5):
+                lin_layout = grid_post.child(
+                    index=i, className="android.widget.LinearLayout"
+                )
+                if i == 4 or not lin_layout.exists(True):
+                    last_index = i - 1
+                    last_lin_layout = grid_post.child(index=last_index)
+                    for n in range(1, 4):
+                        if n == 3 or not last_lin_layout.child(index=n).exists(True):
+                            if n == 3:
+                                return last_index, 0
+                            else:
+                                return last_index - 1, n
+        else:
+            return 0, 0
+
     def getProfileInfo(self):
 
         username = self.getUsername()
@@ -701,29 +846,6 @@ class ProfileView(ActionBarView):
         followers_button = self.device.find(resourceIdMatches=FOLLOWERS_BUTTON_ID_REGEX)
         followers_button.click()
 
-    def count_photo_in_view(self):
-        """return rows filled and the number of post in the last row"""
-        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
-        grid_post = self.device.find(
-            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
-        )
-        if grid_post.exists():  # max 4 rows supported
-            for i in range(2, 5):
-                lin_layout = grid_post.child(
-                    index=i, className="android.widget.LinearLayout"
-                )
-                if i == 4 or not lin_layout.exists(True):
-                    last_index = i - 1
-                    last_lin_layout = grid_post.child(index=last_index)
-                    for n in range(1, 4):
-                        if n == 3 or not last_lin_layout.child(index=n).exists(True):
-                            if n == 3:
-                                return last_index, 0
-                            else:
-                                return last_index - 1, n
-        else:
-            return 0, 0
-
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
         displayWidth = self.device.get_info()["displayWidth"]
@@ -787,6 +909,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(TAB_RES_ID),
             className=TAB_CLASS_NAME,
         )
+
         attempts = 0
         while not button.exists():
             attempts += 1
@@ -797,6 +920,11 @@ class ProfileView(ActionBarView):
                 return
 
         button.click()
+
+    def _getRecyclerView(self):
+        CLASSNAME = "(androidx.recyclerview.widget.RecyclerView|android.view.View)"
+
+        return self.device.find(classNameMatches=CLASSNAME)
 
 
 class CurrentStoryView:

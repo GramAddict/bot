@@ -114,4 +114,12 @@ class CoreArguments(Plugin):
                 "default": None,
                 "operation": True,
             },
+            {
+                "arg": "--hashtag-likers",
+                "nargs": "+",
+                "help": "list of hashtags with whose likers you want to interact",
+                "metavar": ("hashtag1", "hashtag2"),
+                "default": None,
+                "operation": True,
+            },
         ]
