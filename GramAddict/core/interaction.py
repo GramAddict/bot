@@ -11,7 +11,7 @@ from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
     CurrentStoryView,
-    PostsGridView
+    PostsGridView,
 )
 
 logger = logging.getLogger(__name__)
