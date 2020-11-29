@@ -125,11 +125,11 @@ def run():
                         else:
                             args.blogger_followers.append(source)
                     else:
-                        enabled.append("--hashtag-likers")
-                        if type(args.hashtag_likers) != list:
-                            args.hashtag_likers = [source]
+                        enabled.append("--hashtag-likers-top")
+                        if type(args.hashtag_likers_top) != list:
+                            args.hashtag_likers_top = [source]
                         else:
-                            args.hashtag_likers.append(source)
+                            args.hashtag_likers_top.append(source)
             elif k == "--hashtag-likers":
                 logger.warn(
                     'Using legacy argument "--hashtag-likers". Please switch to new arguments as this will be deprecated in the near future.'
