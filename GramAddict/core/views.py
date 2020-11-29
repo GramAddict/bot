@@ -324,6 +324,63 @@ class SearchView:
         return HashTagView(self.device)
 
 
+class PostsViewList:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def fixed_swipe_hashtags(self, first_post):
+        """calculate the right swipe amount necessary to swipe to next post in hashtag post view"""
+        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
+        displayWidth = self.device.get_info()["displayWidth"]
+        if first_post:
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=POST_CONTAINER
+            ).get_bounds()["bottom"]
+
+            logger.info("Scrolled down to see more posts.")
+            self.device.swipe_points(
+                displayWidth / 2,
+                zoomable_view_container,
+                displayWidth / 2,
+                zoomable_view_container * 2 / 3,
+            )
+        else:
+
+            gap_view = self.device.find(
+                resourceIdMatches="com.instagram.android:id/gap_view"
+            ).get_bounds()["top"]
+
+            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=(POST_CONTAINER)
+            )
+
+            zoomable_view_container = self.device.find(
+                resourceIdMatches=POST_CONTAINER
+            ).get_bounds()["bottom"]
+
+            self.device.swipe_points(
+                displayWidth / 2,
+                zoomable_view_container,
+                displayWidth / 2,
+                zoomable_view_container * 2 / 3,
+            )
+        return
+
+    def check_if_last_post(self, last_description):
+        """check if that post has been just interacted"""
+        post_description = self.device.find(
+            resourceId="com.instagram.android:id/row_feed_comment_textview_layout"
+        )
+        if post_description.exists(True):
+            new_description = post_description.get_text().upper()
+            if new_description != last_description:
+                logger.info("This is the last post for this hashtag")
+                return True, new_description
+            else:
+                return False, new_description
+
+
 class LanguageView:
     def __init__(self, device: DeviceFacade):
         self.device = device
@@ -508,25 +565,22 @@ class OpenedPostView:
         return self._isPostLiked()
 
     def open_likers(self):
-        attempts = 0
         while True:
             likes_view = self.device.find(
                 resourceId="com.instagram.android:id/row_feed_textview_likes",
                 className="android.widget.TextView",
             )
-            if likes_view.exists():
-                logger.info("Opening post likers")
-                random_sleep()
-                likes_view.click("right")
-                return True
-            else:
-                if attempts < 1:
-                    attempts += 1
-                    logger.info("Can't find likers, trying small swipe")
-                    self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
-                    continue
+            if likes_view.exists(True):
+                if likes_view.get_text()[-6:].upper() == "OTHERS":
+                    logger.info("Opening post likers")
+                    random_sleep()
+                    likes_view.click("right")
+                    return True
                 else:
+                    logger.info("This post has only 1 liker, skip")
                     return False
+            else:
+                return False
 
     def _getListViewLikers(self):
         return self.device.find(

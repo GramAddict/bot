@@ -19,7 +19,13 @@ from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
-from GramAddict.core.views import TabBarView, HashTagView, ProfileView, OpenedPostView
+from GramAddict.core.views import (
+    TabBarView,
+    HashTagView,
+    ProfileView,
+    OpenedPostView,
+    PostsViewList,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +183,7 @@ class InteractHashtagLikers(Plugin):
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep()
+            random_sleep()
 
         logger.info("Opening the first result")
 
@@ -186,14 +193,25 @@ class InteractHashtagLikers(Plugin):
 
         posts_list_view = ProfileView(device)._getRecyclerView()
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
-
+        first_post = True
+        post_description = ""
         while True:
+            if first_post:
+                PostsViewList(device).fixed_swipe_hashtags(True)
+                first_post = False
             if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
                 )
-                posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-                continue
+                PostsViewList(device).fixed_swipe_hashtags(False)
+
+                flag, post_description = PostsViewList(device).check_if_last_post(
+                    post_description
+                )
+                if not flag:
+                    continue
+                else:
+                    break
 
             logger.info("List of likers is opened.")
             posts_end_detector.notify_new_page()
