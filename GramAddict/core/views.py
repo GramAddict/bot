@@ -724,7 +724,7 @@ class ProfileView(ActionBarView):
         else:
             return 0, 0
 
-    def fixed_swipe(self):
+    def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
         displayWidth = self.device.get_info()["displayWidth"]
         element_to_swipe_over = self.device.find(

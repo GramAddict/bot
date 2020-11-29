@@ -80,7 +80,7 @@ def interact_with_user(
     )
 
     posts_tab_view = profile_view.navigateToPostsTab()
-    ProfileView(device).fixed_swipe()
+    ProfileView(device).swipe_to_fit_posts()
 
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
