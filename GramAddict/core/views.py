@@ -726,13 +726,18 @@ class ProfileView(ActionBarView):
 
     def fixed_swipe(self):
         """calculate the right swipe amount necessary to see 12 photos"""
-        window_height = self.device.get_info()["windowHeight"]
+        displayWidth = self.device.get_info()["displayWidth"]
         element_to_swipe_over = self.device.find(
             resourceIdMatches="com.instagram.android:id/profile_tabs_container"
         ).get_bounds()["top"]
-        scale = element_to_swipe_over / window_height
+        bar_countainer = self.device.find(
+            resourceIdMatches="com.instagram.android:id/action_bar_container"
+        ).get_bounds()["bottom"]
+
         logger.info("Scrolled down to see more posts.")
-        self.device.swipe(DeviceFacade.Direction.BOTTOM, (scale - 0.08))
+        self.device.swipe_points(
+            displayWidth / 2, element_to_swipe_over, displayWidth / 2, bar_countainer
+        )
         return
 
     def navigateToPostsTab(self):
