@@ -74,6 +74,13 @@ class DeviceFacade:
     def is_alive(self):
         return self.deviceV2._is_alive()
 
+    def wake_up(self):
+        """ Make sure agent is alive or bring it back up before starting. """
+        attempts = 0
+        while not device.is_alive() and attempts < 5:
+            DeviceFacade(device_id).get_info()
+            attempts += 1
+
     def unlock(self):
         self.swipe(DeviceFacade.Direction.TOP, 0.8)
         if self.is_screen_locked():
