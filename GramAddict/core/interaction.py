@@ -1,7 +1,7 @@
 import logging
-from random import randint, shuffle, uniform
+from random import randint, shuffle
 from typing import Tuple
-from time import sleep, time
+from time import time
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
@@ -79,8 +79,7 @@ def interact_with_user(
         session_state,
     )
 
-    posts_tab_view = profile_view.navigateToPostsTab()
-
+    ProfileView(device).swipe_to_fit_posts()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
         logger.info("Scrolled down to see more posts.")
     random_sleep()
@@ -192,7 +191,9 @@ def _on_interaction(
 
     can_continue = True
 
-    if session_state.check_limit(args, limit_type="LIKES", output=False):
+    if session_state.check_limit(
+        args, limit_type=session_state.Limit.LIKES, output=False
+    ):
         logger.info("Reached interaction limit, finish.")
         can_continue = False
 
@@ -213,7 +214,9 @@ def _on_interaction(
 
 
 def _follow(device, username, follow_percentage, args, session_state):
-    if not session_state.check_limit(args, limit_type="FOLLOWS", output=False):
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.FOLLOWS, output=False
+    ):
         follow_chance = randint(1, 100)
         if follow_chance > follow_percentage:
             return False
@@ -288,7 +291,9 @@ def _watch_stories(
     args,
     session_state,
 ):
-    if not session_state.check_limit(args, limit_type="WATCH", output=False):
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.WATCHES, output=False
+    ):
         story_chance = randint(1, 100)
         if story_chance > stories_percentage:
             return False
@@ -307,7 +312,7 @@ def _watch_stories(
             if profile_picture.exists():
                 profile_picture.click()  # Open the first story
                 on_watch()
-                sleep(uniform(1.5, 2.5))
+                random_sleep()
 
                 if stories_to_watch > 1:
                     story_view = CurrentStoryView(device)
@@ -319,9 +324,9 @@ def _watch_stories(
                                     story_frame.exists()
                                     and _iter <= stories_to_watch - 1
                                 ):
-                                    story_frame.click("right")
+                                    story_frame.click(story_view.Location.RIGHT)
                                     on_watch()
-                                    sleep(uniform(1.5, 2.5))
+                                    random_sleep()
                             except Exception:
                                 break
                         else:
@@ -333,7 +338,7 @@ def _watch_stories(
                             device.back()
                         # Maybe it's just an error please one half seconds before search again for username tab
                         # This little delay prevent too much back tap and to see more stories than stories_to_watch value
-                        sleep(uniform(0.5, 1))
+                        random_sleep()
                     else:
                         break
                 return True

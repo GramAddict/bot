@@ -1,6 +1,8 @@
 import logging
 from enum import Enum, auto
+from os import popen
 from random import uniform
+from re import search
 from time import sleep
 
 import uiautomator2
@@ -26,8 +28,9 @@ class DeviceFacade:
     deviceV2 = None  # uiautomator2
 
     def __init__(self, device_id):
-        try:
+        self.device_id = device_id
 
+        try:
             self.deviceV2 = (
                 uiautomator2.connect()
                 if device_id is None
@@ -59,6 +62,14 @@ class DeviceFacade:
 
     def press_power(self):
         self.deviceV2.press("power")
+
+    def is_screen_locked(self):
+        status = popen(
+            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys window"
+        )
+        data = status.read()
+        flag = search("mDreamingLockscreen=(true|false)", data)
+        return True if flag.group(1) == "true" else False
 
     def unlock(self):
         self.swipe(DeviceFacade.Direction.TOP, 0.8)
@@ -94,11 +105,7 @@ class DeviceFacade:
         # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
         # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
         #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
-        window = self.deviceV2.window_size()
-        d = self.deviceV2.info
-        d["windowWidth"] = window[0]
-        d["windowHeight"] = window[1]
-        return d
+        return self.deviceV2.info
 
     class View:
         deviceV2: Device = None  # uiautomator2
@@ -158,27 +165,30 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
-        def click(self, mode="whole"):
+        def click(self, mode=None):
+            mode = self.Location.WHOLE if mode == None else mode
             x_abs = -1
             y_abs = -1
-            if mode == "whole":
+            if mode == self.Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "left":
+            elif mode == self.Location.LEFT:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "center":
+            elif mode == self.Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "right":
+            elif mode == self.Location.RIGHT:
                 x_offset = uniform(0.6, 0.85)
                 y_offset = uniform(0.15, 0.85)
+
             else:
                 x_offset = 0.5
                 y_offset = 0.5
+
             try:
                 visible_bounds = self.get_bounds()
                 x_abs = int(
@@ -298,7 +308,7 @@ class DeviceFacade:
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )
-            return 0
+            return ""
 
         def get_selected(self) -> bool:
 
@@ -312,6 +322,13 @@ class DeviceFacade:
                 self.viewV2.set_text(text)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
+
+        class Location(Enum):
+            WHOLE = auto()
+            CENTER = auto()
+            BOTTOM = auto()
+            RIGHT = auto()
+            LEFT = auto()
 
     class Direction(Enum):
         TOP = auto()

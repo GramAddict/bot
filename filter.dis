@@ -1,0 +1,22 @@
+{
+    "skip_business": true,
+    "skip_non_business": false,
+    "min_followers": 0,
+    "max_followers": 5000,
+    "min_followings": 10,
+    "max_followings": 1000,
+    "min_potency_ratio": 0,
+    "follow_private_or_empty": true,
+    "interact_only_private": false,
+    "min_posts": 0,
+    "max_digits_in_profile_name": 4,
+    "blacklist_words": [
+        "sex",
+        "nude",
+        "fuck",
+        "blm",
+        "biden"
+    ],
+    "mandatory_words": [],
+    "specific_alphabet": "LATIN"
+}

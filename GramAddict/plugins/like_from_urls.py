@@ -12,11 +12,13 @@ from GramAddict.core.views import OpenedPostView
 
 
 class LikeFromURLs(Plugin):
-    """This plugin handles the functionality to likes all post from url reading a plaintext file"""
+    """Likes a post from url. The urls are read from a plaintext file"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality to likes all post from url reading a plaintext file"
+        self.description = (
+            "Likes a post from url. The urls are read from a plaintext file"
+        )
         self.arguments = [
             {
                 "arg": "--urls-file",
