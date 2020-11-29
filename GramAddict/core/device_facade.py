@@ -71,9 +71,13 @@ class DeviceFacade:
         flag = search("mDreamingLockscreen=(true|false)", data)
         return True if flag.group(1) == "true" else False
 
+    def is_alive(self):
+        return self.deviceV2._is_alive()
+
     def unlock(self):
         self.swipe(DeviceFacade.Direction.TOP, 0.8)
-        self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
+        if self.is_screen_locked():
+            self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
 
     def screen_off(self):
         self.deviceV2.screen_off()

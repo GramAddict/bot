@@ -161,6 +161,11 @@ def run():
         session_state.args = args.__dict__
         sessions.append(session_state)
 
+        attempts = 0
+        while not device.is_alive() and attempts < 5:
+            DeviceFacade(device_id).get_info()
+            attempts += 1
+
         logger.info(
             "-------- START: " + str(session_state.startTime) + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},

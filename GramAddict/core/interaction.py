@@ -87,7 +87,7 @@ def interact_with_user(
     end_time = format(time() - start_time, ".2f")
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
     logger.info(
-        f"There are {len(photos_indices)} posts visible. Calculated in {end_time}s"
+        f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
     if likes_value > len(photos_indices):
         logger.info(f"Only {photos_indices} photos available")
