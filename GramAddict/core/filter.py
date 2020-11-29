@@ -255,14 +255,16 @@ class Filter:
         profileView = ProfileView(device)
         try:
             followers = profileView.getFollowersCount()
-        except Exception:
+        except Exception as e:
             logger.error(f"Cannot find followers count view, default is {followers}")
+            logger.debug(f"Error: {e}")
 
         followings = 0
         try:
             followings = profileView.getFollowingCount()
-        except Exception:
+        except Exception as e:
             logger.error(f"Cannot find followings count view, default is {followings}")
+            logger.debug(f"Error: {e}")
 
         return followers, followings
 
@@ -280,8 +282,9 @@ class Filter:
         profileView = ProfileView(device)
         try:
             private = profileView.isPrivateAccount()
-        except Exception:
+        except Exception as e:
             logger.error("Cannot find whether it is private or not")
+            logger.debug(f"Error: {e}")
 
         return private
 
@@ -293,17 +296,21 @@ class Filter:
     @staticmethod
     def _find_alphabet(biography):
         a_dict = {}
-        max_alph = ""
-        for x in range(0, len(biography)):
-            if biography[x].isalpha():
-                a = unicodedata.name(biography[x]).split(" ")[0]
-                if a not in IGNORE_CHARSETS:
-                    if a in a_dict:
-                        a_dict[a] += 1
-                    else:
-                        a_dict[a] = 1
-        if bool(a_dict):
-            max_alph = max(a_dict, key=lambda k: a_dict[k])
+        max_alph = field_specific_alphabet
+        try:
+            for x in range(0, len(biography)):
+                if biography[x].isalpha():
+                    a = unicodedata.name(biography[x]).split(" ")[0]
+                    if a not in IGNORE_CHARSETS:
+                        if a in a_dict:
+                            a_dict[a] += 1
+                        else:
+                            a_dict[a] = 1
+            if bool(a_dict):
+                max_alph = max(a_dict, key=lambda k: a_dict[k])
+        except Exception as e:
+            logger.error(f"Cannot determine primary alphabet. Default is {max_alph}")
+            logger.debug(f"Error: {e}")
 
         return max_alph
 
@@ -313,8 +320,10 @@ class Filter:
         fullname = ""
         try:
             fullname = profileView.getFullName()
-        except Exception:
+        except Exception as e:
             logger.error("Cannot find full name.")
+            logger.debug(f"Error: {e}")
+
         return fullname
 
     @staticmethod
@@ -323,6 +332,8 @@ class Filter:
         posts_count = 0
         try:
             posts_count = profileView.getPostsCount()
-        except Exception:
+        except Exception as e:
             logger.error("Cannot find posts count. Default is 0.")
+            logger.debug(f"Error: {e}")
+
         return posts_count
