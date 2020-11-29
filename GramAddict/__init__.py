@@ -26,7 +26,6 @@ from GramAddict.core.utils import (
     open_instagram,
     random_sleep,
     save_crash,
-    check_screen_locked,
     update_available,
 )
 from GramAddict.core.views import TabBarView
@@ -159,9 +158,9 @@ def run():
 
         if not DeviceFacade(device_id).get_info()["screenOn"]:
             DeviceFacade(device_id).press_power()
-        if check_screen_locked(device_id):
+        if DeviceFacade(device_id).is_screen_locked():
             DeviceFacade(device_id).unlock()
-            if check_screen_locked(device_id):
+            if DeviceFacade(device_id).is_screen_locked():
                 logger.error(
                     "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
                 )

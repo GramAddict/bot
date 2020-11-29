@@ -116,15 +116,6 @@ def random_sleep():
     sleep(delay)
 
 
-def check_screen_locked(device_id):
-    status = os.popen(
-        f"adb {''if device_id is None else ('-s '+ device_id)} shell dumpsys window"
-    )
-    data = status.read()
-    flag = re.search("mDreamingLockscreen=(true|false)", data)
-    return True if flag.group(1) == "true" else False
-
-
 def save_crash(device):
 
     directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

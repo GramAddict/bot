@@ -1,6 +1,8 @@
 import logging
 from enum import Enum, auto
+from os import popen
 from random import uniform
+from re import search
 from time import sleep
 
 import uiautomator2
@@ -26,8 +28,9 @@ class DeviceFacade:
     deviceV2 = None  # uiautomator2
 
     def __init__(self, device_id):
-        try:
+        self.device_id = device_id
 
+        try:
             self.deviceV2 = (
                 uiautomator2.connect()
                 if device_id is None
@@ -59,6 +62,14 @@ class DeviceFacade:
 
     def press_power(self):
         self.deviceV2.press("power")
+
+    def is_screen_locked(self):
+        status = popen(
+            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys window"
+        )
+        data = status.read()
+        flag = search("mDreamingLockscreen=(true|false)", data)
+        return True if flag.group(1) == "true" else False
 
     def unlock(self):
         self.swipe(DeviceFacade.Direction.TOP, 0.8)
