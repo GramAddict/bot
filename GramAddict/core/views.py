@@ -340,7 +340,7 @@ class PostsViewList:
             logger.info("Scrolled down to see more posts.")
             self.device.swipe_points(
                 displayWidth / 2,
-                zoomable_view_container,
+                zoomable_view_container - 1,
                 displayWidth / 2,
                 zoomable_view_container * 2 / 3,
             )
@@ -361,7 +361,7 @@ class PostsViewList:
 
             self.device.swipe_points(
                 displayWidth / 2,
-                zoomable_view_container,
+                zoomable_view_container - 1,
                 displayWidth / 2,
                 zoomable_view_container * 2 / 3,
             )
@@ -574,7 +574,7 @@ class OpenedPostView:
                 if likes_view.get_text()[-6:].upper() == "OTHERS":
                     logger.info("Opening post likers")
                     random_sleep()
-                    likes_view.click("right")
+                    likes_view.click(likes_view.Location.RIGHT)
                     return True
                 else:
                     logger.info("This post has only 1 liker, skip")
