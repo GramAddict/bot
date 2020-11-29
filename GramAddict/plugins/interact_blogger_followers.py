@@ -9,7 +9,7 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
-    _on_likes_limit_reached,
+    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -32,11 +32,13 @@ seed()
 
 
 class InteractBloggerFollowers(Plugin):
-    """This plugin handles the functionality of interacting with a bloggers followers"""
+    """Handles the functionality of interacting with a bloggers followers"""
 
     def __init__(self):
         super().__init__()
-        self.description = "This plugin handles the functionality of interacting with a bloggers followers"
+        self.description = (
+            "Handles the functionality of interacting with a bloggers followers"
+        )
         self.arguments = [
             {
                 "arg": "--blogger-followers",
@@ -48,18 +50,18 @@ class InteractBloggerFollowers(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
+        self.args = args
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -67,16 +69,19 @@ class InteractBloggerFollowers(Plugin):
         shuffle(sources)
 
         for source in sources:
+            limit_reached = self.session_state.check_limit(
+                args, limit_type=self.session_state.Limit.LIKES
+            ) and self.session_state.check_limit(
+                args, limit_type=self.session_state.Limit.FOLLOWS
+            )
+
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
             its_you = is_myself and " (it's you)" or ""
             logger.info(f"Handle {source} {its_you}")
 
-            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
-
             on_interaction = partial(
                 _on_interaction,
-                on_likes_limit_reached=on_likes_limit_reached,
                 likes_limit=int(args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
@@ -84,11 +89,23 @@ class InteractBloggerFollowers(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
+                args=self.args,
             )
 
             on_like = partial(
                 _on_like, sessions=self.sessions, session_state=self.session_state
             )
+
+            on_watch = partial(
+                _on_watch, sessions=self.sessions, session_state=self.session_state
+            )
+
+            if args.stories_count != "0":
+                stories_percentage = get_value(
+                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                )
+            else:
+                stories_percentage = 0
 
             @run_safely(
                 device=device,
@@ -101,22 +118,26 @@ class InteractBloggerFollowers(Plugin):
                     device,
                     source[1:] if "@" in source else source,
                     args.likes_count,
+                    args.stories_count,
+                    stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     storage,
                     profile_filter,
                     on_like,
+                    on_watch,
                     on_interaction,
                 )
                 self.state.is_job_completed = True
 
-            while (
-                not self.state.is_job_completed
-                and not self.state.is_likes_limit_reached
-            ):
+            while not self.state.is_job_completed and not limit_reached:
                 job()
 
-            if self.state.is_likes_limit_reached:
+            if limit_reached:
+                logger.info("Likes and follows limit reached.")
+                self.session_state.check_limit(
+                    args, limit_type=self.session_state.Limit.ALL, output=True
+                )
                 break
 
     def handle_blogger(
@@ -124,11 +145,14 @@ class InteractBloggerFollowers(Plugin):
         device,
         username,
         likes_count,
+        stories_count,
+        stories_percentage,
         follow_percentage,
         follow_limit,
         storage,
         profile_filter,
         on_like,
+        on_watch,
         on_interaction,
     ):
         is_myself = username == self.session_state.my_username
@@ -136,9 +160,14 @@ class InteractBloggerFollowers(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=likes_count,
+            stories_count=stories_count,
+            stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             on_like=on_like,
+            on_watch=on_watch,
             profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
@@ -342,10 +371,10 @@ class InteractBloggerFollowers(Plugin):
 
                     if need_swipe and not pressed_retry:
                         logger.info(
-                            "All followers skipped, let's do a swipe",
+                            "All followers skipped, let's scroll.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        list_view.fling(DeviceFacade.Direction.BOTTOM)
+                        list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(
                             "Need to scroll now", extra={"color": f"{Fore.GREEN}"}

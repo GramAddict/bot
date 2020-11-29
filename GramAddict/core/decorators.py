@@ -6,6 +6,8 @@ from datetime import datetime
 from http.client import HTTPException
 from socket import timeout
 
+from uiautomator2.exceptions import UiObjectNotFoundError
+
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.report import print_full_report
 from GramAddict.core.utils import (
@@ -34,7 +36,13 @@ def run_safely(device, device_id, sessions, session_state):
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 sys.exit(0)
-            except (DeviceFacade.JsonRpcError, IndexError, HTTPException, timeout):
+            except (
+                DeviceFacade.JsonRpcError,
+                IndexError,
+                HTTPException,
+                timeout,
+                UiObjectNotFoundError,
+            ):
                 logger.error(traceback.format_exc())
                 save_crash(device)
                 logger.info("No idea what it was. Let's try again.")
@@ -49,6 +57,7 @@ def run_safely(device, device_id, sessions, session_state):
                 )
                 TabBarView(device).navigateToProfile()
             except Exception as e:
+                logger.error(traceback.format_exc())
                 save_crash(device)
                 close_instagram(device_id)
                 print_full_report(sessions)

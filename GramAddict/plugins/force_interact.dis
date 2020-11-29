@@ -23,7 +23,6 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
-    _on_likes_limit_reached,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
@@ -63,13 +62,12 @@ class ForceIteract(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None
@@ -87,11 +85,8 @@ class ForceIteract(Plugin):
             its_you = is_myself and " (it's you)" or ""
             logger.info(f"Handle {source} {its_you}")
 
-            on_likes_limit_reached = partial(_on_likes_limit_reached, state=self.state)
-
             on_interaction = partial(
                 _on_interaction,
-                on_likes_limit_reached=on_likes_limit_reached,
                 likes_limit=int(args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
@@ -99,11 +94,19 @@ class ForceIteract(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
+                args=args,
             )
 
             on_like = partial(
                 _on_like, sessions=self.sessions, session_state=self.session_state
             )
+
+            if args.stories_count != "0":
+                stories_percentage = get_value(
+                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                )
+            else:
+                stories_percentage = 0
 
             @run_safely(
                 device=device,
@@ -116,6 +119,8 @@ class ForceIteract(Plugin):
                     device,
                     source[1:] if "@" in source else source,
                     args.likes_count,
+                    args.stories_count,
+                    stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     storage,
@@ -125,20 +130,16 @@ class ForceIteract(Plugin):
                 )
                 self.state.is_job_completed = True
 
-            while (
-                not self.state.is_job_completed
-                and not self.state.is_likes_limit_reached
-            ):
+            while not self.state.is_job_completed:
                 job()
-
-            if self.state.is_likes_limit_reached:
-                break
 
     def handle_blogger(
         self,
         device,
         username,
         likes_count,
+        stories_count,
+        stories_percentage,
         follow_percentage,
         follow_limit,
         storage,
@@ -151,6 +152,8 @@ class ForceIteract(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=likes_count,
+            stories_count=stories_count,
+            stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             on_like=on_like,
             profile_filter=profile_filter,
@@ -164,6 +167,7 @@ class ForceIteract(Plugin):
 
         if not self.open_user(device, username):
             return
+
         can_follow = (
             not is_myself
             and not is_follow_limit_reached()
@@ -175,6 +179,7 @@ class ForceIteract(Plugin):
         )
         storage.add_interacted_user(username, followed=followed)
         can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
+
         logger.info("Unfollow @" + username)
         attempts = 0
 

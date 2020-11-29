@@ -4,11 +4,11 @@ from GramAddict.core.plugin_loader import Plugin
 
 
 class CoreArguments(Plugin):
-    """This plugin simply adds core arguments"""
+    """Simply adds core arguments"""
 
     def __init__(self):
         super().__init__()
-        self.description = "Adds legacy arguments"
+        self.description = "Simply adds core arguments"
         self.arguments = [
             {
                 "arg": "--device",
@@ -27,9 +27,51 @@ class CoreArguments(Plugin):
             {
                 "arg": "--total-likes-limit",
                 "nargs": None,
-                "help": "limit on total amount of likes during the session, 300 by default",
+                "help": "limit on total amount of likes per session, 300 by default",
                 "metavar": "300",
                 "default": "300",
+            },
+            {
+                "arg": "--total-follows-limit",
+                "nargs": None,
+                "help": "limit on total follows per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
+                "arg": "--total-watches-limit",
+                "nargs": None,
+                "help": "limit on total watched stories per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
+                "arg": "--total-successful-interactions-limit",
+                "nargs": None,
+                "help": "limit on total successful interactions per session, 100 by default",
+                "metavar": "100",
+                "default": "100",
+            },
+            {
+                "arg": "--total-interactions-limit",
+                "nargs": None,
+                "help": "limit on total interactions per session, 1000 by default",
+                "metavar": "1000",
+                "default": "1000",
+            },
+            {
+                "arg": "--stories-count",
+                "nargs": None,
+                "help": "number of stories to watch for each user, 0 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "metavar": "2-4",
+                "default": "0",
+            },
+            {
+                "arg": "--stories-percentage",
+                "nargs": None,
+                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "metavar": "50-70",
+                "default": "30-40",
             },
             {
                 "arg": "--interactions-count",
@@ -69,6 +111,14 @@ class CoreArguments(Plugin):
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
                 "metavar": ("@username1", "@username2"),
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--hashtag-likers",
+                "nargs": "+",
+                "help": "list of hashtags with whose likers you want to interact",
+                "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
             },

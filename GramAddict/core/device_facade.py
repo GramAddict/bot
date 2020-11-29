@@ -1,6 +1,9 @@
 import logging
 from enum import Enum, auto
+from os import popen
 from random import uniform
+from re import search
+from time import sleep
 
 import uiautomator2
 from uiautomator2 import Device
@@ -25,8 +28,9 @@ class DeviceFacade:
     deviceV2 = None  # uiautomator2
 
     def __init__(self, device_id):
-        try:
+        self.device_id = device_id
 
+        try:
             self.deviceV2 = (
                 uiautomator2.connect()
                 if device_id is None
@@ -56,6 +60,35 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def press_power(self):
+        self.deviceV2.press("power")
+
+    def is_screen_locked(self):
+        status = popen(
+            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys window"
+        )
+        data = status.read()
+        flag = search("mDreamingLockscreen=(true|false)", data)
+        return True if flag.group(1) == "true" else False
+
+    def is_alive(self):
+        return self.deviceV2._is_alive()
+
+    def wake_up(self):
+        """ Make sure agent is alive or bring it back up before starting. """
+        attempts = 0
+        while not self.is_alive() and attempts < 5:
+            self.get_info()
+            attempts += 1
+
+    def unlock(self):
+        self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        if self.is_screen_locked():
+            self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
+
+    def screen_off(self):
+        self.deviceV2.screen_off()
+
     def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
@@ -63,8 +96,8 @@ class DeviceFacade:
         swipe_dir = ""
         if direction == DeviceFacade.Direction.TOP:
             swipe_dir = "up"
-        elif direction == DeviceFacade.Direction.BOTTOM:
-            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.RIGHT:
+            swipe_dir = "right"
         elif direction == DeviceFacade.Direction.LEFT:
             swipe_dir = "left"
         elif direction == DeviceFacade.Direction.BOTTOM:
@@ -72,6 +105,12 @@ class DeviceFacade:
 
         logger.debug(f"Swipe {swipe_dir}, scale={scale}")
         self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+
+    def swipe_points(self, sx, sy, ex, ey):
+        try:
+            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.6))
+        except uiautomator2.JSONRPCError as e:
+            raise DeviceFacade.JsonRpcError(e)
 
     def get_info(self):
         # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
@@ -137,27 +176,30 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
             return DeviceFacade.View(view=view, device=self.deviceV2)
 
-        def click(self, mode="whole"):
+        def click(self, mode=None):
+            mode = self.Location.WHOLE if mode == None else mode
             x_abs = -1
             y_abs = -1
-            if mode == "whole":
+            if mode == self.Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "left":
+            elif mode == self.Location.LEFT:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "center":
+            elif mode == self.Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == "right":
+            elif mode == self.Location.RIGHT:
                 x_offset = uniform(0.6, 0.85)
                 y_offset = uniform(0.15, 0.85)
+
             else:
                 x_offset = 0.5
                 y_offset = 0.5
+
             try:
                 visible_bounds = self.get_bounds()
                 x_abs = int(
@@ -258,12 +300,26 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_text(self):
-
-            try:
-                return self.viewV2.info["text"]
-            except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+        def get_text(self, retry=True):
+            max_attempts = 1 if not retry else 3
+            attempts = 0
+            while attempts < max_attempts:
+                attempts += 1
+                try:
+                    text = self.viewV2.info["text"]
+                    if text == None:
+                        logger.debug(
+                            "Could not get text. Waiting 2 seconds and trying again..."
+                        )
+                        sleep(2)  # wait 2 seconds and retry
+                    else:
+                        return text
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+            logger.error(
+                f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
+            )
+            return ""
 
         def get_selected(self) -> bool:
 
@@ -277,6 +333,13 @@ class DeviceFacade:
                 self.viewV2.set_text(text)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
+
+        class Location(Enum):
+            WHOLE = auto()
+            CENTER = auto()
+            BOTTOM = auto()
+            RIGHT = auto()
+            LEFT = auto()
 
     class Direction(Enum):
         TOP = auto()

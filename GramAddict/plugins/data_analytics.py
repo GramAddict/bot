@@ -33,7 +33,7 @@ class DataAnalytics(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         self.username = args.analytics[0]
         sessions = self.load_sessions()
         if not sessions:
