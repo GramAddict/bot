@@ -76,8 +76,6 @@ class ActionUnfollowFollowers(Plugin):
         self.sessions = sessions
         self.unfollow_type = plugin[2:]
 
-        limit_reached = self.session_state.check_limit(args, limit_type="UNFOLLOWS")
-
         count_arg = get_value(
             getattr(args, self.unfollow_type.replace("-", "_")),
             "Unfollow count: {}",
@@ -126,9 +124,7 @@ class ActionUnfollowFollowers(Plugin):
             logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
             self.state.is_job_completed = True
 
-        while not self.state.is_job_completed and (
-            self.state.unfollowed_count < count or not limit_reached
-        ):
+        while not self.state.is_job_completed and (self.state.unfollowed_count < count):
             job()
 
     def unfollow(

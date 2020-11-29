@@ -1,6 +1,7 @@
 import logging
 import uuid
 from datetime import datetime
+from enum import Enum, auto
 from json import JSONEncoder
 
 logger = logging.getLogger(__name__)
@@ -56,9 +57,9 @@ class SessionState:
             if followed:
                 self.totalFollowed[source] += 1
 
-    def check_limit(self, args, limit_type="ALL", output=False):
+    def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
-
+        limit_type = SessionState.Limit.ALL if limit_type == None else limit_type
         total_likes = self.totalLikes >= int(args.total_likes_limit)
         total_followed = sum(self.totalFollowed.values()) >= int(
             args.total_follows_limit
@@ -80,7 +81,7 @@ class SessionState:
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.total_interactions_limit})",
         ]
 
-        if limit_type == "ALL":
+        if limit_type == SessionState.Limit.ALL:
             if output:
                 for line in session_info:
                     logger.info(line)
@@ -92,35 +93,35 @@ class SessionState:
                 total_interactions or total_successful
             )
 
-        elif limit_type == "LIKES":
+        elif limit_type == SessionState.Limit.LIKES:
             if output:
                 logger.info(session_info[1])
             else:
                 logger.debug(session_info[1])
             return total_likes or (total_interactions or total_successful)
 
-        elif limit_type == "FOLLOWs":
+        elif limit_type == SessionState.Limit.FOLLOWS:
             if output:
                 logger.info(session_info[2])
             else:
                 logger.debug(session_info[2])
             return total_followed or (total_interactions or total_successful)
 
-        elif limit_type == "WATCHES":
+        elif limit_type == SessionState.Limit.WATCHES:
             if output:
                 logger.info(session_info[3])
             else:
                 logger.debug(session_info[3])
             return total_watched or (total_interactions or total_successful)
 
-        elif limit_type == "SUCCESS":
+        elif limit_type == SessionState.Limit.SUCCESS:
             if output:
                 logger.info(session_info[4])
             else:
                 logger.debug(session_info[4])
             return total_successful or total_interactions
 
-        elif limit_type == "TOTAL":
+        elif limit_type == SessionState.Limit.TOTAL:
             if output:
                 logger.info(session_info[5])
             else:
@@ -129,6 +130,14 @@ class SessionState:
 
     def is_finished(self):
         return self.finishTime is not None
+
+    class Limit(Enum):
+        ALL = auto()
+        LIKES = auto()
+        FOLLOWS = auto()
+        WATCHES = auto()
+        SUCCESS = auto()
+        TOTAL = auto()
 
 
 class SessionStateEncoder(JSONEncoder):

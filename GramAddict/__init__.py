@@ -220,7 +220,9 @@ def run():
 
         storage = Storage(session_state.my_username)
         for plugin in enabled:
-            if not session_state.check_limit(args, limit_type="ALL", output=False):
+            if not session_state.check_limit(
+                args, limit_type=session_state.Limit.ALL, output=False
+            ):
                 loaded[plugin].run(
                     device, device_id, args, enabled, storage, sessions, plugin
                 )

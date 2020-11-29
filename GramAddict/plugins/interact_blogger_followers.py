@@ -70,8 +70,10 @@ class InteractBloggerFollowers(Plugin):
 
         for source in sources:
             limit_reached = self.session_state.check_limit(
-                args, limit_type="LIKES"
-            ) and self.session_state.check_limit(args, limit_type="FOLLOWS")
+                args, limit_type=self.session_state.Limit.LIKES
+            ) and self.session_state.check_limit(
+                args, limit_type=self.session_state.Limit.FOLLOWS
+            )
 
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
@@ -133,7 +135,9 @@ class InteractBloggerFollowers(Plugin):
 
             if limit_reached:
                 logger.info("Likes and follows limit reached.")
-                self.session_state.check_limit(args, limit_type="ALL", output=True)
+                self.session_state.check_limit(
+                    args, limit_type=self.session_state.Limit.ALL, output=True
+                )
                 break
 
     def handle_blogger(

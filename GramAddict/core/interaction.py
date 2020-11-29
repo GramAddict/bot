@@ -188,7 +188,9 @@ def _on_interaction(
 
     can_continue = True
 
-    if session_state.check_limit(args, limit_type="LIKES", output=False):
+    if session_state.check_limit(
+        args, limit_type=session_state.Limit.LIKES, output=False
+    ):
         logger.info("Reached interaction limit, finish.")
         can_continue = False
 
@@ -209,7 +211,9 @@ def _on_interaction(
 
 
 def _follow(device, username, follow_percentage, args, session_state):
-    if not session_state.check_limit(args, limit_type="FOLLOWS", output=False):
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.FOLLOWS, output=False
+    ):
         follow_chance = randint(1, 100)
         if follow_chance > follow_percentage:
             return False
@@ -284,7 +288,9 @@ def _watch_stories(
     args,
     session_state,
 ):
-    if not session_state.check_limit(args, limit_type="WATCH", output=False):
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.WATCHES, output=False
+    ):
         story_chance = randint(1, 100)
         if story_chance > stories_percentage:
             return False

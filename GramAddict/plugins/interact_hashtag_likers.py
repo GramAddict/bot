@@ -63,8 +63,10 @@ class InteractHashtagLikers(Plugin):
 
         for source in sources:
             limit_reached = self.session_state.check_limit(
-                args, limit_type="LIKES"
-            ) and self.session_state.check_limit(args, limit_type="FOLLOWS")
+                args, limit_type=self.session_state.Limit.LIKES
+            ) and self.session_state.check_limit(
+                args, limit_type=self.session_state.Limit.FOLLOWS
+            )
 
             self.state = State()
             if source[0] != "#":
@@ -126,7 +128,9 @@ class InteractHashtagLikers(Plugin):
 
             if limit_reached:
                 logger.info("Likes and follows limit reached.")
-                self.session_state.check_limit(args, limit_type="ALL", output=True)
+                self.session_state.check_limit(
+                    args, limit_type=self.session_state.Limit.ALL, output=True
+                )
                 break
 
     def handle_hashtag(
