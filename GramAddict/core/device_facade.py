@@ -305,7 +305,7 @@ class DeviceFacade:
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )
-            return 0
+            return ""
 
         def get_selected(self) -> bool:
 
