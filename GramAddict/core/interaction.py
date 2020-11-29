@@ -11,7 +11,7 @@ from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
     CurrentStoryView,
-    PostsGridView
+    PostsGridView,
 )
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ def interact_with_user(
         session_state,
     )
 
-    posts_tab_view = ProfileView(device).swipe_to_fit_posts()
+    ProfileView(device).swipe_to_fit_posts()
     random_sleep()
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
