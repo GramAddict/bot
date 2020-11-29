@@ -3,11 +3,10 @@ import os
 import subprocess
 import re
 import shutil
-from subprocess import PIPE
-import sys
 import urllib3
 from datetime import datetime
 from random import randint, uniform
+from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
 
