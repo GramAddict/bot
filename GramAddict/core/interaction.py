@@ -1,7 +1,7 @@
 import logging
 from random import randint, shuffle, uniform
 from typing import Tuple
-from time import sleep
+from time import sleep, time
 from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
@@ -82,9 +82,9 @@ def interact_with_user(
     posts_tab_view = profile_view.navigateToPostsTab()
     ProfileView(device).fixed_swipe()
 
-    start_time = time.time()
+    start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
-    end_time = format(time.time() - start_time, ".2f")
+    end_time = format(time() - start_time, ".2f")
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
     logger.info(f"There are {len(photos_indices)} posts. Calculated in {end_time}s")
     if likes_value > len(photos_indices):

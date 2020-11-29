@@ -1,6 +1,6 @@
+import datetime
 import logging
 import re
-import datetime
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
@@ -732,7 +732,7 @@ class ProfileView(ActionBarView):
         ).get_bounds()["top"]
         scale = element_to_swipe_over / screen_height
         logger.info("Scrolled down to see more posts.")
-        self.device.swipe(DeviceFacade.Direction.BOTTOM, (scale - 0.16))
+        self.device.swipe(DeviceFacade.Direction.BOTTOM, scale)
         return
 
     def navigateToPostsTab(self):
