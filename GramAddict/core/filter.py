@@ -23,6 +23,8 @@ FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
+FIELD_MIN_POSTS = "min_posts"
+
 IGNORE_CHARSETS = ["MATHEMATICAL"]
 
 
@@ -55,6 +57,7 @@ class Filter:
             FIELD_INTERACT_ONLY_PRIVATE, False
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
+        field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -155,6 +158,15 @@ class Filter:
                 )
                 return False
 
+        if field_min_posts is not None:
+            posts_count = self._get_posts_count(device)
+            if field_min_posts > posts_count:
+                logger.info(
+                    f"@{username} doesn't have enough posts ({posts_count}), skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
         if (
             len(field_blacklist_words) > 0
             or len(field_mandatory_words) > 0
@@ -202,7 +214,7 @@ class Filter:
                         "Checking primary character set of account biography..."
                     )
                     biography = biography.replace("\n", "")
-                    alphabet = self._find_alphabet(biography)
+                    alphabet = self._find_alphabet(biography, field_specific_alphabet)
 
                     if alphabet != field_specific_alphabet and alphabet != "":
                         logger.info(
@@ -215,7 +227,9 @@ class Filter:
                     fullname = self._get_fullname(device)
 
                     if fullname != "":
-                        alphabet = self._find_alphabet(fullname)
+                        alphabet = self._find_alphabet(
+                            fullname, field_specific_alphabet
+                        )
                         if alphabet != field_specific_alphabet and alphabet != "":
                             logger.info(
                                 f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
@@ -243,14 +257,16 @@ class Filter:
         profileView = ProfileView(device)
         try:
             followers = profileView.getFollowersCount()
-        except Exception:
+        except Exception as e:
             logger.error(f"Cannot find followers count view, default is {followers}")
+            logger.debug(f"Error: {e}")
 
         followings = 0
         try:
             followings = profileView.getFollowingCount()
-        except Exception:
+        except Exception as e:
             logger.error(f"Cannot find followings count view, default is {followings}")
+            logger.debug(f"Error: {e}")
 
         return followers, followings
 
@@ -268,8 +284,9 @@ class Filter:
         profileView = ProfileView(device)
         try:
             private = profileView.isPrivateAccount()
-        except Exception:
+        except Exception as e:
             logger.error("Cannot find whether it is private or not")
+            logger.debug(f"Error: {e}")
 
         return private
 
@@ -279,19 +296,23 @@ class Filter:
         return profileView.getProfileBiography()
 
     @staticmethod
-    def _find_alphabet(biography):
+    def _find_alphabet(biography, alphabet):
         a_dict = {}
-        max_alph = ""
-        for x in range(0, len(biography)):
-            if biography[x].isalpha():
-                a = unicodedata.name(biography[x]).split(" ")[0]
-                if a not in IGNORE_CHARSETS:
-                    if a in a_dict:
-                        a_dict[a] += 1
-                    else:
-                        a_dict[a] = 1
-        if bool(a_dict):
-            max_alph = max(a_dict, key=lambda k: a_dict[k])
+        max_alph = alphabet
+        try:
+            for x in range(0, len(biography)):
+                if biography[x].isalpha():
+                    a = unicodedata.name(biography[x]).split(" ")[0]
+                    if a not in IGNORE_CHARSETS:
+                        if a in a_dict:
+                            a_dict[a] += 1
+                        else:
+                            a_dict[a] = 1
+            if bool(a_dict):
+                max_alph = max(a_dict, key=lambda k: a_dict[k])
+        except Exception as e:
+            logger.error(f"Cannot determine primary alphabet. Default is {max_alph}")
+            logger.debug(f"Error: {e}")
 
         return max_alph
 
@@ -301,6 +322,20 @@ class Filter:
         fullname = ""
         try:
             fullname = profileView.getFullName()
-        except Exception:
+        except Exception as e:
             logger.error("Cannot find full name.")
+            logger.debug(f"Error: {e}")
+
         return fullname
+
+    @staticmethod
+    def _get_posts_count(device):
+        profileView = ProfileView(device)
+        posts_count = 0
+        try:
+            posts_count = profileView.getPostsCount()
+        except Exception as e:
+            logger.error("Cannot find posts count. Default is 0.")
+            logger.debug(f"Error: {e}")
+
+        return posts_count
