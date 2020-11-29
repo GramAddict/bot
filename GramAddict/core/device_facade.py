@@ -78,7 +78,11 @@ class DeviceFacade:
         # {'currentPackageName': 'net.oneplus.launcher', 'displayHeight': 1920, 'displayRotation': 0, 'displaySizeDpX': 411,
         # 'displaySizeDpY': 731, 'displayWidth': 1080, 'productName': 'OnePlus5', '
         #  screenOn': True, 'sdkInt': 27, 'naturalOrientation': True}
-        return self.deviceV2.info
+        window = self.deviceV2.window_size()
+        d = self.deviceV2.info
+        d["windowWidth"] = window[0]
+        d["windowHeight"] = window[1]
+        return d
 
     class View:
         deviceV2: Device = None  # uiautomator2
