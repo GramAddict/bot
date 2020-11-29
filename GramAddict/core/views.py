@@ -846,29 +846,6 @@ class ProfileView(ActionBarView):
         followers_button = self.device.find(resourceIdMatches=FOLLOWERS_BUTTON_ID_REGEX)
         followers_button.click()
 
-    def count_photo_in_view(self):
-        """return rows filled and the number of post in the last row"""
-        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
-        grid_post = self.device.find(
-            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
-        )
-        if grid_post.exists():  # max 4 rows supported
-            for i in range(2, 5):
-                lin_layout = grid_post.child(
-                    index=i, className="android.widget.LinearLayout"
-                )
-                if i == 4 or not lin_layout.exists(True):
-                    last_index = i - 1
-                    last_lin_layout = grid_post.child(index=last_index)
-                    for n in range(1, 4):
-                        if n == 3 or not last_lin_layout.child(index=n).exists(True):
-                            if n == 3:
-                                return last_index, 0
-                            else:
-                                return last_index - 1, n
-        else:
-            return 0, 0
-
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
         displayWidth = self.device.get_info()["displayWidth"]

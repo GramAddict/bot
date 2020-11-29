@@ -79,7 +79,7 @@ def interact_with_user(
         session_state,
     )
 
-    ProfileView(device).swipe_to_fit_posts()
+    posts_tab_view = ProfileView(device).swipe_to_fit_posts()
     if posts_tab_view.scrollDown():  # scroll down to view all maximum 12 posts
         logger.info("Scrolled down to see more posts.")
     random_sleep()
