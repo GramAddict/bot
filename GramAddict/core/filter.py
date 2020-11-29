@@ -23,8 +23,9 @@ FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
-IGNORE_CHARSETS = ["MATHEMATICAL"]
 FIELD_MIN_POSTS = "min_posts"
+
+IGNORE_CHARSETS = ["MATHEMATICAL"]
 
 
 class Filter:
