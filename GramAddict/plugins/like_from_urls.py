@@ -21,7 +21,7 @@ class LikeFromURLs(Plugin):
         )
         self.arguments = [
             {
-                "arg": "--urls-file",
+                "arg": "--posts-from-file",
                 "nargs": None,
                 "help": "full path of plaintext file contains urls to likes",
                 "metavar": None,
