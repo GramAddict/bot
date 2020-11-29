@@ -57,8 +57,8 @@ def run_safely(device, device_id, sessions, session_state):
                 )
                 TabBarView(device).navigateToProfile()
             except Exception as e:
-                save_crash(device)
                 logger.error(traceback.format_exc())
+                save_crash(device)
                 close_instagram(device_id)
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
