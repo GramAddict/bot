@@ -162,7 +162,7 @@ def run():
             DeviceFacade(device_id).unlock()
             if DeviceFacade(device_id).is_screen_locked():
                 logger.error(
-                    "Can't unlock your screen.. Maybe you've set a passcode.. Disable it or don't use this function!"
+                    "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
                 sys.exit()
 
