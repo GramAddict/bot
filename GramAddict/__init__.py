@@ -109,7 +109,7 @@ def run():
 
     for item in sys.argv[1:]:
         if item in loaded:
-            if item != "--interact":
+            if item != "--interact" and item != "--hashtag-likers":
                 enabled.append(item)
 
     for k in loaded:
@@ -131,6 +131,16 @@ def run():
                             args.hashtag_likers = [source]
                         else:
                             args.hashtag_likers.append(source)
+            elif k == "--hashtag-likers":
+                logger.warn(
+                    'Using legacy argument "--hashtag-likers". Please switch to new arguments as this will be deprecated in the near future.'
+                )
+                for source in args.hashtag_likers:
+                    enabled.append("--hashtag-likers-top")
+                    if type(args.hashtag_likers_top) != list:
+                        args.hashtag_likers_top = [source]
+                    else:
+                        args.hashtag_likers_top.append(source)
 
     enabled = list(dict.fromkeys(enabled))
 

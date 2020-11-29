@@ -39,17 +39,20 @@ class InteractHashtagLikers(Plugin):
         self.description = "This plugin handles the functionality of interacting with a hashtags likers"
         self.arguments = [
             {
-                "arg": "--hashtag-likers",
+                "arg": "--hashtag-likers-top",
                 "nargs": "+",
-                "help": "list of hashtags with whose likers you want to interact",
+                "help": "list of hashtags in top section with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--recent-tab",
-                "help": "interact with likers of 'Recent' tab instead of 'Top'",
-                "action": "store_true",
+                "arg": "--hashtag-likers-recent",
+                "nargs": "+",
+                "help": "list of hashtags in rece section with whose likers you want to interact",
+                "metavar": ("hashtag1", "hashtag2"),
+                "default": None,
+                "operation": True,
             },
         ]
 
@@ -67,7 +70,9 @@ class InteractHashtagLikers(Plugin):
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in args.hashtag_likers]
+        sources = [
+            source for source in (args.hashtag_likers_top or args.hashtag_likers_recent)
+        ]
         shuffle(sources)
 
         for source in sources:
@@ -122,7 +127,8 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
-                    args.recent_tab,
+                    args.hashtag_likers_recent,
+                    # args.recent_tab,
                     storage,
                     profile_filter,
                     on_like,
@@ -148,7 +154,8 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        recent_tab,
+        hashtag_likers_recent,
+        # recent_tab,
         storage,
         profile_filter,
         on_like,
@@ -180,11 +187,11 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
-        if recent_tab:
+        if hashtag_likers_recent != None:
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep()
-            random_sleep()
+            random_sleep()  # wonder if it possible to check if everything is loaded instead of doing multiple random_sleep..
 
         logger.info("Opening the first result")
 
