@@ -77,8 +77,8 @@ class DeviceFacade:
     def wake_up(self):
         """ Make sure agent is alive or bring it back up before starting. """
         attempts = 0
-        while not device.is_alive() and attempts < 5:
-            DeviceFacade(device_id).get_info()
+        while not self.is_alive() and attempts < 5:
+            self.get_info()
             attempts += 1
 
     def unlock(self):
