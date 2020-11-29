@@ -57,6 +57,16 @@ class DeviceFacade:
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
+    def press_power(self):
+        self.deviceV2.press("power")
+
+    def unlock(self):
+        self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
+
+    def screen_off(self):
+        self.deviceV2.screen_off()
+
     def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
@@ -64,8 +74,8 @@ class DeviceFacade:
         swipe_dir = ""
         if direction == DeviceFacade.Direction.TOP:
             swipe_dir = "up"
-        elif direction == DeviceFacade.Direction.BOTTOM:
-            swipe_dir = "up"
+        elif direction == DeviceFacade.Direction.RIGHT:
+            swipe_dir = "right"
         elif direction == DeviceFacade.Direction.LEFT:
             swipe_dir = "left"
         elif direction == DeviceFacade.Direction.BOTTOM:
