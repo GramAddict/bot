@@ -1,6 +1,5 @@
 import logging
 from enum import Enum, unique
-from random import seed, randint
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -8,7 +7,7 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import detect_block, random_sleep, save_crash
+from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
 from GramAddict.core.views import LanguageNotEnglishException
 
 logger = logging.getLogger(__name__)
@@ -21,9 +20,6 @@ BUTTON_REGEX = "android.widget.Button"
 BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
 FOLLOWING_REGEX = "^Following|^Requested"
 UNFOLLOW_REGEX = "^Unfollow"
-
-# Script Initialization
-seed()
 
 
 class ActionUnfollowFollowers(Plugin):
@@ -68,7 +64,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
@@ -80,12 +76,15 @@ class ActionUnfollowFollowers(Plugin):
         self.state = State()
         self.session_state = sessions[-1]
         self.sessions = sessions
-        self.unfollow_type = enabled[0][2:]
-        range_arg = getattr(args, self.unfollow_type.replace("-", "_")).split("-")
-        if len(range_arg) > 1:
-            count_arg = randint(int(range_arg[0]), int(range_arg[1]))
-        else:
-            count_arg = int(range_arg[0])
+        self.unfollow_type = plugin[2:]
+
+        limit_reached = self.session_state.check_limit(args, limit_type="UNFOLLOWS")
+
+        count_arg = get_value(
+            getattr(args, self.unfollow_type.replace("-", "_")),
+            "Unfollow count: {}",
+            10,
+        )
 
         count = min(
             count_arg,
@@ -129,7 +128,9 @@ class ActionUnfollowFollowers(Plugin):
             logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
             self.state.is_job_completed = True
 
-        while not self.state.is_job_completed and self.state.unfollowed_count < count:
+        while not self.state.is_job_completed and (
+            self.state.unfollowed_count < count or not limit_reached
+        ):
             job()
 
     def unfollow(
@@ -184,7 +185,7 @@ class ActionUnfollowFollowers(Plugin):
             resourceId="com.instagram.android:id/follow_list_container",
             className="android.widget.LinearLayout",
         ).wait()
-
+        checked = {}
         unfollowed_count = 0
         while True:
             logger.info("Iterate over visible followings")
@@ -205,48 +206,57 @@ class ActionUnfollowFollowers(Plugin):
                     break
 
                 username = user_name_view.get_text()
-                screen_iterated_followings += 1
+                if username not in checked:
+                    checked[username] = None
+                    screen_iterated_followings += 1
 
-                if storage.is_user_in_whitelist(username):
-                    logger.info(f"@{username} is in whitelist. Skip.")
-                    continue
-
-                if (
-                    unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT
-                    or unfollow_restriction
-                    == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
-                ):
-                    following_status = storage.get_following_status(username)
-                    if not following_status == FollowingStatus.FOLLOWED:
-                        logger.info(
-                            f"Skip @{username}. Following status: {following_status.name}."
-                        )
+                    if storage.is_user_in_whitelist(username):
+                        logger.info(f"@{username} is in whitelist. Skip.")
                         continue
 
-                if unfollow_restriction == UnfollowRestriction.ANY:
-                    following_status = storage.get_following_status(username)
-                    if following_status == FollowingStatus.UNFOLLOWED:
-                        logger.info(
-                            f"Skip @{username}. Following status: {following_status.name}."
-                        )
-                        continue
+                    if (
+                        unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT
+                        or unfollow_restriction
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                    ):
+                        following_status = storage.get_following_status(username)
+                        if following_status == FollowingStatus.NOT_IN_LIST:
+                            logger.info(
+                                f"@{username} has not been followed by this bot. Skip."
+                            )
+                            continue
+                        elif not following_status == FollowingStatus.FOLLOWED:
+                            logger.info(
+                                f"Skip @{username}. Following status: {following_status.name}."
+                            )
+                            continue
 
-                logger.info("Unfollow @" + username)
-                unfollowed = self.do_unfollow(
-                    device,
-                    username,
-                    my_username,
-                    unfollow_restriction
-                    == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
-                )
-                if unfollowed:
-                    storage.add_interacted_user(username, unfollowed=True)
-                    on_unfollow()
-                    unfollowed_count += 1
+                    if unfollow_restriction == UnfollowRestriction.ANY:
+                        following_status = storage.get_following_status(username)
+                        if following_status == FollowingStatus.UNFOLLOWED:
+                            logger.info(
+                                f"Skip @{username}. Following status: {following_status.name}."
+                            )
+                            continue
 
-                random_sleep()
-                if unfollowed_count >= count:
-                    return
+                    logger.info("Unfollow @" + username)
+                    unfollowed = self.do_unfollow(
+                        device,
+                        username,
+                        my_username,
+                        unfollow_restriction
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                    )
+                    if unfollowed:
+                        storage.add_interacted_user(username, unfollowed=True)
+                        on_unfollow()
+                        unfollowed_count += 1
+
+                    random_sleep()
+                    if unfollowed_count >= count:
+                        return
+                else:
+                    logger.debug(f"Already checked {username}")
 
             if screen_iterated_followings > 0:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
@@ -338,6 +348,7 @@ class ActionUnfollowFollowers(Plugin):
         return True
 
     def check_is_follower(self, device, username, my_username):
+        random_sleep()
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )

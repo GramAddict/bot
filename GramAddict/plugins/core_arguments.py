@@ -27,9 +27,37 @@ class CoreArguments(Plugin):
             {
                 "arg": "--total-likes-limit",
                 "nargs": None,
-                "help": "limit on total amount of likes during the session, 300 by default",
+                "help": "limit on total amount of likes per session, 300 by default",
                 "metavar": "300",
                 "default": "300",
+            },
+            {
+                "arg": "--total-follows-limit",
+                "nargs": None,
+                "help": "limit on total follows per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
+                "arg": "--total-watches-limit",
+                "nargs": None,
+                "help": "limit on total watched stories per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
+                "arg": "--total-successful-interactions-limit",
+                "nargs": None,
+                "help": "limit on total successful interactions per session, 100 by default",
+                "metavar": "100",
+                "default": "100",
+            },
+            {
+                "arg": "--total-interactions-limit",
+                "nargs": None,
+                "help": "limit on total interactions per session, 1000 by default",
+                "metavar": "1000",
+                "default": "1000",
             },
             {
                 "arg": "--stories-count",

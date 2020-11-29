@@ -28,13 +28,12 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions):
+    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
-            is_likes_limit_reached = False
 
         self.device_id = device_id
         self.state = None
