@@ -58,7 +58,7 @@ def interact_with_user(
     is_private = profile_view.isPrivateAccount()
     posts_count = profile_view.getPostsCount()
     is_empty = posts_count == 0
-
+    penis
     if is_private or is_empty:
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})

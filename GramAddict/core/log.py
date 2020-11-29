@@ -128,11 +128,15 @@ def update_log_file_name(username: str):
 
     root_logger = logging.getLogger()
     root_logger.removeHandler(file_handler)
-    os.remove(old_full_filename)
     root_logger.addHandler(named_file_handler)
 
     current_logger = logging.getLogger(__name__)
     current_logger.debug(f"Updated log file: {named_full_filename}")
+
+    try:
+        os.remove(old_full_filename)
+    except:
+        logger.debug(f"Failed to remove old file: {old_full_filename}.")
 
     global g_log_file_name
     global g_file_handler
