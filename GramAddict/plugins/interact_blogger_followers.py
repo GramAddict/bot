@@ -365,10 +365,10 @@ class InteractBloggerFollowers(Plugin):
 
                     if need_swipe and not pressed_retry:
                         logger.info(
-                            "All followers skipped, let's do a swipe",
+                            "All followers skipped, let's scroll.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        list_view.fling(DeviceFacade.Direction.BOTTOM)
+                        list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(
                             "Need to scroll now", extra={"color": f"{Fore.GREEN}"}

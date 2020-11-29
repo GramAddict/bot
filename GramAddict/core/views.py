@@ -1,6 +1,6 @@
+import datetime
 import logging
 import re
-import datetime
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
@@ -700,6 +700,45 @@ class ProfileView(ActionBarView):
         )
         followers_button = self.device.find(resourceIdMatches=FOLLOWERS_BUTTON_ID_REGEX)
         followers_button.click()
+
+    def count_photo_in_view(self):
+        """return rows filled and the number of post in the last row"""
+        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
+        grid_post = self.device.find(
+            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
+        )
+        if grid_post.exists():  # max 4 rows supported
+            for i in range(2, 5):
+                lin_layout = grid_post.child(
+                    index=i, className="android.widget.LinearLayout"
+                )
+                if i == 4 or not lin_layout.exists(True):
+                    last_index = i - 1
+                    last_lin_layout = grid_post.child(index=last_index)
+                    for n in range(1, 4):
+                        if n == 3 or not last_lin_layout.child(index=n).exists(True):
+                            if n == 3:
+                                return last_index, 0
+                            else:
+                                return last_index - 1, n
+        else:
+            return 0, 0
+
+    def fixed_swipe(self):
+        """calculate the right swipe amount necessary to see 12 photos"""
+        displayWidth = self.device.get_info()["displayWidth"]
+        element_to_swipe_over = self.device.find(
+            resourceIdMatches="com.instagram.android:id/profile_tabs_container"
+        ).get_bounds()["top"]
+        bar_countainer = self.device.find(
+            resourceIdMatches="com.instagram.android:id/action_bar_container"
+        ).get_bounds()["bottom"]
+
+        logger.info("Scrolled down to see more posts.")
+        self.device.swipe_points(
+            displayWidth / 2, element_to_swipe_over, displayWidth / 2, bar_countainer
+        )
+        return
 
     def navigateToPostsTab(self):
         self._navigateToTab(ProfileTabs.POSTS)
