@@ -43,7 +43,7 @@ class InteractHashtagLikers(Plugin):
             {
                 "arg": "--hashtag-likers-top",
                 "nargs": "+",
-                "help": "list of hashtags in top section with whose likers you want to interact",
+                "help": "list of hashtags in top results with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
@@ -51,7 +51,7 @@ class InteractHashtagLikers(Plugin):
             {
                 "arg": "--hashtag-likers-recent",
                 "nargs": "+",
-                "help": "list of hashtags in rece section with whose likers you want to interact",
+                "help": "list of hashtags in recent results with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
