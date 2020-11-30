@@ -581,7 +581,11 @@ class OpenedPostView:
                 className="android.widget.TextView",
             )
             if likes_view.exists(True):
-                if likes_view.get_text()[-6:].upper() == "OTHERS":
+                likes_view_text = likes_view.get_text().get_text()
+                if (
+                    likes_view_text[-6:].upper() == "OTHERS"
+                    or likes_view_text.upper()[-5:] == "LIKES"
+                ):
                     logger.info("Opening post likers")
                     random_sleep()
                     likes_view.click(likes_view.Location.RIGHT)
