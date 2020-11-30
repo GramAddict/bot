@@ -20,7 +20,7 @@ class CoreArguments(Plugin):
             {
                 "arg": "--likes-count",
                 "nargs": None,
-                "help": "number of likes for each interacted user, 2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "help": "number of likes for each interacted user, 1-2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
                 "metavar": "2-4",
                 "default": "1-2",
             },
@@ -69,14 +69,14 @@ class CoreArguments(Plugin):
             {
                 "arg": "--stories-percentage",
                 "nargs": None,
-                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 20) or a range (e.g. 20-40)",
                 "metavar": "50-70",
                 "default": "30-40",
             },
             {
                 "arg": "--interactions-count",
                 "nargs": None,
-                "help": "number of interactions per each blogger, 70 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",
+                "help": "number of interactions per each blogger, 30-50 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",
                 "metavar": "60-80",
                 "default": "30-50",
             },
