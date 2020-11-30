@@ -338,23 +338,33 @@ class PostsViewList:
             ).get_bounds()["bottom"]
 
             logger.info("Scrolled down to see more posts.")
+
             self.device.swipe_points(
                 displayWidth / 2,
                 zoomable_view_container - 1,
                 displayWidth / 2,
-                zoomable_view_container * 2 / 3,
+                zoomable_view_container * 0.5,
             )
         else:
-
-            gap_view = self.device.find(
+            gap_view_obj = self.device.find(
                 resourceIdMatches="com.instagram.android:id/gap_view"
-            ).get_bounds()["top"]
-
-            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
-            zoomable_view_container = self.device.find(
-                resourceIdMatches=(POST_CONTAINER)
             )
+            if not gap_view_obj.exists(True):
+                zoomable_view_container = self.device.find(
+                    resourceIdMatches=(POST_CONTAINER)
+                ).get_bounds()["bottom"]
+                self.device.swipe_points(
+                    displayWidth / 2,
+                    zoomable_view_container - 1,
+                    displayWidth / 2,
+                    zoomable_view_container * 0.5,
+                )
+                gap_view_obj = self.device.find(
+                    resourceIdMatches="com.instagram.android:id/gap_view"
+                )
 
+            gap_view = gap_view_obj.get_bounds()["top"]
+            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
             zoomable_view_container = self.device.find(
                 resourceIdMatches=POST_CONTAINER
             ).get_bounds()["bottom"]
@@ -363,7 +373,7 @@ class PostsViewList:
                 displayWidth / 2,
                 zoomable_view_container - 1,
                 displayWidth / 2,
-                zoomable_view_container * 2 / 3,
+                zoomable_view_container * 0.5,
             )
         return
 
@@ -756,11 +766,11 @@ class ProfileView(ActionBarView):
             className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
         )
         if grid_post.exists():  # max 4 rows supported
-            for i in range(2, 5):
+            for i in range(2, 6):
                 lin_layout = grid_post.child(
                     index=i, className="android.widget.LinearLayout"
                 )
-                if i == 4 or not lin_layout.exists(True):
+                if i == 5 or not lin_layout.exists(True):
                     last_index = i - 1
                     last_lin_layout = grid_post.child(index=last_index)
                     for n in range(1, 4):
