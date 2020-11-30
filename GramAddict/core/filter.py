@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 FILENAME_CONDITIONS = "filter.json"
 FIELD_SKIP_BUSINESS = "skip_business"
 FIELD_SKIP_NON_BUSINESS = "skip_non_business"
+FIELD_SKIP_FOLLOWING = "skip_following"
+FIELD_SKIP_FOLLOWER = "skip_follower"
 FIELD_MIN_FOLLOWERS = "min_followers"
 FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
@@ -45,6 +47,8 @@ class Filter:
 
         field_skip_business = self.conditions.get(FIELD_SKIP_BUSINESS, False)
         field_skip_non_business = self.conditions.get(FIELD_SKIP_NON_BUSINESS, False)
+        field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
+        field_skip_follower = self.conditions.get(FIELD_SKIP_FOLLOWER, False)
         field_min_followers = self.conditions.get(FIELD_MIN_FOLLOWERS)
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
@@ -58,6 +62,24 @@ class Filter:
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
         field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
+
+        follow_button_text = self._get_follow_button_text(device)
+
+        if field_skip_following:
+            if follow_button_text == "Following":
+                logger.info(
+                    f"You follow @{username}, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
+        if field_skip_follower:
+            if follow_button_text == "Follow Back":
+                logger.info(
+                    f"@{username} follows you, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -250,6 +272,13 @@ class Filter:
         return field_follow_private_or_empty is not None and bool(
             field_follow_private_or_empty
         )
+
+    @staticmethod
+    def _get_follow_button_text(device):
+        profileView = ProfileView(device)
+        follower = profileView.getFollowButton()
+
+        return follower[1]
 
     @staticmethod
     def _get_followers_and_followings(device):
