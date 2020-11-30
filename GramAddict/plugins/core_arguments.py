@@ -107,6 +107,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--debug",
+                "help": "enable debug logging",
+                "action": "store_true",
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
