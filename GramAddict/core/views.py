@@ -862,12 +862,21 @@ class ProfileView(ActionBarView):
 
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
+        PROFILE_TABS_CONTAINER = "com.instagram.android:id/profile_tabs_container"
+        ACTION_BAR_CONTAINER = "com.instagram.android:id/action_bar_container"
         displayWidth = self.device.get_info()["displayWidth"]
-        element_to_swipe_over = self.device.find(
-            resourceIdMatches="com.instagram.android:id/profile_tabs_container"
-        ).get_bounds()["top"]
+        element_to_swipe_over_obj = self.device.find(
+            resourceIdMatches=PROFILE_TABS_CONTAINER
+        )
+        if not element_to_swipe_over_obj.exists():
+            self.device.swipe_points(displayWidth / 2, 600, displayWidth / 2, 300)
+            element_to_swipe_over_obj = self.device.find(
+                resourceIdMatches=PROFILE_TABS_CONTAINER
+            )
+
+        element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
         bar_countainer = self.device.find(
-            resourceIdMatches="com.instagram.android:id/action_bar_container"
+            resourceIdMatches=ACTION_BAR_CONTAINER
         ).get_bounds()["bottom"]
 
         logger.info("Scrolled down to see more posts.")

@@ -194,8 +194,7 @@ class InteractHashtagLikers(Plugin):
         if hashtag_likers_recent != None:
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
-            random_sleep()
-            random_sleep()  # wonder if it possible to check if everything is loaded instead of doing multiple random_sleep..
+            random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
