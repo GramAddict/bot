@@ -581,7 +581,7 @@ class OpenedPostView:
                 className="android.widget.TextView",
             )
             if likes_view.exists(True):
-                likes_view_text = likes_view.get_text().get_text()
+                likes_view_text = likes_view.get_text()
                 if (
                     likes_view_text[-6:].upper() == "OTHERS"
                     or likes_view_text.upper()[-5:] == "LIKES"
