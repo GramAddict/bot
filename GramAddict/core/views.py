@@ -765,9 +765,9 @@ class ProfileView(ActionBarView):
 
     def count_photo_in_view(self):
         """return rows filled and the number of post in the last row"""
-        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
+        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView|android.view.View"
         grid_post = self.device.find(
-            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
+            classNameMatches=RECYCLER_VIEW, resourceIdMatches="android:id/list"
         )
         if grid_post.exists():  # max 4 rows supported
             for i in range(2, 6):

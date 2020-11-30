@@ -22,11 +22,6 @@ logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import TabBarView
 
-FOLLOWERS_BUTTON_ID_REGEX = (
-    "com.instagram.android:id/row_profile_header_followers_container"
-    "|com.instagram.android:id/row_profile_header_container_followers"
-)
-
 # Script Initialization
 seed()
 
