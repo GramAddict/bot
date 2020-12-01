@@ -202,7 +202,6 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        posts_list_view = ProfileView(device)._getRecyclerView()
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
         first_post = True
         post_description = ""
@@ -230,7 +229,6 @@ class InteractHashtagLikers(Plugin):
 
             likes_list_view = OpenedPostView(device)._getListViewLikers()
             prev_screen_iterated_likers = []
-
             while True:
                 logger.info("Iterate over visible likers.")
                 screen_iterated_likers = []
@@ -277,7 +275,7 @@ class InteractHashtagLikers(Plugin):
                         if not can_continue:
                             return
 
-                        logger.info("Back to likers list")
+                        logger.info("Back to likers list.")
                         device.back()
                         random_sleep()
                 except IndexError:
@@ -285,23 +283,27 @@ class InteractHashtagLikers(Plugin):
                         "Cannot get next item: probably reached end of the screen.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
+                    break
 
                 if screen_iterated_likers == prev_screen_iterated_likers:
                     logger.info(
-                        "Iterated exactly the same likers twice, finish.",
+                        "Iterated exactly the same likers twice.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    logger.info(f"Back to {hashtag}")
+                    logger.info(f"Back to {hashtag}'s posts list.")
                     device.back()
+                    logger.info(f"Going to the next post.")
+                    PostsViewList(device).swipe_to_fit_posts(False)
+
                     break
 
                 prev_screen_iterated_likers.clear()
                 prev_screen_iterated_likers += screen_iterated_likers
 
-                logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
+                logger.info(
+                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
+                )
                 likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
                 break
-            else:
-                posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)

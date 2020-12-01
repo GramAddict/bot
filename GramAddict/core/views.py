@@ -518,14 +518,14 @@ class OpenedPostView:
             logger.debug("Like button not found bellow the post.")
 
         if (
-            not like_btn_view.exists()
+            not like_btn_view.exists(True)
             or not is_like_btn_in_the_bottom
             or not is_like_btn_visible
         ):
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
-                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
+                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.15)
                 like_btn_view = post_media_view.down(
                     resourceIdMatches=case_insensitive_re(
                         OpenedPostView.BTN_LIKE_RES_ID
@@ -564,7 +564,7 @@ class OpenedPostView:
             like_btn_view.click()
         else:
 
-            if post_media_view.exists():
+            if post_media_view.exists(True):
                 post_media_view.double_click()
             else:
                 logger.error("Could not find post area to double click")
@@ -835,7 +835,7 @@ class ProfileView(ActionBarView):
                 ]
             )
         )
-        return private_profile_view.exists()
+        return private_profile_view.exists(True)
 
     def isStoryAvailable(self):
         return self.device.find(
