@@ -526,13 +526,13 @@ class OpenedPostView:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
                 self.device.swipe(DeviceFacade.Direction.TOP, scale=0.15)
-                like_btn_view = post_media_view.down(
+                like_btn_view = self.device.find(
                     resourceIdMatches=case_insensitive_re(
                         OpenedPostView.BTN_LIKE_RES_ID
                     )
                 )
 
-            if not scroll_to_find or not like_btn_view.exists():
+            if not scroll_to_find or not like_btn_view.exists(True):
                 logger.error("Could not find like button bellow the post")
                 return None
 
