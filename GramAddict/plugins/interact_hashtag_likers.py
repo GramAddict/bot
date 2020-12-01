@@ -20,7 +20,6 @@ from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
-    ProfileView,
     OpenedPostView,
     PostsViewList,
 )
