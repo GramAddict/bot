@@ -291,7 +291,7 @@ class InteractHashtagLikers(Plugin):
                     )
                     logger.info(f"Back to {hashtag}'s posts list.")
                     device.back()
-                    logger.info(f"Going to the next post.")
+                    logger.info("Going to the next post.")
                     PostsViewList(device).swipe_to_fit_posts(False)
 
                     break
