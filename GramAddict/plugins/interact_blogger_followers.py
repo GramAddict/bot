@@ -301,8 +301,12 @@ class InteractBloggerFollowers(Plugin):
                         can_follow = (
                             not is_myself
                             and not is_follow_limit_reached()
-                            and storage.get_following_status(username)
-                            == FollowingStatus.NONE
+                            and (
+                                storage.get_following_status(username)
+                                == FollowingStatus.NONE
+                                or storage.get_following_status(username)
+                                == FollowingStatus.NOT_IN_LIST
+                            )
                         )
 
                         interaction_succeed, followed = interaction(
