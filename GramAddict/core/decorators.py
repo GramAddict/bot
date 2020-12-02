@@ -59,7 +59,6 @@ def run_safely(device, device_id, sessions, session_state):
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
 
-
             except (
                 DeviceFacade.JsonRpcError,
                 IndexError,
