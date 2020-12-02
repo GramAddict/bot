@@ -179,7 +179,7 @@ class HashTagView:
     def _getRecentTab(self):
         return self.device.find(
             className="android.widget.TextView",
-            text="Recent",
+            textMatches=case_insensitive_re("Recent"),
         )
 
 
@@ -284,8 +284,7 @@ class SearchView:
         logger.info(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-
-        random_sleep()
+        random_sleep(1,2)
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
             logger.debug(
@@ -296,22 +295,22 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
-
         hashtag_tab.click()
-        random_sleep()
-        DeviceFacade.back(self.device)
-        random_sleep()
+        random_sleep(1, 2)
+        DeviceFacade.back(self.device) #close the keyboard
+        random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
 
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
-            random_sleep()
+            random_sleep(5, 10)
             return HashTagView(self.device)
 
         logger.info(f"{hashtag} is not in recent searching hystory..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
+        random_sleep(4, 8)
 
         if not hashtag_view.exists():
             logger.error(f"Cannot find hashtag {hashtag}, abort.")
@@ -389,6 +388,21 @@ class PostsViewList:
                 return True, new_description
             else:
                 return False, new_description
+    
+    def _like_in_post_view(self):
+        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
+        logger.info("Like!")
+        self.device.find(
+                    resourceIdMatches=(POST_CONTAINER)
+                ).double_click()
+        
+        
+
+    def _follow_in_post_view(self):
+        pass
+    def _comment_in_post_view(self):
+        pass
+
 
 
 class LanguageView:
@@ -525,7 +539,7 @@ class OpenedPostView:
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
-                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.15)
+                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.2)
                 like_btn_view = self.device.find(
                     resourceIdMatches=case_insensitive_re(
                         OpenedPostView.BTN_LIKE_RES_ID
@@ -832,6 +846,7 @@ class ProfileView(ActionBarView):
                 [
                     "com.instagram.android:id/private_profile_empty_state",
                     "com.instagram.android:id/row_profile_header_empty_profile_notice_title",
+                    "com.instagram.android:id/row_profile_header_empty_profile_notice_container",
                 ]
             )
         )
@@ -965,7 +980,9 @@ class CurrentStoryView:
             resourceId="com.instagram.android:id/reel_viewer_title",
             className="android.widget.TextView",
         )
-        return "" if not reel_viewer_title.exists() else reel_viewer_title.get_text()
+        return (
+            "" if not reel_viewer_title.exists(True) else reel_viewer_title.get_text()
+        )
 
     def getTimestamp(self):
         reel_viewer_timestamp = self.device.find(

@@ -186,14 +186,13 @@ class InteractHashtagLikers(Plugin):
             session_state=self.session_state,
         )
         search_view = TabBarView(device).navigateToSearch()
-        random_sleep()
         if not search_view.navigateToHashtag(hashtag):
             return
 
         if hashtag_likers_recent != None:
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
-            random_sleep(4, 8)
+            random_sleep(5, 10)
 
         logger.info("Opening the first result")
 
