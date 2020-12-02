@@ -30,10 +30,10 @@ def run_safely(device, device_id, sessions, session_state):
             except KeyboardInterrupt:
                 # Catch Ctrl-C and ask if user wants to pause execution
                 logger.info(
-                    f"CTRL-C detected . . .",
+                    "CTRL-C detected . . .",
                     extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                 )
-                logger.info(f"Pause or Quit? [P/Q]: ", extra={"color": Style.BRIGHT})
+                logger.info("Pause or Quit? [P/Q]: ", extra={"color": Style.BRIGHT})
 
                 pause_or_quit = input((""))
                 if pause_or_quit.lower() == "q":
