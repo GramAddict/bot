@@ -28,13 +28,13 @@ def run_safely(device, device_id, sessions, session_state):
             try:
                 func(*args, **kwargs)
             except KeyboardInterrupt:
+                # Catch Ctrl-C and ask if user wants to pause execution
                 logger.info(
-                    f"CTRL-C detected. {datetime.now().time()} --------",
+                    f"CTRL-C detected . . .",
                     extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                 )
                 logger.info(
-                    f"Pause or Quit? [P/Q]: ",
-                    extra={"color": f"{Style.BRIGHT}"},
+                    f"Pause or Quit? [P/Q]: ", extra={"color": f"{Style.BRIGHT}"}
                 )
 
                 pause_or_quit = input((""))
@@ -48,6 +48,7 @@ def run_safely(device, device_id, sessions, session_state):
                     print_full_report(sessions)
                     sessions.persist(directory=session_state.my_username)
                     sys.exit(0)
+
                 elif pause_or_quit.lower() == "p":
                     logger.info(
                         f"-------- PAUSING: {datetime.now().time()} --------",
