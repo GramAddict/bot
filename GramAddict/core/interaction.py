@@ -90,7 +90,7 @@ def interact_with_user(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
     if likes_value > len(photos_indices):
-        logger.info(f"Only {photos_indices} photos available")
+        logger.info(f"Only {len(photos_indices)} photo(s) available")
     else:
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]
