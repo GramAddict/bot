@@ -598,7 +598,11 @@ class OpenedPostView:
             resourceId="com.instagram.android:id/row_user_primary_name",
             className="android.widget.TextView",
         )
-
+    def _getFollowingStatus(self, countainer):
+        return countainer.child(
+            resourceId="com.instagram.android:id/button",
+            className="android.widget.TextView"
+        )
 
 class PostsGridView:
     def __init__(self, device: DeviceFacade):

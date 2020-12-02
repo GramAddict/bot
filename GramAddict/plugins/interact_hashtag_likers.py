@@ -241,7 +241,9 @@ class InteractHashtagLikers(Plugin):
                 try:
                     for item in OpenedPostView(device)._getUserCountainer():
                         username_view = OpenedPostView(device)._getUserName(item)
-
+                        following_status_view = OpenedPostView(
+                            device
+                        )._getFollowingStatus(item)
                         if not username_view.exists(quick=True):
                             logger.info(
                                 "Next item not found: probably reached end of the screen.",
@@ -250,6 +252,7 @@ class InteractHashtagLikers(Plugin):
                             break
 
                         username = username_view.get_text()
+                        following_status = following_status_view.get_text()
                         screen_iterated_likers.append(username)
                         posts_end_detector.notify_username_iterated(username)
 
@@ -258,6 +261,9 @@ class InteractHashtagLikers(Plugin):
                             continue
                         elif storage.check_user_was_interacted(username):
                             logger.info(f"@{username}: already interacted. Skip.")
+                            continue
+                        elif following_status.find("Following") != -1:
+                            logger.info(f"@{username}: already followed. Skip.")
                             continue
                         else:
                             logger.info(f"@{username}: interact")
