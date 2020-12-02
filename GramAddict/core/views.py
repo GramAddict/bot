@@ -338,23 +338,33 @@ class PostsViewList:
             ).get_bounds()["bottom"]
 
             logger.info("Scrolled down to see more posts.")
+
             self.device.swipe_points(
                 displayWidth / 2,
                 zoomable_view_container - 1,
                 displayWidth / 2,
-                zoomable_view_container * 2 / 3,
+                zoomable_view_container * 0.5,
             )
         else:
-
-            gap_view = self.device.find(
+            gap_view_obj = self.device.find(
                 resourceIdMatches="com.instagram.android:id/gap_view"
-            ).get_bounds()["top"]
-
-            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
-            zoomable_view_container = self.device.find(
-                resourceIdMatches=(POST_CONTAINER)
             )
+            if not gap_view_obj.exists(True):
+                zoomable_view_container = self.device.find(
+                    resourceIdMatches=(POST_CONTAINER)
+                ).get_bounds()["bottom"]
+                self.device.swipe_points(
+                    displayWidth / 2,
+                    zoomable_view_container - 1,
+                    displayWidth / 2,
+                    zoomable_view_container * 0.5,
+                )
+                gap_view_obj = self.device.find(
+                    resourceIdMatches="com.instagram.android:id/gap_view"
+                )
 
+            gap_view = gap_view_obj.get_bounds()["top"]
+            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
             zoomable_view_container = self.device.find(
                 resourceIdMatches=POST_CONTAINER
             ).get_bounds()["bottom"]
@@ -363,7 +373,7 @@ class PostsViewList:
                 displayWidth / 2,
                 zoomable_view_container - 1,
                 displayWidth / 2,
-                zoomable_view_container * 2 / 3,
+                zoomable_view_container * 0.5,
             )
         return
 
@@ -508,21 +518,21 @@ class OpenedPostView:
             logger.debug("Like button not found bellow the post.")
 
         if (
-            not like_btn_view.exists()
+            not like_btn_view.exists(True)
             or not is_like_btn_in_the_bottom
             or not is_like_btn_visible
         ):
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
-                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
-                like_btn_view = post_media_view.down(
+                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.15)
+                like_btn_view = self.device.find(
                     resourceIdMatches=case_insensitive_re(
                         OpenedPostView.BTN_LIKE_RES_ID
                     )
                 )
 
-            if not scroll_to_find or not like_btn_view.exists():
+            if not scroll_to_find or not like_btn_view.exists(True):
                 logger.error("Could not find like button bellow the post")
                 return None
 
@@ -554,7 +564,7 @@ class OpenedPostView:
             like_btn_view.click()
         else:
 
-            if post_media_view.exists():
+            if post_media_view.exists(True):
                 post_media_view.double_click()
             else:
                 logger.error("Could not find post area to double click")
@@ -571,7 +581,11 @@ class OpenedPostView:
                 className="android.widget.TextView",
             )
             if likes_view.exists(True):
-                if likes_view.get_text()[-6:].upper() == "OTHERS":
+                likes_view_text = likes_view.get_text()
+                if (
+                    likes_view_text[-6:].upper() == "OTHERS"
+                    or likes_view_text.upper()[-5:] == "LIKES"
+                ):
                     logger.info("Opening post likers")
                     random_sleep()
                     likes_view.click(likes_view.Location.RIGHT)
@@ -751,16 +765,16 @@ class ProfileView(ActionBarView):
 
     def count_photo_in_view(self):
         """return rows filled and the number of post in the last row"""
-        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
+        RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView|android.view.View"
         grid_post = self.device.find(
-            className=RECYCLER_VIEW, resourceIdMatches="android:id/list"
+            classNameMatches=RECYCLER_VIEW, resourceIdMatches="android:id/list"
         )
         if grid_post.exists():  # max 4 rows supported
-            for i in range(2, 5):
+            for i in range(2, 6):
                 lin_layout = grid_post.child(
                     index=i, className="android.widget.LinearLayout"
                 )
-                if i == 4 or not lin_layout.exists(True):
+                if i == 5 or not lin_layout.exists(True):
                     last_index = i - 1
                     last_lin_layout = grid_post.child(index=last_index)
                     for n in range(1, 4):
@@ -821,7 +835,7 @@ class ProfileView(ActionBarView):
                 ]
             )
         )
-        return private_profile_view.exists()
+        return private_profile_view.exists(True)
 
     def isStoryAvailable(self):
         return self.device.find(
@@ -848,12 +862,21 @@ class ProfileView(ActionBarView):
 
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
+        PROFILE_TABS_CONTAINER = "com.instagram.android:id/profile_tabs_container"
+        ACTION_BAR_CONTAINER = "com.instagram.android:id/action_bar_container"
         displayWidth = self.device.get_info()["displayWidth"]
-        element_to_swipe_over = self.device.find(
-            resourceIdMatches="com.instagram.android:id/profile_tabs_container"
-        ).get_bounds()["top"]
+        element_to_swipe_over_obj = self.device.find(
+            resourceIdMatches=PROFILE_TABS_CONTAINER
+        )
+        if not element_to_swipe_over_obj.exists():
+            self.device.swipe_points(displayWidth / 2, 600, displayWidth / 2, 300)
+            element_to_swipe_over_obj = self.device.find(
+                resourceIdMatches=PROFILE_TABS_CONTAINER
+            )
+
+        element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
         bar_countainer = self.device.find(
-            resourceIdMatches="com.instagram.android:id/action_bar_container"
+            resourceIdMatches=ACTION_BAR_CONTAINER
         ).get_bounds()["bottom"]
 
         logger.info("Scrolled down to see more posts.")

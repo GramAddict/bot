@@ -276,7 +276,7 @@ class Filter:
             resourceId="com.instagram.android:id/profile_header_business_category",
             className="android.widget.TextView",
         )
-        return business_category_view.exists()
+        return business_category_view.exists(True)
 
     @staticmethod
     def _is_private_account(device):
