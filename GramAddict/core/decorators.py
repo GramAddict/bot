@@ -28,14 +28,38 @@ def run_safely(device, device_id, sessions, session_state):
             try:
                 func(*args, **kwargs)
             except KeyboardInterrupt:
-                close_instagram(device_id)
                 logger.info(
-                    f"-------- FINISH: {datetime.now().time()} --------",
+                    f"CTRL-C detected. {datetime.now().time()} --------",
                     extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                 )
-                print_full_report(sessions)
-                sessions.persist(directory=session_state.my_username)
-                sys.exit(0)
+                logger.info(
+                    f"Pause or Quit? [P/Q]: ",
+                    extra={"color": f"{Style.BRIGHT}"},
+                )
+
+                pause_or_quit = input((""))
+                if pause_or_quit.lower() == "q":
+
+                    close_instagram(device_id)
+                    logger.info(
+                        f"-------- FINISH: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    print_full_report(sessions)
+                    sessions.persist(directory=session_state.my_username)
+                    sys.exit(0)
+                elif pause_or_quit.lower() == "p":
+                    logger.info(
+                        f"-------- PAUSING: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    input("Press RETURN to resume...")
+                    logger.info(
+                        f"-------- RESUMING: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+
+
             except (
                 DeviceFacade.JsonRpcError,
                 IndexError,
