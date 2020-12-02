@@ -33,9 +33,7 @@ def run_safely(device, device_id, sessions, session_state):
                     f"CTRL-C detected . . .",
                     extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                 )
-                logger.info(
-                    f"Pause or Quit? [P/Q]: ", extra={"color": f"{Style.BRIGHT}"}
-                )
+                logger.info(f"Pause or Quit? [P/Q]: ", extra={"color": Style.BRIGHT})
 
                 pause_or_quit = input((""))
                 if pause_or_quit.lower() == "q":
