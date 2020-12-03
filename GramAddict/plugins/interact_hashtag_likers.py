@@ -16,7 +16,7 @@ from GramAddict.core.interaction import (
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.utils import get_value, random_sleep, save_crash
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
@@ -235,9 +235,6 @@ class InteractHashtagLikers(Plugin):
                 try:
                     for item in OpenedPostView(device)._getUserCountainer():
                         username_view = OpenedPostView(device)._getUserName(item)
-                        following_status_view = OpenedPostView(
-                            device
-                        )._getFollowingStatus(item)
                         if not username_view.exists(quick=True):
                             logger.info(
                                 "Next item not found: probably reached end of the screen.",
@@ -246,18 +243,19 @@ class InteractHashtagLikers(Plugin):
                             break
 
                         username = username_view.get_text()
-                        following_status = following_status_view.get_text()
+                        profile_interact = profile_filter.check_profile_from_list(
+                            device, item, username
+                        )
                         screen_iterated_likers.append(username)
                         posts_end_detector.notify_username_iterated(username)
-
-                        if storage.is_user_in_blacklist(username):
+                        if not profile_interact:
+                            # logger is handled in filter
+                            continue
+                        elif storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
                             continue
                         elif storage.check_user_was_interacted(username):
                             logger.info(f"@{username}: already interacted. Skip.")
-                            continue
-                        elif following_status.find("Following") != -1:
-                            logger.info(f"@{username}: already followed. Skip.")
                             continue
                         else:
                             logger.info(f"@{username}: interact")

@@ -595,11 +595,12 @@ class OpenedPostView:
             className=ClassName.TEXT_VIEW,
         )
 
-    def _getFollowingStatus(self, countainer):
-        return countainer.child(
+    def _isFollowing(self, countainer):
+        text = countainer.child(
             resourceId=ResourceID.BUTTON,
             className=ClassName.TEXT_VIEW,
-        )
+        ).get_text()
+        return True if text == "Following" or text == "Requested" else False
 
 
 class PostsGridView:
@@ -856,7 +857,7 @@ class ProfileView(ActionBarView):
         logger.debug("Navigate to Followers")
         followers_button = self.device.find(
             resourceIdMatches=case_insensitive_re(
-                ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
+                ResourceID.ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
             )
         )
         followers_button.click()

@@ -5,7 +5,7 @@ import re
 import unicodedata
 
 from colorama import Fore
-from GramAddict.core.views import ProfileView, FollowStatus
+from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
 
 logger = logging.getLogger(__name__)
 
@@ -38,21 +38,24 @@ class Filter:
             with open(FILENAME_CONDITIONS) as json_file:
                 self.conditions = json.load(json_file)
 
-    def check_profile_from_list(self, device, item):
+    def check_profile_from_list(self, device, item, username):
         if self.conditions is None:
             return True
 
         field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
 
-        print(item)
+        if field_skip_following:
+            username_view = OpenedPostView(device)._getUserName(item)
+            following = OpenedPostView(device)._isFollowing(item)
 
-        """if field_skip_following:
-            if follow_button_text == "Following":
+            if following:
                 logger.info(
                     f"You follow @{username}, skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return False"""
+                return False
+
+        return True
 
     def check_profile(self, device, username):
         """
@@ -79,10 +82,8 @@ class Filter:
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
         field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
 
-        follow_button_text = self._get_follow_button_text(device)
-
         if field_skip_following or field_skip_follower:
-            openedPostView = OpenedPostView(device)
+            profileView = ProfileView(device)
             button, text = profileView.getFollowButton()
 
             if field_skip_following:
