@@ -921,7 +921,7 @@ class ProfileView(ActionBarView):
             attempts += 1
             self.device.swipe(DeviceFacade.Direction.TOP, scale=0.1)
             if attempts > 2:
-                logger.error(f"Cannot navigate to tab '{description}'")
+                logger.error(f"Cannot navigate to tab '{tab}'")
                 save_crash(self.device)
                 return
 

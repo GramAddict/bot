@@ -16,7 +16,7 @@ from GramAddict.core.interaction import (
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep, save_crash
+from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
