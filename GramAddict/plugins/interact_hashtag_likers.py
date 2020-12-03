@@ -235,7 +235,6 @@ class InteractHashtagLikers(Plugin):
                 try:
                     for item in OpenedPostView(device)._getUserCountainer():
                         username_view = OpenedPostView(device)._getUserName(item)
-
                         if not username_view.exists(quick=True):
                             logger.info(
                                 "Next item not found: probably reached end of the screen.",
@@ -244,10 +243,15 @@ class InteractHashtagLikers(Plugin):
                             break
 
                         username = username_view.get_text()
+                        profile_interact = profile_filter.check_profile_from_list(
+                            device, item, username
+                        )
                         screen_iterated_likers.append(username)
                         posts_end_detector.notify_username_iterated(username)
-
-                        if storage.is_user_in_blacklist(username):
+                        if not profile_interact:
+                            # logger is handled in filter
+                            continue
+                        elif storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
                             continue
                         elif storage.check_user_was_interacted(username):
