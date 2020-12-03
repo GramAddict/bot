@@ -166,8 +166,8 @@ def save_crash(device):
 def detect_block(device):
     logger.debug("Checking for block...")
     block_dialog = device.find(
-        resourceId="com.instagram.android:id/dialog_root_view",
-        className="android.widget.FrameLayout",
+        resourceId=ResourceID.DIALOG_ROOT_VIEW,
+        className=ClassName.FRAME_LAYOUT,
     )
     is_blocked = block_dialog.exists()
     if is_blocked:
