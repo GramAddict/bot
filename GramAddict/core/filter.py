@@ -5,7 +5,7 @@ import re
 import unicodedata
 
 from colorama import Fore
-from GramAddict.core.views import ProfileView
+from GramAddict.core.views import ProfileView, FollowStatus
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,22 @@ class Filter:
             with open(FILENAME_CONDITIONS) as json_file:
                 self.conditions = json.load(json_file)
 
+    def check_profile_from_list(self, device, item):
+        if self.conditions is None:
+            return True
+
+        field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
+
+        print(item)
+
+        """if field_skip_following:
+            if follow_button_text == "Following":
+                logger.info(
+                    f"You follow @{username}, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False"""
+
     def check_profile(self, device, username):
         """
         This method assumes being on someone's profile already.
@@ -65,21 +81,25 @@ class Filter:
 
         follow_button_text = self._get_follow_button_text(device)
 
-        if field_skip_following:
-            if follow_button_text == "Following":
-                logger.info(
-                    f"You follow @{username}, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
+        if field_skip_following or field_skip_follower:
+            openedPostView = OpenedPostView(device)
+            button, text = profileView.getFollowButton()
 
-        if field_skip_follower:
-            if follow_button_text == "Follow Back":
-                logger.info(
-                    f"@{username} follows you, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
+            if field_skip_following:
+                if text == FollowStatus.FOLLOWING:
+                    logger.info(
+                        f"You follow @{username}, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
+            if field_skip_follower:
+                if text == FollowStatus.FOLLOW_BACK:
+                    logger.info(
+                        f"@{username} follows you, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -272,13 +292,6 @@ class Filter:
         return field_follow_private_or_empty is not None and bool(
             field_follow_private_or_empty
         )
-
-    @staticmethod
-    def _get_follow_button_text(device):
-        profileView = ProfileView(device)
-        follower = profileView.getFollowButton()
-
-        return follower[1]
 
     @staticmethod
     def _get_followers_and_followings(device):
