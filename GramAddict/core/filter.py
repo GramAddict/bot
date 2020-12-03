@@ -46,7 +46,6 @@ class Filter:
         field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
 
         if field_skip_following:
-            username_view = OpenedPostView(device)._getUserName(item)
             following = OpenedPostView(device)._isFollowing(item)
 
             if following:
