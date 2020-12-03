@@ -6,6 +6,7 @@ import unicodedata
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
+from GramAddict.core.resources import ResourceID, ClassName
 
 logger = logging.getLogger(__name__)
 
@@ -316,8 +317,8 @@ class Filter:
     @staticmethod
     def _has_business_category(device):
         business_category_view = device.find(
-            resourceId="com.instagram.android:id/profile_header_business_category",
-            className="android.widget.TextView",
+            resourceId=ResourceID.PROFILE_HEADER_BUSINESS_CATEGORY,
+            className=ClassName.TEXT_VIEW,
         )
         return business_category_view.exists(True)
 
