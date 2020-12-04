@@ -32,7 +32,7 @@ from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
 
 # Logging initialization
-configure_logger()
+configure_logger(sys.argv)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
