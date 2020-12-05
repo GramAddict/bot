@@ -28,16 +28,28 @@ def run_safely(device, device_id, sessions, session_state):
             try:
                 func(*args, **kwargs)
             except KeyboardInterrupt:
-                # Catch Ctrl-C and ask if user wants to pause execution
-                logger.info(
-                    "CTRL-C detected . . .",
-                    extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                )
-                logger.info("Pause or Quit? [P/Q]: ", extra={"color": Style.BRIGHT})
+                try:
+                    # Catch Ctrl-C and ask if user wants to pause execution
+                    logger.info(
+                        "CTRL-C detected . . .",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    logger.info(
+                        f"-------- PAUSED: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    logger.info(
+                        "Press RETURN to resume or CTRL-C again to Quit: ",
+                        extra={"color": Style.BRIGHT},
+                    )
 
-                pause_or_quit = input((""))
-                if pause_or_quit.lower() == "q":
+                    pause = input((""))
 
+                    logger.info(
+                        f"-------- RESUMING: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                except KeyboardInterrupt:
                     close_instagram(device_id)
                     logger.info(
                         f"-------- FINISH: {datetime.now().time()} --------",
@@ -46,17 +58,6 @@ def run_safely(device, device_id, sessions, session_state):
                     print_full_report(sessions)
                     sessions.persist(directory=session_state.my_username)
                     sys.exit(0)
-
-                elif pause_or_quit.lower() == "p":
-                    logger.info(
-                        f"-------- PAUSING: {datetime.now().time()} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    input("Press RETURN to resume...")
-                    logger.info(
-                        f"-------- RESUMING: {datetime.now().time()} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
 
             except (
                 DeviceFacade.JsonRpcError,
