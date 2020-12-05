@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "gramaddict-bot"
+version = "1.1.2"
+description = "Completely free and open source human-like Instagram bot. Powered by UIAutomator2 and compatible with basically any android device that can run instagram - real or emulated."
+authors = ["Philip Ulrich","Arthur Silva","Dennis Grasso"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+colorama = "^0.4.4"
+uiautomator2 = "^2.12.0"
+matplotlib = "^3.3.3"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+pyflakes = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
