@@ -284,7 +284,7 @@ class SearchView:
         logger.info(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        random_sleep(1,2)
+        random_sleep(1, 2)
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
             logger.debug(
@@ -297,7 +297,7 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        DeviceFacade.back(self.device) #close the keyboard
+        DeviceFacade.back(self.device)  # close the keyboard
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -388,21 +388,6 @@ class PostsViewList:
                 return True, new_description
             else:
                 return False, new_description
-    
-    def _like_in_post_view(self):
-        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
-        logger.info("Like!")
-        self.device.find(
-                    resourceIdMatches=(POST_CONTAINER)
-                ).double_click()
-        
-        
-
-    def _follow_in_post_view(self):
-        pass
-    def _comment_in_post_view(self):
-        pass
-
 
 
 class LanguageView:
