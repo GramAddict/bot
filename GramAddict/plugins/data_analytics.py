@@ -43,7 +43,7 @@ class DataAnalytics(Plugin):
             "report_"
             + self.username
             + "_"
-            + datetime.now().strftime("%Y-%m-%d")
+            + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             + ".pdf"
         )
         with PdfPages(filename) as pdf:
