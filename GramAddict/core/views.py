@@ -170,7 +170,7 @@ class HashTagView:
     def _getRecentTab(self):
         return self.device.find(
             className=ClassName.TEXT_VIEW,
-            text=TabBarText.RECENT_CONTENT_DESC,
+            text=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
 
 
@@ -270,8 +270,7 @@ class SearchView:
         logger.info(f"Navigate to hashtag {hashtag}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-
-        random_sleep()
+        random_sleep(1, 2)
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
             logger.debug(
@@ -282,22 +281,22 @@ class SearchView:
                 logger.error("Cannot find tab: Tags.")
                 save_crash(self.device)
                 return None
-
         hashtag_tab.click()
-        random_sleep()
-        DeviceFacade.back(self.device)
-        random_sleep()
+        random_sleep(1, 2)
+        DeviceFacade.back(self.device)  # close the keyboard
+        random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
 
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
-            random_sleep()
+            random_sleep(5, 10)
             return HashTagView(self.device)
 
         logger.info(f"{hashtag} is not in recent searching hystory..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
+        random_sleep(4, 8)
 
         if not hashtag_view.exists():
             logger.error(f"Cannot find hashtag {hashtag}, abort.")
@@ -507,7 +506,7 @@ class OpenedPostView:
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
-                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.15)
+                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.2)
                 like_btn_view = self.device.find(
                     resourceIdMatches=case_insensitive_re(
                         OpenedPostView.ResourceID.ROW_FEED_BUTTON_LIKE
@@ -836,6 +835,7 @@ class ProfileView(ActionBarView):
                 [
                     ResourceID.PRIVATE_PROFILE_EMPTY_STATE,
                     ResourceID.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_TITLE,
+                    ResourceID.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER,
                 ]
             )
         )
@@ -948,7 +948,9 @@ class CurrentStoryView:
             resourceId=ResourceID.REEL_VIEWER_TITLE,
             className=ClassName.TEXT_VIEW,
         )
-        return "" if not reel_viewer_title.exists() else reel_viewer_title.get_text()
+        return (
+            "" if not reel_viewer_title.exists(True) else reel_viewer_title.get_text()
+        )
 
     def getTimestamp(self):
         reel_viewer_timestamp = self.device.find(
