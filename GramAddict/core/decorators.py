@@ -53,6 +53,7 @@ def run_safely(device, device_id, sessions, session_state):
                         f"-------- RESUMING: {datetime.now().time()} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
+                    TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
                     close_instagram(device_id)
                     logger.info(
