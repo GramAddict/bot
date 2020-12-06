@@ -306,20 +306,30 @@ class ActionUnfollowFollowers(Plugin):
             save_crash(device)
             switch_to_english(device)
             raise LanguageNotEnglishException()
-        unfollow_button.click()
 
-        confirm_unfollow_button = device.find(
-            resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
-            className=ClassName.TEXT_VIEW,
-        )
+        unfollow_button.click()
+        
+        attempts = 0
+
+        while True:
+            confirm_unfollow_button = device.find(
+                resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+                className=ClassName.TEXT_VIEW,
+            )
+            if confirm_unfollow_button.exists() and attempts >= 1:
+                break
+            else:
+                attempts += 1
+                
         if not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
             return False
+
         confirm_unfollow_button.click()
 
-        random_sleep()
+        random_sleep(0,1)
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
