@@ -268,7 +268,7 @@ class ActionUnfollowFollowers(Plugin):
         """
         username_view = device.find(
             resourceId=ResourceID.FOLLOW_LIST_USERNAME,
-            className=ClassName.LIST_VIEW,
+            className=ClassName.TEXT_VIEW,
             text=username,
         )
         if not username_view.exists():
@@ -284,8 +284,8 @@ class ActionUnfollowFollowers(Plugin):
             device.back()
             return False
 
+        # I don't know/remember the origin of this, if someone does - let's document it
         attempts = 0
-
         while True:
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
@@ -306,20 +306,32 @@ class ActionUnfollowFollowers(Plugin):
             save_crash(device)
             switch_to_english(device)
             raise LanguageNotEnglishException()
+
         unfollow_button.click()
 
-        confirm_unfollow_button = device.find(
-            resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
-            className=ClassName.TEXT_VIEW,
-        )
+        # Weirdly enough, this is a fix for after you unfollow someone that follows
+        # you back - the next person you unfollow the button is missing on first find
+        # additional find - finds it. :shrug:
+        attempts = 0
+        while True:
+            confirm_unfollow_button = device.find(
+                resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+                className=ClassName.TEXT_VIEW,
+            )
+            if confirm_unfollow_button.exists() and attempts >= 1:
+                break
+            else:
+                attempts += 1
+
         if not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
             return False
+
         confirm_unfollow_button.click()
 
-        random_sleep()
+        random_sleep(0, 1)
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
