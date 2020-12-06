@@ -14,6 +14,7 @@ from GramAddict.core.interaction import (
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.resources import ClassName, ResourceID
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
@@ -206,13 +207,13 @@ class InteractBloggerFollowers(Plugin):
 
         def is_end_reached():
             see_all_button = device.find(
-                resourceId="com.instagram.android:id/see_all_button",
-                className="android.widget.TextView",
+                resourceId=ResourceID.SEE_ALL_BUTTON,
+                className=ClassName.TEXT_VIEW,
             )
             return see_all_button.exists()
 
         list_view = device.find(
-            resourceId="android:id/list", className="android.widget.ListView"
+            resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
         )
         while not is_end_reached():
             list_view.fling(DeviceFacade.Direction.BOTTOM)
@@ -221,8 +222,8 @@ class InteractBloggerFollowers(Plugin):
 
         def is_at_least_one_follower():
             follower = device.find(
-                resourceId="com.instagram.android:id/follow_list_container",
-                className="android.widget.LinearLayout",
+                resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                className=ClassName.LINEAR_LAYOUT,
             )
             return follower.exists()
 
@@ -240,14 +241,14 @@ class InteractBloggerFollowers(Plugin):
     ):
         # Wait until list is rendered
         device.find(
-            resourceId="com.instagram.android:id/follow_list_container",
-            className="android.widget.LinearLayout",
+            resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+            className=ClassName.LINEAR_LAYOUT,
         ).wait()
 
         def scrolled_to_top():
             row_search = device.find(
-                resourceId="com.instagram.android:id/row_search_edit_text",
-                className="android.widget.EditText",
+                resourceId=ResourceID.ROW_SEARCH_EDIT_TEXT,
+                className=ClassName.EDIT_TEXT,
             )
             return row_search.exists()
 
@@ -261,8 +262,8 @@ class InteractBloggerFollowers(Plugin):
 
             try:
                 for item in device.find(
-                    resourceId="com.instagram.android:id/follow_list_container",
-                    className="android.widget.LinearLayout",
+                    resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                    className=ClassName.LINEAR_LAYOUT,
                 ):
                     user_info_view = item.child(index=1)
                     user_name_view = user_info_view.child(index=0).child()
@@ -330,7 +331,7 @@ class InteractBloggerFollowers(Plugin):
                 return
             elif len(screen_iterated_followers) > 0:
                 load_more_button = device.find(
-                    resourceId="com.instagram.android:id/row_load_more_button"
+                    resourceId=ResourceID.ROW_LOAD_MORE_BUTTON
                 )
                 load_more_button_exists = load_more_button.exists(quick=True)
 
@@ -341,7 +342,7 @@ class InteractBloggerFollowers(Plugin):
                     screen_iterated_followers
                 )
                 list_view = device.find(
-                    resourceId="android:id/list", className="android.widget.ListView"
+                    resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 if not list_view.exists():
                     logger.error(
@@ -349,8 +350,8 @@ class InteractBloggerFollowers(Plugin):
                     )
                     device.back()
                     list_view = device.find(
-                        resourceId="android:id/list",
-                        className="android.widget.ListView",
+                        resourceId=ResourceID.LIST,
+                        className=ClassName.LIST_VIEW,
                     )
 
                 if is_myself:
@@ -360,7 +361,7 @@ class InteractBloggerFollowers(Plugin):
                     pressed_retry = False
                     if load_more_button_exists:
                         retry_button = load_more_button.child(
-                            className="android.widget.ImageView"
+                            className=ClassName.IMAGE_VIEW
                         )
                         if retry_button.exists():
                             logger.info('Press "Load" button')

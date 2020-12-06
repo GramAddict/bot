@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
+from GramAddict.core.resources import ClassName, ResourceID, APP_ID
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -59,7 +60,7 @@ def get_instagram_version(device_id):
     stream = os.popen(
         "adb"
         + ("" if device_id is None else " -s " + device_id)
-        + " shell dumpsys package com.instagram.android"
+        + f" shell dumpsys package {APP_ID}"
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
@@ -92,7 +93,7 @@ def open_instagram(device_id):
     cmd = (
         "adb"
         + ("" if device_id is None else " -s " + device_id)
-        + " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity"
+        + f" shell am start -n {APP_ID}/com.instagram.mainactivity.MainActivity"
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
@@ -106,7 +107,7 @@ def close_instagram(device_id):
     os.popen(
         "adb"
         + ("" if device_id is None else " -s " + device_id)
-        + " shell am force-stop com.instagram.android"
+        + f" shell am force-stop {APP_ID}"
     ).close()
 
 
@@ -165,8 +166,8 @@ def save_crash(device):
 def detect_block(device):
     logger.debug("Checking for block...")
     block_dialog = device.find(
-        resourceId="com.instagram.android:id/dialog_root_view",
-        className="android.widget.FrameLayout",
+        resourceId=ResourceID.DIALOG_ROOT_VIEW,
+        className=ClassName.FRAME_LAYOUT,
     )
     is_blocked = block_dialog.exists()
     if is_blocked:
