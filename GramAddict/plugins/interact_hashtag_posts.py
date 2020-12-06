@@ -22,6 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
+    Swipe_to,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,9 +64,7 @@ class InteractHashtagLikers(Plugin):
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [
-            source for source in args.hashtag_posts
-        ]
+        sources = [source for source in args.hashtag_posts]
         shuffle(sources)
 
         for source in sources:
@@ -122,7 +121,6 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
-                    args.hashtag_likers_recent,
                     storage,
                     profile_filter,
                     on_like,
@@ -150,7 +148,6 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        hashtag_likers_recent,
         storage,
         profile_filter,
         on_like,
@@ -181,119 +178,78 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
-
         logger.info("Switching to Recent tab")
         HashTagView(device)._getRecentTab().click()
-        random_sleep(5, 10)
+        random_sleep()
+        random_sleep()
 
         logger.info("Opening the first result")
 
         result_view = HashTagView(device)._getRecyclerView()
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
+        random_sleep()
 
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
-        first_post = True
         post_description = ""
-        while True:
-            if first_post:
-                PostsViewList(device).swipe_to_fit_posts(True)
-                first_post = False
+
+        def interact():
+            can_follow = not is_follow_limit_reached() and (
+                storage.get_following_status(username) == FollowingStatus.NONE
+                or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
+            )
+
+            interaction_succeed, followed = interaction(
+                device, username=username, can_follow=can_follow
+            )
+            storage.add_interacted_user(username, followed=followed)
+            can_continue = on_interaction(
+                succeed=interaction_succeed, followed=followed
+            )
+            if not can_continue:
+                return
+
+        def random_choice():
+            from random import randint
+
+            interact_chance = randint(1, 100)
+            if follow_percentage > interact_chance:  # new argument --interact-chance ??
+                return True
             else:
-                PostsViewList(device).swipe_to_fit_posts(False)
+                return False
+
+        # ALPHA VERSION
+        while True:
+            if random_choice():
+                PostsViewList(device)._like_in_post_view()
+                random_sleep()
+                # if random_choice():
+                #     PostsViewList(device)._follow_in_post_view()
+                #     random_sleep()
+                #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                username = PostsViewList(device)._get_post_owner_name()[:-3]
+                if storage.is_user_in_blacklist(username):
+                    logger.info(f"@{username} is in blacklist. Skip.")
+                    interact = False
+                elif storage.check_user_was_interacted(username):
+                    logger.info(f"@{username}: already interacted. Skip.")
+                    interact = False
+                else:
+                    logger.info(f"@{username}: interact")
+                    PostsViewList(device)._open_post_owner()
+                    interact()  # avoid to like 1st image!! TO DO
+                    device.back()
+
+            PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
+            PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+            random_sleep()
 
             flag, post_description = PostsViewList(device).check_if_last_post(
                 post_description
-            )
+            )  # TODO: "TypeError: cannot unpack non-iterable NoneType object" need to handle posts with no description!
             if flag:
                 break
-            
-            # double tap to like the post
-            PostsViewList(device)._like_in_post_view()
-            random_sleep()
-            continue
-
-            logger.info("List of likers is opened.")
-            posts_end_detector.notify_new_page()
-            random_sleep()
-
-            likes_list_view = OpenedPostView(device)._getListViewLikers()
-            prev_screen_iterated_likers = []
-            while True:
-                logger.info("Iterate over visible likers.")
-                screen_iterated_likers = []
-
-                try:
-                    for item in OpenedPostView(device)._getUserCountainer():
-                        username_view = OpenedPostView(device)._getUserName(item)
-
-                        if not username_view.exists(quick=True):
-                            logger.info(
-                                "Next item not found: probably reached end of the screen.",
-                                extra={"color": f"{Fore.GREEN}"},
-                            )
-                            break
-
-                        username = username_view.get_text()
-                        screen_iterated_likers.append(username)
-                        posts_end_detector.notify_username_iterated(username)
-
-                        if storage.is_user_in_blacklist(username):
-                            logger.info(f"@{username} is in blacklist. Skip.")
-                            continue
-                        elif storage.check_user_was_interacted(username):
-                            logger.info(f"@{username}: already interacted. Skip.")
-                            continue
-                        else:
-                            logger.info(f"@{username}: interact")
-                            username_view.click()
-
-                        can_follow = not is_follow_limit_reached() and (
-                            storage.get_following_status(username)
-                            == FollowingStatus.NONE
-                            or storage.get_following_status(username)
-                            == FollowingStatus.NOT_IN_LIST
-                        )
-
-                        interaction_succeed, followed = interaction(
-                            device, username=username, can_follow=can_follow
-                        )
-                        storage.add_interacted_user(username, followed=followed)
-                        can_continue = on_interaction(
-                            succeed=interaction_succeed, followed=followed
-                        )
-                        if not can_continue:
-                            return
-
-                        logger.info("Back to likers list.")
-                        device.back()
-                        random_sleep()
-                except IndexError:
-                    logger.info(
-                        "Cannot get next item: probably reached end of the screen.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    break
-
-                if screen_iterated_likers == prev_screen_iterated_likers:
-                    logger.info(
-                        "Iterated exactly the same likers twice.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    logger.info(f"Back to {hashtag}'s posts list.")
-                    device.back()
-                    logger.info("Going to the next post.")
-                    PostsViewList(device).swipe_to_fit_posts(False)
-
-                    break
-
-                prev_screen_iterated_likers.clear()
-                prev_screen_iterated_likers += screen_iterated_likers
-
-                logger.info(
-                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
-                )
-                likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
                 break
+            continue

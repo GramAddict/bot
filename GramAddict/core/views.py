@@ -41,6 +41,10 @@ class FollowStatus(Enum):
     FOLLOW_BACK = auto()
     REQUESTED = auto()
 
+class Swipe_to(Enum):
+    HALF_PHOTO = auto()
+    NEXT_POST = auto()
+
 
 class TabBarView:
     def __init__(self, device: DeviceFacade):
@@ -318,8 +322,12 @@ class PostsViewList:
         containers = (
             f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
         )
+        gap-footer = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
+
         displayWidth = self.device.get_info()["displayWidth"]
-        if first_post:
+
+        # move type: half photo
+        if swipe == swipe.HALF_PHOTO:
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers
             ).get_bounds()["bottom"]
@@ -332,32 +340,16 @@ class PostsViewList:
                 displayWidth / 2,
                 zoomable_view_container * 0.5,
             )
-        else:
-            gap_view_obj = self.device.find(resourceIdMatches=ResourceID.GAP_VIEW)
-            if not gap_view_obj.exists(True):
-                zoomable_view_container = self.device.find(
-                    resourceIdMatches=(containers)
-                ).get_bounds()["bottom"]
-                self.device.swipe_points(
-                    displayWidth / 2,
-                    zoomable_view_container - 1,
-                    displayWidth / 2,
-                    zoomable_view_container * 0.5,
-                )
-                gap_view_obj = self.device.find(resourceIdMatches=ResourceID.GAP_VIEW)
 
-            gap_view = gap_view_obj.get_bounds()["top"]
-            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, 10)
+        # move type: gap/footer to next post
+        elif swipe == swipe.NEXT_POST:
+            gap_view = self.device.find(
+                resourceIdMatches=gap-footer
+            ).get_bounds()["top"]
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers
-            ).get_bounds()["bottom"]
-
-            self.device.swipe_points(
-                displayWidth / 2,
-                zoomable_view_container - 1,
-                displayWidth / 2,
-                zoomable_view_container * 0.5,
-            )
+            ).get_bounds()["top"]
+            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, zoomable_view_container)
         return
 
     def check_if_last_post(self, last_description):
@@ -372,6 +364,30 @@ class PostsViewList:
                 return True, new_description
             else:
                 return False, new_description
+
+    def _open_post_owner(self):
+        NAME_CONTAINER = "com.instagram.android:id/row_feed_photo_profile_name"
+        logger.info("Open post owner")
+        self.device.find(resourceIdMatches=(NAME_CONTAINER)).click()
+    
+    def _get_post_owner_name(self):
+        NAME_CONTAINER = "com.instagram.android:id/row_feed_photo_profile_name"
+        return self.device.find(resourceIdMatches=(NAME_CONTAINER)).get_text()
+
+    def _like_in_post_view(self):
+        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
+        logger.info("Like post in place")
+        self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
+
+    def _follow_in_post_view(self):
+        FOLLOW_BUTTON = "com.instagram.android:id/button"
+        logger.info("Follow blogger in place")
+        self.device.find(resourceIdMatches=(FOLLOW_BUTTON)).click()
+
+    def _comment_in_post_view(self):
+        COMMENT_BUTTON = "com.instagram.android:id/row_feed_button_comment"
+        logger.info("Open comments of post")
+        self.device.find(resourceIdMatches=(COMMENT_BUTTON)).click()
 
 
 class LanguageView:

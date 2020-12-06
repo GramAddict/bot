@@ -25,6 +25,7 @@ class ResourceID:
     )
     FOLLOW_LIST_USERNAME = f"{APP_ID}:id/follow_list_username"
     FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
+    FOOTER_SPACE = f"{APP_ID}:id/footer_space"
     GAP_VIEW = f"{APP_ID}:id/gap_view"
     IMAGE_BUTTON = f"{APP_ID}:id/image_button"
     LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
