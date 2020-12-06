@@ -308,7 +308,7 @@ class ActionUnfollowFollowers(Plugin):
             raise LanguageNotEnglishException()
 
         unfollow_button.click()
-    
+
         # Weirdly enough, this is a fix for after you unfollow someone that follows
         # you back - the next person you unfollow the button is missing on first find
         # additional find - finds it. :shrug:
@@ -322,7 +322,7 @@ class ActionUnfollowFollowers(Plugin):
                 break
             else:
                 attempts += 1
-                
+
         if not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
@@ -331,7 +331,7 @@ class ActionUnfollowFollowers(Plugin):
 
         confirm_unfollow_button.click()
 
-        random_sleep(0,1)
+        random_sleep(0, 1)
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
