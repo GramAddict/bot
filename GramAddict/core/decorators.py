@@ -39,6 +39,10 @@ def run_safely(device, device_id, sessions, session_state):
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     logger.info(
+                        "NOTE: This is a rudimentary pause. It will restart the action, while retaining session data.",
+                        extra={"color": Style.BRIGHT},
+                    )
+                    logger.info(
                         "Press RETURN to resume or CTRL-C again to Quit: ",
                         extra={"color": Style.BRIGHT},
                     )
