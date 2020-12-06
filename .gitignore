@@ -1,4 +1,7 @@
 /venv*
+/build
+/dist
+/gramaddict_beta.egg-info
 /.idea
 /.vscode
 interacted_users.*
