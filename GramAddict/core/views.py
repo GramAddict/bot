@@ -41,6 +41,7 @@ class FollowStatus(Enum):
     FOLLOW_BACK = auto()
     REQUESTED = auto()
 
+
 class Swipe_to(Enum):
     HALF_PHOTO = auto()
     NEXT_POST = auto()
@@ -116,8 +117,11 @@ class TabBarView:
 
         if button.exists():
             # Two clicks to reset tab content
+            random_sleep(2, 4)
             button.click()
+            random_sleep(1, 2)
             button.click()
+            random_sleep(1, 2)
 
             return
 
@@ -174,8 +178,24 @@ class HashTagView:
     def _getRecentTab(self):
         return self.device.find(
             className=ClassName.TEXT_VIEW,
-            text=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
+            textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
+
+    def _reload_page(self):
+        logger.info("Reload page")
+        displayWidth = self.device.get_info()["displayWidth"]
+        displayHeight = self.device.get_info()["displayHeight"]
+        self.device.swipe_points(
+            displayWidth / 2,
+            displayHeight / 2,
+            displayWidth / 2,
+            displayHeight / 2 + 300,
+        )
+
+    def _check_if_no_posts(self):
+        return self.device.find(
+            resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
+        ).exists(True)
 
 
 class SearchView:
@@ -317,19 +337,19 @@ class PostsViewList:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def swipe_to_fit_posts(self, first_post):
-        """calculate the right swipe amount necessary to swipe to next post in hashtag post view"""
-        containers = (
+    def swipe_to_fit_posts(self, swipe: Swipe_to):
+        """calculate the right swipe amount necessary to swipe to next post in hashtag post view
+        in order to make it available to other plug-ins I cutted it in two moves"""
+        displayWidth = self.device.get_info()["displayWidth"]
+        containers_content = (
             f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
         )
-        gap-footer = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
-
-        displayWidth = self.device.get_info()["displayWidth"]
+        containers_gap = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
 
         # move type: half photo
-        if swipe == swipe.HALF_PHOTO:
+        if swipe == Swipe_to.HALF_PHOTO:
             zoomable_view_container = self.device.find(
-                resourceIdMatches=containers
+                resourceIdMatches=containers_content
             ).get_bounds()["bottom"]
 
             logger.info("Scrolled down to see more posts.")
@@ -340,54 +360,91 @@ class PostsViewList:
                 displayWidth / 2,
                 zoomable_view_container * 0.5,
             )
-
         # move type: gap/footer to next post
-        elif swipe == swipe.NEXT_POST:
-            gap_view = self.device.find(
-                resourceIdMatches=gap-footer
-            ).get_bounds()["top"]
+        elif swipe == Swipe_to.NEXT_POST:
+            logger.info("Scroll down to see next post.")
+            gap_view = self.device.find(resourceIdMatches=containers_gap).get_bounds()[
+                "top"
+            ]
             zoomable_view_container = self.device.find(
-                resourceIdMatches=containers
+                resourceIdMatches=(containers_content)
             ).get_bounds()["top"]
-            self.device.swipe_points(displayWidth / 2, gap_view, displayWidth / 2, zoomable_view_container)
+            self.device.swipe_points(
+                displayWidth / 2,
+                gap_view,
+                displayWidth / 2,
+                zoomable_view_container + 5,
+            )
         return
 
     def check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
-        post_description = self.device.find(
-            resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
-        )
-        if post_description.exists(True):
-            new_description = post_description.get_text().upper()
-            if new_description == last_description:
-                logger.info("This is the last post for this hashtag")
-                return True, new_description
+        displayWidth = self.device.get_info()["displayWidth"]
+        swiped_a_bit = False
+        n = 1
+        while n < 3:
+            post_description = self.device.find(
+                resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+            )
+            if post_description.exists(True):
+                new_description = post_description.get_text().upper()
+                if swiped_a_bit:
+                    logger.debug("Invert the swipe down")
+                    self.device.swipe_points(
+                        displayWidth / 2, 200, displayWidth / 2, 500
+                    )
+                if new_description == last_description:
+                    logger.info("This is the last post for this hashtag")
+                    return True, new_description
+                else:
+                    return False, new_description
             else:
-                return False, new_description
+                if n < 2:
+                    logger.debug(
+                        "Can't find the description, try to swipe a little bit down"
+                    )
+                    self.device.swipe_points(
+                        displayWidth / 2, 500, displayWidth / 2, 200
+                    )
+                    swiped_a_bit = True
+                    n += 1
+                else:
+                    if swiped_a_bit:
+                        logger.debug("Invert the swipe down")
+                        self.device.swipe_points(
+                            displayWidth / 2, 200, displayWidth / 2, 500
+                        )
+                    logger.warning(
+                        "Can't find the description of this post. Maybe no internet or softban"
+                    )
+                    return False, ""
 
     def _open_post_owner(self):
-        NAME_CONTAINER = "com.instagram.android:id/row_feed_photo_profile_name"
         logger.info("Open post owner")
-        self.device.find(resourceIdMatches=(NAME_CONTAINER)).click()
-    
+        self.device.find(
+            resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+        ).click()
+
     def _get_post_owner_name(self):
-        NAME_CONTAINER = "com.instagram.android:id/row_feed_photo_profile_name"
-        return self.device.find(resourceIdMatches=(NAME_CONTAINER)).get_text()
+        return self.device.find(
+            resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+        ).get_text()
 
     def _like_in_post_view(self):
-        POST_CONTAINER = "com.instagram.android:id/zoomable_view_container|com.instagram.android:id/carousel_media_group"
+        POST_CONTAINER = (
+            f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
+        )
+
         logger.info("Like post in place")
         self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
 
     def _follow_in_post_view(self):
-        FOLLOW_BUTTON = "com.instagram.android:id/button"
         logger.info("Follow blogger in place")
-        self.device.find(resourceIdMatches=(FOLLOW_BUTTON)).click()
+        self.device.find(resourceIdMatches=(ResourceID.BUTTON)).click()
 
     def _comment_in_post_view(self):
-        COMMENT_BUTTON = "com.instagram.android:id/row_feed_button_comment"
         logger.info("Open comments of post")
-        self.device.find(resourceIdMatches=(COMMENT_BUTTON)).click()
+        self.device.find(resourceIdMatches=(ResourceID.ROW_FEED_BUTTON_COMMENT)).click()
 
 
 class LanguageView:

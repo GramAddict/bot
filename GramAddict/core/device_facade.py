@@ -110,7 +110,7 @@ class DeviceFacade:
 
     def swipe_points(self, sx, sy, ex, ey):
         try:
-            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.6))
+            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.3, 0.6))
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 

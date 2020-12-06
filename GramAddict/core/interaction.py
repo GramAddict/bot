@@ -1,3 +1,4 @@
+from GramAddict.core.plugin_loader import Plugin
 import logging
 from random import randint, shuffle
 from typing import Tuple
@@ -36,6 +37,7 @@ def interact_with_user(
     profile_filter,
     args,
     session_state,
+    current_mode,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -86,9 +88,14 @@ def interact_with_user(
     full_rows, columns_last_row = profile_view.count_photo_in_view()
     end_time = format(time() - start_time, ".2f")
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
+
     logger.info(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
+    if current_mode == "hashtag-posts":
+        session_state.totalLikes += 1
+        photos_indices = photos_indices[1:]
+
     if likes_value > len(photos_indices):
         logger.info(f"Only {len(photos_indices)} photo(s) available")
     else:

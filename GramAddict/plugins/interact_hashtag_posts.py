@@ -32,21 +32,28 @@ seed()
 
 
 class InteractHashtagLikers(Plugin):
-    """Handles the functionality of interacting with a hashtags likers"""
+    """Handles the functionality of interacting with a hashtags post owners"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags likers"
+            "Handles the functionality of interacting with a hashtags post owners"
         )
         self.arguments = [
             {
                 "arg": "--hashtag-posts",
                 "nargs": "+",
-                "help": "interact to hashtag posts in recent tab",
+                "help": "interact to hashtag post owners in recent tab",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
+            },
+            {
+                "arg": "--interact-chance",
+                "nargs": None,
+                "help": "chance to interact with an user in hashtag-post mode",
+                "metavar": "50",
+                "default": "50",
             },
         ]
 
@@ -62,6 +69,7 @@ class InteractHashtagLikers(Plugin):
         self.session_state = sessions[-1]
         self.args = args
         profile_filter = Filter()
+        self.current_mode = plugin[2:]
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in args.hashtag_posts]
@@ -121,6 +129,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
+                    int(args.interact_chance),
                     storage,
                     profile_filter,
                     on_like,
@@ -148,6 +157,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        interact_chance,
         storage,
         profile_filter,
         on_like,
@@ -166,6 +176,7 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
@@ -180,14 +191,15 @@ class InteractHashtagLikers(Plugin):
 
         logger.info("Switching to Recent tab")
         HashTagView(device)._getRecentTab().click()
-        random_sleep()
-        random_sleep()
+        random_sleep(5, 10)
+        if HashTagView(device)._check_if_no_posts():
+            HashTagView(device)._reload_page()
+            random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
         result_view = HashTagView(device)._getRecyclerView()
         HashTagView(device)._getFistImageView(result_view).click()
-        random_sleep()
         random_sleep()
 
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
@@ -212,21 +224,14 @@ class InteractHashtagLikers(Plugin):
         def random_choice():
             from random import randint
 
-            interact_chance = randint(1, 100)
-            if follow_percentage > interact_chance:  # new argument --interact-chance ??
+            random_number = randint(1, 100)
+            if interact_chance > random_number:
                 return True
             else:
                 return False
 
-        # ALPHA VERSION
         while True:
             if random_choice():
-                PostsViewList(device)._like_in_post_view()
-                random_sleep()
-                # if random_choice():
-                #     PostsViewList(device)._follow_in_post_view()
-                #     random_sleep()
-                #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
                 username = PostsViewList(device)._get_post_owner_name()[:-3]
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
@@ -236,8 +241,14 @@ class InteractHashtagLikers(Plugin):
                     interact = False
                 else:
                     logger.info(f"@{username}: interact")
+                    PostsViewList(device)._like_in_post_view()
+                    # if random_choice():
+                    #     PostsViewList(device)._follow_in_post_view()
+                    #     random_sleep()
+                    #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                    random_sleep()
                     PostsViewList(device)._open_post_owner()
-                    interact()  # avoid to like 1st image!! TO DO
+                    interact()
                     device.back()
 
             PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
@@ -246,7 +257,7 @@ class InteractHashtagLikers(Plugin):
 
             flag, post_description = PostsViewList(device).check_if_last_post(
                 post_description
-            )  # TODO: "TypeError: cannot unpack non-iterable NoneType object" need to handle posts with no description!
+            )
             if flag:
                 break
 

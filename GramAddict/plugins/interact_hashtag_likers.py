@@ -22,6 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
+    Swipe_to,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ class InteractHashtagLikers(Plugin):
         self.session_state = sessions[-1]
         self.args = args
         profile_filter = Filter()
+        self.current_mode = plugin[2:]
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
@@ -177,6 +179,7 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
@@ -193,6 +196,9 @@ class InteractHashtagLikers(Plugin):
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep(5, 10)
+            if HashTagView(device)._check_if_no_posts():
+                HashTagView(device)._reload_page()
+                random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
@@ -207,24 +213,23 @@ class InteractHashtagLikers(Plugin):
         first_post = True
         post_description = ""
         while True:
-            if first_post:
-                PostsViewList(device).swipe_to_fit_posts(True)
-                first_post = False
+
+            PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
             if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
                 )
-                PostsViewList(device).swipe_to_fit_posts(False)
 
                 flag, post_description = PostsViewList(device).check_if_last_post(
                     post_description
                 )
                 if not flag:
+                    PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
                     continue
                 else:
                     break
 
-            logger.info("List of likers is opened.")
+            logger.info("Open list of likers.")
             posts_end_detector.notify_new_page()
             random_sleep()
 
@@ -311,7 +316,7 @@ class InteractHashtagLikers(Plugin):
                     logger.info(f"Back to {hashtag}'s posts list.")
                     device.back()
                     logger.info("Going to the next post.")
-                    PostsViewList(device).swipe_to_fit_posts(False)
+                    PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
 
                     break
 
