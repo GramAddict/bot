@@ -43,7 +43,7 @@ def run_safely(device, device_id, sessions, session_state):
                         extra={"color": Style.BRIGHT},
                     )
 
-                    pause = input((""))
+                    input("")
 
                     logger.info(
                         f"-------- RESUMING: {datetime.now().time()} --------",
