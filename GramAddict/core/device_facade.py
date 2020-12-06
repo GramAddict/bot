@@ -4,6 +4,7 @@ from os import popen
 from random import uniform
 from re import search
 from time import sleep
+from GramAddict.core.utils import random_sleep
 
 import uiautomator2
 from uiautomator2 import Device
@@ -83,6 +84,7 @@ class DeviceFacade:
 
     def unlock(self):
         self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        random_sleep(1, 1)
         if self.is_screen_locked():
             self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
 

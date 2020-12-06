@@ -6,6 +6,7 @@ from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
+from GramAddict.core.resources import ResourceID, ClassName
 from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
 from GramAddict.core.views import (
     LanguageNotEnglishException,
@@ -16,7 +17,6 @@ from GramAddict.core.views import (
 
 logger = logging.getLogger(__name__)
 
-BUTTON_REGEX = "android.widget.Button"
 FOLLOW_REGEX = "^Follow$"
 FOLLOWBACK_REGEX = "^Follow Back$"
 UNFOLLOW_REGEX = "^Following|^Requested"
@@ -90,7 +90,7 @@ def interact_with_user(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
     if likes_value > len(photos_indices):
-        logger.info(f"Only {photos_indices} photos available")
+        logger.info(f"Only {len(photos_indices)} photo(s) available")
     else:
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]
@@ -221,28 +221,26 @@ def _follow(device, username, follow_percentage, args, session_state):
             return False
 
         logger.info("Following...")
-        coordinator_layout = device.find(
-            resourceId="com.instagram.android:id/coordinator_root_layout"
-        )
+        coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists():
             coordinator_layout.scroll(DeviceFacade.Direction.TOP)
 
         random_sleep()
 
         follow_button = device.find(
-            classNameMatches=BUTTON_REGEX,
+            classNameMatches=ClassName.BUTTON,
             clickable=True,
             textMatches=FOLLOW_REGEX,
         )
 
         if not follow_button.exists():
             unfollow_button = device.find(
-                classNameMatches=BUTTON_REGEX,
+                classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=UNFOLLOW_REGEX,
             )
             followback_button = device.find(
-                classNameMatches=BUTTON_REGEX,
+                classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWBACK_REGEX,
             )

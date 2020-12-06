@@ -20,7 +20,6 @@ from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
-    ProfileView,
     OpenedPostView,
     PostsViewList,
 )
@@ -132,7 +131,6 @@ class InteractHashtagLikers(Plugin):
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     args.hashtag_likers_recent,
-                    # args.recent_tab,
                     storage,
                     profile_filter,
                     on_like,
@@ -161,7 +159,6 @@ class InteractHashtagLikers(Plugin):
         follow_percentage,
         follow_limit,
         hashtag_likers_recent,
-        # recent_tab,
         storage,
         profile_filter,
         on_like,
@@ -189,15 +186,13 @@ class InteractHashtagLikers(Plugin):
             session_state=self.session_state,
         )
         search_view = TabBarView(device).navigateToSearch()
-        random_sleep()
         if not search_view.navigateToHashtag(hashtag):
             return
 
         if hashtag_likers_recent != None:
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
-            random_sleep()
-            random_sleep()  # wonder if it possible to check if everything is loaded instead of doing multiple random_sleep..
+            random_sleep(5, 10)
 
         logger.info("Opening the first result")
 
@@ -205,7 +200,6 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        posts_list_view = ProfileView(device)._getRecyclerView()
         posts_end_detector = ScrollEndDetector(repeats_to_end=2)
         first_post = True
         post_description = ""
@@ -233,7 +227,6 @@ class InteractHashtagLikers(Plugin):
 
             likes_list_view = OpenedPostView(device)._getListViewLikers()
             prev_screen_iterated_likers = []
-
             while True:
                 logger.info("Iterate over visible likers.")
                 screen_iterated_likers = []
@@ -241,7 +234,6 @@ class InteractHashtagLikers(Plugin):
                 try:
                     for item in OpenedPostView(device)._getUserCountainer():
                         username_view = OpenedPostView(device)._getUserName(item)
-
                         if not username_view.exists(quick=True):
                             logger.info(
                                 "Next item not found: probably reached end of the screen.",
@@ -250,10 +242,15 @@ class InteractHashtagLikers(Plugin):
                             break
 
                         username = username_view.get_text()
+                        profile_interact = profile_filter.check_profile_from_list(
+                            device, item, username
+                        )
                         screen_iterated_likers.append(username)
                         posts_end_detector.notify_username_iterated(username)
-
-                        if storage.is_user_in_blacklist(username):
+                        if not profile_interact:
+                            # logger is handled in filter
+                            continue
+                        elif storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
                             continue
                         elif storage.check_user_was_interacted(username):
@@ -263,10 +260,11 @@ class InteractHashtagLikers(Plugin):
                             logger.info(f"@{username}: interact")
                             username_view.click()
 
-                        can_follow = (
-                            not is_follow_limit_reached()
-                            and storage.get_following_status(username)
+                        can_follow = not is_follow_limit_reached() and (
+                            storage.get_following_status(username)
                             == FollowingStatus.NONE
+                            or storage.get_following_status(username)
+                            == FollowingStatus.NOT_IN_LIST
                         )
 
                         interaction_succeed, followed = interaction(
@@ -279,7 +277,7 @@ class InteractHashtagLikers(Plugin):
                         if not can_continue:
                             return
 
-                        logger.info("Back to likers list")
+                        logger.info("Back to likers list.")
                         device.back()
                         random_sleep()
                 except IndexError:
@@ -287,23 +285,27 @@ class InteractHashtagLikers(Plugin):
                         "Cannot get next item: probably reached end of the screen.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
+                    break
 
                 if screen_iterated_likers == prev_screen_iterated_likers:
                     logger.info(
-                        "Iterated exactly the same likers twice, finish.",
+                        "Iterated exactly the same likers twice.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    logger.info(f"Back to {hashtag}")
+                    logger.info(f"Back to {hashtag}'s posts list.")
                     device.back()
+                    logger.info("Going to the next post.")
+                    PostsViewList(device).swipe_to_fit_posts(False)
+
                     break
 
                 prev_screen_iterated_likers.clear()
                 prev_screen_iterated_likers += screen_iterated_likers
 
-                logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
+                logger.info(
+                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
+                )
                 likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
                 break
-            else:
-                posts_list_view.scroll(DeviceFacade.Direction.BOTTOM)
