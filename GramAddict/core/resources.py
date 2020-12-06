@@ -40,6 +40,9 @@ class ResourceID:
     ROW_FEED_TEXTVIEW_LIKES = f"{APP_ID}:id/row_feed_textview_likes"
     ROW_HASHTAG_TEXTVIEW_TAG_NAME = f"{APP_ID}:id/row_hashtag_textview_tag_name"
     ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
+    ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER = (
+        f"{APP_ID}:id/row_profile_header_empty_profile_notice_container"
+    )
     ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_TITLE = (
         f"{APP_ID}:id/row_profile_header_empty_profile_notice_title"
     )
