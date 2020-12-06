@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.md", "r", errors='ignore') as readme:
+with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
 
 with open("requirements.txt", "r") as req:
@@ -24,6 +24,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
-    include_package_data=True
+    python_requires=">=3.6",
+    include_package_data=True,
 )
