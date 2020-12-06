@@ -268,7 +268,7 @@ class ActionUnfollowFollowers(Plugin):
         """
         username_view = device.find(
             resourceId=ResourceID.FOLLOW_LIST_USERNAME,
-            className=ClassName.LIST_VIEW,
+            className=ClassName.TEXT_VIEW,
             text=username,
         )
         if not username_view.exists():
