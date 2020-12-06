@@ -284,8 +284,8 @@ class ActionUnfollowFollowers(Plugin):
             device.back()
             return False
 
+        # I don't know/remember the origin of this, if someone does - let's document it
         attempts = 0
-
         while True:
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
@@ -308,9 +308,11 @@ class ActionUnfollowFollowers(Plugin):
             raise LanguageNotEnglishException()
 
         unfollow_button.click()
-        
+    
+        # Weirdly enough, this is a fix for after you unfollow someone that follows
+        # you back - the next person you unfollow the button is missing on first find
+        # additional find - finds it. :shrug:
         attempts = 0
-
         while True:
             confirm_unfollow_button = device.find(
                 resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
