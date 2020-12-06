@@ -235,10 +235,8 @@ class InteractHashtagLikers(Plugin):
                 username = PostsViewList(device)._get_post_owner_name()[:-3]
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
-                    interact = False
                 elif storage.check_user_was_interacted(username):
                     logger.info(f"@{username}: already interacted. Skip.")
-                    interact = False
                 else:
                     logger.info(f"@{username}: interact")
                     PostsViewList(device)._like_in_post_view()
