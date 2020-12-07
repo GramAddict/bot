@@ -84,4 +84,4 @@ Thank you to everyone that supports us financially! 🙏 [[Become a backer](http
 
 ---
 
-> **Disclaimer**<a name="disclaimer" />: This project comes with no gurantee or waranty. You are responsible for whatever happens from using this project. It is possible to get soft or hard banned by using this project if you are not careful.
+> **Disclaimer**<a name="disclaimer" />: This project comes with no gurantee or warranty. You are responsible for whatever happens from using this project. It is possible to get soft or hard banned by using this project if you are not careful.
