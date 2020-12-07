@@ -42,12 +42,12 @@ class FollowStatus(Enum):
     REQUESTED = auto()
 
 
-class Swipe_to(Enum):
+class SwipeTo(Enum):
     HALF_PHOTO = auto()
     NEXT_POST = auto()
 
 
-class Like_mode(Enum):
+class LikeMode(Enum):
     SINGLE_CLICK = auto()
     DOUBLE_CLICK = auto()
 
@@ -364,7 +364,7 @@ class PostsViewList:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def swipe_to_fit_posts(self, swipe: Swipe_to):
+    def swipe_to_fit_posts(self, swipe: SwipeTo):
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view
         in order to make it available to other plug-ins I cutted it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
@@ -374,7 +374,7 @@ class PostsViewList:
         containers_gap = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
 
         # move type: half photo
-        if swipe == Swipe_to.HALF_PHOTO:
+        if swipe == SwipeTo.HALF_PHOTO:
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers_content
             ).get_bounds()["bottom"]
@@ -384,14 +384,13 @@ class PostsViewList:
                 displayWidth / 2,
                 zoomable_view_container * 0.5,
             )
-            return True
-        # move type: gab/footer to next post
-        elif swipe == Swipe_to.NEXT_POST:
+        # move type: gap/footer to next post
+        elif swipe == SwipeTo.NEXT_POST:
             logger.info("Scroll down to see next post.")
             gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
             if not gap_view_obj.exists(True):
                 logger.debug("Can't find the gap obj, scroll down a little more.")
-                PostsViewList(self.device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
+                PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
                 gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
             gap_view = gap_view_obj.get_bounds()["top"]
             zoomable_view_container = self.device.find(
@@ -463,14 +462,14 @@ class PostsViewList:
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         ).get_text()
 
-    def _like_in_post_view(self, mode: Like_mode):
+    def _like_in_post_view(self, mode: LikeMode):
         POST_CONTAINER = (
             f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
         )
-        if mode == Like_mode.DOUBLE_CLICK:
+        if mode == LikeMode.DOUBLE_CLICK:
             logger.info("Double click photo.")
             self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
-        elif mode == Like_mode.SINGLE_CLICK:
+        elif mode == LikeMode.SINGLE_CLICK:
             logger.info("Like photo from button.")
             self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE).click()
 

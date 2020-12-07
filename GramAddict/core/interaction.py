@@ -1,4 +1,3 @@
-from GramAddict.core.plugin_loader import Plugin
 import logging
 from random import randint, shuffle
 from typing import Tuple
@@ -96,7 +95,7 @@ def interact_with_user(
     logger.info(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
-    if current_mode == "hashtag-posts":
+    if current_mode == "hashtag-posts-recent" or current_mode == "hashtag-posts-top":
         session_state.totalLikes += 1
         photos_indices = photos_indices[1:]
 

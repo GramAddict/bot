@@ -2,9 +2,8 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Fore, Style
+from colorama import Style
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
@@ -21,8 +20,8 @@ from GramAddict.core.views import (
     TabBarView,
     HashTagView,
     PostsViewList,
-    Swipe_to,
-    Like_mode,
+    SwipeTo,
+    LikeMode,
     Owner,
 )
 from GramAddict.core.utils import detect_block
@@ -43,7 +42,7 @@ class InteractHashtagLikers(Plugin):
         )
         self.arguments = [
             {
-                "arg": "--hashtag-posts",
+                "arg": "--hashtag-posts-recent",
                 "nargs": "+",
                 "help": "interact to hashtag post owners in recent tab",
                 "metavar": ("hashtag1", "hashtag2"),
@@ -53,7 +52,7 @@ class InteractHashtagLikers(Plugin):
             {
                 "arg": "--interact-chance",
                 "nargs": None,
-                "help": "chance to interact with an user in hashtag-post mode",
+                "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent)",
                 "metavar": "50",
                 "default": "50",
             },
@@ -74,7 +73,7 @@ class InteractHashtagLikers(Plugin):
         self.current_mode = plugin[2:]
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in args.hashtag_posts]
+        sources = [source for source in args.hashtag_posts_recent]
         shuffle(sources)
 
         for source in sources:
@@ -245,22 +244,22 @@ class InteractHashtagLikers(Plugin):
                     logger.info(f"@{username}: already interacted. Skip.")
                 else:
                     logger.info(f"@{username}: interact")
-                    PostsViewList(device)._like_in_post_view(Like_mode.DOUBLE_CLICK)
+                    PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
                     print(PostsViewList(device)._check_if_liked())
                     print(not PostsViewList(device)._check_if_liked())
                     if not PostsViewList(device)._check_if_liked():
-                        PostsViewList(device)._like_in_post_view(Like_mode.SINGLE_CLICK)
+                        PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
                     # if random_choice():
                     #     PostsViewList(device)._follow_in_post_view()
                     #     random_sleep()
-                    #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                    #     PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                     detect_block(device)
                     random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(Owner.OPEN):
                         interact()
                         device.back()
 
-            PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
-            PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
             random_sleep()
             continue

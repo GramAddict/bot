@@ -27,7 +27,6 @@ class ResourceID:
     FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
     FOOTER_SPACE = f"{APP_ID}:id/footer_space"
     GAP_VIEW = f"{APP_ID}:id/gap_view"
-    FOOTER_SPACE = f"{APP_ID}:id/footer_space"
     IGDS_HEADLINE_EMPHASIZED_HEADLINE = f"{APP_ID}:id/igds_headline_emphasized_headline"
     IMAGE_BUTTON = f"{APP_ID}:id/image_button"
     LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"

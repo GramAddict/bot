@@ -22,7 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
-    Swipe_to,
+    SwipeTo,
 )
 
 logger = logging.getLogger(__name__)
@@ -210,11 +210,10 @@ class InteractHashtagLikers(Plugin):
         posts_end_detector = ScrollEndDetector(
             repeats_to_end=2, skipped_list_limit=skipped_list_limit
         )
-        first_post = True
         post_description = ""
         while True:
 
-            PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
             if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
@@ -224,7 +223,7 @@ class InteractHashtagLikers(Plugin):
                     post_description
                 )
                 if not flag:
-                    PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                     continue
                 else:
                     break
@@ -316,7 +315,7 @@ class InteractHashtagLikers(Plugin):
                     logger.info(f"Back to {hashtag}'s posts list.")
                     device.back()
                     logger.info("Going to the next post.")
-                    PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
 
                     break
 
