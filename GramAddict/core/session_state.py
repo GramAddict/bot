@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from enum import Enum, auto
 from json import JSONEncoder
+from GramAddict.core.utils import get_value
 
 logger = logging.getLogger(__name__)
 
@@ -60,25 +61,29 @@ class SessionState:
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
         limit_type = SessionState.Limit.ALL if limit_type == None else limit_type
-        total_likes = self.totalLikes >= int(args.total_likes_limit)
-        total_followed = sum(self.totalFollowed.values()) >= int(
-            args.total_follows_limit
+        total_likes = self.totalLikes >= int(
+            get_value(args.total_likes_limit, None, 300)
         )
-        total_watched = self.totalWatched >= int(args.total_watches_limit)
+        total_followed = sum(self.totalFollowed.values()) >= int(
+            get_value(args.total_follows_limit, None, 50)
+        )
+        total_watched = self.totalWatched >= int(
+            get_value(args.total_watches_limit, None, 50)
+        )
         total_successful = sum(self.successfulInteractions.values()) >= int(
-            args.total_successful_interactions_limit
+            get_value(args.total_successful_interactions_limit, None, 100)
         )
         total_interactions = sum(self.totalInteractions.values()) >= int(
-            args.total_interactions_limit
+            get_value(args.total_interactions_limit, None, 1000)
         )
 
         session_info = [
             "Checking session limits:",
-            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.total_likes_limit})",
-            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.total_follows_limit})",
-            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.total_watches_limit})",
-            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.total_successful_interactions_limit})",
-            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.total_interactions_limit})",
+            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{total_likes})",
+            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{total_followed})",
+            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{total_watched})",
+            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{total_successful})",
+            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{total_interactions})",
         ]
 
         if limit_type == SessionState.Limit.ALL:
