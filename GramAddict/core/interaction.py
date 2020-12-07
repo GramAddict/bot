@@ -14,6 +14,8 @@ from GramAddict.core.views import (
     ProfileView,
     CurrentStoryView,
     PostsGridView,
+    HashTagView,
+    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -65,7 +67,9 @@ def interact_with_user(
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
-            followed = _follow(device, username, follow_percentage, args, session_state)
+            followed = _follow(
+                device, username, follow_percentage, args, session_state, 0
+            )
         else:
             followed = False
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
@@ -82,7 +86,7 @@ def interact_with_user(
         session_state,
     )
 
-    ProfileView(device).swipe_to_fit_posts()
+    swipe_amount = ProfileView(device).swipe_to_fit_posts()
     random_sleep()
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
@@ -135,7 +139,12 @@ def interact_with_user(
 
             if can_follow and profile_filter.can_follow_private_or_empty():
                 followed = _follow(
-                    device, username, follow_percentage, args, session_state
+                    device,
+                    username,
+                    follow_percentage,
+                    args,
+                    session_state,
+                    swipe_amount,
                 )
             else:
                 followed = False
@@ -146,7 +155,9 @@ def interact_with_user(
 
         random_sleep()
     if can_follow:
-        return True, _follow(device, username, follow_percentage, args, session_state)
+        return True, _follow(
+            device, username, follow_percentage, args, session_state, swipe_amount
+        )
 
     return True, False
 
@@ -219,7 +230,7 @@ def _on_interaction(
     return can_continue
 
 
-def _follow(device, username, follow_percentage, args, session_state):
+def _follow(device, username, follow_percentage, args, session_state, swipe_amount):
     if not session_state.check_limit(
         args, limit_type=session_state.Limit.FOLLOWS, output=False
     ):
@@ -229,8 +240,10 @@ def _follow(device, username, follow_percentage, args, session_state):
 
         logger.info("Following...")
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
-        if coordinator_layout.exists():
-            coordinator_layout.scroll(DeviceFacade.Direction.TOP)
+        if coordinator_layout.exists() and swipe_amount != 0:
+            HashTagView(device)._little_swipe(
+                direction=Direction.UP, delta=swipe_amount
+            )
 
         random_sleep()
 

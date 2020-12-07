@@ -20,10 +20,12 @@ from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
-    OpenedPostView,
     PostsViewList,
     Swipe_to,
+    Like_mode,
+    Owner,
 )
+from GramAddict.core.utils import detect_block
 
 logger = logging.getLogger(__name__)
 
@@ -202,9 +204,6 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        posts_end_detector = ScrollEndDetector(repeats_to_end=2)
-        post_description = ""
-
         def interact():
             can_follow = not is_follow_limit_reached() and (
                 storage.get_following_status(username) == FollowingStatus.NONE
@@ -230,35 +229,38 @@ class InteractHashtagLikers(Plugin):
             else:
                 return False
 
+        post_description = ""
+
         while True:
+            flag, post_description = PostsViewList(device).check_if_last_post(
+                post_description
+            )
+            if flag:
+                break
             if random_choice():
-                username = PostsViewList(device)._get_post_owner_name()[:-3]
+                username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
                 elif storage.check_user_was_interacted(username):
                     logger.info(f"@{username}: already interacted. Skip.")
                 else:
                     logger.info(f"@{username}: interact")
-                    PostsViewList(device)._like_in_post_view()
+                    PostsViewList(device)._like_in_post_view(Like_mode.DOUBLE_CLICK)
+                    print(PostsViewList(device)._check_if_liked())
+                    print(not PostsViewList(device)._check_if_liked())
+                    if not PostsViewList(device)._check_if_liked():
+                        PostsViewList(device)._like_in_post_view(Like_mode.SINGLE_CLICK)
                     # if random_choice():
                     #     PostsViewList(device)._follow_in_post_view()
                     #     random_sleep()
                     #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
-                    random_sleep()
-                    PostsViewList(device)._open_post_owner()
-                    interact()
-                    device.back()
+                    detect_block(device)
+                    random_sleep(1, 2)
+                    if PostsViewList(device)._post_owner(Owner.OPEN):
+                        interact()
+                        device.back()
 
             PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
             PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
             random_sleep()
-
-            flag, post_description = PostsViewList(device).check_if_last_post(
-                post_description
-            )
-            if flag:
-                break
-
-            if posts_end_detector.is_the_end():
-                break
             continue

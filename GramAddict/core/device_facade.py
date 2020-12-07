@@ -110,7 +110,7 @@ class DeviceFacade:
 
     def swipe_points(self, sx, sy, ex, ey):
         try:
-            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.3, 0.6))
+            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.4, 0.6))
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
@@ -240,7 +240,7 @@ class DeviceFacade:
                     visible_bounds["bottom"] - vertical_padding,
                 )
             )
-            time_between_clicks = uniform(0.050, 0.200)
+            time_between_clicks = uniform(0.050, 0.180)
 
             try:
                 logger.debug(

@@ -41,6 +41,7 @@ class LikeFromURLs(Plugin):
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
+        self.current_mode = plugin[2:]
 
         self.urls = []
         if os.path.isfile(args.urls_file):

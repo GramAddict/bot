@@ -47,6 +47,21 @@ class Swipe_to(Enum):
     NEXT_POST = auto()
 
 
+class Like_mode(Enum):
+    SINGLE_CLICK = auto()
+    DOUBLE_CLICK = auto()
+
+
+class Direction(Enum):
+    UP = auto()
+    DOWN = auto()
+
+
+class Owner(Enum):
+    OPEN = auto()
+    GET_NAME = auto()
+
+
 class TabBarView:
     def __init__(self, device: DeviceFacade):
         self.device = device
@@ -181,16 +196,27 @@ class HashTagView:
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
 
-    def _reload_page(self):
-        logger.info("Reload page")
+    def _little_swipe(self, direction: Direction, delta=450):
         displayWidth = self.device.get_info()["displayWidth"]
         displayHeight = self.device.get_info()["displayHeight"]
-        self.device.swipe_points(
-            displayWidth / 2,
-            displayHeight / 2,
-            displayWidth / 2,
-            displayHeight / 2 + 300,
-        )
+        if direction == Direction.UP:
+            self.device.swipe_points(
+                displayWidth / 2,
+                displayHeight / 2,
+                displayWidth / 2,
+                displayHeight / 2 + delta,
+            )
+        elif direction == Direction.DOWN:
+            self.device.swipe_points(
+                displayWidth / 2,
+                displayHeight / 2,
+                displayWidth / 2,
+                displayHeight / 2 - delta,
+            )
+
+    def _reload_page(self):
+        logger.info("Reload page")
+        HashTagView(self.device)._little_swipe(direction=Direction.UP)
 
     def _check_if_no_posts(self):
         return self.device.find(
@@ -307,7 +333,8 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        DeviceFacade.back(self.device)  # close the keyboard
+        logger.debug("Close the keyboad")
+        DeviceFacade.back(self.device)
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -351,35 +378,35 @@ class PostsViewList:
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers_content
             ).get_bounds()["bottom"]
-
-            logger.info("Scrolled down to see more posts.")
-
             self.device.swipe_points(
                 displayWidth / 2,
                 zoomable_view_container - 1,
                 displayWidth / 2,
                 zoomable_view_container * 0.5,
             )
-        # move type: gap/footer to next post
+            return True
+        # move type: gab/footer to next post
         elif swipe == Swipe_to.NEXT_POST:
             logger.info("Scroll down to see next post.")
-            gap_view = self.device.find(resourceIdMatches=containers_gap).get_bounds()[
-                "top"
-            ]
+            gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            if not gap_view_obj.exists(True):
+                logger.debug("Can't find the gap obj, scroll down a little more.")
+                PostsViewList(self.device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
+                gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            gap_view = gap_view_obj.get_bounds()["top"]
             zoomable_view_container = self.device.find(
                 resourceIdMatches=(containers_content)
             ).get_bounds()["top"]
             self.device.swipe_points(
                 displayWidth / 2,
-                gap_view,
+                gap_view - 1,
                 displayWidth / 2,
                 zoomable_view_container + 5,
             )
-        return
+            return True
 
     def check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
-        displayWidth = self.device.get_info()["displayWidth"]
         swiped_a_bit = False
         n = 1
         while n < 3:
@@ -389,62 +416,94 @@ class PostsViewList:
             if post_description.exists(True):
                 new_description = post_description.get_text().upper()
                 if swiped_a_bit:
-                    logger.debug("Invert the swipe down")
-                    self.device.swipe_points(
-                        displayWidth / 2, 200, displayWidth / 2, 500
-                    )
+                    logger.debug("Invert the swipe down.")
+                    HashTagView(self.device)._little_swipe(direction=Direction.UP)
                 if new_description == last_description:
-                    logger.info("This is the last post for this hashtag")
+                    logger.info("This is the last post for this hashtag.")
                     return True, new_description
                 else:
                     return False, new_description
             else:
                 if n < 2:
                     logger.debug(
-                        "Can't find the description, try to swipe a little bit down"
+                        "Can't find the description, try to swipe a little bit down."
                     )
-                    self.device.swipe_points(
-                        displayWidth / 2, 500, displayWidth / 2, 200
-                    )
+                    HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
                     swiped_a_bit = True
                     n += 1
                 else:
-                    if swiped_a_bit:
-                        logger.debug("Invert the swipe down")
-                        self.device.swipe_points(
-                            displayWidth / 2, 200, displayWidth / 2, 500
-                        )
                     logger.warning(
-                        "Can't find the description of this post. Maybe no internet or softban"
+                        "Can't find the description of this post. Maybe no internet or softban."
                     )
                     return False, ""
 
-    def _open_post_owner(self):
-        logger.info("Open post owner")
-        self.device.find(
+    def _post_owner(self, mode: Owner):
+        post_owner_obj = self.device.find(
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
-        ).click()
+        )
+        if not post_owner_obj.exists(True):
+            HashTagView(self.device)._little_swipe(direction=Direction.UP)
+            post_owner_obj = self.device.find(
+                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+            )
+            if not post_owner_obj.exists(True):
+                logger.info("Can't find the owner name.")
+                return False
+        if mode == Owner.OPEN:
+            logger.info("Open post owner.")
+            post_owner_obj.click()
+            return True
+        elif mode == Owner.GET_NAME:
+            return post_owner_obj.get_text()
+        else:
+            return False
 
     def _get_post_owner_name(self):
         return self.device.find(
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         ).get_text()
 
-    def _like_in_post_view(self):
+    def _like_in_post_view(self, mode: Like_mode):
         POST_CONTAINER = (
             f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
         )
-
-        logger.info("Like post in place")
-        self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
+        if mode == Like_mode.DOUBLE_CLICK:
+            logger.info("Double click photo.")
+            self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
+        elif mode == Like_mode.SINGLE_CLICK:
+            logger.info("Like photo from button.")
+            self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE).click()
 
     def _follow_in_post_view(self):
-        logger.info("Follow blogger in place")
+        logger.info("Follow blogger in place.")
         self.device.find(resourceIdMatches=(ResourceID.BUTTON)).click()
 
     def _comment_in_post_view(self):
-        logger.info("Open comments of post")
+        logger.info("Open comments of post.")
         self.device.find(resourceIdMatches=(ResourceID.ROW_FEED_BUTTON_COMMENT)).click()
+
+    def _check_if_liked(self, first_attemp=True):
+        STR = "Liked"
+        logger.debug("Check if like succeded in post view.")
+        bnt_like_obj = self.device.find(
+            resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
+        )
+        if bnt_like_obj.exists(True):
+            if self.device.find(descriptionMatches=case_insensitive_re(STR)).exists(
+                True
+            ):
+                logger.debug("Like is present.")
+                return True
+            else:
+                logger.debug("Like is not present.")
+                return False
+        else:
+            HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
+            if first_attemp == True:
+                return PostsViewList(self.device)._check_if_liked(False)
+            else:
+                logger.debug("Like btn not present.")
+                return False
 
 
 class LanguageView:
@@ -954,21 +1013,28 @@ class ProfileView(ActionBarView):
             resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
         )
         if not element_to_swipe_over_obj.exists():
-            self.device.swipe_points(displayWidth / 2, 600, displayWidth / 2, 300)
+            HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
             element_to_swipe_over_obj = self.device.find(
                 resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
             )
 
         element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
-        bar_countainer = self.device.find(
-            resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
-        ).get_bounds()["bottom"]
+        try:
+            bar_countainer = self.device.find(
+                resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
+            ).get_bounds()["bottom"]
 
-        logger.info("Scrolled down to see more posts.")
-        self.device.swipe_points(
-            displayWidth / 2, element_to_swipe_over, displayWidth / 2, bar_countainer
-        )
-        return
+            logger.info("Scrolled down to see more posts.")
+            self.device.swipe_points(
+                displayWidth / 2,
+                element_to_swipe_over,
+                displayWidth / 2,
+                bar_countainer,
+            )
+            return element_to_swipe_over - bar_countainer
+        except:
+            logger.info("I'm not able to scroll down.")
+            return 0
 
     def navigateToPostsTab(self):
         self._navigateToTab(TabBarText.POSTS_CONTENT_DESC)
