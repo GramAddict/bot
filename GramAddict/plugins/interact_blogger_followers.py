@@ -14,6 +14,7 @@ from GramAddict.core.interaction import (
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.resources import ClassName, ResourceID
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
@@ -21,11 +22,6 @@ from GramAddict.core.utils import get_value, random_sleep
 logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import TabBarView
-
-FOLLOWERS_BUTTON_ID_REGEX = (
-    "com.instagram.android:id/row_profile_header_followers_container"
-    "|com.instagram.android:id/row_profile_header_container_followers"
-)
 
 # Script Initialization
 seed()
@@ -187,6 +183,7 @@ class InteractBloggerFollowers(Plugin):
             storage,
             on_interaction,
             is_myself,
+            skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
         )
 
     def open_user_followers(self, device, username):
@@ -211,13 +208,13 @@ class InteractBloggerFollowers(Plugin):
 
         def is_end_reached():
             see_all_button = device.find(
-                resourceId="com.instagram.android:id/see_all_button",
-                className="android.widget.TextView",
+                resourceId=ResourceID.SEE_ALL_BUTTON,
+                className=ClassName.TEXT_VIEW,
             )
             return see_all_button.exists()
 
         list_view = device.find(
-            resourceId="android:id/list", className="android.widget.ListView"
+            resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
         )
         while not is_end_reached():
             list_view.fling(DeviceFacade.Direction.BOTTOM)
@@ -226,8 +223,8 @@ class InteractBloggerFollowers(Plugin):
 
         def is_at_least_one_follower():
             follower = device.find(
-                resourceId="com.instagram.android:id/follow_list_container",
-                className="android.widget.LinearLayout",
+                resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                className=ClassName.LINEAR_LAYOUT,
             )
             return follower.exists()
 
@@ -242,21 +239,22 @@ class InteractBloggerFollowers(Plugin):
         storage,
         on_interaction,
         is_myself,
+        skipped_list_limit,
     ):
         # Wait until list is rendered
         device.find(
-            resourceId="com.instagram.android:id/follow_list_container",
-            className="android.widget.LinearLayout",
+            resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+            className=ClassName.LINEAR_LAYOUT,
         ).wait()
 
         def scrolled_to_top():
             row_search = device.find(
-                resourceId="com.instagram.android:id/row_search_edit_text",
-                className="android.widget.EditText",
+                resourceId=ResourceID.ROW_SEARCH_EDIT_TEXT,
+                className=ClassName.EDIT_TEXT,
             )
             return row_search.exists()
 
-        scroll_end_detector = ScrollEndDetector()
+        scroll_end_detector = ScrollEndDetector(skipped_list_limit=skipped_list_limit)
         while True:
             logger.info("Iterate over visible followers")
             random_sleep()
@@ -266,8 +264,8 @@ class InteractBloggerFollowers(Plugin):
 
             try:
                 for item in device.find(
-                    resourceId="com.instagram.android:id/follow_list_container",
-                    className="android.widget.LinearLayout",
+                    resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                    className=ClassName.LINEAR_LAYOUT,
                 ):
                     user_info_view = item.child(index=1)
                     user_name_view = user_info_view.child(index=0).child()
@@ -335,7 +333,7 @@ class InteractBloggerFollowers(Plugin):
                 return
             elif len(screen_iterated_followers) > 0:
                 load_more_button = device.find(
-                    resourceId="com.instagram.android:id/row_load_more_button"
+                    resourceId=ResourceID.ROW_LOAD_MORE_BUTTON
                 )
                 load_more_button_exists = load_more_button.exists(quick=True)
 
@@ -346,7 +344,7 @@ class InteractBloggerFollowers(Plugin):
                     screen_iterated_followers
                 )
                 list_view = device.find(
-                    resourceId="android:id/list", className="android.widget.ListView"
+                    resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 if not list_view.exists():
                     logger.error(
@@ -354,8 +352,8 @@ class InteractBloggerFollowers(Plugin):
                     )
                     device.back()
                     list_view = device.find(
-                        resourceId="android:id/list",
-                        className="android.widget.ListView",
+                        resourceId=ResourceID.LIST,
+                        className=ClassName.LIST_VIEW,
                     )
 
                 if is_myself:
@@ -365,7 +363,7 @@ class InteractBloggerFollowers(Plugin):
                     pressed_retry = False
                     if load_more_button_exists:
                         retry_button = load_more_button.child(
-                            className="android.widget.ImageView"
+                            className=ClassName.IMAGE_VIEW
                         )
                         if retry_button.exists():
                             logger.info('Press "Load" button')
@@ -378,6 +376,9 @@ class InteractBloggerFollowers(Plugin):
                             "All followers skipped, let's scroll.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
+                        scroll_end_detector.notify_skipped_all()
+                        if scroll_end_detector.is_skipped_limit_reached():
+                            return
                         list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(

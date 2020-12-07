@@ -1,6 +1,8 @@
 {
     "skip_business": true,
     "skip_non_business": false,
+    "skip_following": false,
+    "skip_follower": false,
     "min_followers": 100,
     "max_followers": 5000,
     "min_followings": 10,

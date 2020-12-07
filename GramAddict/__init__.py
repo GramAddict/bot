@@ -16,6 +16,7 @@ from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.plugin_loader import PluginLoader
 from GramAddict.core.report import print_full_report
+from GramAddict.core.resources import load as load_resources
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
 from GramAddict.core.storage import Storage
 from GramAddict.core.utils import (
@@ -23,6 +24,7 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
+    load as load_utils,
     open_instagram,
     random_sleep,
     save_crash,
@@ -32,7 +34,7 @@ from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
 
 # Logging initialization
-configure_logger()
+configure_logger(sys.argv)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
@@ -105,6 +107,8 @@ def run():
     if not args:
         return
     dargs = vars(args)
+    load_resources(args)
+    load_utils(args)
 
     for item in sys.argv[1:]:
         if item in loaded:

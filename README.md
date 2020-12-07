@@ -17,16 +17,11 @@
 
 Liking and following automatically on your Android phone/tablet. No root required: it works on [uiautomator2](https://github.com/openatx/uiautomator2), which is a faster and more efficient fork of the official Android UI testing framework [UI Automator](https://developer.android.com/training/testing/ui-automator). 
 
-This is a completely free and open source project that is forked from the freemium project [Insomniac](https://github.com/alexal1/Insomniac/) when they decided to do a controversial monetization strategy. Since then we've significantly improved their codebase in many ways. We've also been adding countless new features and other improvements. 
+This is a completely free and open source project that is forked from the freemium project [Insomniac](https://github.com/alexal1/Insomniac/). This project started when they decided to do a controversial monetization strategy where they removed previously free features and encrypted their code. Since then we’ve significantly improved their codebase in many ways. We’ve also been adding countless new features and other improvements. 
+
+Why use us over them? Well, we're completely free and offer many of their "premium" features for free. We left their project when they became more focused on money than on keeping the project free and open. Now they claim to be free and open source, but when you look closer; you see differently. We're different and arguably better in every way. 
 
 Like what you see? Help us by [Contributing](/?id=contributing)!
-
-## Why GramAddict?
-There already is [InstaPy](https://github.com/timgrossmann/InstaPy), which works on Instagram web version. Unfortunately, Instagram bots detection system has become very suspicious to browser actions. Now InstaPy and similar scripts work at most an hour, then Instagram blocks possibility to do any actions, and if you continue using InstaPy, it may ban your account. 
-
-There is also [Insomniac](https://github.com/alexal1/Insomniac/) which is the origin of this project, but there were issues that cropped up when the project organizers decided to monetize it. We wanted to keep this project completely free and open source so we forked it! Now this project is the better option. 😇
-
-Our objective is to make a free solution for mobile devices. Instagram can't distinguish bot from a human when it comes to your phone. However, even a human can reach limits when using the app, so make sure you are careful with your limits. Always set `--total-likes-limit` to 300 or less. Also it's better to use `--repeat` to act periodically for 2-3 hours, because Instagram keeps track of how long the app works.
 
 ## Want to talk about the bot?
 

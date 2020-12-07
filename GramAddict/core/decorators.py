@@ -28,14 +28,42 @@ def run_safely(device, device_id, sessions, session_state):
             try:
                 func(*args, **kwargs)
             except KeyboardInterrupt:
-                close_instagram(device_id)
-                logger.info(
-                    f"-------- FINISH: {datetime.now().time()} --------",
-                    extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                )
-                print_full_report(sessions)
-                sessions.persist(directory=session_state.my_username)
-                sys.exit(0)
+                try:
+                    # Catch Ctrl-C and ask if user wants to pause execution
+                    logger.info(
+                        "CTRL-C detected . . .",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    logger.info(
+                        f"-------- PAUSED: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    logger.info(
+                        "NOTE: This is a rudimentary pause. It will restart the action, while retaining session data.",
+                        extra={"color": Style.BRIGHT},
+                    )
+                    logger.info(
+                        "Press RETURN to resume or CTRL-C again to Quit: ",
+                        extra={"color": Style.BRIGHT},
+                    )
+
+                    input("")
+
+                    logger.info(
+                        f"-------- RESUMING: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    TabBarView(device).navigateToProfile()
+                except KeyboardInterrupt:
+                    close_instagram(device_id)
+                    logger.info(
+                        f"-------- FINISH: {datetime.now().time()} --------",
+                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                    )
+                    print_full_report(sessions)
+                    sessions.persist(directory=session_state.my_username)
+                    sys.exit(0)
+
             except (
                 DeviceFacade.JsonRpcError,
                 IndexError,
