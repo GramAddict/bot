@@ -210,7 +210,6 @@ class InteractHashtagLikers(Plugin):
         posts_end_detector = ScrollEndDetector(
             repeats_to_end=2, skipped_list_limit=skipped_list_limit
         )
-        first_post = True
         post_description = ""
         while True:
 

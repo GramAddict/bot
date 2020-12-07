@@ -2,9 +2,8 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Fore, Style
+from colorama import Style
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
@@ -20,7 +19,6 @@ from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     TabBarView,
     HashTagView,
-    OpenedPostView,
     PostsViewList,
     SwipeTo,
 )
