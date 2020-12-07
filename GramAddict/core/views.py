@@ -42,7 +42,7 @@ class FollowStatus(Enum):
     REQUESTED = auto()
 
 
-class Swipe_to(Enum):
+class SwipeTo(Enum):
     HALF_PHOTO = auto()
     NEXT_POST = auto()
 
@@ -337,7 +337,7 @@ class PostsViewList:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def swipe_to_fit_posts(self, swipe: Swipe_to):
+    def swipe_to_fit_posts(self, swipe: SwipeTo):
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view
         in order to make it available to other plug-ins I cutted it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
@@ -347,7 +347,7 @@ class PostsViewList:
         containers_gap = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
 
         # move type: half photo
-        if swipe == Swipe_to.HALF_PHOTO:
+        if swipe == SwipeTo.HALF_PHOTO:
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers_content
             ).get_bounds()["bottom"]
@@ -361,7 +361,7 @@ class PostsViewList:
                 zoomable_view_container * 0.5,
             )
         # move type: gap/footer to next post
-        elif swipe == Swipe_to.NEXT_POST:
+        elif swipe == SwipeTo.NEXT_POST:
             logger.info("Scroll down to see next post.")
             gap_view = self.device.find(resourceIdMatches=containers_gap).get_bounds()[
                 "top"

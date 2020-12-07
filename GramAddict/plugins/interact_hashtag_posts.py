@@ -22,7 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
-    Swipe_to,
+    SwipeTo,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class InteractHashtagLikers(Plugin):
         )
         self.arguments = [
             {
-                "arg": "--hashtag-posts",
+                "arg": "--hashtag-posts-recent",
                 "nargs": "+",
                 "help": "interact to hashtag post owners in recent tab",
                 "metavar": ("hashtag1", "hashtag2"),
@@ -51,7 +51,7 @@ class InteractHashtagLikers(Plugin):
             {
                 "arg": "--interact-chance",
                 "nargs": None,
-                "help": "chance to interact with an user in hashtag-post mode",
+                "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent)",
                 "metavar": "50",
                 "default": "50",
             },
@@ -243,14 +243,14 @@ class InteractHashtagLikers(Plugin):
                     # if random_choice():
                     #     PostsViewList(device)._follow_in_post_view()
                     #     random_sleep()
-                    #     PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+                    #     PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                     random_sleep()
                     PostsViewList(device)._open_post_owner()
                     interact()
                     device.back()
 
-            PostsViewList(device).swipe_to_fit_posts(Swipe_to.HALF_PHOTO)
-            PostsViewList(device).swipe_to_fit_posts(Swipe_to.NEXT_POST)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
             random_sleep()
 
             flag, post_description = PostsViewList(device).check_if_last_post(

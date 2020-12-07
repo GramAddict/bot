@@ -1,4 +1,3 @@
-from GramAddict.core.plugin_loader import Plugin
 import logging
 from random import randint, shuffle
 from typing import Tuple
