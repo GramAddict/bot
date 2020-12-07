@@ -1,4 +1,11 @@
+args = None
+
 APP_ID = "com.instagram.android"
+
+
+def load(nargs):
+    global args
+    args = nargs
 
 
 class ResourceID:

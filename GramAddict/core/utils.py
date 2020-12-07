@@ -12,11 +12,17 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID, APP_ID
+from GramAddict.core.resources import APP_ID, ClassName, ResourceID
 from GramAddict.version import __version__
 
+args = None
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
+
+
+def load(nargs):
+    global args
+    args = nargs
 
 
 def update_available():
@@ -112,7 +118,8 @@ def close_instagram(device_id):
 
 
 def random_sleep(inf=1.0, sup=4.0):
-    delay = uniform(inf, sup)
+    multiplier = float(args.speed_multiplier)
+    delay = uniform(inf, sup) * multiplier
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
@@ -193,14 +200,16 @@ def get_value(count, name, default):
     elif len(parts) == 1:
         try:
             value = int(count)
-            logger.info(name.format(value), extra={"color": Style.BRIGHT})
+            if name != None:
+                logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
     elif len(parts) == 2:
         try:
             value = randint(int(parts[0]), int(parts[1]))
-            logger.info(name.format(value), extra={"color": Style.BRIGHT})
+            if name != None:
+                logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
