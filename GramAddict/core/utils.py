@@ -12,12 +12,16 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID, APP_ID
+from GramAddict.core.resources import APP_ID, ClassName, ResourceID
 from GramAddict.version import __version__
 
+args = None
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
+def load(nargs):
+    global args
+    args = nargs
 
 def update_available():
     try:
@@ -112,7 +116,8 @@ def close_instagram(device_id):
 
 
 def random_sleep(inf=1.0, sup=4.0):
-    delay = uniform(inf, sup)
+    multiplier = float(args.speed_multiplier)
+    delay = uniform(inf, sup) * multiplier
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
