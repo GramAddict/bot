@@ -19,9 +19,11 @@ args = None
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
+
 def load(nargs):
     global args
     args = nargs
+
 
 def update_available():
     try:

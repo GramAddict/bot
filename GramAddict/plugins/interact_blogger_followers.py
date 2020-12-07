@@ -183,9 +183,7 @@ class InteractBloggerFollowers(Plugin):
             storage,
             on_interaction,
             is_myself,
-            skipped_list_limit=get_value(
-                self.args.skipped_list_limit, None, 15
-            ),
+            skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
         )
 
     def open_user_followers(self, device, username):
@@ -241,7 +239,7 @@ class InteractBloggerFollowers(Plugin):
         storage,
         on_interaction,
         is_myself,
-        skipped_list_limit
+        skipped_list_limit,
     ):
         # Wait until list is rendered
         device.find(

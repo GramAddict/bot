@@ -200,10 +200,10 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        skipped_list_limit=get_value(
-            self.args.skipped_list_limit, None, 15
+        skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
+        posts_end_detector = ScrollEndDetector(
+            repeats_to_end=2, skipped_list_limit=skipped_list_limit
         )
-        posts_end_detector = ScrollEndDetector(repeats_to_end=2, skipped_list_limit=skipped_list_limit)
         first_post = True
         post_description = ""
         while True:
