@@ -813,8 +813,20 @@ class ProfileView(ActionBarView):
                 r"{0}$".format("… more"), flags=re.IGNORECASE
             ).search(biography_text)
             if is_long_bio is not None:
-                biography.click(biography.Location.BOTTOM)
-                return biography.get_text()
+                logger.debug('Found "… more" in bio - trying to expand')
+                # Clicking the biography is dangerous. Clicking "right" is safest so we can try to avoid hashtags
+                biography.click(biography.Location.RIGHT)
+                # If we do click a hashtag (VERY possible) - let's back out
+                # a short bio is better than no bio
+                try:
+                    return biography.get_text()
+                except:
+                    logger.debug(
+                        "Can't find biography - did we click a hashtag? Go back."
+                    )
+                    logger.info("Failed to expand biography - checking short view.")
+                    self.device.back()
+                    return biography.get_text()
             return biography_text
         return ""
 
