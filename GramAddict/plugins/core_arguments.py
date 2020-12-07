@@ -102,6 +102,13 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--skipped-list-limit",
+                "nargs": None,
+                "help": "limit how many scrolls tried, with already interacted users, until we move to next source. Does not apply for unfollows.",
+                "metavar": "10-15",
+                "default": "10-15",
+            },
+            {
                 "arg": "--screen-sleep",
                 "help": "save your screen by turning it off during the inactive time, disabled by default",
                 "action": "store_true",

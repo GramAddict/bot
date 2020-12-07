@@ -200,7 +200,10 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
-        posts_end_detector = ScrollEndDetector(repeats_to_end=2)
+        skipped_list_limit=get_value(
+            self.args.skipped_list_limit, None, 15
+        )
+        posts_end_detector = ScrollEndDetector(repeats_to_end=2, skipped_list_limit=skipped_list_limit)
         first_post = True
         post_description = ""
         while True:
@@ -230,6 +233,7 @@ class InteractHashtagLikers(Plugin):
             while True:
                 logger.info("Iterate over visible likers.")
                 screen_iterated_likers = []
+                opened = False
 
                 try:
                     for item in OpenedPostView(device)._getUserCountainer():
@@ -248,7 +252,6 @@ class InteractHashtagLikers(Plugin):
                         screen_iterated_likers.append(username)
                         posts_end_detector.notify_username_iterated(username)
                         if not profile_interact:
-                            # logger is handled in filter
                             continue
                         elif storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
@@ -271,6 +274,7 @@ class InteractHashtagLikers(Plugin):
                             device, username=username, can_follow=can_follow
                         )
                         storage.add_interacted_user(username, followed=followed)
+                        opened = True
                         can_continue = on_interaction(
                             succeed=interaction_succeed, followed=followed
                         )
@@ -286,6 +290,18 @@ class InteractHashtagLikers(Plugin):
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     break
+
+                if not opened:
+                    logger.info(
+                        "All followers skipped.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    posts_end_detector.notify_skipped_all()
+                    if posts_end_detector.is_skipped_limit_reached():
+                        posts_end_detector.reset_skipped_all()
+                        device.back()
+                        PostsViewList(device).swipe_to_fit_posts(False)
+                        break
 
                 if screen_iterated_likers == prev_screen_iterated_likers:
                     logger.info(
