@@ -207,6 +207,9 @@ def get_value(count, name, default):
     else:
         value = default
         print_error()
+
+    if value == 69:
+        logger.info("69, Noice 😎 https://www.youtube.com/watch?v=VLNxvl3-CpA")
     return value
 
 
