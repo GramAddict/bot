@@ -27,24 +27,32 @@ class ActionUnfollowFollowers(Plugin):
             {
                 "arg": "--unfollow",
                 "nargs": None,
-                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-non-followers",
                 "nargs": None,
-                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-any-non-followers",
+                "nargs": None,
+                "help": "unfollow at most given number of users, that don't follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-any",
                 "nargs": None,
-                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
@@ -86,6 +94,8 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT
         elif self.unfollow_type == "unfollow-non-followers":
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+        elif self.unfollow_type == "unfollow-any-non-followers":
+            self.unfollow_type = UnfollowRestriction.ANY_NON_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
 
@@ -222,7 +232,10 @@ class ActionUnfollowFollowers(Plugin):
                             )
                             continue
 
-                    if unfollow_restriction == UnfollowRestriction.ANY:
+                    if (
+                        unfollow_restriction == UnfollowRestriction.ANY
+                        or unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS
+                    ):
                         following_status = storage.get_following_status(username)
                         if following_status == FollowingStatus.UNFOLLOWED:
                             logger.info(
@@ -236,7 +249,9 @@ class ActionUnfollowFollowers(Plugin):
                         username,
                         my_username,
                         unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                        or unfollow_restriction
+                        == UnfollowRestriction.ANY_NON_FOLLOWERS,
                     )
                     if unfollowed:
                         storage.add_interacted_user(username, unfollowed=True)
@@ -376,3 +391,4 @@ class UnfollowRestriction(Enum):
     ANY = 0
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
+    ANY_NON_FOLLOWERS = 3
