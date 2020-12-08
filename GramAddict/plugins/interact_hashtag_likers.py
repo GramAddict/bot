@@ -1,4 +1,3 @@
-from asyncio.tasks import current_task
 import logging
 from functools import partial
 from random import seed, shuffle
