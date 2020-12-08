@@ -256,13 +256,10 @@ class InteractHashtagLikers(Plugin):
                 else:
                     logger.info(f"@{username}: interact")
                     PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
+                    detect_block(device)
                     if not PostsViewList(device)._check_if_liked():
                         PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
-                    # if random_choice():
-                    #     PostsViewList(device)._follow_in_post_view()
-                    #     random_sleep()
-                    #     PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-                    detect_block(device)
+                        detect_block(device)
                     random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(Owner.OPEN):
                         interact()
