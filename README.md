@@ -1,32 +1,87 @@
-# GramAddict
-![Python](https://img.shields.io/badge/built%20with-Python3-red.svg)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
+<p align="center">
+  <img src="https://github.com/GramAddict/bot/raw/master/res/logo.png" width="150">
+  <br />
+  <h1 align="center">GramAddict</h1>
+  <br />
+  <p align="center">The best 100% free forever instagram bot. Grow your following and engagement by liking and following automatically with your Android phone/tablet/emulator. No root required.<p>
+  <p align="center">
+    <a href="https://github.com/gramaddict/bot/blob/master/LICENSE">
+      <img src="https://img.shields.io/github/license/gramaddict/bot?style=flat" />
+    </a>
+    <a href="https://www.python.org/">
+      <img src="https://img.shields.io/badge/built%20with-Python3-red.svg?style=flat" />
+    </a>
+    <a href="https://github.com/GramAddict/bot/pulls">
+      <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" />
+    </a>
+    <a href="https://github.com/GramAddict/bot/issues">
+    	<img src="https://img.shields.io/github/issues/gramaddict/bot?style=flat" />
+    </a>
+    <a href="https://github.com/GramAddict/bot/pulls">
+      <img src="https://img.shields.io/github/issues-pr/gramaddict/bot?style=flat" />
+    </a>
+    <a href="https://github.com/GramAddict/bot/stargazers">
+	    <img src="https://img.shields.io/github/stars/gramaddict/bot?style=flat">
+    </a>
+    <a href="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
+	    <img src="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
+    </a>
+    <a href="https://github.com/GramAddict/bot#backers">
+	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat">
+    </a>  
+    <a href="https://discord.gg/9MTjgs8g5R">
+	    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
+    </a>
+  </p>
+</p>
 
-> The best 100% free forever instagram bot.
+<br />
 
-<br /><br />
-<img src="https://github.com/GramAddict/bot/raw/master/res/demo.gif">
-<br /><br />
+<p align="center">
+  <img src="https://github.com/GramAddict/bot/raw/master/res/demo.gif">
+</p>
 
+<br />
 
-<br /><br />
-## Looking for more information about GramAddict? Check out: [https://docs.gramaddict.org](https://docs.gramaddict.org)
-<br /><br />
+## Full documentation available on [docs.gramaddict.org](https://docs.gramaddict.org)
+**Table of contents**
+- [Introduction](https://docs.gramaddict.org/#/?id=introduction)
+- [Quick Start](https://docs.gramaddict.org/#/quickstart)
+  * [Requirements](https://docs.gramaddict.org/#/quickstart?id=requirements)
+  * [How to Install](https://docs.gramaddict.org/#/quickstart?id=how-to-install)
+  * [Raspberry Pi](https://docs.gramaddict.org/#/quickstart?id=how-to-install-on-raspberry-pi-os)
+  * [Running GramAddict](https://docs.gramaddict.org/#/quickstart?id=running-gramaddict)
+- [Configuration](https://docs.gramaddict.org/#/configuration)
+- [Contributing](https://docs.gramaddict.org/#/contributing)
+- [Community](https://docs.gramaddict.org/#/community)
+- [FAQ](https://docs.gramaddict.org/#/faq)
 
-## Introduction
+<br />
 
-Liking and following automatically on your Android phone/tablet. No root required: it works on [uiautomator2](https://github.com/openatx/uiautomator2), which is a faster and more efficient fork of the official Android UI testing framework [UI Automator](https://developer.android.com/training/testing/ui-automator). 
+## Contributors
 
-This is a completely free and open source project that is forked from the freemium project [Insomniac](https://github.com/alexal1/Insomniac/). This project started when they decided to do a controversial monetization strategy where they removed previously free features and encrypted their code. Since then we’ve significantly improved their codebase in many ways. We’ve also been adding countless new features and other improvements. 
+This project exists thanks to all of our Contibutors [[Contribute](https://docs.gramaddict.org/#/contributing)].
 
-Why use us over them? Well, we're completely free and offer many of their "premium" features for free. We left their project when they became more focused on money than on keeping the project free and open. Now they claim to be free and open source, but when you look closer; you see differently. We're different and arguably better in every way. 
+<a href="https://github.com/gramaddict/bot/graphs/contributors"><img src="https://opencollective.com/gramaddict/contributors.svg?width=890&button=false" /></a>
 
-Like what you see? Help us by [Contributing](/?id=contributing)!
+<br />
 
-## Want to talk about the bot?
+## Backers
+
+Thank you to everyone that supports us financially! 🙏 [[Become a backer](https://opencollective.com/gramaddict#backer)]
+
+<a href="https://opencollective.com/gramaddict#backers" target="_blank"><img src="https://opencollective.com/gramaddict/backers.svg?width=890"></a>
+
+<br />
+
+## Talk botty with us
 
 <p>
   <a href="https://discord.gg/9MTjgs8g5R">
     <img hspace="3" alt="Join us on Discord" src="https://github.com/GramAddict/bot/raw/master/res/discord.png" height=84/>
   </a>
 </p>
+
+---
+
+> **Disclaimer**<a name="disclaimer" />: This project comes with no gurantee or warranty. You are responsible for whatever happens from using this project. It is possible to get soft or hard banned by using this project if you are not careful.
