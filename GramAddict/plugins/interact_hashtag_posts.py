@@ -228,7 +228,9 @@ class InteractHashtagLikers(Plugin):
                 succeed=interaction_succeed, followed=followed
             )
             if not can_continue:
-                return
+                return False
+            else:
+                return True
 
         def random_choice():
             from random import randint
@@ -262,7 +264,9 @@ class InteractHashtagLikers(Plugin):
                         detect_block(device)
                     random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(Owner.OPEN):
-                        interact()
+                        if not interact():
+                            device.back()
+                            break
                         device.back()
 
             PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
