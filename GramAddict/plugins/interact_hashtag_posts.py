@@ -145,7 +145,7 @@ class InteractHashtagLikers(Plugin):
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     int(args.interact_chance),
-                    args.hashtag_posts_recent,
+                    plugin[2:],
                     storage,
                     profile_filter,
                     on_like,
@@ -174,7 +174,7 @@ class InteractHashtagLikers(Plugin):
         follow_percentage,
         follow_limit,
         interact_chance,
-        hashtag_posts_recent,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -205,7 +205,7 @@ class InteractHashtagLikers(Plugin):
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
-        if hashtag_posts_recent != None:
+        if current_job == "hashtag-posts-recent":
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep(5, 10)

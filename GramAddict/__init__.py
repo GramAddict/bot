@@ -239,8 +239,9 @@ def run():
             if not session_state.check_limit(
                 args, limit_type=session_state.Limit.ALL, output=False
             ):
-                logger.info(f"-- Current job: {plugin} --", extra={"color": f"{Fore.BLUE}"})
+                logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
                 if ProfileView(device).getUsername() != session_state.my_username:
+                    logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
                 loaded[plugin].run(
                     device, device_id, args, enabled, storage, sessions, plugin

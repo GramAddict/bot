@@ -1,3 +1,4 @@
+from asyncio.tasks import current_task
 import logging
 from functools import partial
 from random import seed, shuffle
@@ -137,7 +138,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
-                    args.hashtag_likers_recent,
+                    plugin[2:],
                     storage,
                     profile_filter,
                     on_like,
@@ -165,7 +166,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        hashtag_likers_recent,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -197,7 +198,7 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
-        if hashtag_likers_recent != None:
+        if current_job == "hashtag-likers-recent":
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep(5, 10)

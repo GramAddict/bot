@@ -12,7 +12,7 @@ from GramAddict.core.views import (
     ProfileView,
     CurrentStoryView,
     PostsGridView,
-    HashTagView,
+    UniversalActions,
     Direction,
 )
 
@@ -239,7 +239,7 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
         logger.info("Following...")
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists() and swipe_amount != 0:
-            HashTagView(device)._little_swipe(
+            UniversalActions(device)._swipe_points(
                 direction=Direction.UP, delta=swipe_amount
             )
 

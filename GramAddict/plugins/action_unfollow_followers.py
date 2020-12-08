@@ -118,6 +118,7 @@ class ActionUnfollowFollowers(Plugin):
             )
             logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
             self.state.is_job_completed = True
+            device.back()
 
         while not self.state.is_job_completed and (self.state.unfollowed_count < count):
             job()

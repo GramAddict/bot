@@ -132,7 +132,7 @@ class TabBarView:
 
         if button.exists():
             # Two clicks to reset tab content
-            random_sleep(2, 4)
+            random_sleep(1, 2)
             button.click()
             random_sleep(1, 2)
             button.click()
@@ -195,28 +195,6 @@ class HashTagView:
             className=ClassName.TEXT_VIEW,
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
-
-    def _little_swipe(self, direction: Direction, delta=450):
-        displayWidth = self.device.get_info()["displayWidth"]
-        displayHeight = self.device.get_info()["displayHeight"]
-        if direction == Direction.UP:
-            self.device.swipe_points(
-                displayWidth / 2,
-                displayHeight / 2,
-                displayWidth / 2,
-                displayHeight / 2 + delta,
-            )
-        elif direction == Direction.DOWN:
-            self.device.swipe_points(
-                displayWidth / 2,
-                displayHeight / 2,
-                displayWidth / 2,
-                displayHeight / 2 - delta,
-            )
-
-    def _reload_page(self):
-        logger.info("Reload page")
-        HashTagView(self.device)._little_swipe(direction=Direction.UP)
 
     def _check_if_no_posts(self):
         return self.device.find(
@@ -415,8 +393,8 @@ class PostsViewList:
             if post_description.exists(True):
                 new_description = post_description.get_text().upper()
                 if swiped_a_bit:
-                    logger.debug("Invert the swipe down.")
-                    HashTagView(self.device)._little_swipe(direction=Direction.UP)
+                    logger.debug("Revert the last swipe.")
+                    UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 if new_description == last_description:
                     logger.info("This is the last post for this hashtag.")
                     return True, new_description
@@ -427,7 +405,9 @@ class PostsViewList:
                     logger.debug(
                         "Can't find the description, try to swipe a little bit down."
                     )
-                    HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
+                    UniversalActions(self.device)._swipe_points(
+                        direction=Direction.DOWN
+                    )
                     swiped_a_bit = True
                     n += 1
                 else:
@@ -441,7 +421,7 @@ class PostsViewList:
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         )
         if not post_owner_obj.exists(True):
-            HashTagView(self.device)._little_swipe(direction=Direction.UP)
+            UniversalActions(self.device)._swipe_points(direction=Direction.UP)
             post_owner_obj = self.device.find(
                 resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
             )
@@ -497,7 +477,7 @@ class PostsViewList:
                 logger.debug("Like is not present.")
                 return False
         else:
-            HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
+            UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
             if first_attemp == True:
                 return PostsViewList(self.device)._check_if_liked(False)
             else:
@@ -1012,7 +992,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
         )
         if not element_to_swipe_over_obj.exists():
-            HashTagView(self.device)._little_swipe(direction=Direction.DOWN)
+            UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
             element_to_swipe_over_obj = self.device.find(
                 resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
             )
@@ -1131,3 +1111,30 @@ class CurrentStoryView:
 
 class LanguageNotEnglishException(Exception):
     pass
+
+
+class UniversalActions:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def _swipe_points(self, direction: Direction, delta=450):
+        displayWidth = self.device.get_info()["displayWidth"]
+        displayHeight = self.device.get_info()["displayHeight"]
+        if direction == Direction.UP:
+            self.device.swipe_points(
+                displayWidth / 2,
+                displayHeight / 2,
+                displayWidth / 2,
+                displayHeight / 2 + delta,
+            )
+        elif direction == Direction.DOWN:
+            self.device.swipe_points(
+                displayWidth / 2,
+                displayHeight / 2,
+                displayWidth / 2,
+                displayHeight / 2 - delta,
+            )
+
+    def _reload_page(self):
+        logger.info("Reload page")
+        UniversalActions(self.device)._swipe_points(direction=Direction.UP)
