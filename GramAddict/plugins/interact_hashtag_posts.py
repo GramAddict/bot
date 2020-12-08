@@ -50,9 +50,17 @@ class InteractHashtagLikers(Plugin):
                 "operation": True,
             },
             {
+                "arg": "--hashtag-posts-top",
+                "nargs": "+",
+                "help": "interact to hashtag post owners in top tab",
+                "metavar": ("hashtag1", "hashtag2"),
+                "default": None,
+                "operation": True,
+            },
+            {
                 "arg": "--interact-chance",
                 "nargs": None,
-                "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent)",
+                "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent/top)",
                 "metavar": "50",
                 "default": "50",
             },
@@ -73,7 +81,9 @@ class InteractHashtagLikers(Plugin):
         self.current_mode = plugin[2:]
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in args.hashtag_posts_recent]
+        sources = [
+            source for source in (args.hashtag_posts_top or args.hashtag_posts_recent)
+        ]
         shuffle(sources)
 
         for source in sources:
@@ -131,6 +141,7 @@ class InteractHashtagLikers(Plugin):
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     int(args.interact_chance),
+                    args.hashtag_posts_recent,
                     storage,
                     profile_filter,
                     on_like,
@@ -159,6 +170,7 @@ class InteractHashtagLikers(Plugin):
         follow_percentage,
         follow_limit,
         interact_chance,
+        hashtag_posts_recent,
         storage,
         profile_filter,
         on_like,
@@ -189,10 +201,10 @@ class InteractHashtagLikers(Plugin):
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
-
-        logger.info("Switching to Recent tab")
-        HashTagView(device)._getRecentTab().click()
-        random_sleep(5, 10)
+        if hashtag_posts_recent != None:
+            logger.info("Switching to Recent tab")
+            HashTagView(device)._getRecentTab().click()
+            random_sleep(5, 10)
         if HashTagView(device)._check_if_no_posts():
             HashTagView(device)._reload_page()
             random_sleep(4, 8)
@@ -245,8 +257,6 @@ class InteractHashtagLikers(Plugin):
                 else:
                     logger.info(f"@{username}: interact")
                     PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
-                    print(PostsViewList(device)._check_if_liked())
-                    print(not PostsViewList(device)._check_if_liked())
                     if not PostsViewList(device)._check_if_liked():
                         PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
                     # if random_choice():
