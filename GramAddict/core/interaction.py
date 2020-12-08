@@ -3,7 +3,6 @@ from random import randint, shuffle
 from typing import Tuple
 from time import time
 from colorama import Fore
-from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ResourceID, ClassName
