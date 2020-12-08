@@ -18,6 +18,13 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--username",
+                "nargs": None,
+                "help": "username of the instagram account being used",
+                "metavar": "justinbieber",
+                "default": None,
+            },
+            {
                 "arg": "--likes-count",
                 "nargs": None,
                 "help": "number of likes for each interacted user, 1-2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",

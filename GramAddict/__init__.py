@@ -1,4 +1,4 @@
-import argparse
+import ConfigArgParse
 import logging
 import sys
 from datetime import datetime
@@ -33,8 +33,12 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
 
+# Pre-Load
+sargs = sys.argv.split(" ")
+debug = True if "--debug" in sargs else False
+
 # Logging initialization
-configure_logger(sys.argv)
+configure_logger(debug)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
@@ -44,12 +48,14 @@ logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
 
+# Configure ArgParse
+parser = ConfigArgParse.ArgumentParser(description="GramAddict Instagram Bot")
+parser.add('-c', '--config', required=True, is_config_file=True, help='config file path')
 
 # Global Variables
 device_id = None
 plugins = PluginLoader("GramAddict.plugins").plugins
 sessions = PersistentList("sessions", SessionStateEncoder)
-parser = argparse.ArgumentParser(description="GramAddict Instagram Bot")
 
 
 def load_plugins():

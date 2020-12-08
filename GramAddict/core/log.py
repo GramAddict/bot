@@ -54,14 +54,14 @@ def create_log_file_handler(filename):
     return file_handler
 
 
-def configure_logger(args):
+def configure_logger(debug):
     global g_session_id
     global g_log_file_name
     global g_logs_dir
     global g_file_handler
     global g_log_file_updated
 
-    console_level = logging.DEBUG if "--debug" in args else logging.INFO
+    console_level = logging.DEBUG if debug else logging.INFO
 
     g_session_id = uuid4()
     g_logs_dir = "logs"
