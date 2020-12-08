@@ -30,7 +30,7 @@ from GramAddict.core.utils import (
     save_crash,
     update_available,
 )
-from GramAddict.core.views import TabBarView
+from GramAddict.core.views import ProfileView, TabBarView
 from GramAddict.version import __version__
 
 # Logging initialization
@@ -239,6 +239,9 @@ def run():
             if not session_state.check_limit(
                 args, limit_type=session_state.Limit.ALL, output=False
             ):
+                logger.info(f"-- Current job: {plugin} --", extra={"color": f"{Fore.BLUE}"})
+                if ProfileView(device).getUsername() != session_state.my_username:
+                    TabBarView(device).navigateToProfile()
                 loaded[plugin].run(
                     device, device_id, args, enabled, storage, sessions, plugin
                 )

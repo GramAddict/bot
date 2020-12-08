@@ -74,7 +74,12 @@ class InteractHashtagLikers(Plugin):
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
-            source for source in (args.hashtag_likers_top or args.hashtag_likers_recent)
+            source
+            for source in (
+                args.hashtag_likers_top
+                if self.current_mode == "hashtag-likers-current"
+                else args.hashtag_likers_recent
+            )
         ]
         shuffle(sources)
 

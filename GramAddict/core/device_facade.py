@@ -108,7 +108,10 @@ class DeviceFacade:
         logger.debug(f"Swipe {swipe_dir}, scale={scale}")
         self.deviceV2.swipe_ext(swipe_dir, scale=scale)
 
-    def swipe_points(self, sx, sy, ex, ey):
+    def swipe_points(self, sx, sy, ex, ey, random=True):
+        if random:
+            sx = sx * uniform(0.60, 1.40)
+            ex = sx * uniform(0.85, 1.15)
         try:
             self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.4, 0.6))
         except uiautomator2.JSONRPCError as e:
@@ -212,6 +215,9 @@ class DeviceFacade:
                     visible_bounds["top"]
                     + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                 )
+                logger.debug(
+                    f"Available surface for single click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
+                )
                 logger.debug(f"Single click ({x_abs}, {y_abs})")
                 self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
@@ -244,7 +250,10 @@ class DeviceFacade:
 
             try:
                 logger.debug(
-                    f"Double click in x={random_x}; y={random_y} with t={int(time_between_clicks*1000)}ms"
+                    f"Available surface for double click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
+                )
+                logger.debug(
+                    f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
                 )
                 self.deviceV2.double_click(
                     random_x, random_y, duration=time_between_clicks

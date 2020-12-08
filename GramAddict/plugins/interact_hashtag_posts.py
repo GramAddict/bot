@@ -81,7 +81,12 @@ class InteractHashtagLikers(Plugin):
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
-            source for source in (args.hashtag_posts_top or args.hashtag_posts_recent)
+            source
+            for source in (
+                args.hashtag_posts_top
+                if self.current_mode == "hashtag-posts-top"
+                else args.hashtag_posts_recent
+            )
         ]
         shuffle(sources)
 
@@ -265,7 +270,6 @@ class InteractHashtagLikers(Plugin):
                     random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(Owner.OPEN):
                         if not interact():
-                            device.back()
                             break
                         device.back()
 
