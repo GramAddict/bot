@@ -1117,22 +1117,24 @@ class UniversalActions:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def _swipe_points(self, direction: Direction, delta=450):
-        displayWidth = self.device.get_info()["displayWidth"]
-        displayHeight = self.device.get_info()["displayHeight"]
+    def _swipe_points(self, direction: Direction, start_point_y=0, delta_y=450):
+        middle_point_x = self.device.get_info()["displayWidth"] / 2
+        if start_point_y == 0:
+            start_point_y = self.device.get_info()["displayHeight"] / 2
+
         if direction == Direction.UP:
             self.device.swipe_points(
-                displayWidth / 2,
-                displayHeight / 2,
-                displayWidth / 2,
-                displayHeight / 2 + delta,
+                middle_point_x,
+                start_point_y,
+                middle_point_x,
+                start_point_y + delta_y,
             )
         elif direction == Direction.DOWN:
             self.device.swipe_points(
-                displayWidth / 2,
-                displayHeight / 2,
-                displayWidth / 2,
-                displayHeight / 2 - delta,
+                middle_point_x,
+                start_point_y,
+                middle_point_x,
+                start_point_y - delta_y,
             )
 
     def _reload_page(self):

@@ -81,6 +81,7 @@ class ResourceID:
     TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
     TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
     TITLE_VIEW = f"{APP_ID}:id/title_view"
+    UNIFIED_FOLLOW_LIST_TAB_LAYOUT = f"{APP_ID}:id/unified_follow_list_tab_layout"
     ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"
 
 
@@ -110,4 +111,5 @@ class ClassName:
     RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
     TEXT_VIEW = "android.widget.TextView"
     VIEW = "android.view.View"
+    VIEW_GROUP = "android.view.ViewGroup"
     VIEW_PAGER = "androidx.viewpager.widget.ViewPager"

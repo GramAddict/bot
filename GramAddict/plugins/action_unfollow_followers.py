@@ -9,7 +9,11 @@ from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.resources import ClassName, ResourceID
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
-from GramAddict.core.views import LanguageNotEnglishException
+from GramAddict.core.views import (
+    LanguageNotEnglishException,
+    UniversalActions,
+    Direction,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +151,22 @@ class ActionUnfollowFollowers(Plugin):
 
     def sort_followings_by_date(self, device):
         logger.info("Sort followings by date: from oldest to newest.")
+        sort_container_obj = device.find(resourceId=ResourceID.SORTING_ENTRY_ROW_ICON)
+        top_tab_obj = device.find(resourceId=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT)
+        if sort_container_obj.exists() and top_tab_obj.exists():
+            sort_container_bounds = sort_container_obj.get_bounds()["top"]
+            list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
+            delta = sort_container_bounds - list_tab_bounds
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=sort_container_bounds,
+                delta_y=delta - 50,
+            )
+        else:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+            )
+
         sort_button = device.find(
             resourceId=ResourceID.SORTING_ENTRY_ROW_ICON,
             className=ClassName.IMAGE_VIEW,
@@ -309,6 +329,7 @@ class ActionUnfollowFollowers(Plugin):
             raise LanguageNotEnglishException()
 
         unfollow_button.click()
+        logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
 
         # Weirdly enough, this is a fix for after you unfollow someone that follows
         # you back - the next person you unfollow the button is missing on first find
@@ -359,7 +380,7 @@ class ActionUnfollowFollowers(Plugin):
         )
         following_container.click()
 
-        random_sleep()
+        random_sleep(4, 6)
 
         my_username_view = device.find(
             resourceId=ResourceID.FOLLOW_LIST_USERNAME,
