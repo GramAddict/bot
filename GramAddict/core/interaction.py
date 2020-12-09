@@ -240,7 +240,7 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists() and swipe_amount != 0:
             UniversalActions(device)._swipe_points(
-                direction=Direction.UP, delta=swipe_amount
+                direction=Direction.UP, delta_y=swipe_amount
             )
 
         random_sleep()
