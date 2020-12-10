@@ -134,7 +134,7 @@ def run():
     if not check_adb_connection(is_device_id_provided=(device_id is not None)):
         return
     logger.info("Instagram version: " + get_instagram_version(device_id))
-    device = create_device(device_id)
+    device = create_device(device_id, args.uia_version)
 
     if device is None:
         return

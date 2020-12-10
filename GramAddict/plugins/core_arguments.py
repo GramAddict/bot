@@ -133,6 +133,12 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--uia-version",
+                "help": "uiautomator version, defaults to 2.",
+                "metavar": 2,
+                "default": 2,
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
