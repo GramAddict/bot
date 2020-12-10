@@ -134,6 +134,7 @@ class CoreArguments(Plugin):
             },
             {
                 "arg": "--uia-version",
+                "nargs": None,
                 "help": "uiautomator version, defaults to 2.",
                 "metavar": 2,
                 "default": 2,

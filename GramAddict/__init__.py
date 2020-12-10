@@ -151,11 +151,11 @@ def run():
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
-        if not DeviceFacade(device_id).get_info()["screenOn"]:
-            DeviceFacade(device_id).press_power()
-        if DeviceFacade(device_id).is_screen_locked():
-            DeviceFacade(device_id).unlock()
-            if DeviceFacade(device_id).is_screen_locked():
+        if not device.get_info()["screenOn"]:
+            device.press_power()
+        if device.is_screen_locked():
+            device.unlock()
+            if device.is_screen_locked():
                 logger.error(
                     "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
@@ -231,7 +231,7 @@ def run():
         session_state.finishTime = datetime.now()
 
         if args.screen_sleep:
-            DeviceFacade(device_id).screen_off()
+            device.screen_off()
             logger.info("Screen turned off for sleeping time")
 
         logger.info(
