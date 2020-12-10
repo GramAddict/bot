@@ -236,7 +236,6 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
         if follow_chance > follow_percentage:
             return False
 
-        logger.info("Following...")
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists() and swipe_amount != 0:
             UniversalActions(device)._swipe_points(

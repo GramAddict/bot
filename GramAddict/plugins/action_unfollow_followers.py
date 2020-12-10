@@ -151,21 +151,9 @@ class ActionUnfollowFollowers(Plugin):
 
     def sort_followings_by_date(self, device):
         logger.info("Sort followings by date: from oldest to newest.")
-        sort_container_obj = device.find(resourceId=ResourceID.SORTING_ENTRY_ROW_ICON)
-        top_tab_obj = device.find(resourceId=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT)
-        if sort_container_obj.exists() and top_tab_obj.exists():
-            sort_container_bounds = sort_container_obj.get_bounds()["top"]
-            list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
-            delta = sort_container_bounds - list_tab_bounds
-            UniversalActions(device)._swipe_points(
-                direction=Direction.DOWN,
-                start_point_y=sort_container_bounds,
-                delta_y=delta - 50,
-            )
-        else:
-            UniversalActions(device)._swipe_points(
-                direction=Direction.DOWN,
-            )
+        UniversalActions(device)._swipe_points(
+            direction=Direction.DOWN,
+        )
 
         sort_button = device.find(
             resourceId=ResourceID.SORTING_ENTRY_ROW_ICON,
@@ -197,6 +185,21 @@ class ActionUnfollowFollowers(Plugin):
             resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
         ).wait()
+        sort_container_obj = device.find(resourceId=ResourceID.SORTING_ENTRY_ROW_ICON)
+        top_tab_obj = device.find(resourceId=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT)
+        if sort_container_obj.exists() and top_tab_obj.exists():
+            sort_container_bounds = sort_container_obj.get_bounds()["top"]
+            list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
+            delta = sort_container_bounds - list_tab_bounds
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=sort_container_bounds,
+                delta_y=delta - 50,
+            )
+        else:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+            )
         checked = {}
         unfollowed_count = 0
         while True:
@@ -251,7 +254,6 @@ class ActionUnfollowFollowers(Plugin):
                             )
                             continue
 
-                    logger.info("Unfollow @" + username)
                     unfollowed = self.do_unfollow(
                         device,
                         username,
