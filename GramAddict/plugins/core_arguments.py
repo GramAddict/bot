@@ -145,7 +145,6 @@ class CoreArguments(Plugin):
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
                 "metavar": ("@username1", "@username2"),
                 "default": None,
-                "operation": True,
             },
             {
                 "arg": "--hashtag-likers",
@@ -153,6 +152,5 @@ class CoreArguments(Plugin):
                 "help": "list of hashtags with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
-                "operation": True,
             },
         ]

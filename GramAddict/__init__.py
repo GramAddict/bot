@@ -116,8 +116,9 @@ def run():
     load_utils(args)
 
     for item in dargs:
-        if item in loaded:
-            if item != "--interact" and item != "--hashtag-likers":
+        print(item, loaded.get(item, None))
+        if item in loaded and loaded[item] != None:
+            if item != "interact" and item != "hashtag-likers":
                 enabled.append(item)
             else:
                 logger.warn(
@@ -125,6 +126,8 @@ def run():
                 )
 
     enabled = list(dict.fromkeys(enabled))
+
+    print(enabled)
 
     if len(enabled) < 1:
         logger.error("You have to specify one of the actions: " + ", ".join(loaded))
@@ -218,6 +221,7 @@ def run():
             if not session_state.check_limit(
                 args, limit_type=session_state.Limit.ALL, output=False
             ):
+                logger.info(f"Running plugin: {plugin}")
                 loaded[plugin].run(
                     device, device_id, args, enabled, storage, sessions, plugin
                 )
