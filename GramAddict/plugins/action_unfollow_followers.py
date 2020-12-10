@@ -69,7 +69,7 @@ class ActionUnfollowFollowers(Plugin):
         self.state = State()
         self.session_state = sessions[-1]
         self.sessions = sessions
-        self.unfollow_type = plugin[2:]
+        self.unfollow_type = plugin
 
         count_arg = get_value(
             getattr(args, self.unfollow_type.replace("-", "_")),

@@ -1,6 +1,7 @@
-import ConfigArgParse
+import configargparse
 import logging
 import sys
+import yaml
 from datetime import datetime
 from time import sleep
 
@@ -33,12 +34,8 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
 
-# Pre-Load
-sargs = sys.argv.split(" ")
-debug = True if "--debug" in sargs else False
-
 # Logging initialization
-configure_logger(debug)
+configure_logger(True)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
@@ -49,8 +46,10 @@ logger.info(
 )
 
 # Configure ArgParse
-parser = ConfigArgParse.ArgumentParser(description="GramAddict Instagram Bot")
-parser.add('-c', '--config', required=True, is_config_file=True, help='config file path')
+parser = configargparse.ArgumentParser(description="GramAddict Instagram Bot")
+parser.add(
+    "-c", "--config", required=True, is_config_file=True, help="config file path"
+)
 
 # Global Variables
 device_id = None
@@ -79,7 +78,7 @@ def load_plugins():
                             default=arg["default"],
                         )
                     if arg.get("operation", False):
-                        actions[arg["arg"]] = plugin
+                        actions[arg["arg"][2:]] = plugin
                 except Exception as e:
                     logger.error(
                         f"Error while importing arguments of plugin {plugin.__class__.__name__}. Error: Missing key from arguments dictionary - {e}"
@@ -116,40 +115,14 @@ def run():
     load_resources(args)
     load_utils(args)
 
-    for item in sys.argv[1:]:
+    for item in dargs:
         if item in loaded:
             if item != "--interact" and item != "--hashtag-likers":
                 enabled.append(item)
-
-    for k in loaded:
-        if dargs[k.replace("-", "_")[2:]] != None:
-            if k == "--interact":
+            else:
                 logger.warn(
-                    'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
+                    "You are using a legacy argument, please refer to https://docs.gramaddict.org."
                 )
-                for source in args.interact:
-                    if "@" in source:
-                        enabled.append("--blogger-followers")
-                        if type(args.blogger_followers) != list:
-                            args.blogger_followers = [source]
-                        else:
-                            args.blogger_followers.append(source)
-                    else:
-                        enabled.append("--hashtag-likers-top")
-                        if type(args.hashtag_likers_top) != list:
-                            args.hashtag_likers_top = [source]
-                        else:
-                            args.hashtag_likers_top.append(source)
-            elif k == "--hashtag-likers":
-                logger.warn(
-                    'Using legacy argument "--hashtag-likers". Please switch to new arguments as this will be deprecated in the near future.'
-                )
-                for source in args.hashtag_likers:
-                    enabled.append("--hashtag-likers-top")
-                    if type(args.hashtag_likers_top) != list:
-                        args.hashtag_likers_top = [source]
-                    else:
-                        args.hashtag_likers_top.append(source)
 
     enabled = list(dict.fromkeys(enabled))
 
