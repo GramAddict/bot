@@ -32,8 +32,8 @@ class Config:
                 print("Please provide a filename with your --config argument.")
                 exit(0)
 
-            self.username = config.get("username", False)
-            self.debug = config.get("debug", False)
+            self.username = self.config.get("username", False)
+            self.debug = self.config.get("debug", False)
 
         self.debug = True if "--debug" in self.args else False
         if "--username" in self.args:

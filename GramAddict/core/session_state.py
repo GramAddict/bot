@@ -156,6 +156,6 @@ class SessionStateEncoder(JSONEncoder):
             "total_unfollowed": session_state.totalUnfollowed,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
-            "args": self.args.__dict__,
+            "args": session_state.args.__dict__,
             "profile": {"followers": str(session_state.my_followers_count)},
         }
