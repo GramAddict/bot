@@ -606,7 +606,7 @@ class OpenedPostView:
     def _isFollowing(self, countainer):
         text = countainer.child(
             resourceId=ResourceID.BUTTON,
-            className=ClassName.TEXT_VIEW,
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
         # UIA1 doesn't use .get_text()
         if type(text) != str:
