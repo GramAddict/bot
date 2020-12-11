@@ -24,9 +24,9 @@ class SessionState:
     startTime = None
     finishTime = None
 
-    def __init__(self):
+    def __init__(self, configs):
         self.id = str(uuid.uuid4())
-        self.args = {}
+        self.args = configs.args
         self.my_username = None
         self.my_followers_count = None
         self.my_following_count = None
@@ -156,6 +156,6 @@ class SessionStateEncoder(JSONEncoder):
             "total_unfollowed": session_state.totalUnfollowed,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
-            "args": session_state.args,
+            "args": self.args.__dict__,
             "profile": {"followers": str(session_state.my_followers_count)},
         }

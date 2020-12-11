@@ -6,7 +6,7 @@ import unicodedata
 
 from colorama import Fore
 from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
-from GramAddict.core.resources import ResourceID, ClassName
+from GramAddict.core.resources import ClassName, ResourceID as resources
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,15 @@ FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
 FIELD_MIN_POSTS = "min_posts"
 
 IGNORE_CHARSETS = ["MATHEMATICAL"]
+
+
+def load_config(config):
+    global args
+    global configs
+    global ResourceID
+    args = config.args
+    configs = config
+    ResourceID = resources(config.args.app_id)
 
 
 class Filter:

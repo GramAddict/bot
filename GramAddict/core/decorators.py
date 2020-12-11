@@ -6,7 +6,7 @@ from datetime import datetime
 from http.client import HTTPException
 from socket import timeout
 
-from uiautomator2.exceptions import UiObjectNotFoundError
+from uiautomator2.exceptions import UiObjectNotFoundError as UiObjectNotFoundErrorv2
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.report import print_full_report
@@ -69,7 +69,7 @@ def run_safely(device, device_id, sessions, session_state):
                 IndexError,
                 HTTPException,
                 timeout,
-                UiObjectNotFoundError,
+                UiObjectNotFoundErrorv2,
             ):
                 logger.error(traceback.format_exc())
                 save_crash(device)

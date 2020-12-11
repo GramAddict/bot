@@ -4,10 +4,19 @@ import re
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
-from GramAddict.core.resources import ResourceID, TabBarText, ClassName
+from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
 from GramAddict.core.utils import random_sleep, save_crash
 
 logger = logging.getLogger(__name__)
+
+
+def load_config(config):
+    global args
+    global configs
+    global ResourceID
+    args = config.args
+    configs = config
+    ResourceID = resources(config.args.app_id)
 
 
 def case_insensitive_re(str_list):

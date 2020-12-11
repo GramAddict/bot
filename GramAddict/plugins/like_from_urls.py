@@ -30,14 +30,14 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, config, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.device_id = config.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
