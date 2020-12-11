@@ -157,7 +157,7 @@ class DeviceFacade:
 
             try:
                 self.deviceV1.swipe(sx, sy, ex, ey)
-            except uiautomator2.JSONRPCError as e:
+            except uiautomator.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
         else:
             import uiautomator2
@@ -549,11 +549,15 @@ class DeviceFacade:
 
         def get_selected(self) -> bool:
             if self.viewV1 is not None:
+                import uiautomator
+
                 try:
                     return self.viewV1.info["selected"]
                 except uiautomator.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
             else:
+                import uiautomator2
+
                 try:
                     return self.viewV2.info["selected"]
                 except uiautomator2.JSONRPCError as e:

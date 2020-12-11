@@ -82,14 +82,14 @@ class ActionUnfollowFollowers(Plugin):
         self.ResourceID = resources(self.args.app_id)
 
         count_arg = get_value(
-            getattr(args, self.unfollow_type.replace("-", "_")),
+            getattr(self.args, self.unfollow_type.replace("-", "_")),
             "Unfollow count: {}",
             10,
         )
 
         count = min(
             count_arg,
-            self.session_state.my_following_count - int(args.min_following),
+            self.session_state.my_following_count - int(self.args.min_following),
         )
 
         if self.unfollow_type == "unfollow":
@@ -108,7 +108,7 @@ class ActionUnfollowFollowers(Plugin):
                 + ", you have "
                 + str(self.session_state.my_following_count)
                 + " followings, min following is "
-                + str(args.min_following)
+                + str(self.args.min_following)
                 + ". Finish."
             )
             return

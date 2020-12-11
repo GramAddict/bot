@@ -1,16 +1,12 @@
 import logging
-import sys
-import yaml
 from datetime import datetime
+from sys import exit
 from time import sleep
 
 from colorama import Fore, Style
 
 from GramAddict.core.config import Config
-from GramAddict.core.device_facade import (
-    DeviceFacade,
-    create_device,
-)
+from GramAddict.core.device_facade import create_device
 from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
@@ -102,21 +98,21 @@ def run():
                 logger.error(
                     "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
-                sys.exit()
+                exit(0)
 
         logger.info("Device screen on and unlocked.")
 
         open_instagram()
 
-        try:
-            profileView = TabBarView(device).navigateToProfile()
-            random_sleep()
-            (
-                session_state.my_username,
-                session_state.my_followers_count,
-                session_state.my_following_count,
-            ) = profileView.getProfileInfo()
-        except Exception as e:
+        # try:
+        profileView = TabBarView(device).navigateToProfile()
+        random_sleep()
+        (
+            session_state.my_username,
+            session_state.my_followers_count,
+            session_state.my_following_count,
+        ) = profileView.getProfileInfo()
+        """except Exception as e:
             logger.error(f"Exception: {e}")
             save_crash(device)
             switch_to_english(device)
@@ -127,7 +123,7 @@ def run():
                 session_state.my_username,
                 session_state.my_followers_count,
                 session_state.my_following_count,
-            ) = profileView.getProfileInfo()
+            ) = profileView.getProfileInfo()"""
 
         if (
             session_state.my_username == None
@@ -189,7 +185,7 @@ def run():
             except KeyboardInterrupt:
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
-                sys.exit(0)
+                exit(0)
         else:
             break
 

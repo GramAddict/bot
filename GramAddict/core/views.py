@@ -607,7 +607,10 @@ class OpenedPostView:
         text = countainer.child(
             resourceId=ResourceID.BUTTON,
             className=ClassName.TEXT_VIEW,
-        ).get_text()
+        )
+        # UIA1 doesn't use .get_text()
+        if type(text) != str:
+            text = text.get_text()
         return True if text == "Following" or text == "Requested" else False
 
 

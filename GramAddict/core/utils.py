@@ -11,7 +11,6 @@ from time import sleep
 from urllib.parse import urlparse
 
 from colorama import Fore, Style
-from GramAddict.core.config import Config
 from GramAddict.core.log import get_log_file_config
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.version import __version__
