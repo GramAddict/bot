@@ -277,7 +277,9 @@ class ActionUnfollowFollowers(Plugin):
                 )
                 return
 
-    def do_unfollow(self, device, username, my_username, check_if_is_follower):
+    def do_unfollow(
+        self, device: DeviceFacade, username, my_username, check_if_is_follower
+    ):
         """
         :return: whether unfollow was successful
         """
@@ -299,20 +301,26 @@ class ActionUnfollowFollowers(Plugin):
             device.back()
             return False
 
+        unfollow_button = device.find(
+            classNameMatches=ClassName.BUTTON,
+            clickable=True,
+            textMatches=FOLLOWING_REGEX,
+        )
         # I don't know/remember the origin of this, if someone does - let's document it
-        attempts = 0
-        while True:
+        attempts = 2
+        for _ in range(attempts):
+            if unfollow_button.exists():
+                break
+
+            scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
+            if scrollable.exists():
+                scrollable.scroll(DeviceFacade.Direction.TOP)
+
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
-                break
 
         if not unfollow_button.exists():
             logger.error(
@@ -327,18 +335,17 @@ class ActionUnfollowFollowers(Plugin):
         # Weirdly enough, this is a fix for after you unfollow someone that follows
         # you back - the next person you unfollow the button is missing on first find
         # additional find - finds it. :shrug:
-        attempts = 0
-        while True:
+        confirm_unfollow_button = None
+        attempts = 2
+        for _ in range(attempts):
             confirm_unfollow_button = device.find(
                 resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
                 className=ClassName.TEXT_VIEW,
             )
-            if confirm_unfollow_button.exists() and attempts >= 1:
+            if confirm_unfollow_button.exists():
                 break
-            else:
-                attempts += 1
 
-        if not confirm_unfollow_button.exists():
+        if not confirm_unfollow_button or not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
