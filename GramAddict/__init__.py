@@ -104,15 +104,15 @@ def run():
 
         open_instagram()
 
-        # try:
-        profileView = TabBarView(device).navigateToProfile()
-        random_sleep()
-        (
-            session_state.my_username,
-            session_state.my_followers_count,
-            session_state.my_following_count,
-        ) = profileView.getProfileInfo()
-        """except Exception as e:
+        try:
+            profileView = TabBarView(device).navigateToProfile()
+            random_sleep()
+            (
+                session_state.my_username,
+                session_state.my_followers_count,
+                session_state.my_following_count,
+            ) = profileView.getProfileInfo()
+        except Exception as e:
             logger.error(f"Exception: {e}")
             save_crash(device)
             switch_to_english(device)
@@ -123,7 +123,7 @@ def run():
                 session_state.my_username,
                 session_state.my_followers_count,
                 session_state.my_following_count,
-            ) = profileView.getProfileInfo()"""
+            ) = profileView.getProfileInfo()
 
         if (
             session_state.my_username == None
