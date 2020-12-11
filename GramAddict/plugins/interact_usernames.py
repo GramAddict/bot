@@ -13,6 +13,7 @@ from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
+
 logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import OpenedPostView, ProfileView, TabBarView
@@ -23,9 +24,7 @@ class IntreractUsernames(Plugin):
 
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Interact with users that are given from a file"
-        )
+        self.description = "Interact with users that are given from a file"
         self.arguments = [
             {
                 "arg": "--interact-usernames",
@@ -51,21 +50,18 @@ class IntreractUsernames(Plugin):
         self.args = args
         self.usernames = []
         profile_filter = Filter()
-        
 
         if os.path.isfile(args.interact_usernames):
             with open(args.interact_usernames, "r") as f:
                 self.usernames = f.readlines()
-                
 
         limit_reached = self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.LIKES
-            ) and self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.FOLLOWS
-            )
+            args, limit_type=self.session_state.Limit.LIKES
+        ) and self.session_state.check_limit(
+            args, limit_type=self.session_state.Limit.FOLLOWS
+        )
 
         self.state = State()
-        
 
         on_interaction = partial(
             _on_interaction,
@@ -80,12 +76,11 @@ class IntreractUsernames(Plugin):
         )
 
         on_like = partial(
-                _on_like, sessions=self.sessions, session_state=self.session_state
+            _on_like, sessions=self.sessions, session_state=self.session_state
         )
         on_watch = partial(
-                _on_watch, sessions=self.sessions, session_state=self.session_state
+            _on_watch, sessions=self.sessions, session_state=self.session_state
         )
-          
 
         if args.stories_count != "0":
             stories_percentage = get_value(
@@ -105,7 +100,7 @@ class IntreractUsernames(Plugin):
                 search_view = TabBarView(device).navigateToSearch()
                 random_sleep()
                 if not search_view.navigateToUsername(name.strip().replace(" ", "")):
-                
+
                     return
                 random_sleep()
                 self.handle_blogger(
@@ -133,9 +128,9 @@ class IntreractUsernames(Plugin):
                     args, limit_type=self.session_state.Limit.ALL, output=True
                 )
                 break
-                
+
         job()
-                
+
     def handle_blogger(
         self,
         device,
@@ -171,6 +166,3 @@ class IntreractUsernames(Plugin):
             source=username,
             session_state=self.session_state,
         )
-                
-      
-            
