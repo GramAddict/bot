@@ -198,20 +198,22 @@ class ForceIteract(Plugin):
         logger.info("Unfollow @" + username)
         attempts = 0
 
-        while True:
+        unfollow_button = None
+        attempts = 2
+        for _ in range(attempts)
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
+            if unfollow_button.exists():
                 break
+            scrollable = device.find(
+                classNameMatches=ClassName.VIEW_PAGER
+            )
+            scrollable.scroll(DeviceFacade.Direction.TOP)
 
-        if not unfollow_button.exists():
+        if not unfollow_button or not unfollow_button.exists():
             logger.error("Cannot find Following button.")
             save_crash(device)
 
