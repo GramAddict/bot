@@ -55,7 +55,7 @@ def run_safely(device, device_id, sessions, session_state):
                     )
                     TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
-                    close_instagram(device_id)
+                    close_instagram()
                     logger.info(
                         f"-------- FINISH: {datetime.now().time()} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
@@ -75,9 +75,9 @@ def run_safely(device, device_id, sessions, session_state):
                 save_crash(device)
                 logger.info("No idea what it was. Let's try again.")
                 # Hack for the case when IGTV was accidentally opened
-                close_instagram(device_id)
+                close_instagram()
                 random_sleep()
-                open_instagram(device_id)
+                open_instagram()
                 TabBarView(device).navigateToProfile()
             except LanguageNotEnglishException:
                 logger.info(
@@ -87,7 +87,7 @@ def run_safely(device, device_id, sessions, session_state):
             except Exception as e:
                 logger.error(traceback.format_exc())
                 save_crash(device)
-                close_instagram(device_id)
+                close_instagram()
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
                 raise e

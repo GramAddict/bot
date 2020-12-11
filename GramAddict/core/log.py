@@ -63,14 +63,12 @@ def configure_logger(debug, username):
 
     console_level = logging.DEBUG if debug else logging.INFO
 
+    g_session_id = uuid4()
+    g_logs_dir = "logs"
     if username:
-        g_session_id = uuid4()
-        g_logs_dir = "logs"
         g_log_file_name = f"{username}.log"
         g_log_file_updated = True
     else:
-        g_session_id = uuid4()
-        g_logs_dir = "logs"
         g_log_file_name = f"{g_session_id}.log"
         g_log_file_updated = False
 
