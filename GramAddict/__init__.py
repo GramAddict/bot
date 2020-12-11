@@ -34,8 +34,36 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import TabBarView
 from GramAddict.version import __version__
 
+# Pre-Load Config
+config, config_list = {}, []
+username = False
+args = sys.argv
+if "--config" in args:
+    try:
+        file_name = args[args.index("--config") + 1]
+        with open(file_name) as fin:
+            # preserve order of yaml
+            config_list = [line.strip() for line in fin]
+            fin.seek(0)
+            # pre-load config for debug and username
+            config = yaml.safe_load(fin)
+    except IndexError:
+        print("Please provide a filename with your --config argument.")
+        exit(0)
+
+    username = config.get("username", False)
+    debug = config.get("debug", False)
+
+debug = True if "--debug" in args else False
+if "--username" in args:
+    try:
+        username = args[args.index("--username") + 1]
+    except IndexError:
+        print("Please provide a username with your --username argument.")
+        exit(0)
+
 # Logging initialization
-configure_logger(True)
+configure_logger(debug, username)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
@@ -48,7 +76,7 @@ logger.info(
 # Configure ArgParse
 parser = configargparse.ArgumentParser(description="GramAddict Instagram Bot")
 parser.add(
-    "-c", "--config", required=True, is_config_file=True, help="config file path"
+    "-c", "--config", required=False, is_config_file=True, help="config file path"
 )
 
 # Global Variables
@@ -86,8 +114,19 @@ def load_plugins():
     return actions
 
 
-def get_args():
+def get_args(loaded):
+    def _is_legacy_arg(arg):
+        if arg == "interact" or arg == "hashtag-likers":
+            logger.warn(
+                "You are using a legacy argument, please refer to https://docs.gramaddict.org."
+            )
+            return True
+        return False
+
+    enabled = []
     logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
+    if config:
+        logger.debug(f"Config used: {config}")
     if not len(sys.argv) > 1:
         parser.print_help()
         return False
@@ -101,33 +140,36 @@ def get_args():
         parser.print_help()
         return False
 
-    return args
+    if config_list:
+        for item in config_list:
+            item = item.split(":")[0]
+            if (
+                item in loaded
+                and getattr(args, item.replace("-", "_")) != None
+                and not _is_legacy_arg(item)
+            ):
+                enabled.append(item)
+    else:
+        for item in sys.argv:
+            nitem = item[2:]
+            if item.startswith("--"):
+                if (
+                    nitem in loaded
+                    and getattr(args, nitem.replace("-", "_")) != None
+                    and not _is_legacy_arg(nitem)
+                ):
+                    enabled.append(nitem)
+    return args, enabled
 
 
 def run():
     global device_id
     loaded = load_plugins()
-    args = get_args()
-    enabled = []
+    args, enabled = get_args(loaded)
     if not args:
         return
-    dargs = vars(args)
     load_resources(args)
     load_utils(args)
-
-    for item in dargs:
-        print(item, loaded.get(item, None))
-        if item in loaded and loaded[item] != None:
-            if item != "interact" and item != "hashtag-likers":
-                enabled.append(item)
-            else:
-                logger.warn(
-                    "You are using a legacy argument, please refer to https://docs.gramaddict.org."
-                )
-
-    enabled = list(dict.fromkeys(enabled))
-
-    print(enabled)
 
     if len(enabled) < 1:
         logger.error("You have to specify one of the actions: " + ", ".join(loaded))

@@ -16,7 +16,7 @@ UI_TIMEOUT_SHORT = 1
 def create_device(device_id, version=2):
     logger.info(f"Using uiautomator v{version}")
     try:
-        return DeviceFacade(version, device_id)
+        return DeviceFacade(int(version), device_id)
     except ImportError as e:
         logger.error(str(e))
         return None
@@ -317,6 +317,8 @@ class DeviceFacade:
                 except uiautomator.JsonRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
             else:
+                import uiautomator2
+
                 mode = self.Location.WHOLE if mode == None else mode
                 x_abs = -1
                 y_abs = -1
@@ -375,6 +377,8 @@ class DeviceFacade:
                 config["actionAcknowledgmentTimeout"] = 3000
                 self.deviceV1.server.jsonrpc.setConfigurator(config)
             else:
+                import uiautomator2
+
                 visible_bounds = self.get_bounds()
                 horizontal_len = visible_bounds["right"] - visible_bounds["left"]
                 vertical_len = visible_bounds["bottom"] - visible_bounds["top"]

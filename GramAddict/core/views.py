@@ -293,7 +293,7 @@ class SearchView:
             random_sleep(5, 10)
             return HashTagView(self.device)
 
-        logger.info(f"{hashtag} is not in recent searching hystory..")
+        logger.info(f"{hashtag} is not in recent searching history..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
         random_sleep(4, 8)
