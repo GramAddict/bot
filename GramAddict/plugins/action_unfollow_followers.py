@@ -27,24 +27,32 @@ class ActionUnfollowFollowers(Plugin):
             {
                 "arg": "--unfollow",
                 "nargs": None,
-                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-non-followers",
                 "nargs": None,
-                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-any-non-followers",
+                "nargs": None,
+                "help": "unfollow at most given number of users, that don't follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-any",
                 "nargs": None,
-                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
@@ -88,6 +96,8 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT
         elif self.unfollow_type == "unfollow-non-followers":
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+        elif self.unfollow_type == "unfollow-any-non-followers":
+            self.unfollow_type = UnfollowRestriction.ANY_NON_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
 
@@ -224,7 +234,10 @@ class ActionUnfollowFollowers(Plugin):
                             )
                             continue
 
-                    if unfollow_restriction == UnfollowRestriction.ANY:
+                    if (
+                        unfollow_restriction == UnfollowRestriction.ANY
+                        or unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS
+                    ):
                         following_status = storage.get_following_status(username)
                         if following_status == FollowingStatus.UNFOLLOWED:
                             logger.info(
@@ -238,7 +251,9 @@ class ActionUnfollowFollowers(Plugin):
                         username,
                         my_username,
                         unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                        or unfollow_restriction
+                        == UnfollowRestriction.ANY_NON_FOLLOWERS,
                     )
                     if unfollowed:
                         storage.add_interacted_user(username, unfollowed=True)
@@ -264,7 +279,9 @@ class ActionUnfollowFollowers(Plugin):
                 )
                 return
 
-    def do_unfollow(self, device, username, my_username, check_if_is_follower):
+    def do_unfollow(
+        self, device: DeviceFacade, username, my_username, check_if_is_follower
+    ):
         """
         :return: whether unfollow was successful
         """
@@ -286,20 +303,26 @@ class ActionUnfollowFollowers(Plugin):
             device.back()
             return False
 
+        unfollow_button = device.find(
+            classNameMatches=ClassName.BUTTON,
+            clickable=True,
+            textMatches=FOLLOWING_REGEX,
+        )
         # I don't know/remember the origin of this, if someone does - let's document it
-        attempts = 0
-        while True:
+        attempts = 2
+        for _ in range(attempts):
+            if unfollow_button.exists():
+                break
+
+            scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
+            if scrollable.exists():
+                scrollable.scroll(DeviceFacade.Direction.TOP)
+
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
-                break
 
         if not unfollow_button.exists():
             logger.error(
@@ -314,18 +337,17 @@ class ActionUnfollowFollowers(Plugin):
         # Weirdly enough, this is a fix for after you unfollow someone that follows
         # you back - the next person you unfollow the button is missing on first find
         # additional find - finds it. :shrug:
-        attempts = 0
-        while True:
+        confirm_unfollow_button = None
+        attempts = 2
+        for _ in range(attempts):
             confirm_unfollow_button = device.find(
                 resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
                 className=ClassName.TEXT_VIEW,
             )
-            if confirm_unfollow_button.exists() and attempts >= 1:
+            if confirm_unfollow_button.exists():
                 break
-            else:
-                attempts += 1
 
-        if not confirm_unfollow_button.exists():
+        if not confirm_unfollow_button or not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
@@ -378,3 +400,4 @@ class UnfollowRestriction(Enum):
     ANY = 0
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
+    ANY_NON_FOLLOWERS = 3
