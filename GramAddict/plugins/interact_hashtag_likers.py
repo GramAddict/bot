@@ -77,7 +77,7 @@ class InteractHashtagLikers(Plugin):
             source
             for source in (
                 args.hashtag_likers_top
-                if self.current_mode == "hashtag-likers-current"
+                if self.current_mode == "hashtag-likers-top"
                 else args.hashtag_likers_recent
             )
         ]

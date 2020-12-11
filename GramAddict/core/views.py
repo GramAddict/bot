@@ -708,7 +708,7 @@ class OpenedPostView:
     def _isFollowing(self, countainer):
         text = countainer.child(
             resourceId=ResourceID.BUTTON,
-            className=ClassName.TEXT_VIEW,
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         ).get_text()
         return True if text == "Following" or text == "Requested" else False
 
