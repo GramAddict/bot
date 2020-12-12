@@ -73,10 +73,10 @@ def interact_with_user(
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
             followed = _follow(device, username, follow_percentage, args, session_state)
+            return True, followed
         else:
-            followed = False
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-        return False, followed
+            return False, False
 
     _watch_stories(
         device,
