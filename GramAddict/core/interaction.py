@@ -36,6 +36,7 @@ def interact_with_user(
     profile_filter,
     args,
     session_state,
+    current_mode,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
