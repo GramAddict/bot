@@ -133,7 +133,102 @@ class DeviceFacade:
         else:
             self.deviceV2.screen_off()
 
-    # TODO: uia1 only does swipe based on element. not sure how to handle
+    def get_orientation(self):
+        """
+        Rotaion of the phone
+        0: normal
+        1: home key on the right
+        2: home key on the top
+        3: home key on the left
+        """
+        if self.deviceV1 is not None:
+            import uiautomator, re
+
+            try:
+                # code based on _get_orientation() of uiautomator2
+                _DISPLAY_RE = re.compile(
+                    r".*DisplayViewport{valid=true, .*orientation=(?P<orientation>\d+), .*deviceWidth=(?P<width>\d+), deviceHeight=(?P<height>\d+).*"
+                )
+                self.shell("dumpsys display")
+                for line in self.shell(["dumpsys", "display"]).output.splitlines():
+                    m = _DISPLAY_RE.search(line, 0)
+                    if not m:
+                        continue
+                    # w = int(m.group('width'))
+                    # h = int(m.group('height'))
+                    o = int(m.group("orientation"))
+                    # w, h = min(w, h), max(w, h)
+                    return o
+                return self.get_info()["displayRotation"]
+            except uiautomator.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+        else:
+            import uiautomator2
+
+            try:
+                return self.deviceV2._get_orientation()
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+    def window_size(self):
+        """ return (width, height) """
+        if self.deviceV1 is not None:
+            import uiautomator
+
+            try:
+                # code extracted from uiautomator2 window_size()
+                info = self.get_info()
+                w, h = info["displayWidth"], info["displayHeight"]
+                rotation = self.get_orientation()
+                if (w > h) != (rotation % 2 == 1):
+                    w, h = h, w
+                return w, h
+            except uiautomator.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+        else:
+            import uiautomator2
+
+            try:
+                self.deviceV2.window_size()
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+    def _swipe_ext_v1(self, direction: str, scale=0.5):
+        """
+        Args:
+            direction (str): one of "left", "right", "up", "bottom" or Direction.LEFT
+            scale (float): percent of swipe, range (0, 1.0]
+        Raises:
+            ValueError
+        """
+
+        def _swipe(_from, _to):
+            self.deviceV1.swipe(_from[0], _from[1], _to[0], _to[1], steps=55)
+
+        lx, ly = 0, 0
+        rx, ry = self.window_size()
+
+        width, height = rx - lx, ry - ly
+
+        h_offset = int(width * (1 - scale)) // 2
+        v_offset = int(height * (1 - scale)) // 2
+
+        left = lx + h_offset, ly + height // 2
+        up = lx + width // 2, ly + v_offset
+        right = rx - h_offset, ly + height // 2
+        bottom = lx + width // 2, ry - v_offset
+
+        if direction == "left":
+            _swipe(right, left)
+        elif direction == "right":
+            _swipe(left, right)
+        elif direction == "up":
+            _swipe(bottom, up)
+        elif direction == "down":
+            _swipe(up, bottom)
+        else:
+            raise ValueError("Unknown direction:", direction)
+
     def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
@@ -149,7 +244,21 @@ class DeviceFacade:
             swipe_dir = "down"
 
         logger.debug(f"Swipe {swipe_dir}, scale={scale}")
-        self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+
+        if self.deviceV1 is not None:
+            import uiautomator
+
+            try:
+                self._swipe_ext_v1(swipe_dir, scale=scale)
+            except uiautomator.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+        else:
+            import uiautomator2
+
+            try:
+                self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
 
     def swipe_points(self, sx, sy, ex, ey):
         if self.deviceV1 is not None:
