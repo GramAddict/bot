@@ -30,22 +30,23 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, config, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = config.args
+        self.device_id = config.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.current_mode = plugin[2:]
 
         self.urls = []
-        if os.path.isfile(args.urls_file):
-            with open(args.urls_file, "r") as f:
+        if os.path.isfile(self.args.urls_file):
+            with open(self.args.urls_file, "r") as f:
                 self.urls = f.readlines()
 
         self.state = State()

@@ -28,8 +28,7 @@ from GramAddict.core.interaction import (
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.resources import ClassName, ResourceID
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep, save_crash
 
@@ -62,18 +61,19 @@ class ForceIteract(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = configs.args
+        self.device_id = configs.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
-        self.args = args
+        self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
         self.current_mode = plugin[2:]
 
@@ -220,7 +220,7 @@ class ForceIteract(Plugin):
         unfollow_button.click()
 
         confirm_unfollow_button = device.find(
-            resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+            resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
             className=ClassName.TEXT_VIEW,
         )
         if not confirm_unfollow_button.exists():

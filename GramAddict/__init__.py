@@ -1,12 +1,14 @@
-import argparse
 import logging
-import sys
 from datetime import datetime
+from sys import exit
 from time import sleep
 
 from colorama import Fore, Style
 
-from GramAddict.core.device_facade import DeviceFacade, create_device
+from GramAddict.core.config import Config
+from GramAddict.core.device_facade import create_device
+from GramAddict.core.filter import load_config as load_filter
+from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
     configure_logger,
     update_log_file_name,
@@ -14,9 +16,7 @@ from GramAddict.core.log import (
 )
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
-from GramAddict.core.plugin_loader import PluginLoader
 from GramAddict.core.report import print_full_report
-from GramAddict.core.resources import load as load_resources
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
 from GramAddict.core.storage import Storage
 from GramAddict.core.utils import (
@@ -24,17 +24,20 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
-    load as load_utils,
+    load_config as load_utils,
     open_instagram,
     random_sleep,
     save_crash,
     update_available,
 )
-from GramAddict.core.views import ProfileView, TabBarView
+from GramAddict.core.views import ProfileView, TabBarView, load_config as load_views
 from GramAddict.version import __version__
 
+# Pre-Load Config
+configs = Config(first_run=True)
+
 # Logging initialization
-configure_logger(sys.argv)
+configure_logger(configs.debug, configs.username)
 logger = logging.getLogger(__name__)
 if update_available():
     logger.warn(
@@ -44,125 +47,40 @@ logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
 
-
 # Global Variables
-device_id = None
-plugins = PluginLoader("GramAddict.plugins").plugins
 sessions = PersistentList("sessions", SessionStateEncoder)
-parser = argparse.ArgumentParser(description="GramAddict Instagram Bot")
 
-
-def load_plugins():
-    actions = {}
-
-    for plugin in plugins:
-        if plugin.arguments:
-            for arg in plugin.arguments:
-                try:
-                    action = arg.get("action", None)
-                    if action:
-                        parser.add_argument(
-                            arg["arg"], help=arg["help"], action=arg.get("action", None)
-                        )
-                    else:
-                        parser.add_argument(
-                            arg["arg"],
-                            nargs=arg["nargs"],
-                            help=arg["help"],
-                            metavar=arg["metavar"],
-                            default=arg["default"],
-                        )
-                    if arg.get("operation", False):
-                        actions[arg["arg"]] = plugin
-                except Exception as e:
-                    logger.error(
-                        f"Error while importing arguments of plugin {plugin.__class__.__name__}. Error: Missing key from arguments dictionary - {e}"
-                    )
-    return actions
-
-
-def get_args():
-    logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
-    if not len(sys.argv) > 1:
-        parser.print_help()
-        return False
-
-    args, unknown_args = parser.parse_known_args()
-
-    if unknown_args:
-        logger.error(
-            "Unknown arguments: " + ", ".join(str(arg) for arg in unknown_args)
-        )
-        parser.print_help()
-        return False
-
-    return args
+# Load Config
+configs.load_plugins()
+configs.parse_args()
 
 
 def run():
-    global device_id
-    loaded = load_plugins()
-    args = get_args()
-    enabled = []
-    if not args:
-        return
-    dargs = vars(args)
-    load_resources(args)
-    load_utils(args)
+    # Some plugins need config values without being passed
+    # through. Because we do a weird config/argparse hybrid,
+    # we need to load the configs in a weird way
+    load_filter(configs)
+    load_interaction(configs)
+    load_utils(configs)
+    load_views(configs)
 
-    for item in sys.argv[1:]:
-        if item in loaded:
-            if item != "--interact" and item != "--hashtag-likers":
-                enabled.append(item)
-
-    for k in loaded:
-        if dargs[k.replace("-", "_")[2:]] != None:
-            if k == "--interact":
-                logger.warn(
-                    'Using legacy argument "--interact". Please switch to new arguments as this will be deprecated in the near future.'
-                )
-                for source in args.interact:
-                    if "@" in source:
-                        enabled.append("--blogger-followers")
-                        if type(args.blogger_followers) != list:
-                            args.blogger_followers = [source]
-                        else:
-                            args.blogger_followers.append(source)
-                    else:
-                        enabled.append("--hashtag-likers-top")
-                        if type(args.hashtag_likers_top) != list:
-                            args.hashtag_likers_top = [source]
-                        else:
-                            args.hashtag_likers_top.append(source)
-            elif k == "--hashtag-likers":
-                logger.warn(
-                    'Using legacy argument "--hashtag-likers". Please switch to new arguments as this will be deprecated in the near future.'
-                )
-                for source in args.hashtag_likers:
-                    enabled.append("--hashtag-likers-top")
-                    if type(args.hashtag_likers_top) != list:
-                        args.hashtag_likers_top = [source]
-                    else:
-                        args.hashtag_likers_top.append(source)
-
-    enabled = list(dict.fromkeys(enabled))
-
-    if len(enabled) < 1:
-        logger.error("You have to specify one of the actions: " + ", ".join(loaded))
+    if not configs.args or not check_adb_connection():
         return
 
-    device_id = args.device
-    if not check_adb_connection(is_device_id_provided=(device_id is not None)):
+    if len(configs.enabled) < 1:
+        logger.error(
+            "You have to specify one of the actions: " + ", ".join(configs.actions)
+        )
         return
-    logger.info("Instagram version: " + get_instagram_version(device_id))
-    device = create_device(device_id)
+
+    logger.info("Instagram version: " + get_instagram_version())
+    device = create_device(configs.device_id, configs.args.uia_version)
 
     if device is None:
         return
 
     while True:
-        session_state = SessionState()
-        session_state.args = args.__dict__
+        session_state = SessionState(configs)
         sessions.append(session_state)
 
         device.wake_up()
@@ -172,19 +90,19 @@ def run():
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
-        if not DeviceFacade(device_id).get_info()["screenOn"]:
-            DeviceFacade(device_id).press_power()
-        if DeviceFacade(device_id).is_screen_locked():
-            DeviceFacade(device_id).unlock()
-            if DeviceFacade(device_id).is_screen_locked():
+        if not device.get_info()["screenOn"]:
+            device.press_power()
+        if device.is_screen_locked():
+            device.unlock()
+            if device.is_screen_locked():
                 logger.error(
                     "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
-                sys.exit()
+                exit(0)
 
         logger.info("Device screen on and unlocked.")
 
-        open_instagram(device_id)
+        open_instagram()
 
         try:
             profileView = TabBarView(device).navigateToProfile()
@@ -235,28 +153,26 @@ def run():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-        for plugin in enabled:
+        for plugin in configs.enabled:
             if not session_state.check_limit(
-                args, limit_type=session_state.Limit.ALL, output=False
+                configs.args, limit_type=session_state.Limit.ALL, output=False
             ):
                 logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
                 if ProfileView(device).getUsername() != session_state.my_username:
                     logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
-                loaded[plugin].run(
-                    device, device_id, args, enabled, storage, sessions, plugin
-                )
+                    configs.actions[plugin].run(device, configs, storage, sessions, plugin)
             else:
                 logger.info(
                     "Successful or Total Interactions limit reached. Ending session."
                 )
                 break
 
-        close_instagram(device_id)
+        close_instagram()
         session_state.finishTime = datetime.now()
 
-        if args.screen_sleep:
-            DeviceFacade(device_id).screen_off()
+        if configs.args.screen_sleep:
+            device.screen_off()
             logger.info("Screen turned off for sleeping time")
 
         logger.info(
@@ -264,15 +180,15 @@ def run():
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
-        if args.repeat:
+        if configs.args.repeat:
             print_full_report(sessions)
-            repeat = get_value(args.repeat, "Sleep for {} minutes", 180)
+            repeat = get_value(configs.args.repeat, "Sleep for {} minutes", 180)
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:
                 print_full_report(sessions)
                 sessions.persist(directory=session_state.my_username)
-                sys.exit(0)
+                exit(0)
         else:
             break
 

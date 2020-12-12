@@ -24,9 +24,9 @@ class SessionState:
     startTime = None
     finishTime = None
 
-    def __init__(self):
+    def __init__(self, configs):
         self.id = str(uuid.uuid4())
-        self.args = {}
+        self.args = configs.args
         self.my_username = None
         self.my_followers_count = None
         self.my_following_count = None
@@ -61,21 +61,18 @@ class SessionState:
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
         limit_type = SessionState.Limit.ALL if limit_type == None else limit_type
-        total_likes = self.totalLikes >= int(
-            get_value(args.total_likes_limit, None, 300)
-        )
-        total_followed = sum(self.totalFollowed.values()) >= int(
-            get_value(args.total_follows_limit, None, 50)
-        )
-        total_watched = self.totalWatched >= int(
-            get_value(args.total_watches_limit, None, 50)
-        )
+        likes_limit = get_value(args.total_likes_limit, None, 300)
+        total_likes = self.totalLikes >= int(likes_limit)
+        follow_limit = get_value(args.total_follows_limit, None, 50)
+        total_followed = sum(self.totalFollowed.values()) >= int(follow_limit)
+        watch_limit = get_value(args.total_watches_limit, None, 50)
+        total_watched = self.totalWatched >= int(watch_limit)
+        success_limit = get_value(args.total_successful_interactions_limit, None, 100)
         total_successful = sum(self.successfulInteractions.values()) >= int(
-            get_value(args.total_successful_interactions_limit, None, 100)
+            success_limit
         )
-        total_interactions = sum(self.totalInteractions.values()) >= int(
-            get_value(args.total_interactions_limit, None, 1000)
-        )
+        total_limit = get_value(args.total_interactions_limit, None, 1000)
+        total_interactions = sum(self.totalInteractions.values()) >= int(total_limit)
 
         session_info = [
             "Checking session limits:",
@@ -159,6 +156,6 @@ class SessionStateEncoder(JSONEncoder):
             "total_unfollowed": session_state.totalUnfollowed,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
-            "args": session_state.args,
+            "args": session_state.args.__dict__,
             "profile": {"followers": str(session_state.my_followers_count)},
         }
