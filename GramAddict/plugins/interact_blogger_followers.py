@@ -385,7 +385,7 @@ class InteractBloggerFollowers(Plugin):
                         scroll_end_detector.notify_skipped_all()
                         if scroll_end_detector.is_skipped_limit_reached():
                             return
-                        if screen_end_detector.is_fling_limit_reached():
+                        if scroll_end_detector.is_fling_limit_reached():
                             list_view.fling(DeviceFacade.Direction.BOTTOM)
                         else:
                             list_view.scroll(DeviceFacade.Direction.BOTTOM)

@@ -319,7 +319,7 @@ class InteractHashtagLikers(Plugin):
                         logger.info("Going to the next post.")
                         PostsViewList(device).swipe_to_fit_posts(False)
                         break
-                    if screen_end_detector.is_fling_limit_reached():
+                    if posts_end_detector.is_fling_limit_reached():
                         prev_screen_iterated_likers.clear()
                         prev_screen_iterated_likers += screen_iterated_likers
                         logger.info(
