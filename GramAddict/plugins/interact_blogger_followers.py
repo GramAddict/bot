@@ -14,7 +14,7 @@ from GramAddict.core.interaction import (
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.resources import ClassName, ResourceID
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
@@ -46,29 +46,30 @@ class InteractBloggerFollowers(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.device_id = configs.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
-        self.args = args
+        self.args = configs.args
+        self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in args.blogger_followers]
+        sources = [source for source in self.args.blogger_followers]
         shuffle(sources)
 
         for source in sources:
             limit_reached = self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.LIKES
+                self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.FOLLOWS
             )
 
             self.state = State()
@@ -78,10 +79,10 @@ class InteractBloggerFollowers(Plugin):
 
             on_interaction = partial(
                 _on_interaction,
-                likes_limit=int(args.total_likes_limit),
+                likes_limit=int(self.args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
-                    args.interactions_count, "Interactions count: {}", 70
+                    self.args.interactions_count, "Interactions count: {}", 70
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
@@ -96,9 +97,9 @@ class InteractBloggerFollowers(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if args.stories_count != "0":
+            if self.args.stories_count != "0":
                 stories_percentage = get_value(
-                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
                 )
             else:
                 stories_percentage = 0
@@ -113,11 +114,11 @@ class InteractBloggerFollowers(Plugin):
                 self.handle_blogger(
                     device,
                     source[1:] if "@" in source else source,
-                    args.likes_count,
-                    args.stories_count,
+                    self.args.likes_count,
+                    self.args.stories_count,
                     stories_percentage,
-                    int(args.follow_percentage),
-                    int(args.follow_limit) if args.follow_limit else None,
+                    int(self.args.follow_percentage),
+                    int(self.args.follow_limit) if self.args.follow_limit else None,
                     storage,
                     profile_filter,
                     on_like,
@@ -132,7 +133,7 @@ class InteractBloggerFollowers(Plugin):
             if limit_reached:
                 logger.info("Likes and follows limit reached.")
                 self.session_state.check_limit(
-                    args, limit_type=self.session_state.Limit.ALL, output=True
+                    self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )
                 break
 
@@ -184,6 +185,7 @@ class InteractBloggerFollowers(Plugin):
             on_interaction,
             is_myself,
             skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
+            skipped_fling_limit=get_value(self.args.fling_when_skipped, None, 0),
         )
 
     def open_user_followers(self, device, username):
@@ -208,13 +210,13 @@ class InteractBloggerFollowers(Plugin):
 
         def is_end_reached():
             see_all_button = device.find(
-                resourceId=ResourceID.SEE_ALL_BUTTON,
+                resourceId=self.ResourceID.SEE_ALL_BUTTON,
                 className=ClassName.TEXT_VIEW,
             )
             return see_all_button.exists()
 
         list_view = device.find(
-            resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
+            resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
         )
         while not is_end_reached():
             list_view.fling(DeviceFacade.Direction.BOTTOM)
@@ -223,7 +225,7 @@ class InteractBloggerFollowers(Plugin):
 
         def is_at_least_one_follower():
             follower = device.find(
-                resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
             )
             return follower.exists()
@@ -240,21 +242,25 @@ class InteractBloggerFollowers(Plugin):
         on_interaction,
         is_myself,
         skipped_list_limit,
+        skipped_fling_limit,
     ):
         # Wait until list is rendered
         device.find(
-            resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
         ).wait()
 
         def scrolled_to_top():
             row_search = device.find(
-                resourceId=ResourceID.ROW_SEARCH_EDIT_TEXT,
+                resourceId=self.ResourceID.ROW_SEARCH_EDIT_TEXT,
                 className=ClassName.EDIT_TEXT,
             )
             return row_search.exists()
 
-        scroll_end_detector = ScrollEndDetector(skipped_list_limit=skipped_list_limit)
+        scroll_end_detector = ScrollEndDetector(
+            skipped_list_limit=skipped_list_limit,
+            skipped_fling_limit=skipped_fling_limit,
+        )
         while True:
             logger.info("Iterate over visible followers")
             random_sleep()
@@ -264,7 +270,7 @@ class InteractBloggerFollowers(Plugin):
 
             try:
                 for item in device.find(
-                    resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                    resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                     className=ClassName.LINEAR_LAYOUT,
                 ):
                     user_info_view = item.child(index=1)
@@ -333,7 +339,7 @@ class InteractBloggerFollowers(Plugin):
                 return
             elif len(screen_iterated_followers) > 0:
                 load_more_button = device.find(
-                    resourceId=ResourceID.ROW_LOAD_MORE_BUTTON
+                    resourceId=self.ResourceID.ROW_LOAD_MORE_BUTTON
                 )
                 load_more_button_exists = load_more_button.exists(quick=True)
 
@@ -344,7 +350,7 @@ class InteractBloggerFollowers(Plugin):
                     screen_iterated_followers
                 )
                 list_view = device.find(
-                    resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
+                    resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 if not list_view.exists():
                     logger.error(
@@ -352,7 +358,7 @@ class InteractBloggerFollowers(Plugin):
                     )
                     device.back()
                     list_view = device.find(
-                        resourceId=ResourceID.LIST,
+                        resourceId=self.ResourceID.LIST,
                         className=ClassName.LIST_VIEW,
                     )
 
@@ -379,7 +385,10 @@ class InteractBloggerFollowers(Plugin):
                         scroll_end_detector.notify_skipped_all()
                         if scroll_end_detector.is_skipped_limit_reached():
                             return
-                        list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                        if scroll_end_detector.is_fling_limit_reached():
+                            list_view.fling(DeviceFacade.Direction.BOTTOM)
+                        else:
+                            list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(
                             "Need to scroll now", extra={"color": f"{Fore.GREEN}"}

@@ -18,6 +18,13 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--username",
+                "nargs": None,
+                "help": "username of the instagram account being used",
+                "metavar": "justinbieber",
+                "default": None,
+            },
+            {
                 "arg": "--likes-count",
                 "nargs": None,
                 "help": "number of likes for each interacted user, 1-2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
@@ -109,6 +116,13 @@ class CoreArguments(Plugin):
                 "default": "10-15",
             },
             {
+                "arg": "--fling-when-skipped",
+                "nargs": None,
+                "help": 'fling after "X" many scrolls tried, with already interacted users. (not recommended - disabled by default)',
+                "metavar": "10-12",
+                "default": "0",
+            },
+            {
                 "arg": "--speed-multiplier",
                 "nargs": None,
                 "help": "modifier for random sleep values - slows down (>1) or speeds up (<1) depending on multiplier passed.",
@@ -126,12 +140,18 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--uia-version",
+                "nargs": None,
+                "help": "uiautomator version, defaults to 2.",
+                "metavar": 2,
+                "default": 2,
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
                 "metavar": ("@username1", "@username2"),
                 "default": None,
-                "operation": True,
             },
             {
                 "arg": "--hashtag-likers",
@@ -139,6 +159,5 @@ class CoreArguments(Plugin):
                 "help": "list of hashtags with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
-                "operation": True,
             },
         ]

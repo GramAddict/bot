@@ -4,10 +4,19 @@ import re
 from enum import Enum, auto
 
 from GramAddict.core.device_facade import DeviceFacade
-from GramAddict.core.resources import ResourceID, TabBarText, ClassName
+from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
 from GramAddict.core.utils import random_sleep, save_crash
 
 logger = logging.getLogger(__name__)
+
+
+def load_config(config):
+    global args
+    global configs
+    global ResourceID
+    args = config.args
+    configs = config
+    ResourceID = resources(config.args.app_id)
 
 
 def case_insensitive_re(str_list):
@@ -293,7 +302,7 @@ class SearchView:
             random_sleep(5, 10)
             return HashTagView(self.device)
 
-        logger.info(f"{hashtag} is not in recent searching hystory..")
+        logger.info(f"{hashtag} is not in recent searching history..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
         random_sleep(4, 8)
@@ -597,8 +606,11 @@ class OpenedPostView:
     def _isFollowing(self, countainer):
         text = countainer.child(
             resourceId=ResourceID.BUTTON,
-            className=ClassName.TEXT_VIEW,
-        ).get_text()
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
+        )
+        # UIA1 doesn't use .get_text()
+        if type(text) != str:
+            text = text.get_text()
         return True if text == "Following" or text == "Requested" else False
 
 
