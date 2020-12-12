@@ -3,12 +3,12 @@ import logging
 import os
 from functools import partial
 from colorama import Style
-from random import seed, shuffle
+from random import shuffle
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_interaction, _on_like, interact_with_user
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep, detect_block
+from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
@@ -178,7 +178,7 @@ class IntreractUsernames(Plugin):
                 username = username[:-1]
             search_view = TabBarView(device).navigateToSearch()
             random_sleep()
-            profile_view = search_view.navigateToUsername(username)
+            search_view.navigateToUsername(username)
             random_sleep()
 
             def interact():
