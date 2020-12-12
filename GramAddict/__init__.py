@@ -161,7 +161,7 @@ def run():
                 if ProfileView(device).getUsername() != session_state.my_username:
                     logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
-                    configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
             else:
                 logger.info(
                     "Successful or Total Interactions limit reached. Ending session."
