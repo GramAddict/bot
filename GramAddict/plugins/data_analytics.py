@@ -25,7 +25,7 @@ class DataAnalytics(Plugin):
         self.arguments = [
             {
                 "arg": "--analytics",
-                "nargs": 1,
+                "nargs": None,
                 "help": "generates a PDF analytics report of specified username session data",
                 "metavar": "username1",
                 "default": None,
@@ -33,8 +33,9 @@ class DataAnalytics(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
-        self.username = args.analytics[0]
+    def run(self, device, configs, storage, sessions, plugin):
+        self.args = configs.args
+        self.username = self.args.analytics
         sessions = self.load_sessions()
         if not sessions:
             return

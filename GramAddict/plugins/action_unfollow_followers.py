@@ -6,7 +6,7 @@ from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.resources import ClassName, ResourceID
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
 from GramAddict.core.views import LanguageNotEnglishException
@@ -65,7 +65,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
@@ -73,21 +73,23 @@ class ActionUnfollowFollowers(Plugin):
             unfollowed_count = 0
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = configs.args
+        self.device_id = configs.args.device
         self.state = State()
         self.session_state = sessions[-1]
         self.sessions = sessions
-        self.unfollow_type = plugin[2:]
+        self.unfollow_type = plugin
+        self.ResourceID = resources(self.args.app_id)
 
         count_arg = get_value(
-            getattr(args, self.unfollow_type.replace("-", "_")),
+            getattr(self.args, self.unfollow_type.replace("-", "_")),
             "Unfollow count: {}",
             10,
         )
 
         count = min(
             count_arg,
-            self.session_state.my_following_count - int(args.min_following),
+            self.session_state.my_following_count - int(self.args.min_following),
         )
 
         if self.unfollow_type == "unfollow":
@@ -106,7 +108,7 @@ class ActionUnfollowFollowers(Plugin):
                 + ", you have "
                 + str(self.session_state.my_following_count)
                 + " followings, min following is "
-                + str(args.min_following)
+                + str(self.args.min_following)
                 + ". Finish."
             )
             return
@@ -150,14 +152,14 @@ class ActionUnfollowFollowers(Plugin):
     def open_my_followings(self, device):
         logger.info("Open my followings")
         followings_button = device.find(
-            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
         followings_button.click()
 
     def sort_followings_by_date(self, device):
         logger.info("Sort followings by date: from oldest to newest.")
         sort_button = device.find(
-            resourceId=ResourceID.SORTING_ENTRY_ROW_ICON,
+            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
             className=ClassName.IMAGE_VIEW,
         )
         if not sort_button.exists():
@@ -168,7 +170,7 @@ class ActionUnfollowFollowers(Plugin):
         sort_button.click()
 
         sort_options_recycler_view = device.find(
-            resourceId=ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
+            resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
         if not sort_options_recycler_view.exists():
             logger.error(
@@ -183,7 +185,7 @@ class ActionUnfollowFollowers(Plugin):
     ):
         # Wait until list is rendered
         device.find(
-            resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
         ).wait()
         checked = {}
@@ -194,7 +196,7 @@ class ActionUnfollowFollowers(Plugin):
             screen_iterated_followings = 0
 
             for item in device.find(
-                resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
             ):
                 user_info_view = item.child(index=1)
@@ -267,7 +269,7 @@ class ActionUnfollowFollowers(Plugin):
             if screen_iterated_followings > 0:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
                 list_view = device.find(
-                    resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
+                    resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 list_view.scroll(DeviceFacade.Direction.BOTTOM)
             else:
@@ -284,7 +286,7 @@ class ActionUnfollowFollowers(Plugin):
         :return: whether unfollow was successful
         """
         username_view = device.find(
-            resourceId=ResourceID.FOLLOW_LIST_USERNAME,
+            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
             className=ClassName.TEXT_VIEW,
             text=username,
         )
@@ -339,7 +341,7 @@ class ActionUnfollowFollowers(Plugin):
         attempts = 2
         for _ in range(attempts):
             confirm_unfollow_button = device.find(
-                resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+                resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
                 className=ClassName.TEXT_VIEW,
             )
             if confirm_unfollow_button.exists():
@@ -376,14 +378,14 @@ class ActionUnfollowFollowers(Plugin):
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
         following_container = device.find(
-            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
         following_container.click()
 
         random_sleep()
 
         my_username_view = device.find(
-            resourceId=ResourceID.FOLLOW_LIST_USERNAME,
+            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
             className=ClassName.TEXT_VIEW,
             text=my_username,
         )

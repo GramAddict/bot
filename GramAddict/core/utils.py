@@ -12,17 +12,22 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import APP_ID, ClassName, ResourceID
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.version import __version__
 
-args = None
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
 
-def load(nargs):
+def load_config(config):
+    global app_id
     global args
-    args = nargs
+    global configs
+    global ResourceID
+    app_id = config.args.app_id
+    args = config.args
+    configs = config
+    ResourceID = resources(app_id)
 
 
 def update_available():
@@ -39,7 +44,8 @@ def update_available():
         return False
 
 
-def check_adb_connection(is_device_id_provided):
+def check_adb_connection():
+    is_device_id_provided = configs.device_id is not None
     stream = os.popen("adb devices")
     output = stream.read()
     devices_count = len(re.findall("device\n", output))
@@ -62,11 +68,11 @@ def check_adb_connection(is_device_id_provided):
     return is_ok
 
 
-def get_instagram_version(device_id):
+def get_instagram_version():
     stream = os.popen(
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + f" shell dumpsys package {APP_ID}"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell dumpsys package {app_id}"
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
@@ -78,11 +84,11 @@ def get_instagram_version(device_id):
     return version
 
 
-def open_instagram_with_url(device_id, url):
+def open_instagram_with_url(url):
     logger.info("Open Instagram app with url: {}".format(url))
     cmd = (
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
         + " shell am start -a android.intent.action.VIEW -d {}".format(url)
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
@@ -94,12 +100,12 @@ def open_instagram_with_url(device_id, url):
     return True
 
 
-def open_instagram(device_id):
+def open_instagram():
     logger.info("Open Instagram app")
     cmd = (
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + f" shell am start -n {APP_ID}/com.instagram.mainactivity.MainActivity"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
@@ -108,12 +114,12 @@ def open_instagram(device_id):
     random_sleep()
 
 
-def close_instagram(device_id):
+def close_instagram():
     logger.info("Close Instagram app")
     os.popen(
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + f" shell am force-stop {APP_ID}"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell am force-stop {app_id}"
     ).close()
 
 

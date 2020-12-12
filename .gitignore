@@ -4,6 +4,7 @@
 /gramaddict_beta.egg-info
 /.idea
 /.vscode
+*/*.yml
 interacted_users.*
 sessions.json
 *.pyc
