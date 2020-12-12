@@ -5,9 +5,9 @@ from functools import partial
 from colorama import Style
 from random import shuffle
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.interaction import _on_interaction, _on_like, interact_with_user
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
+from GramAddict.core.views import TabBarView
 from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.interaction import (
     _on_interaction,
@@ -18,8 +18,6 @@ from GramAddict.core.interaction import (
 )
 
 logger = logging.getLogger(__name__)
-
-from GramAddict.core.views import TabBarView
 
 
 class IntreractUsernames(Plugin):
