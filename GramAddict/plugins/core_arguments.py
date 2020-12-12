@@ -141,4 +141,11 @@ class CoreArguments(Plugin):
                 "default": None,
                 "operation": True,
             },
+            {
+                "arg": "--scraping",
+                "nargs": None,
+                "help": "generate a file in main directory with given name with target users",
+                "metavar": ("filename"),
+                "default": None,
+            },
         ]

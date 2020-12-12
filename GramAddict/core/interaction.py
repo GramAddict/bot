@@ -7,7 +7,13 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ResourceID, ClassName
-from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash
+from GramAddict.core.utils import (
+    detect_block,
+    get_value,
+    random_sleep,
+    save_crash,
+    append_to_file,
+)
 from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
@@ -36,6 +42,7 @@ def interact_with_user(
     profile_filter,
     args,
     session_state,
+    scraping_file,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -48,11 +55,6 @@ def interact_with_user(
 
     if not profile_filter.check_profile(device, username):
         return False, False
-
-    likes_value = get_value(likes_count, "Likes count: {}", 2)
-    if likes_value > 12:
-        logger.error("Max number of likes per user is 12.")
-        likes_value = 12
 
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()
@@ -69,6 +71,11 @@ def interact_with_user(
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
         return False, followed
 
+    if scraping_file is not None:
+        append_to_file(scraping_file, username)
+        logger.info(f"Added @{username} at {scraping_file}.txt")
+        return True, True
+
     _watch_stories(
         device,
         profile_view,
@@ -82,6 +89,12 @@ def interact_with_user(
 
     ProfileView(device).swipe_to_fit_posts()
     random_sleep()
+
+    likes_value = get_value(likes_count, "Likes count: {}", 2)
+    if likes_value > 12:
+        logger.error("Max number of likes per user is 12.")
+        likes_value = 12
+
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
     end_time = format(time() - start_time, ".2f")

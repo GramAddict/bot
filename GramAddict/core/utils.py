@@ -231,5 +231,12 @@ def validate_url(x):
         return False
 
 
+def append_to_file(filename, username):
+    if not filename.lower().endswith(".txt"):
+        filename = filename + ".txt"
+    with open(filename, "a", encoding="UTF-8") as file:
+        file.write(username + "\n")
+
+
 class ActionBlockedError(Exception):
     pass

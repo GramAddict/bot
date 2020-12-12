@@ -18,10 +18,10 @@ from GramAddict.core.resources import ClassName, ResourceID
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.views import TabBarView
 
 logger = logging.getLogger(__name__)
 
-from GramAddict.core.views import TabBarView
 
 # Script Initialization
 seed()
@@ -118,6 +118,7 @@ class InteractBloggerFollowers(Plugin):
                     stories_percentage,
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
+                    args.scraping,
                     storage,
                     profile_filter,
                     on_like,
@@ -145,6 +146,7 @@ class InteractBloggerFollowers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        scraping_file,
         storage,
         profile_filter,
         on_like,
@@ -164,6 +166,7 @@ class InteractBloggerFollowers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            scraping_file=scraping_file,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
