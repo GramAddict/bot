@@ -185,6 +185,7 @@ class InteractBloggerFollowers(Plugin):
             on_interaction,
             is_myself,
             skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
+            skipped_fling_limit=get_value(self.args.fling_when_skipped, None, 0),
         )
 
     def open_user_followers(self, device, username):
@@ -241,6 +242,7 @@ class InteractBloggerFollowers(Plugin):
         on_interaction,
         is_myself,
         skipped_list_limit,
+        skipped_fling_limit,
     ):
         # Wait until list is rendered
         device.find(
@@ -255,7 +257,10 @@ class InteractBloggerFollowers(Plugin):
             )
             return row_search.exists()
 
-        scroll_end_detector = ScrollEndDetector(skipped_list_limit=skipped_list_limit)
+        scroll_end_detector = ScrollEndDetector(
+            skipped_list_limit=skipped_list_limit,
+            skipped_fling_limit=skipped_fling_limit,
+        )
         while True:
             logger.info("Iterate over visible followers")
             random_sleep()
@@ -380,7 +385,10 @@ class InteractBloggerFollowers(Plugin):
                         scroll_end_detector.notify_skipped_all()
                         if scroll_end_detector.is_skipped_limit_reached():
                             return
-                        list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                        if screen_end_detector.is_fling_limit_reached():
+                            list_view.fling(DeviceFacade.Direction.BOTTOM)
+                        else:
+                            list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(
                             "Need to scroll now", extra={"color": f"{Fore.GREEN}"}

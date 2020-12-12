@@ -116,6 +116,13 @@ class CoreArguments(Plugin):
                 "default": "10-15",
             },
             {
+                "arg": "--fling-when-skipped",
+                "nargs": None,
+                "help": 'fling after "X" many scrolls tried, with already interacted users. (not recommended - disabled by default)',
+                "metavar": "10-12",
+                "default": "0",
+            },
+            {
                 "arg": "--speed-multiplier",
                 "nargs": None,
                 "help": "modifier for random sleep values - slows down (>1) or speeds up (<1) depending on multiplier passed.",
