@@ -197,8 +197,12 @@ class ActionUnfollowFollowers(Plugin):
             resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
         ).wait()
-        sort_container_obj = device.find(resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON)
-        top_tab_obj = device.find(resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT)
+        sort_container_obj = device.find(
+            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
+        )
+        top_tab_obj = device.find(
+            resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
+        )
         if sort_container_obj.exists() and top_tab_obj.exists():
             sort_container_bounds = sort_container_obj.get_bounds()["top"]
             list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
