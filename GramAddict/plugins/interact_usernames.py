@@ -164,6 +164,8 @@ class IntreractUsernames(Plugin):
         )
 
         # start
+        if not current_file.lower().endswith(".txt"):
+            current_file = f"{current_file}.txt"
         if os.path.isfile(current_file):
             with open(current_file, "r") as f:
                 user_list = f.readlines()
