@@ -292,8 +292,11 @@ class SearchView:
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
+        logger.debug("Close the keyboad")
+        DeviceFacade.back(self.device)
+        random_sleep(1, 2)
         searched_user_recent = self._getUsernameRow(username)
-        if searched_user_recent.exists():
+        if searched_user_recent.exists(True):
             searched_user_recent.click()
         else:
             search_edit_text.set_text(username)
