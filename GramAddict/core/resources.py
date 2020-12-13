@@ -88,6 +88,11 @@ class ResourceID:
         )
         self.ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"
 
+        self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
+            f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
+        )
+        self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
+
 
 class TabBarText:
     ACTIVITY_CONTENT_DESC = "Activity"
