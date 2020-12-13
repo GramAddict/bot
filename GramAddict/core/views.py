@@ -144,8 +144,9 @@ class TabBarView:
             random_sleep(1, 2)
             button.click()
             random_sleep(1, 2)
-            button.click()
-            random_sleep(1, 2)
+            if tab is not TabBarTabs.PROFILE:
+                button.click()
+                random_sleep(1, 2)
 
             return
 
@@ -291,15 +292,16 @@ class SearchView:
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-
-        search_edit_text.set_text(username)
-        username_view = self._getUsernameRow(username)
-
-        if not username_view.exists():
-            logger.error("Cannot find user @" + username + ", abort.")
-            return None
-
-        username_view.click()
+        searched_user_recent = self._getUsernameRow(username)
+        if searched_user_recent.exists():
+            searched_user_recent.click()
+        else:
+            search_edit_text.set_text(username)
+            username_view = self._getUsernameRow(username)
+            if not username_view.exists():
+                logger.error("Cannot find user @" + username + ", abort.")
+                return None
+            username_view.click()
 
         return ProfileView(self.device, is_own_profile=False)
 
@@ -426,17 +428,28 @@ class PostsViewList:
                     return False, ""
 
     def _post_owner(self, mode: Owner):
+        action_bar_new_title = self.device.find(
+            resourceIdMatches=(ResourceID.ACTION_BAR_NEW_TITLE_CONTAINER)
+        )
         post_owner_obj = self.device.find(
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         )
-        if not post_owner_obj.exists(True):
-            UniversalActions(self.device)._swipe_points(direction=Direction.UP)
-            post_owner_obj = self.device.find(
-                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
-            )
+        if action_bar_new_title.exists():
+            action_bar_new_title.click(action_bar_new_title.Location.CENTER)
+        post_owner_clickable = False
+        for _ in range(2):
             if not post_owner_obj.exists(True):
-                logger.info("Can't find the owner name.")
-                return False
+                UniversalActions(self.device)._swipe_points(direction=Direction.UP)
+                post_owner_obj = self.device.find(
+                    resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+                )
+            else:
+                post_owner_clickable = True
+                break
+
+        if not post_owner_clickable:
+            logger.info("Can't find the owner name.")
+            return False
         if mode == Owner.OPEN:
             logger.info("Open post owner.")
             post_owner_obj.click()
@@ -487,7 +500,7 @@ class PostsViewList:
                 return False
         else:
             UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
-            if first_attemp == True:
+            if first_attemp:
                 return PostsViewList(self.device)._check_if_liked(False)
             else:
                 logger.debug("Like btn not present.")
@@ -886,7 +899,7 @@ class ProfileView(ActionBarView):
         )
         if post_count_view.exists():
             count = post_count_view.get_text()
-            if count != None:
+            if count is not None:
                 return self._parseCounter(count)
             else:
                 logger.error("Cannot get posts count text")

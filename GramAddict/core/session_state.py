@@ -60,7 +60,7 @@ class SessionState:
 
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
-        limit_type = SessionState.Limit.ALL if limit_type == None else limit_type
+        limit_type = SessionState.Limit.ALL if limit_type is None else limit_type
         likes_limit = get_value(args.total_likes_limit, None, 300)
         total_likes = self.totalLikes >= int(likes_limit)
         follow_limit = get_value(args.total_follows_limit, None, 50)

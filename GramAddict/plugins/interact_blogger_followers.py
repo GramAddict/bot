@@ -60,7 +60,7 @@ class InteractBloggerFollowers(Plugin):
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
-        self.current_mode = plugin[2:]
+        self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.blogger_followers]

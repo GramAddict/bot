@@ -206,7 +206,7 @@ def get_value(count, name, default):
     elif len(parts) == 1:
         try:
             value = int(count)
-            if name != None:
+            if name is not None:
                 logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
@@ -214,7 +214,7 @@ def get_value(count, name, default):
     elif len(parts) == 2:
         try:
             value = randint(int(parts[0]), int(parts[1]))
-            if name != None:
+            if name is not None:
                 logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default

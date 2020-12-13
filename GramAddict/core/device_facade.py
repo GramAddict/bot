@@ -494,13 +494,9 @@ class DeviceFacade:
                     visible_bounds["bottom"] - vertical_padding,
                 )
             )
-            time_between_clicks = uniform(0.050, 0.180)
 
             logger.debug(
                 f"Available surface for double click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
-            )
-            logger.debug(
-                f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
             )
             if self.viewV1 is not None:
                 import uiautomator
@@ -539,7 +535,7 @@ class DeviceFacade:
 
                 try:
                     logger.debug(
-                        f"Double click in x={random_x}; y={random_y} with t={int(time_between_clicks*1000)}ms"
+                        f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
                     )
                     self.deviceV2.double_click(
                         random_x, random_y, duration=time_between_clicks

@@ -70,7 +70,7 @@ class InteractHashtagLikers(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         profile_filter = Filter()
-        self.current_mode = plugin[2:]
+        self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
@@ -137,7 +137,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    plugin[2:],
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,

@@ -126,9 +126,9 @@ def run():
             ) = profileView.getProfileInfo()
 
         if (
-            session_state.my_username == None
-            or session_state.my_followers_count == None
-            or session_state.my_following_count == None
+            session_state.my_username is None
+            or session_state.my_followers_count is None
+            or session_state.my_following_count is None
         ):
             logger.critical(
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
@@ -162,6 +162,7 @@ def run():
                     logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
                 configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+
             else:
                 logger.info(
                     "Successful or Total Interactions limit reached. Ending session."
