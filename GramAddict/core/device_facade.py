@@ -260,7 +260,12 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-    def swipe_points(self, sx, sy, ex, ey):
+    def swipe_points(self, sx, sy, ex, ey, random_x=True, random_y=True):
+        if random_x:
+            sx = sx * uniform(0.60, 1.40)
+            ex = sx * uniform(0.85, 1.15)
+        if random_y:
+            ey = ey * uniform(0.98, 1.02)
         if self.deviceV1 is not None:
             import uiautomator
 
@@ -272,7 +277,7 @@ class DeviceFacade:
             import uiautomator2
 
             try:
-                self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.6))
+                self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.4, 0.6))
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -472,6 +477,27 @@ class DeviceFacade:
             padding: % of how far from the borders we want the double
                     click to happen.
             """
+            visible_bounds = self.get_bounds()
+            horizontal_len = visible_bounds["right"] - visible_bounds["left"]
+            vertical_len = visible_bounds["bottom"] - visible_bounds["top"]
+            horizintal_padding = int(padding * horizontal_len)
+            vertical_padding = int(padding * vertical_len)
+            random_x = int(
+                uniform(
+                    visible_bounds["left"] + horizintal_padding,
+                    visible_bounds["right"] - horizintal_padding,
+                )
+            )
+            random_y = int(
+                uniform(
+                    visible_bounds["top"] + vertical_padding,
+                    visible_bounds["bottom"] - vertical_padding,
+                )
+            )
+
+            logger.debug(
+                f"Available surface for double click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
+            )
             if self.viewV1 is not None:
                 import uiautomator
 
@@ -509,7 +535,7 @@ class DeviceFacade:
 
                 try:
                     logger.debug(
-                        f"Double click in x={random_x}; y={random_y} with t={int(time_between_clicks*1000)}ms"
+                        f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
                     )
                     self.deviceV2.double_click(
                         random_x, random_y, duration=time_between_clicks
