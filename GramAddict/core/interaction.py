@@ -6,14 +6,8 @@ from colorama import Fore
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
-from GramAddict.core.resources import ResourceID, ClassName
-from GramAddict.core.utils import (
-    detect_block,
-    get_value,
-    random_sleep,
-    save_crash,
-    append_to_file,
-)
+from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash, append_to_file,
 from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
@@ -26,6 +20,15 @@ logger = logging.getLogger(__name__)
 FOLLOW_REGEX = "^Follow$"
 FOLLOWBACK_REGEX = "^Follow Back$"
 UNFOLLOW_REGEX = "^Following|^Requested"
+
+
+def load_config(config):
+    global args
+    global configs
+    global ResourceID
+    args = config.args
+    configs = config
+    ResourceID = resources(config.args.app_id)
 
 
 def interact_with_user(
@@ -66,10 +69,10 @@ def interact_with_user(
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
             followed = _follow(device, username, follow_percentage, args, session_state)
+            return True, followed
         else:
-            followed = False
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-        return False, followed
+            return False, False
 
     if scraping_file is not None:
         append_to_file(scraping_file, username)

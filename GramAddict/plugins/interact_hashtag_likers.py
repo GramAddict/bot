@@ -57,30 +57,33 @@ class InteractHashtagLikers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.device_id = configs.args.device
         self.sessions = sessions
         self.session_state = sessions[-1]
-        self.args = args
+        self.args = configs.args
         profile_filter = Filter()
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
-            source for source in (args.hashtag_likers_top or args.hashtag_likers_recent)
+            source
+            for source in (
+                self.args.hashtag_likers_top or self.args.hashtag_likers_recent
+            )
         ]
         shuffle(sources)
 
         for source in sources:
             limit_reached = self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.LIKES
+                self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.FOLLOWS
             )
 
             self.state = State()
@@ -90,10 +93,10 @@ class InteractHashtagLikers(Plugin):
 
             on_interaction = partial(
                 _on_interaction,
-                likes_limit=int(args.total_likes_limit),
+                likes_limit=int(self.args.total_likes_limit),
                 source=source,
                 interactions_limit=get_value(
-                    args.interactions_count, "Interactions count: {}", 70
+                    self.args.interactions_count, "Interactions count: {}", 70
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
@@ -108,9 +111,9 @@ class InteractHashtagLikers(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if args.stories_count != "0":
+            if self.args.stories_count != "0":
                 stories_percentage = get_value(
-                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
                 )
             else:
                 stories_percentage = 0
@@ -125,12 +128,12 @@ class InteractHashtagLikers(Plugin):
                 self.handle_hashtag(
                     device,
                     source,
-                    args.likes_count,
-                    args.stories_count,
+                    self.args.likes_count,
+                    self.args.stories_count,
                     stories_percentage,
-                    int(args.follow_percentage),
-                    int(args.follow_limit) if args.follow_limit else None,
-                    args.hashtag_likers_recent,
+                    int(self.args.follow_percentage),
+                    int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.args.hashtag_likers_recent,
                     storage,
                     profile_filter,
                     on_like,
@@ -145,7 +148,7 @@ class InteractHashtagLikers(Plugin):
             if limit_reached:
                 logger.info("Likes and follows limit reached.")
                 self.session_state.check_limit(
-                    args, limit_type=self.session_state.Limit.ALL, output=True
+                    self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )
                 break
 
@@ -201,8 +204,12 @@ class InteractHashtagLikers(Plugin):
         random_sleep()
 
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
+        skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
+
         posts_end_detector = ScrollEndDetector(
-            repeats_to_end=2, skipped_list_limit=skipped_list_limit
+            repeats_to_end=2,
+            skipped_list_limit=skipped_list_limit,
+            skipped_fling_limit=skipped_fling_limit,
         )
         first_post = True
         post_description = ""
@@ -302,26 +309,39 @@ class InteractHashtagLikers(Plugin):
                         device.back()
                         PostsViewList(device).swipe_to_fit_posts(False)
                         break
-
-                if screen_iterated_likers == prev_screen_iterated_likers:
+                    if screen_iterated_likers == prev_screen_iterated_likers:
+                        logger.info(
+                            "Iterated exactly the same likers twice.",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        logger.info(f"Back to {hashtag}'s posts list.")
+                        device.back()
+                        logger.info("Going to the next post.")
+                        PostsViewList(device).swipe_to_fit_posts(False)
+                        break
+                    if posts_end_detector.is_fling_limit_reached():
+                        prev_screen_iterated_likers.clear()
+                        prev_screen_iterated_likers += screen_iterated_likers
+                        logger.info(
+                            "Reached fling limit. Fling to see other likers",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        likes_list_view.fling(DeviceFacade.Direction.BOTTOM)
+                    else:
+                        prev_screen_iterated_likers.clear()
+                        prev_screen_iterated_likers += screen_iterated_likers
+                        logger.info(
+                            "Scroll to see other likers",
+                            extra={"color": f"{Fore.GREEN}"},
+                        )
+                        likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                else:
+                    prev_screen_iterated_likers.clear()
+                    prev_screen_iterated_likers += screen_iterated_likers
                     logger.info(
-                        "Iterated exactly the same likers twice.",
-                        extra={"color": f"{Fore.GREEN}"},
+                        "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
                     )
-                    logger.info(f"Back to {hashtag}'s posts list.")
-                    device.back()
-                    logger.info("Going to the next post.")
-                    PostsViewList(device).swipe_to_fit_posts(False)
-
-                    break
-
-                prev_screen_iterated_likers.clear()
-                prev_screen_iterated_likers += screen_iterated_likers
-
-                logger.info(
-                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
-                )
-                likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                    likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
                 break
