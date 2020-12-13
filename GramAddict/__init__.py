@@ -30,7 +30,7 @@ from GramAddict.core.utils import (
     save_crash,
     update_available,
 )
-from GramAddict.core.views import TabBarView, load_config as load_views
+from GramAddict.core.views import ProfileView, TabBarView, load_config as load_views
 from GramAddict.version import __version__
 
 # Pre-Load Config
@@ -126,9 +126,9 @@ def run():
             ) = profileView.getProfileInfo()
 
         if (
-            session_state.my_username == None
-            or session_state.my_followers_count == None
-            or session_state.my_following_count == None
+            session_state.my_username is None
+            or session_state.my_followers_count is None
+            or session_state.my_following_count is None
         ):
             logger.critical(
                 "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
@@ -157,8 +157,12 @@ def run():
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
             ):
-                logger.info(f"Running plugin: {plugin}")
+                logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
+                if ProfileView(device).getUsername() != session_state.my_username:
+                    logger.debug("Not in your main profile.")
+                    TabBarView(device).navigateToProfile()
                 configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+
             else:
                 logger.info(
                     "Successful or Total Interactions limit reached. Ending session."

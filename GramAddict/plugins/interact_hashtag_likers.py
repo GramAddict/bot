@@ -22,6 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
+    SwipeTo,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,12 +70,15 @@ class InteractHashtagLikers(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         profile_filter = Filter()
+        self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
             source
             for source in (
-                self.args.hashtag_likers_top or self.args.hashtag_likers_recent
+                self.args.hashtag_likers_top
+                if self.current_mode == "hashtag-likers-top"
+                else self.args.hashtag_likers_recent
             )
         ]
         shuffle(sources)
@@ -133,7 +137,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.hashtag_likers_recent,
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -161,7 +165,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        hashtag_likers_recent,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -180,6 +184,7 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
@@ -192,10 +197,13 @@ class InteractHashtagLikers(Plugin):
         if not search_view.navigateToHashtag(hashtag):
             return
 
-        if hashtag_likers_recent != None:
+        if current_job == "hashtag-likers-recent":
             logger.info("Switching to Recent tab")
             HashTagView(device)._getRecentTab().click()
             random_sleep(5, 10)
+            if HashTagView(device)._check_if_no_posts():
+                HashTagView(device)._reload_page()
+                random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
@@ -211,27 +219,25 @@ class InteractHashtagLikers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-        first_post = True
         post_description = ""
         while True:
-            if first_post:
-                PostsViewList(device).swipe_to_fit_posts(True)
-                first_post = False
+
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
             if not OpenedPostView(device).open_likers():
                 logger.info(
                     "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
                 )
-                PostsViewList(device).swipe_to_fit_posts(False)
 
                 flag, post_description = PostsViewList(device).check_if_last_post(
                     post_description
                 )
                 if not flag:
+                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                     continue
                 else:
                     break
 
-            logger.info("List of likers is opened.")
+            logger.info("Open list of likers.")
             posts_end_detector.notify_new_page()
             random_sleep()
 
@@ -341,7 +347,20 @@ class InteractHashtagLikers(Plugin):
                     logger.info(
                         "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
                     )
-                    likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                    logger.info(f"Back to {hashtag}'s posts list.")
+                    device.back()
+                    logger.info("Going to the next post.")
+                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+
+                    break
+
+                prev_screen_iterated_likers.clear()
+                prev_screen_iterated_likers += screen_iterated_likers
+
+                logger.info(
+                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
+                )
+                likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
 
             if posts_end_detector.is_the_end():
                 break

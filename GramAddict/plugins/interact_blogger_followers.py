@@ -60,6 +60,7 @@ class InteractBloggerFollowers(Plugin):
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
+        self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.blogger_followers]
@@ -168,6 +169,7 @@ class InteractBloggerFollowers(Plugin):
             args=self.args,
             session_state=self.session_state,
             scraping_file=scraping_file,
+            current_mode=self.current_mode,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,

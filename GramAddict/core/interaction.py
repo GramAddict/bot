@@ -3,7 +3,6 @@ from random import randint, shuffle
 from typing import Tuple
 from time import time
 from colorama import Fore
-from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
@@ -13,6 +12,8 @@ from GramAddict.core.views import (
     ProfileView,
     CurrentStoryView,
     PostsGridView,
+    UniversalActions,
+    Direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ def interact_with_user(
     args,
     session_state,
     scraping_file,
+    current_mode,
 ) -> Tuple[bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
@@ -68,7 +70,9 @@ def interact_with_user(
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
-            followed = _follow(device, username, follow_percentage, args, session_state)
+            followed = _follow(
+                device, username, follow_percentage, args, session_state, 0
+            )
             return True, followed
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
@@ -90,7 +94,7 @@ def interact_with_user(
         session_state,
     )
 
-    ProfileView(device).swipe_to_fit_posts()
+    swipe_amount = ProfileView(device).swipe_to_fit_posts()
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
@@ -102,9 +106,14 @@ def interact_with_user(
     full_rows, columns_last_row = profile_view.count_photo_in_view()
     end_time = format(time() - start_time, ".2f")
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
+
     logger.info(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
+    if current_mode == "hashtag-posts-recent" or current_mode == "hashtag-posts-top":
+        session_state.totalLikes += 1
+        photos_indices = photos_indices[1:]
+
     if likes_value > len(photos_indices):
         logger.info(f"Only {len(photos_indices)} photo(s) available")
     else:
@@ -144,7 +153,12 @@ def interact_with_user(
 
             if can_follow and profile_filter.can_follow_private_or_empty():
                 followed = _follow(
-                    device, username, follow_percentage, args, session_state
+                    device,
+                    username,
+                    follow_percentage,
+                    args,
+                    session_state,
+                    swipe_amount,
                 )
             else:
                 followed = False
@@ -155,7 +169,9 @@ def interact_with_user(
 
         random_sleep()
     if can_follow:
-        return True, _follow(device, username, follow_percentage, args, session_state)
+        return True, _follow(
+            device, username, follow_percentage, args, session_state, swipe_amount
+        )
 
     return True, False
 
@@ -228,7 +244,7 @@ def _on_interaction(
     return can_continue
 
 
-def _follow(device, username, follow_percentage, args, session_state):
+def _follow(device, username, follow_percentage, args, session_state, swipe_amount):
     if not session_state.check_limit(
         args, limit_type=session_state.Limit.FOLLOWS, output=False
     ):
@@ -236,10 +252,11 @@ def _follow(device, username, follow_percentage, args, session_state):
         if follow_chance > follow_percentage:
             return False
 
-        logger.info("Following...")
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
-        if coordinator_layout.exists():
-            coordinator_layout.scroll(DeviceFacade.Direction.TOP)
+        if coordinator_layout.exists() and swipe_amount != 0:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.UP, delta_y=swipe_amount
+            )
 
         random_sleep()
 

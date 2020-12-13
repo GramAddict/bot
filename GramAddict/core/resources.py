@@ -2,6 +2,9 @@ class ResourceID:
     def __init__(self, APP_ID):
         self.ACTION_BAR_CONTAINER = f"{APP_ID}:id/action_bar_container"
         self.ACTION_BAR_LARGE_TITLE = f"{APP_ID}:id/action_bar_large_title"
+        self.ACTION_BAR_NEW_TITLE_CONTAINER = (
+            f"{APP_ID}:id/action_bar_new_title_container"
+        )
         self.ACTION_BAR_SEARCH_EDIT_TEXT = f"{APP_ID}:id/action_bar_search_edit_text"
         self.ACTION_BAR_TEXTVIEW_TITLE = f"{APP_ID}:id/action_bar_textview_title"
         self.ACTION_BAR_TITLE = f"{APP_ID}:id/action_bar_title"
@@ -16,7 +19,11 @@ class ResourceID:
         )
         self.FOLLOW_LIST_USERNAME = f"{APP_ID}:id/follow_list_username"
         self.FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
+        self.FOOTER_SPACE = f"{APP_ID}:id/footer_space"
         self.GAP_VIEW = f"{APP_ID}:id/gap_view"
+        self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
+            f"{APP_ID}:id/igds_headline_emphasized_headline"
+        )
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
         self.LIST = "android:id/list"
@@ -35,10 +42,12 @@ class ResourceID:
         self.REEL_VIEWER_IMAGE_VIEW = f"{APP_ID}:id/reel_viewer_image_view"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
+        self.ROW_FEED_BUTTON_COMMENT = f"{APP_ID}:id/row_feed_button_comment"
         self.ROW_FEED_BUTTON_LIKE = f"{APP_ID}:id/row_feed_button_like"
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (
             f"{APP_ID}:id/row_feed_comment_textview_layout"
         )
+        self.ROW_FEED_PHOTO_PROFILE_NAME = f"{APP_ID}:id/row_feed_photo_profile_name"
         self.ROW_FEED_TEXTVIEW_LIKES = f"{APP_ID}:id/row_feed_textview_likes"
         self.ROW_HASHTAG_TEXTVIEW_TAG_NAME = (
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
@@ -74,6 +83,9 @@ class ResourceID:
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
+        self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
+            f"{APP_ID}:id/unified_follow_list_tab_layout"
+        )
         self.ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"
 
 
@@ -103,4 +115,5 @@ class ClassName:
     RECYCLER_VIEW = "androidx.recyclerview.widget.RecyclerView"
     TEXT_VIEW = "android.widget.TextView"
     VIEW = "android.view.View"
+    VIEW_GROUP = "android.view.ViewGroup"
     VIEW_PAGER = "androidx.viewpager.widget.ViewPager"
