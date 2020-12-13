@@ -6,7 +6,7 @@ from colorama import Fore
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
-from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash, append_to_file,
+from GramAddict.core.utils import detect_block, get_value, random_sleep, save_crash, append_to_file
 from GramAddict.core.views import (
     LanguageNotEnglishException,
     ProfileView,
