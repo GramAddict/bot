@@ -20,7 +20,7 @@ from GramAddict.core.interaction import (
 logger = logging.getLogger(__name__)
 
 
-class IntreractUsernames(Plugin):
+class InteractUsernames(Plugin):
     """Interact with users that are given from a file"""
 
     def __init__(self):
@@ -105,7 +105,7 @@ class IntreractUsernames(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.plugin,
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
