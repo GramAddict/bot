@@ -301,7 +301,8 @@ class SearchView:
             searched_user_recent.click()
         else:
             search_edit_text.set_text(username)
-            username_view = self._getUsernameRow(username)
+            random_sleep(1,2)
+            username_view = self._getUsernameRow(username
             if not username_view.exists():
                 logger.error("Cannot find user @" + username + ", abort.")
                 return None
