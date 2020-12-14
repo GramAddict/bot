@@ -221,21 +221,14 @@ class InteractHashtagLikers(Plugin):
         )
         post_description = ""
         while True:
-
-            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
-            if not OpenedPostView(device).open_likers():
-                logger.info(
-                    "No likes, let's scroll down.", extra={"color": f"{Fore.GREEN}"}
-                )
-
+            if not PostsViewList(device)._find_likes_container():
                 flag, post_description = PostsViewList(device).check_if_last_post(
                     post_description
                 )
-                if not flag:
-                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-                    continue
-                else:
+                if flag:
                     break
+                PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+                continue
 
             logger.info("Open list of likers.")
             posts_end_detector.notify_new_page()
@@ -304,9 +297,10 @@ class InteractHashtagLikers(Plugin):
                     )
                     break
 
+                go_back = False
                 if not opened:
                     logger.info(
-                        "All followers skipped.",
+                        "All likers skipped.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     posts_end_detector.notify_skipped_all()
@@ -315,52 +309,39 @@ class InteractHashtagLikers(Plugin):
                         device.back()
                         PostsViewList(device).swipe_to_fit_posts(False)
                         break
-                    if screen_iterated_likers == prev_screen_iterated_likers:
-                        logger.info(
-                            "Iterated exactly the same likers twice.",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        logger.info(f"Back to {hashtag}'s posts list.")
-                        device.back()
-                        logger.info("Going to the next post.")
-                        PostsViewList(device).swipe_to_fit_posts(False)
-                        break
-                    if posts_end_detector.is_fling_limit_reached():
-                        prev_screen_iterated_likers.clear()
-                        prev_screen_iterated_likers += screen_iterated_likers
-                        logger.info(
-                            "Reached fling limit. Fling to see other likers",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        likes_list_view.fling(DeviceFacade.Direction.BOTTOM)
-                    else:
-                        prev_screen_iterated_likers.clear()
-                        prev_screen_iterated_likers += screen_iterated_likers
-                        logger.info(
-                            "Scroll to see other likers",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                if screen_iterated_likers == prev_screen_iterated_likers:
+                    logger.info(
+                        "Iterated exactly the same likers twice.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    go_back = True
+                if posts_end_detector.is_fling_limit_reached():
+                    prev_screen_iterated_likers.clear()
+                    prev_screen_iterated_likers += screen_iterated_likers
+                    logger.info(
+                        "Reached fling limit. Fling to see other likers",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    likes_list_view.fling(DeviceFacade.Direction.BOTTOM)
                 else:
                     prev_screen_iterated_likers.clear()
                     prev_screen_iterated_likers += screen_iterated_likers
                     logger.info(
-                        "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
+                        "Scroll to see other likers",
+                        extra={"color": f"{Fore.GREEN}"},
                     )
-                    logger.info(f"Back to {hashtag}'s posts list.")
+                    likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                if go_back:
+                    prev_screen_iterated_likers.clear()
+                    prev_screen_iterated_likers += screen_iterated_likers
+                    logger.info(
+                        f"Back to {hashtag}'s posts list.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
                     device.back()
                     logger.info("Going to the next post.")
                     PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-
                     break
 
-                prev_screen_iterated_likers.clear()
-                prev_screen_iterated_likers += screen_iterated_likers
-
-                logger.info(
-                    "Scroll to see other likers", extra={"color": f"{Fore.GREEN}"}
-                )
-                likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-
-            if posts_end_detector.is_the_end():
-                break
+                if posts_end_detector.is_the_end():
+                    break

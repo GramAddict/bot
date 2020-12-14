@@ -35,7 +35,8 @@ class Config:
             self.username = self.config.get("username", False)
             self.debug = self.config.get("debug", False)
 
-        self.debug = True if "--debug" in self.args else False
+        if "--debug":
+            self.debug = True
         if "--username" in self.args:
             try:
                 self.username = self.args[self.args.index("--username") + 1]
