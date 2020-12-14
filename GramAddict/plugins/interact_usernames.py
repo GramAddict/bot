@@ -37,28 +37,28 @@ class IntreractUsernames(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = configs.args
+        self.device_id = configs.args.device
         self.sessions = sessions
         self.session_state = sessions[-1]
-        self.args = args
         profile_filter = Filter()
-        self.current_mode = plugin[2:]
+        self.current_mode = plugin
 
-        file_list = [file for file in (args.interact_usernames)]
+        file_list = [file for file in (self.args.interact_usernames)]
         shuffle(file_list)
 
         for file in file_list:
             limit_reached = self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.LIKES
+                self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
-                args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.FOLLOWS
             )
 
             self.state = State()
@@ -66,10 +66,10 @@ class IntreractUsernames(Plugin):
 
             on_interaction = partial(
                 _on_interaction,
-                likes_limit=int(args.total_likes_limit),
+                likes_limit=int(self.args.total_likes_limit),
                 source=file,
                 interactions_limit=get_value(
-                    args.interactions_count, "Interactions count: {}", 70
+                    self.args.interactions_count, "Interactions count: {}", 70
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
@@ -83,9 +83,9 @@ class IntreractUsernames(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if args.stories_count != "0":
+            if self.args.stories_count != "0":
                 stories_percentage = get_value(
-                    args.stories_percentage, "Chance of watching stories: {}%", 40
+                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
                 )
             else:
                 stories_percentage = 0
@@ -100,13 +100,12 @@ class IntreractUsernames(Plugin):
                 self.handle_username_file(
                     device,
                     file,
-                    args.likes_count,
-                    args.stories_count,
+                    self.args.likes_count,
+                    self.args.stories_count,
                     stories_percentage,
-                    int(args.follow_percentage),
-                    int(args.follow_limit) if args.follow_limit else None,
-                    # int(args.interact_chance),
-                    plugin[2:],
+                    int(self.args.follow_percentage),
+                    int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -121,7 +120,7 @@ class IntreractUsernames(Plugin):
                 if limit_reached:
                     logger.info("Likes and follows limit reached.")
                     self.session_state.check_limit(
-                        args, limit_type=self.session_state.Limit.ALL, output=True
+                        self.args, limit_type=self.session_state.Limit.ALL, output=True
                     )
                     break
 
@@ -134,7 +133,6 @@ class IntreractUsernames(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        # interact_chance,
         current_job,
         storage,
         profile_filter,

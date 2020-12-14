@@ -125,7 +125,7 @@ def close_instagram():
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell pkill atx-agent"
+        + " shell pkill atx-agent"
     ).close()
 
 
