@@ -380,16 +380,20 @@ class InteractBloggerFollowers(Plugin):
                             pressed_retry = True
 
                     if need_swipe and not pressed_retry:
-                        logger.info(
-                            "All followers skipped, let's scroll.",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
                         scroll_end_detector.notify_skipped_all()
                         if scroll_end_detector.is_skipped_limit_reached():
                             return
                         if scroll_end_detector.is_fling_limit_reached():
+                            logger.info(
+                                "Limit of all followers skipped reached, let's fling.",
+                                extra={"color": f"{Fore.GREEN}"},
+                            )
                             list_view.fling(DeviceFacade.Direction.BOTTOM)
                         else:
+                            logger.info(
+                                "All followers skipped, let's scroll.",
+                                extra={"color": f"{Fore.GREEN}"},
+                            )
                             list_view.scroll(DeviceFacade.Direction.BOTTOM)
                     else:
                         logger.info(

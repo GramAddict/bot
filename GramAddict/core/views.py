@@ -2,6 +2,7 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
+from colorama import Fore
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
@@ -107,14 +108,15 @@ class TabBarView:
         tab_name = tab.name
         logger.debug(f"Navigate to {tab_name}")
         button = None
-        tabBarView = self._getTabBar()
         if tab == TabBarTabs.HOME:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
         elif tab == TabBarTabs.SEARCH:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
             if not button.exists():
                 # Some accounts display the search btn only in Home -> action bar
@@ -123,20 +125,26 @@ class TabBarView:
                 home_view.navigateToSearch()
                 return
         elif tab == TabBarTabs.REELS:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
             )
         elif tab == TabBarTabs.ORDERS:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
             )
         elif tab == TabBarTabs.ACTIVITY:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.ACTIVITY_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(
+                    TabBarText.ACTIVITY_CONTENT_DESC
+                ),
             )
         elif tab == TabBarTabs.PROFILE:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
 
         if button.exists():
@@ -300,6 +308,7 @@ class SearchView:
             searched_user_recent.click()
         else:
             search_edit_text.set_text(username)
+            random_sleep(1, 2)
             username_view = self._getUsernameRow(username)
             if not username_view.exists():
                 logger.error("Cannot find user @" + username + ", abort.")
@@ -360,10 +369,12 @@ class PostsViewList:
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view
         in order to make it available to other plug-ins I cutted it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
-        containers_content = (
-            f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
-        )
-        containers_gap = f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
+        containers_content = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        # (
+        #     f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
+        # )
+        containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
+        # f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
 
         # move type: half photo
         if swipe == SwipeTo.HALF_PHOTO:
@@ -378,12 +389,19 @@ class PostsViewList:
             )
         # move type: gap/footer to next post
         elif swipe == SwipeTo.NEXT_POST:
-            logger.info("Scroll down to see next post.")
+            logger.info(
+                "Scroll down to see next post.", extra={"color": f"{Fore.GREEN}"}
+            )
             gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
-            if not gap_view_obj.exists(True):
-                logger.debug("Can't find the gap obj, scroll down a little more.")
-                PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
-                gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            for _ in range(2):
+                if not gap_view_obj.exists(True):
+                    logger.debug("Can't find the gap obj, scroll down a little more.")
+                    PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+                    gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+                    if not gap_view_obj.exists(True):
+                        continue
+                    else:
+                        break
             gap_view = gap_view_obj.get_bounds()["top"]
             zoomable_view_container = self.device.find(
                 resourceIdMatches=(containers_content)
@@ -395,6 +413,19 @@ class PostsViewList:
                 zoomable_view_container + 5,
             )
             return True
+
+    def _find_likes_container(self):
+        containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
+        gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+        PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+        for _ in range(2):
+            if not OpenedPostView(self.device).open_likers():
+                if not gap_view_obj.exists(True):
+                    PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+                else:
+                    return False
+            else:
+                return True
 
     def check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
@@ -431,14 +462,9 @@ class PostsViewList:
                     return False, ""
 
     def _post_owner(self, mode: Owner):
-        action_bar_new_title = self.device.find(
-            resourceIdMatches=(ResourceID.ACTION_BAR_NEW_TITLE_CONTAINER)
-        )
         post_owner_obj = self.device.find(
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         )
-        if action_bar_new_title.exists():
-            action_bar_new_title.click(action_bar_new_title.Location.CENTER)
         post_owner_clickable = False
         for _ in range(2):
             if not post_owner_obj.exists(True):
@@ -642,12 +668,15 @@ class OpenedPostView:
             if scroll_to_find:
                 logger.debug("Try to scroll tiny bit down...")
                 # Remember: to scroll down we need to swipe up :)
-                self.device.swipe(DeviceFacade.Direction.TOP, scale=0.2)
-                like_btn_view = self.device.find(
-                    resourceIdMatches=case_insensitive_re(
-                        ResourceID.ROW_FEED_BUTTON_LIKE
+                for _ in range(3):
+                    self.device.swipe(DeviceFacade.Direction.TOP, scale=0.25)
+                    like_btn_view = self.device.find(
+                        resourceIdMatches=case_insensitive_re(
+                            ResourceID.ROW_FEED_BUTTON_LIKE
+                        )
                     )
-                )
+                    if like_btn_view.exists(True):
+                        break
 
             if not scroll_to_find or not like_btn_view.exists(True):
                 logger.error("Could not find like button bellow the post")
@@ -795,9 +824,14 @@ class ProfileView(ActionBarView):
                 ResourceID.ACTION_BAR_TEXTVIEW_TITLE,
             ]
         )
-        return self.action_bar.child(
+        bar = self.action_bar.child(
             resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
         )
+        if not bar.exists():
+            bar = self.device.find(
+                resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
+            )
+        return bar
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
@@ -1149,7 +1183,8 @@ class UniversalActions:
         middle_point_x = self.device.get_info()["displayWidth"] / 2
         if start_point_y == 0:
             start_point_y = self.device.get_info()["displayHeight"] / 2
-
+        if start_point_y - delta_y < 0:
+            delta_y = start_point_y / 2
         if direction == Direction.UP:
             self.device.swipe_points(
                 middle_point_x,
