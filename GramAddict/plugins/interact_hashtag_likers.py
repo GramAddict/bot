@@ -221,26 +221,33 @@ class InteractHashtagLikers(Plugin):
         )
 
         post_description = ""
-        n_same_post = 0
-
+        nr_same_post = 0
+        nr_same_posts_max = 3
         while True:
-            if not PostsViewList(device)._find_likes_container():
-                # problem: if the container is found, that code will not be execuded!!
-                # _find_likers_container open the likes container if it find it!
-                # maybe need to split it, or change the way (or level) I check the same post
-                flag, post_description = PostsViewList(device).check_if_last_post(
-                    post_description
+            likers_container_exists = PostsViewList(device)._find_likers_container()
+            has_one_liker_or_none = PostsViewList(
+                device
+            )._check_if_only_one_liker_or_none()
+
+            flag, post_description = PostsViewList(device)._check_if_last_post(
+                post_description
+            )
+            if flag:
+                nr_same_post += 1
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
                 )
-                if flag:
-                    n_same_post += 1
-                    if n_same_post > 2:
-                        logger.debug(
-                            "More then two posts with the same author and description.."
-                        )
-                        logger.info(f"This was the last post for this hashtag. Finish")
-                        break
-                else:
-                    n_same_post = 0
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
+                    break
+            else:
+                nr_same_post = 0
+
+            if likers_container_exists and not has_one_liker_or_none:
+                PostsViewList(device).open_likers_container()
+            else:
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 continue
 

@@ -402,20 +402,53 @@ class PostsViewList:
             )
             return True
 
-    def _find_likes_container(self):
+    def _find_likers_container(self):
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
         gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
         PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         for _ in range(2):
-            if not PostsViewList(self.device)._open_likers():
+            if not likes_view.exists(True):
                 if not gap_view_obj.exists(True):
                     PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
                 else:
-                    return False
+                    return True
             else:
                 return True
+        return False
 
-    def check_if_last_post(self, last_description):
+    def _check_if_only_one_liker_or_none(self):
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
+        if likes_view.exists(True):
+            likes_view_text = likes_view.get_text()
+            if (
+                likes_view_text[-6:].upper() == "OTHERS"
+                or likes_view_text.upper()[-5:] == "LIKES"
+            ):
+                return False
+            else:
+                logger.info("This post has only 1 liker, skip.")
+                return True
+        else:
+            logger.info("This post has no likers, skip.")
+            return True
+
+    def open_likers_container(self):
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
+        logger.info("Opening post likers.")
+        random_sleep()
+        likes_view.click(likes_view.Location.RIGHT)
+
+    def _check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
         swiped_a_bit = False
         n = 1
