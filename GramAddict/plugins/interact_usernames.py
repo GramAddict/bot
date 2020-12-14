@@ -51,7 +51,7 @@ class InteractUsernames(Plugin):
         profile_filter = Filter()
         self.current_mode = plugin
 
-        file_list = [file for file in (self.args.interact_usernames)]
+        file_list = [file for file in (self.args.interact_from_file)]
         shuffle(file_list)
 
         for file in file_list:
