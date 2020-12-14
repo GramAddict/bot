@@ -121,6 +121,12 @@ def close_instagram():
         + ("" if configs.device_id is None else " -s " + configs.device_id)
         + f" shell am force-stop {app_id}"
     ).close()
+    # close out atx-agent
+    os.popen(
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell pkill atx-agent"
+    ).close()
 
 
 def random_sleep(inf=1.0, sup=4.0):

@@ -222,7 +222,6 @@ class ActionUnfollowFollowers(Plugin):
             logger.info("Iterate over visible followings")
             random_sleep()
             screen_iterated_followings = 0
-
             for item in device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
