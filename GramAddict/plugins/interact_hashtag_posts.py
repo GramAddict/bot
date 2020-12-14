@@ -144,7 +144,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.interact_chance),
+                    int(self.args.interact_percentage),
                     plugin,
                     storage,
                     profile_filter,
@@ -173,7 +173,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        interact_chance,
+        interact_percentage,
         current_job,
         storage,
         profile_filter,
@@ -241,19 +241,30 @@ class InteractHashtagLikers(Plugin):
             from random import randint
 
             random_number = randint(1, 100)
-            if interact_chance > random_number:
+            if interact_percentage > random_number:
                 return True
             else:
                 return False
 
         post_description = ""
-
+        nr_same_post = 0
+        nr_same_posts_max = 3
         while True:
-            flag, post_description = PostsViewList(device).check_if_last_post(
+            flag, post_description = PostsViewList(device)._check_if_last_post(
                 post_description
             )
             if flag:
-                break
+                nr_same_post += 1
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
+                )
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
+                    break
+            else:
+                nr_same_post = 0
             if random_choice():
                 username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
                 if storage.is_user_in_blacklist(username):

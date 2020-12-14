@@ -219,14 +219,35 @@ class InteractHashtagLikers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
+
         post_description = ""
+        nr_same_post = 0
+        nr_same_posts_max = 3
         while True:
-            if not PostsViewList(device)._find_likes_container():
-                flag, post_description = PostsViewList(device).check_if_last_post(
-                    post_description
+            likers_container_exists = PostsViewList(device)._find_likers_container()
+            has_one_liker_or_none = PostsViewList(
+                device
+            )._check_if_only_one_liker_or_none()
+
+            flag, post_description = PostsViewList(device)._check_if_last_post(
+                post_description
+            )
+            if flag:
+                nr_same_post += 1
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
                 )
-                if flag:
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
                     break
+            else:
+                nr_same_post = 0
+
+            if likers_container_exists and not has_one_liker_or_none:
+                PostsViewList(device).open_likers_container()
+            else:
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 continue
 
