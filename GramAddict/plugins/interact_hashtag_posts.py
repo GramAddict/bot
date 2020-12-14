@@ -247,13 +247,21 @@ class InteractHashtagLikers(Plugin):
                 return False
 
         post_description = ""
-
+        n_same = 0
         while True:
             flag, post_description = PostsViewList(device).check_if_last_post(
                 post_description
             )
             if flag:
-                break
+                n_same += 1
+                if n_same > 2:
+                    logger.debug(
+                        "More then two posts with the same author and description.."
+                    )
+                    logger.info(f"This was the last post for this hashtag. Finish")
+                    break
+            else:
+                n_same = 0
             if random_choice():
                 username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
                 if storage.is_user_in_blacklist(username):

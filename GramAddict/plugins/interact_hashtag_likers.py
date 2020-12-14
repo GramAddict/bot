@@ -219,14 +219,28 @@ class InteractHashtagLikers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
+
         post_description = ""
+        n_same_post = 0
+
         while True:
             if not PostsViewList(device)._find_likes_container():
+                # problem: if the container is found, that code will not be execuded!!
+                # _find_likers_container open the likes container if it find it!
+                # maybe need to split it, or change the way (or level) I check the same post
                 flag, post_description = PostsViewList(device).check_if_last_post(
                     post_description
                 )
                 if flag:
-                    break
+                    n_same_post += 1
+                    if n_same_post > 2:
+                        logger.debug(
+                            "More then two posts with the same author and description.."
+                        )
+                        logger.info(f"This was the last post for this hashtag. Finish")
+                        break
+                else:
+                    n_same_post = 0
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 continue
 

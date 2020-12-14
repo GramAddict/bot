@@ -433,7 +433,7 @@ class DeviceFacade:
             else:
                 import uiautomator2
 
-                mode = self.Location.WHOLE if mode == None else mode
+                mode = self.Location.WHOLE if mode is None else mode
                 x_abs = -1
                 y_abs = -1
                 if mode == self.Location.WHOLE:
@@ -472,14 +472,16 @@ class DeviceFacade:
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
 
-        def double_click(self, padding=0.3):
+        def double_click(self, padding=0.3, obj_over=0):
             """Double click randomly in the selected view using padding
             padding: % of how far from the borders we want the double
                     click to happen.
             """
             visible_bounds = self.get_bounds()
             horizontal_len = visible_bounds["right"] - visible_bounds["left"]
-            vertical_len = visible_bounds["bottom"] - visible_bounds["top"]
+            vertical_len = visible_bounds["bottom"] - max(
+                visible_bounds["top"], obj_over
+            )
             horizintal_padding = int(padding * horizontal_len)
             vertical_padding = int(padding * vertical_len)
             random_x = int(
@@ -603,7 +605,7 @@ class DeviceFacade:
                     # uiautomator2 return None when a Selector does not exist.
                     # All other selectors return an UiObject with exists() == False.
                     # We will open a ticket to uiautomator2 to fix this incosistency.
-                    if self.viewV2 == None:
+                    if self.viewV2 is None:
                         return False
                     return self.viewV2.exists(
                         UI_TIMEOUT_SHORT if quick else UI_TIMEOUT_LONG
@@ -654,7 +656,7 @@ class DeviceFacade:
 
                     try:
                         text = self.viewV1.text
-                        if text == None:
+                        if text is None:
                             logger.debug(
                                 "Could not get text. Waiting 2 seconds and trying again..."
                             )
@@ -668,7 +670,7 @@ class DeviceFacade:
 
                     try:
                         text = self.viewV2.info["text"]
-                        if text == None:
+                        if text is None:
                             logger.debug(
                                 "Could not get text. Waiting 2 seconds and trying again..."
                             )
