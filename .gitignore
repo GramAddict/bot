@@ -6,7 +6,6 @@
 /.idea
 /.vscode
 */*.yml
-!config-examples/*
 interacted_users.*
 sessions.json
 *.pyc
@@ -19,3 +18,4 @@ Pipfile
 Pipfile.lock
 *.pdf
 *.log*
+!config-examples/*
