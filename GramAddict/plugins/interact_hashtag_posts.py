@@ -57,7 +57,7 @@ class InteractHashtagLikers(Plugin):
                 "operation": True,
             },
             {
-                "arg": "--interact-chance",
+                "arg": "--interact-percentage",
                 "nargs": None,
                 "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent/top)",
                 "metavar": "50",

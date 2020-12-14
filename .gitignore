@@ -1,4 +1,5 @@
 /venv*
+/.venv
 /build
 /dist
 /gramaddict_beta.egg-info
@@ -16,5 +17,5 @@ whitelist.txt
 Pipfile
 Pipfile.lock
 *.pdf
-.venv
 *.log*
+!config-examples/*

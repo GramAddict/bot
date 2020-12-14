@@ -108,14 +108,15 @@ class TabBarView:
         tab_name = tab.name
         logger.debug(f"Navigate to {tab_name}")
         button = None
-        tabBarView = self._getTabBar()
         if tab == TabBarTabs.HOME:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
         elif tab == TabBarTabs.SEARCH:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
             if not button.exists():
                 # Some accounts display the search btn only in Home -> action bar
@@ -124,20 +125,26 @@ class TabBarView:
                 home_view.navigateToSearch()
                 return
         elif tab == TabBarTabs.REELS:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
             )
         elif tab == TabBarTabs.ORDERS:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
             )
         elif tab == TabBarTabs.ACTIVITY:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.ACTIVITY_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(
+                    TabBarText.ACTIVITY_CONTENT_DESC
+                ),
             )
         elif tab == TabBarTabs.PROFILE:
-            button = tabBarView.child(
-                descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC)
+            button = self.device.find(
+                className=ClassName.BUTTON,
+                descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
 
         if button.exists():
@@ -301,6 +308,7 @@ class SearchView:
             searched_user_recent.click()
         else:
             search_edit_text.set_text(username)
+            random_sleep(1, 2)
             username_view = self._getUsernameRow(username)
             if not username_view.exists():
                 logger.error("Cannot find user @" + username + ", abort.")
@@ -880,9 +888,14 @@ class ProfileView(ActionBarView):
                 ResourceID.ACTION_BAR_TEXTVIEW_TITLE,
             ]
         )
-        return self.action_bar.child(
+        bar = self.action_bar.child(
             resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
         )
+        if not bar.exists():
+            bar = self.device.find(
+                resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
+            )
+        return bar
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
