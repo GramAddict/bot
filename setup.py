@@ -3,12 +3,9 @@ import setuptools
 with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
 
-with open("requirements.txt", "r") as req:
-    install_requires = [line.rstrip() for line in req]
-
 setuptools.setup(
     name="gramaddict",
-    version="1.2.0",
+    version="1.2.0b1",
     author="GramAddict Team",
     author_email="maintainers@gramaddict.org",
     description="Completely free and open source human-like Instagram bot. Powered by UIAutomator2 and compatible with basically any android device that can run instagram - real or emulated.",
@@ -17,7 +14,16 @@ setuptools.setup(
     url="https://github.com/GramAddict/bot/",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=install_requires,
+    install_requires=[
+        "colorama==0.4.3",
+        "ConfigArgParse==1.2.3",
+        "matplotlib==3.3.3",
+        "numpy==1.19.3",
+        "PyYAML==5.3.1",
+        "uiautomator==1.0.2",
+        "uiautomator2==2.11.2",
+        "urllib3==1.26.2",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
