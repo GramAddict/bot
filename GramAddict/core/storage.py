@@ -62,7 +62,9 @@ class Storage:
         else:
             return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
-    def add_interacted_user(self, username, followed=False, unfollowed=False):
+    def add_interacted_user(
+        self, username, followed=False, unfollowed=False, scraped=False
+    ):
         user = self.interacted_users.get(username, {})
         user[USER_LAST_INTERACTION] = str(datetime.now())
 
@@ -70,6 +72,8 @@ class Storage:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
         elif unfollowed:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.lower()
+        elif scraped:
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.lower()
         else:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
 
@@ -106,3 +110,4 @@ class FollowingStatus(Enum):
     FOLLOWED = 1
     UNFOLLOWED = 2
     NOT_IN_LIST = 3
+    SCRAPED = 4

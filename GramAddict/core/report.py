@@ -53,6 +53,10 @@ def print_full_report(sessions):
                 f"Total unfollowed: {session.totalUnfollowed}",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
+            logger.info(
+                f"Total scraped: {session.totalScraped}",
+                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+            )
 
     logger.info(
         "",
@@ -81,6 +85,7 @@ def print_full_report(sessions):
     total_interactions = {}
     successful_interactions = {}
     total_followed = {}
+    total_scraped = {}
     for session in sessions:
         for source, count in session.totalInteractions.items():
             if total_interactions.get(source) is None:
@@ -99,6 +104,12 @@ def print_full_report(sessions):
                 total_followed[source] = count
             else:
                 total_followed[source] += count
+
+        for source, count in session.totalScraped.items():
+            if total_scraped.get(source) is None:
+                total_scraped[source] = count
+            else:
+                total_scraped[source] += count
 
     logger.info(
         f"Total interactions: {_stringify_interactions(total_interactions)}",
@@ -130,14 +141,20 @@ def print_full_report(sessions):
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 
+    logger.info(
+        f"Total users scraped: {_stringify_interactions(total_scraped)}",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+
 
 def print_short_report(source, session_state):
     total_likes = session_state.totalLikes
     total_watched = session_state.totalWatched
     total_followed = sum(session_state.totalFollowed.values())
+    total_scraped = sum(session_state.totalScraped.values())
     interactions = session_state.successfulInteractions.get(source, 0)
     logger.info(
-        f"Session progress: {total_likes} likes, {total_watched} watched, {total_followed} followed, {interactions} successful interaction(s) for {source}",
+        f"Session progress: {total_likes} likes, {total_watched} watched, {total_followed} followed, {total_scraped} users scraped, {interactions} successful interaction(s) for {source}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 

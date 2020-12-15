@@ -21,6 +21,7 @@ class SessionState:
     totalWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
+    totalScraped = 0
     startTime = None
     finishTime = None
 
@@ -37,10 +38,11 @@ class SessionState:
         self.totalWatched = 0
         self.totalUnfollowed = 0
         self.removedMassFollowers = []
+        self.totalScraped = {}
         self.startTime = datetime.now()
         self.finishTime = None
 
-    def add_interaction(self, source, succeed, followed):
+    def add_interaction(self, source, succeed, followed, scraped):
         if self.totalInteractions.get(source) is None:
             self.totalInteractions[source] = 1
         else:
@@ -57,6 +59,11 @@ class SessionState:
         else:
             if followed:
                 self.totalFollowed[source] += 1
+        if self.totalScraped.get(source) is None:
+            self.totalScraped[source] = 1 if scraped else 0
+        else:
+            if scraped:
+                self.totalScraped[source] += 1
 
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
@@ -73,6 +80,8 @@ class SessionState:
         )
         total_limit = get_value(args.total_interactions_limit, None, 1000)
         total_interactions = sum(self.totalInteractions.values()) >= int(total_limit)
+        scrape_limit = get_value(args.total_scrape_limit, None, 500)
+        total_scraped = sum(self.totalScraped.values()) >= int(scrape_limit)
 
         session_info = [
             "Checking session limits:",
@@ -81,6 +90,7 @@ class SessionState:
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{watch_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{success_limit})",
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{total_limit})",
+            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{scrape_limit})",
         ]
 
         if limit_type == SessionState.Limit.ALL:
@@ -130,6 +140,13 @@ class SessionState:
                 logger.debug(session_info[5])
             return total_interactions or total_successful
 
+        elif limit_type == SessionState.Limit.SCRAPED:
+            if output:
+                logger.info(session_info[6])
+            else:
+                logger.debug(session_info[6])
+            return total_scraped
+
     def is_finished(self):
         return self.finishTime is not None
 
@@ -140,6 +157,7 @@ class SessionState:
         WATCHES = auto()
         SUCCESS = auto()
         TOTAL = auto()
+        SCRAPED = auto()
 
 
 class SessionStateEncoder(JSONEncoder):

@@ -120,7 +120,7 @@ class InteractBloggerFollowers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scraping,
+                    self.args.scraping_mode,
                     storage,
                     profile_filter,
                     on_like,
@@ -318,12 +318,16 @@ class InteractBloggerFollowers(Plugin):
                             )
                         )
 
-                        interaction_succeed, followed = interaction(
+                        interaction_succeed, followed, scraped = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(username, followed=followed)
+                        storage.add_interacted_user(
+                            username, followed=followed, scraped=scraped
+                        )
                         can_continue = on_interaction(
-                            succeed=interaction_succeed, followed=followed
+                            succeed=interaction_succeed,
+                            followed=followed,
+                            scraped=scraped,
                         )
 
                         if not can_continue:

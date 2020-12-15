@@ -161,10 +161,17 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
-                "arg": "--scraping",
+                "arg": "--scraping-mode",
                 "nargs": None,
                 "help": "generate a file in main directory with given name with target users",
                 "metavar": ("filename"),
                 "default": None,
+            },
+            {
+                "arg": "--total-scrape-limit",
+                "nargs": None,
+                "help": "limit on total scrape per session, 500 by default",
+                "metavar": "500",
+                "default": "500",
             },
         ]

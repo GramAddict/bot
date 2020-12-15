@@ -60,12 +60,12 @@ def interact_with_user(
     """
     if username == my_username:
         logger.info("It's you, skip.")
-        return False, False
+        return False, False, False
 
     random_sleep()
 
     if not profile_filter.check_profile(device, username):
-        return False, False
+        return False, False, False
 
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()
@@ -82,12 +82,12 @@ def interact_with_user(
             return True, followed
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, False
+            return False, False, False
 
     if scraping_file is not None:
         append_to_file(scraping_file, username)
         logger.info(f"Added @{username} at {scraping_file}.txt")
-        return False, False
+        return False, False, True
 
     _watch_stories(
         device,
@@ -171,7 +171,7 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, followed
+            return False, followed, False
 
         random_sleep()
     if can_follow:
@@ -179,7 +179,7 @@ def interact_with_user(
             device, username, follow_percentage, args, session_state, swipe_amount
         )
 
-    return True, False
+    return True, False, False
 
 
 def do_like(opened_post_view, device, on_like):
@@ -217,6 +217,7 @@ def _on_interaction(
     source,
     succeed,
     followed,
+    scraped,
     interactions_limit,
     likes_limit,
     sessions,
@@ -224,25 +225,40 @@ def _on_interaction(
     args,
 ):
     session_state = sessions[-1]
-    session_state.add_interaction(source, succeed, followed)
+    session_state.add_interaction(source, succeed, followed, scraped)
 
     can_continue = True
+    if args.scraping_mode is not None:
+        if session_state.check_limit(
+            args, limit_type=session_state.Limit.SCRAPED, output=False
+        ):
+            logger.info("Reached interaction limit, finish.")
+            can_continue = False
+    else:
+        if session_state.check_limit(
+            args, limit_type=session_state.Limit.LIKES, output=False
+        ):
+            logger.info("Reached interaction limit, finish.")
+            can_continue = False
 
-    if session_state.check_limit(
-        args, limit_type=session_state.Limit.LIKES, output=False
-    ):
-        logger.info("Reached interaction limit, finish.")
-        can_continue = False
-
-    successful_interactions_count = session_state.successfulInteractions.get(source)
-    if (
-        successful_interactions_count
-        and successful_interactions_count >= interactions_limit
-    ):
-        logger.info(
-            f"Made {successful_interactions_count} successful interactions, finish."
-        )
-        can_continue = False
+    if args.scraping_mode is not None:
+        successful_user_scraped_count = session_state.totalScraped.get(source)
+        if (
+            successful_user_scraped_count
+            and successful_user_scraped_count >= interactions_limit
+        ):
+            logger.info(f"Scraped {successful_user_scraped_count} users, finish.")
+            can_continue = False
+    else:
+        successful_interactions_count = session_state.successfulInteractions.get(source)
+        if (
+            successful_interactions_count
+            and successful_interactions_count >= interactions_limit
+        ):
+            logger.info(
+                f"Made {successful_interactions_count} successful interactions, finish."
+            )
+            can_continue = False
 
     if can_continue and succeed:
         print_short_report(source, session_state)

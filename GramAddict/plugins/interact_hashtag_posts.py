@@ -145,7 +145,7 @@ class InteractHashtagLikers(Plugin):
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
                     int(self.args.interact_percentage),
-                    self.args.scraping,
+                    self.args.scraping_mode,
                     plugin,
                     storage,
                     profile_filter,
@@ -228,12 +228,14 @@ class InteractHashtagLikers(Plugin):
                 or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
             )
 
-            interaction_succeed, followed = interaction(
-                device, username=username, can_follow=can_follow
+            interaction_succeed, followed, scraped = interaction(
+                device,
+                username=username,
+                can_follow=can_follow,
             )
-            storage.add_interacted_user(username, followed=followed)
+            storage.add_interacted_user(username, followed=followed, scraped=scraped)
             can_continue = on_interaction(
-                succeed=interaction_succeed, followed=followed
+                succeed=interaction_succeed, followed=followed, scraped=scraped
             )
             if not can_continue:
                 return False
