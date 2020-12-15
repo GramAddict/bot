@@ -28,7 +28,7 @@ class InteractUsernames(Plugin):
         self.description = "Interact with users that are given from a file"
         self.arguments = [
             {
-                "arg": "--interact-usernames",
+                "arg": "--interact-from-file",
                 "nargs": "+",
                 "help": "filenames of the list of users [*.txt]",
                 "metavar": ("filename1", "filename2"),
@@ -51,7 +51,7 @@ class InteractUsernames(Plugin):
         profile_filter = Filter()
         self.current_mode = plugin
 
-        file_list = [file for file in (self.args.interact_usernames)]
+        file_list = [file for file in (self.args.interact_from_file)]
         shuffle(file_list)
 
         for file in file_list:

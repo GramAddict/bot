@@ -16,6 +16,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/GramAddict/bot/",
     packages=setuptools.find_packages(),
+    include_package_data=True,
     install_requires=install_requires,
     classifiers=[
         "Programming Language :: Python :: 3.6",
@@ -25,5 +26,4 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    include_package_data=True,
 )
