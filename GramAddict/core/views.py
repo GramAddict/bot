@@ -370,11 +370,7 @@ class PostsViewList:
         in order to make it available to other plug-ins I cutted it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
         containers_content = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-        # (
-        #     f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
-        # )
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
-        # f"{ResourceID.GAP_VIEW}|{ResourceID.FOOTER_SPACE}"
 
         # move type: half photo
         if swipe == SwipeTo.HALF_PHOTO:
@@ -383,7 +379,7 @@ class PostsViewList:
             ).get_bounds()["bottom"]
             self.device.swipe_points(
                 displayWidth / 2,
-                zoomable_view_container - 1,
+                zoomable_view_container - 5,
                 displayWidth / 2,
                 zoomable_view_container * 0.5,
             )
@@ -408,26 +404,59 @@ class PostsViewList:
             ).get_bounds()["top"]
             self.device.swipe_points(
                 displayWidth / 2,
-                gap_view - 1,
+                gap_view - 5,
                 displayWidth / 2,
                 zoomable_view_container + 5,
             )
             return True
 
-    def _find_likes_container(self):
+    def _find_likers_container(self):
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
         gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
         PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         for _ in range(2):
-            if not OpenedPostView(self.device).open_likers():
+            if not likes_view.exists(True):
                 if not gap_view_obj.exists(True):
                     PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
                 else:
-                    return False
+                    return True
             else:
                 return True
+        return False
 
-    def check_if_last_post(self, last_description):
+    def _check_if_only_one_liker_or_none(self):
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
+        if likes_view.exists(True):
+            likes_view_text = likes_view.get_text()
+            if (
+                likes_view_text[-6:].upper() == "OTHERS"
+                or likes_view_text.upper()[-5:] == "LIKES"
+            ):
+                return False
+            else:
+                logger.info("This post has only 1 liker, skip.")
+                return True
+        else:
+            logger.info("This post has no likers, skip.")
+            return True
+
+    def open_likers_container(self):
+        likes_view = self.device.find(
+            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+            className=ClassName.TEXT_VIEW,
+        )
+        logger.info("Opening post likers.")
+        random_sleep()
+        likes_view.click(likes_view.Location.RIGHT)
+
+    def _check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
         swiped_a_bit = False
         n = 1
@@ -441,7 +470,9 @@ class PostsViewList:
                     logger.debug("Revert the last swipe.")
                     UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 if new_description == last_description:
-                    logger.info("This is the last post for this hashtag.")
+                    logger.info(
+                        "This post has the same description and author as the last one."
+                    )
                     return True, new_description
                 else:
                     return False, new_description
@@ -456,10 +487,35 @@ class PostsViewList:
                     swiped_a_bit = True
                     n += 1
                 else:
-                    logger.warning(
-                        "Can't find the description of this post. Maybe no internet or softban."
-                    )
+                    logger.warning("Can't find the description of this post.")
                     return False, ""
+
+    def _if_action_bar_is_over_obj_swipe(self, obj):
+        """do a swipe of the amount of the action bar"""
+        action_bar_exists, _, action_bar_bottom = PostsViewList(
+            self.device
+        )._get_action_bar_position()
+        if action_bar_exists:
+            obj_top = obj.get_bounds()["top"]
+            if action_bar_bottom > obj_top:
+                UniversalActions(self.device)._swipe_points(
+                    direction=Direction.UP, delta_y=action_bar_bottom
+                )
+
+    def _get_action_bar_position(self):
+        """action bar is overlayed, if you press on it you go back to the first post
+        knowing his position is important to avoid it"""
+        action_bar = self.device.find(
+            resourceIdMatches=(ResourceID.ACTION_BAR_CONTAINER)
+        )
+        if action_bar.exists(True):
+            return (
+                True,
+                action_bar.get_bounds()["top"],
+                action_bar.get_bounds()["bottom"],
+            )
+        else:
+            return False, 0, 0
 
     def _post_owner(self, mode: Owner):
         post_owner_obj = self.device.find(
@@ -481,6 +537,7 @@ class PostsViewList:
             return False
         if mode == Owner.OPEN:
             logger.info("Open post owner.")
+            PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(post_owner_obj)
             post_owner_obj.click()
             return True
         elif mode == Owner.GET_NAME:
@@ -488,18 +545,47 @@ class PostsViewList:
         else:
             return False
 
+    def _open_likers(self):
+        while True:
+            likes_view = self.device.find(
+                resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+                className=ClassName.TEXT_VIEW,
+            )
+            if likes_view.exists(True):
+                likes_view_text = likes_view.get_text()
+                if (
+                    likes_view_text[-6:].upper() == "OTHERS"
+                    or likes_view_text.upper()[-5:] == "LIKES"
+                ):
+                    logger.info("Opening post likers")
+                    random_sleep()
+                    PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(
+                        likes_view
+                    )
+                    likes_view.click(likes_view.Location.RIGHT)
+                    return True
+                else:
+                    logger.info("This post has only 1 liker, skip")
+                    return False
+            else:
+                return False
+
     def _get_post_owner_name(self):
         return self.device.find(
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         ).get_text()
 
     def _like_in_post_view(self, mode: LikeMode):
-        POST_CONTAINER = (
-            f"{ResourceID.ZOOMABLE_VIEW_CONTAINER}|{ResourceID.CAROUSEL_MEDIA_GROUP}"
-        )
+        POST_CONTAINER = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+
         if mode == LikeMode.DOUBLE_CLICK:
             logger.info("Double click photo.")
-            self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click()
+            _, _, action_bar_bottom = PostsViewList(
+                self.device
+            )._get_action_bar_position()
+            self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click(
+                obj_over=action_bar_bottom
+            )
         elif mode == LikeMode.SINGLE_CLICK:
             logger.info("Like photo from button.")
             self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE).click()
@@ -719,28 +805,6 @@ class OpenedPostView:
         random_sleep()
 
         return self._isPostLiked()
-
-    def open_likers(self):
-        while True:
-            likes_view = self.device.find(
-                resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
-                className=ClassName.TEXT_VIEW,
-            )
-            if likes_view.exists(True):
-                likes_view_text = likes_view.get_text()
-                if (
-                    likes_view_text[-6:].upper() == "OTHERS"
-                    or likes_view_text.upper()[-5:] == "LIKES"
-                ):
-                    logger.info("Opening post likers")
-                    random_sleep()
-                    likes_view.click(likes_view.Location.RIGHT)
-                    return True
-                else:
-                    logger.info("This post has only 1 liker, skip")
-                    return False
-            else:
-                return False
 
     def _getListViewLikers(self):
         return self.device.find(

@@ -250,13 +250,24 @@ class InteractHashtagLikers(Plugin):
                 return False
 
         post_description = ""
-
+        nr_same_post = 0
+        nr_same_posts_max = 3
         while True:
-            flag, post_description = PostsViewList(device).check_if_last_post(
+            flag, post_description = PostsViewList(device)._check_if_last_post(
                 post_description
             )
             if flag:
-                break
+                nr_same_post += 1
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
+                )
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
+                    break
+            else:
+                nr_same_post = 0
             if random_choice():
                 username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
                 if storage.is_user_in_blacklist(username):
