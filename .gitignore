@@ -2,7 +2,7 @@
 /.venv
 /build
 /dist
-/gramaddict_beta.egg-info
+/gramaddict.egg-info
 /.idea
 /.vscode
 */*.yml

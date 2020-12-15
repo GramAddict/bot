@@ -24,6 +24,8 @@ debug: false
 blogger-followers: [ username1, username2 ]
 hashtag-likers-top: [ hashtag1, hashtag2 ]
 hashtag-likers-recent: [ hashtag1, hashtag2 ]
+hashtag-posts-top: [ hashtag1, hashtag2 ]
+hashtag-posts-recent: [ hashtag1, hashtag2 ]
 interact-from-file: usernames.txt
 posts-from-file: posts.txt
 
