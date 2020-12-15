@@ -657,6 +657,30 @@ class AccountView:
 
         return LanguageView(self.device)
 
+    def changeToUsername(self, username):
+        action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
+        current_profile_name = action_bar.get_text().upper()
+        if current_profile_name == username.upper():
+            logger.info(f"You are already on {username}!")
+            return True
+        if action_bar.exists():
+            action_bar.click()
+            random_sleep()
+            found_obj = self.device.find(
+                resourceId=ResourceID.ROW_USER_TEXTVIEW,
+                textMatches=case_insensitive_re(username),
+            )
+            if found_obj.exists():
+                found_obj.click()
+                random_sleep()
+                action_bar = self.device.find(
+                    resourceId=ResourceID.ACTION_BAR_LARGE_TITLE
+                )
+                current_profile_name = action_bar.get_text().upper()
+                if current_profile_name == username.upper():
+                    return True
+        return False
+
 
 class SettingsView:
     def __init__(self, device: DeviceFacade):

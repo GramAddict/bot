@@ -160,4 +160,11 @@ class CoreArguments(Plugin):
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
             },
+            {
+                "arg": "--change-username",
+                "nargs": None,
+                "help": "change the username for the current session",
+                "metavar": ("username"),
+                "default": None,
+            },
         ]
