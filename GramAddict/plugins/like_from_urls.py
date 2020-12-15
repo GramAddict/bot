@@ -1,5 +1,4 @@
 import logging
-import os
 from functools import partial
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like

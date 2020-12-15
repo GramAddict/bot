@@ -1,6 +1,5 @@
 from GramAddict.core.filter import Filter
 import logging
-import os
 from functools import partial
 from colorama import Style
 from random import shuffle
