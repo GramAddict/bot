@@ -246,7 +246,7 @@ def validate_url(x):
 def append_to_file(filename, username):
     if not filename.lower().endswith(".txt"):
         filename = filename + ".txt"
-    with open(filename, "a", encoding="UTF-8") as file:
+    with open(filename, "a+", encoding="UTF-8") as file:
         file.write(username + "\n")
 
 

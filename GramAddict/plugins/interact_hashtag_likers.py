@@ -22,7 +22,8 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
-    SwipeTo, UniversalActions,
+    SwipeTo,
+    UniversalActions,
 )
 
 logger = logging.getLogger(__name__)
