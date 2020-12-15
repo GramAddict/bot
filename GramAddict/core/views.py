@@ -657,7 +657,7 @@ class AccountView:
 
         return LanguageView(self.device)
 
-    def changeToUsername(self, username):
+    def changeUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
         current_profile_name = action_bar.get_text().upper()
         if current_profile_name == username.upper():
