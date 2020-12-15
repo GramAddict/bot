@@ -112,11 +112,14 @@ def run():
         try:
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()
-            success = AccountView(device).changeToUsername(configs.args.username)
-            if not success:
-                logger.error(f"Not able to change to {configs.args.username}, abort!")
-                device.back()
-                break
+            if configs.args.username is not None:
+                success = AccountView(device).changeToUsername(configs.args.username)
+                if not success:
+                    logger.error(
+                        f"Not able to change to {configs.args.username}, abort!"
+                    )
+                    device.back()
+                    break
 
             (
                 session_state.my_username,
