@@ -243,5 +243,39 @@ def validate_url(x):
         return False
 
 
+def read_file(filename):
+    if not filename.lower().endswith(".txt"):
+        filename = f"{filename}.txt"
+    if os.path.isfile(filename):
+        with open(filename, "r") as f:
+            return f.readlines()
+    else:
+        return False
+
+
+def delete_line_in_file(line_to_delete, filename):
+    if not filename.lower().endswith(".txt"):
+        filename = f"{filename}.txt"
+    if line_to_delete[:-1] != "\n":
+        line_to_delete = line_to_delete + "\n"
+    with open(filename, "r+") as f:
+        d = f.readlines()
+        if len(d) == 1:
+            try:
+                f.close()
+                os.remove(filename)
+                logger.info(f"That was the last item. {filename} has been deleted.")
+            except:
+                logger.warning(
+                    f"That was the last item. {filename} has not been deleted."
+                )
+        else:
+            f.seek(0)
+            for i in d:
+                if i != line_to_delete:
+                    f.write(i)
+            f.truncate()
+
+
 class ActionBlockedError(Exception):
     pass

@@ -311,7 +311,7 @@ class SearchView:
             random_sleep(1, 2)
             username_view = self._getUsernameRow(username)
             if not username_view.exists():
-                logger.error("Cannot find user @" + username + ", abort.")
+                logger.error("Cannot find user @" + username + ".")
                 return None
             username_view.click()
 

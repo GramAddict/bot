@@ -8,7 +8,12 @@ from GramAddict.core.decorators import run_safely
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.views import TabBarView
-from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.utils import (
+    get_value,
+    random_sleep,
+    read_file,
+    delete_line_in_file,
+)
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
@@ -105,6 +110,7 @@ class InteractUsernames(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.args.delete_interacted_user,
                     plugin,
                     storage,
                     profile_filter,
@@ -133,6 +139,7 @@ class InteractUsernames(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        delete_interacted_user,
         current_job,
         storage,
         profile_filter,
@@ -162,21 +169,34 @@ class InteractUsernames(Plugin):
         )
 
         # start
-        if not current_file.lower().endswith(".txt"):
-            current_file = f"{current_file}.txt"
-        if os.path.isfile(current_file):
-            with open(current_file, "r") as f:
-                user_list = f.readlines()
-        else:
+        def delete_interacted_user():
+            if self.args.delete_interacted_user:
+                delete_line_in_file(username, current_file)
+
+        user_list = read_file(current_file)
+        if user_list is False:
             logger.warning(f"File {current_file} not found.")
             return
 
         for username in user_list:
             if username[-1:] == "\n":
                 username = username[:-1]
+
+            if storage.is_user_in_blacklist(username):
+                logger.info(f"@{username} is in blacklist. Skip.")
+                delete_interacted_user()
+                continue
+            elif storage.check_user_was_interacted(username):
+                logger.info(f"@{username}: already interacted. Skip.")
+                delete_interacted_user()
+                continue
+
             search_view = TabBarView(device).navigateToSearch()
             random_sleep()
-            search_view.navigateToUsername(username)
+            profile_view = search_view.navigateToUsername(username)
+            if not profile_view:
+                delete_interacted_user()
+                continue
             random_sleep()
 
             def interact():
@@ -198,15 +218,11 @@ class InteractUsernames(Plugin):
                 else:
                     return True
 
-            if storage.is_user_in_blacklist(username):
-                logger.info(f"@{username} is in blacklist. Skip.")
-            elif storage.check_user_was_interacted(username):
-                logger.info(f"@{username}: already interacted. Skip.")
-            else:
-                logger.info(f"@{username}: interact")
-                if not interact():
-                    break
-                device.back()
+            logger.info(f"@{username}: interact")
+            if not interact():
+                break
+            delete_interacted_user()
+            device.back()
 
             continue
         logger.info(f"Interact with users in {current_file} complete.")

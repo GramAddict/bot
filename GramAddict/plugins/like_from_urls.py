@@ -4,7 +4,13 @@ from functools import partial
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import random_sleep, open_instagram_with_url, validate_url
+from GramAddict.core.utils import (
+    random_sleep,
+    open_instagram_with_url,
+    validate_url,
+    read_file,
+    delete_line_in_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +51,10 @@ class LikeFromURLs(Plugin):
         self.current_mode = plugin
 
         self.urls = []
-        if os.path.isfile(self.args.urls_file):
-            with open(self.args.urls_file, "r") as f:
-                self.urls = f.readlines()
-
+        self.urls = read_file(self.args.posts_from_file)
+        if self.urls is False:
+            logger.warning(f"File {self.args.posts_from_file} not found.")
+            return
         self.state = State()
         on_like = partial(
             _on_like, sessions=self.sessions, session_state=self.session_state
@@ -62,6 +68,7 @@ class LikeFromURLs(Plugin):
         )
         def job():
             for url in self.urls:
+                delete_line_in_file(url, self.args.posts_from_file)
                 url = url.strip().replace("\n", "")
                 if validate_url(url) and "instagram.com/p/" in url:
                     if open_instagram_with_url(self.device_id, url) is True:

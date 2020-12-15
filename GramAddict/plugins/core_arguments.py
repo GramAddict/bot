@@ -160,4 +160,9 @@ class CoreArguments(Plugin):
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
             },
+            {
+                "arg": "--delete-interacted-user",
+                "help": "delete the user from the file after processing it",
+                "action": "store_true",
+            },
         ]
