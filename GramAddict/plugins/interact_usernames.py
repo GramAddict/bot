@@ -105,6 +105,7 @@ class InteractUsernames(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.args.scraping,
                     plugin,
                     storage,
                     profile_filter,
@@ -133,6 +134,7 @@ class InteractUsernames(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -152,6 +154,7 @@ class InteractUsernames(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
         is_follow_limit_reached = partial(

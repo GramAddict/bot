@@ -144,7 +144,8 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.interact_chance),
+                    int(self.args.interact_percentage),
+                    self.args.scraping,
                     plugin,
                     storage,
                     profile_filter,
@@ -173,7 +174,8 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        interact_chance,
+        interact_percentage,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -193,6 +195,7 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
 
@@ -241,7 +244,7 @@ class InteractHashtagLikers(Plugin):
             from random import randint
 
             random_number = randint(1, 100)
-            if interact_chance > random_number:
+            if interact_percentage > random_number:
                 return True
             else:
                 return False

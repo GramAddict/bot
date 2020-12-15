@@ -81,7 +81,7 @@ def interact_with_user(
     if scraping_file is not None:
         append_to_file(scraping_file, username)
         logger.info(f"Added @{username} at {scraping_file}.txt")
-        return True, True
+        return False, False
 
     _watch_stories(
         device,

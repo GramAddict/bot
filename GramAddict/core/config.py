@@ -127,7 +127,7 @@ class Config:
                 item = item.split(":")[0]
                 if (
                     item in self.actions
-                    and getattr(self.args, item.replace("-", "_")) != None
+                    and getattr(self.args, item.replace("-", "_")) is not None
                     and not _is_legacy_arg(item)
                 ):
                     self.enabled.append(item)
@@ -136,7 +136,7 @@ class Config:
                 nitem = item[2:]
                 if (
                     nitem in self.actions
-                    and getattr(self.args, nitem.replace("-", "_")) != None
+                    and getattr(self.args, nitem.replace("-", "_")) is not None
                     and not _is_legacy_arg(nitem)
                 ):
                     self.enabled.append(nitem)

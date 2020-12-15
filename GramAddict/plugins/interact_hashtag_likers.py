@@ -22,7 +22,7 @@ from GramAddict.core.views import (
     HashTagView,
     OpenedPostView,
     PostsViewList,
-    SwipeTo,
+    SwipeTo, UniversalActions,
 )
 
 logger = logging.getLogger(__name__)
@@ -137,6 +137,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.args.scraping,
                     plugin,
                     storage,
                     profile_filter,
@@ -165,6 +166,7 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -184,6 +186,7 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
 
@@ -202,7 +205,7 @@ class InteractHashtagLikers(Plugin):
             HashTagView(device)._getRecentTab().click()
             random_sleep(5, 10)
             if HashTagView(device)._check_if_no_posts():
-                HashTagView(device)._reload_page()
+                UniversalActions(device)._reload_page()
                 random_sleep(4, 8)
 
         logger.info("Opening the first result")
