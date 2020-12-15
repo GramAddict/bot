@@ -159,7 +159,7 @@ def run():
             ):
                 logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
                 if configs.args.scraping_mode is not None:
-                    logger.warning(f"You're in scraping mode!")
+                    logger.warning("You're in scraping mode!")
                 if ProfileView(device).getUsername() != session_state.my_username:
                     logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
