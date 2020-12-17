@@ -1,5 +1,6 @@
 import logging
 from functools import partial
+from random import shuffle
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
@@ -56,15 +57,17 @@ class LikeFromURLs(Plugin):
         )
         for filename in file_list:
             self.state = State()
-            self.job(filename, on_like, storage)
 
-    @run_safely(
-        device=self.device,
-        device_id=self.device_id,
-        sessions=self.sessions,
-        session_state=self.session_state,
-    )
-    def job(self, current_file, on_like, storage):
+            @run_safely(
+                device=self.device,
+                device_id=self.device_id,
+                sessions=self.sessions,
+                session_state=self.session_state,
+            )
+            def job(filename, on_like, storage):
+                self.process_file(filename, on_like, storage)
+
+    def process_file(self, current_file, on_like, storage):
         # TODO: We need to add interactions properly, honor session/source limits, honor filter,
         # etc. Not going to try to do this now, but adding a note to do it later
         if path.isfile(current_file):
