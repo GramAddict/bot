@@ -1,6 +1,7 @@
 import logging
 from functools import partial
 from random import shuffle
+from os import path
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
@@ -90,7 +91,7 @@ class LikeFromURLs(Plugin):
                                 self.device.back()
                                 random_sleep()
                     else:
-                        logger.info(f"Line in file is blank, skip.")
+                        logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
             if self.args.delete_interacted_users:
                 with open(current_file, "w") as f:
