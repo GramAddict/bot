@@ -54,7 +54,7 @@ def print_full_report(sessions):
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             logger.info(
-                f"Total scraped: {session.totalScraped}",
+                f"Total scraped: {_stringify_interactions(session.totalScraped)}",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
 

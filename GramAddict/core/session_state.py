@@ -80,8 +80,7 @@ class SessionState:
         )
         total_limit = get_value(args.total_interactions_limit, None, 1000)
         total_interactions = sum(self.totalInteractions.values()) >= int(total_limit)
-        scrape_limit = get_value(args.total_scrape_limit, None, 500)
-        total_scraped = sum(self.totalScraped.values()) >= int(scrape_limit)
+        total_scraped = sum(self.totalScraped.values()) >= int(total_limit)
 
         session_info = [
             "Checking session limits:",
@@ -90,7 +89,7 @@ class SessionState:
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{watch_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{success_limit})",
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{total_limit})",
-            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{scrape_limit})",
+            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{total_limit})",
         ]
 
         if limit_type == SessionState.Limit.ALL:

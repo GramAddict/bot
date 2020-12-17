@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Style
+from colorama import Style, Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
@@ -100,7 +100,7 @@ class InteractHashtagLikers(Plugin):
             self.state = State()
             if source[0] != "#":
                 source = "#" + source
-            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
+            logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
 
             on_interaction = partial(
                 _on_interaction,
@@ -277,13 +277,16 @@ class InteractHashtagLikers(Plugin):
                 elif storage.check_user_was_interacted(username):
                     logger.info(f"@{username}: already interacted. Skip.")
                 else:
-                    logger.info(f"@{username}: interact")
-                    PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
-                    detect_block(device)
-                    if not PostsViewList(device)._check_if_liked():
-                        PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
+                    if self.args.scrape_to_file is None:
+                        logger.info(f"@{username}: interact")
+                        PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
                         detect_block(device)
-                    random_sleep(1, 2)
+                        if not PostsViewList(device)._check_if_liked():
+                            PostsViewList(device)._like_in_post_view(
+                                LikeMode.SINGLE_CLICK
+                            )
+                            detect_block(device)
+                        random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(Owner.OPEN):
                         if not interact():
                             break

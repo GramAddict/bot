@@ -2,7 +2,7 @@ from GramAddict.core.filter import Filter
 import logging
 import os
 from functools import partial
-from colorama import Style
+from colorama import Fore, Style
 from random import shuffle
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.plugin_loader import Plugin
@@ -62,7 +62,7 @@ class InteractUsernames(Plugin):
             )
 
             self.state = State()
-            logger.info(f"Handle {file}", extra={"color": f"{Style.BRIGHT}"})
+            logger.info(f"Handle {file}", extra={"color": f"{Fore.BLUE}"})
 
             on_interaction = partial(
                 _on_interaction,

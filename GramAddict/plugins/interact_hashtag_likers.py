@@ -94,7 +94,7 @@ class InteractHashtagLikers(Plugin):
             self.state = State()
             if source[0] != "#":
                 source = "#" + source
-            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
+            logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
 
             on_interaction = partial(
                 _on_interaction,

@@ -2,7 +2,7 @@ import logging
 from random import randint, shuffle
 from typing import Tuple
 from time import time
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
@@ -87,7 +87,10 @@ def interact_with_user(
 
     if scraping_file is not None:
         append_to_file(scraping_file, username)
-        logger.info(f"Added @{username} at {scraping_file}.txt")
+        logger.info(
+            f"Added @{username} at {scraping_file}.txt",
+            extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
+        )
         return False, False, True
 
     _watch_stories(

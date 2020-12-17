@@ -171,7 +171,7 @@ def run():
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
             ):
-                logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
+                logger.info(f"Current job: {plugin}", extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"})
                 if configs.args.scrape_to_file is not None:
                     logger.warning("You're in scraping mode!")
                 if ProfileView(device).getUsername() != session_state.my_username:
