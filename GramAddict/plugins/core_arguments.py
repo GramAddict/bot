@@ -161,7 +161,7 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
-                "arg": "--delete-interacted-user",
+                "arg": "--delete-interacted-users",
                 "help": "delete the user from the file after processing it",
                 "action": "store_true",
             },

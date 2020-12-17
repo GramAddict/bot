@@ -208,9 +208,9 @@ class InteractUsernames(Plugin):
                             break
                         device.back()
                     else:
-                        logger.info(f"Line in file is blank, skip.")
+                        logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
-            if self.args.delete_interacted_user:
+            if self.args.delete_interacted_users:
                 with open(current_file, "w") as f:
                     f.writelines(remaining)
         else:
