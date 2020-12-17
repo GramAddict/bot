@@ -229,7 +229,7 @@ def _on_interaction(
     session_state.add_interaction(source, succeed, followed, scraped)
 
     can_continue = True
-    if args.scraping_mode is not None:
+    if args.scrape_to_file is not None:
         if session_state.check_limit(
             args, limit_type=session_state.Limit.SCRAPED, output=False
         ):
@@ -242,7 +242,7 @@ def _on_interaction(
             logger.info("Reached interaction limit, finish.")
             can_continue = False
 
-    if args.scraping_mode is not None:
+    if args.scrape_to_file is not None:
         successful_user_scraped_count = session_state.totalScraped.get(source)
         if (
             successful_user_scraped_count

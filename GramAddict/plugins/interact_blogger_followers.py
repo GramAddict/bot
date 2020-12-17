@@ -120,7 +120,7 @@ class InteractBloggerFollowers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scraping_mode,
+                    self.args.scrape_to_file,
                     storage,
                     profile_filter,
                     on_like,

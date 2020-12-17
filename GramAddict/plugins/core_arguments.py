@@ -161,7 +161,7 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
-                "arg": "--scraping-mode",
+                "arg": "--scrape-to-file",
                 "nargs": None,
                 "help": "generate a file in main directory with given name with target users",
                 "metavar": ("filename"),

@@ -138,7 +138,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scraping_mode,
+                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
