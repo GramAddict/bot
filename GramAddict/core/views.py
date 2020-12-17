@@ -300,7 +300,7 @@ class SearchView:
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        logger.debug("Close the keyboad")
+        logger.debug("Close the keyboard")
         DeviceFacade.back(self.device)
         random_sleep(1, 2)
         searched_user_recent = self._getUsernameRow(username)
@@ -334,7 +334,7 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboad")
+        logger.debug("Close the keyboard")
         DeviceFacade.back(self.device)
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
