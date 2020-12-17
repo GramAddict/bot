@@ -65,8 +65,10 @@ class LikeFromURLs(Plugin):
                 sessions=self.sessions,
                 session_state=self.session_state,
             )
-            def job(filename, on_like, storage):
+            def job():
                 self.process_file(filename, on_like, storage)
+
+            job()
 
     def process_file(self, current_file, on_like, storage):
         # TODO: We need to add interactions properly, honor session/source limits, honor filter,
