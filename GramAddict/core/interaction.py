@@ -54,7 +54,7 @@ def interact_with_user(
     session_state,
     scraping_file,
     current_mode,
-) -> Tuple[bool, bool]:
+) -> Tuple[bool, bool, bool]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction)
     """
@@ -76,10 +76,11 @@ def interact_with_user(
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
-            followed = _follow(
-                device, username, follow_percentage, args, session_state, 0
-            )
-            return True, followed
+            if scraping_file is None:
+                followed = _follow(
+                    device, username, follow_percentage, args, session_state, 0
+                )
+                return True, followed, False
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
             return False, False, False
