@@ -2,7 +2,7 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
-from colorama import Fore
+from colorama import Fore, Style
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
@@ -656,6 +656,37 @@ class AccountView:
         button.click()
 
         return LanguageView(self.device)
+
+    def changeToUsername(self, username):
+        action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
+        current_profile_name = action_bar.get_text().upper()
+        if current_profile_name == username.upper():
+            logger.info(
+                f"You are already logged as {username}!",
+                extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+            )
+            return True
+        if action_bar.exists():
+            action_bar.click()
+            random_sleep()
+            found_obj = self.device.find(
+                resourceId=ResourceID.ROW_USER_TEXTVIEW,
+                textMatches=case_insensitive_re(username),
+            )
+            if found_obj.exists():
+                logger.info(
+                    f"Switching to {configs.args.username}...",
+                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+                )
+                found_obj.click()
+                random_sleep()
+                action_bar = self.device.find(
+                    resourceId=ResourceID.ACTION_BAR_LARGE_TITLE
+                )
+                current_profile_name = action_bar.get_text().upper()
+                if current_profile_name == username.upper():
+                    return True
+        return False
 
 
 class SettingsView:

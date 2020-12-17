@@ -30,7 +30,12 @@ from GramAddict.core.utils import (
     save_crash,
     update_available,
 )
-from GramAddict.core.views import ProfileView, TabBarView, load_config as load_views
+from GramAddict.core.views import (
+    AccountView,
+    ProfileView,
+    TabBarView,
+    load_config as load_views,
+)
 from GramAddict.version import __version__
 
 # Pre-Load Config
@@ -107,6 +112,15 @@ def run():
         try:
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()
+            if configs.args.username is not None:
+                success = AccountView(device).changeToUsername(configs.args.username)
+                if not success:
+                    logger.error(
+                        f"Not able to change to {configs.args.username}, abort!"
+                    )
+                    device.back()
+                    break
+
             (
                 session_state.my_username,
                 session_state.my_followers_count,
