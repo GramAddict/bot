@@ -178,7 +178,7 @@ class InteractUsernames(Plugin):
 
                         search_view = TabBarView(device).navigateToSearch()
                         random_sleep()
-                        profile_view = search_view.navigateToUsername(username)
+                        profile_view = search_view.navigateToUsername(username, True)
                         if not profile_view:
                             continue
                         random_sleep()
@@ -214,7 +214,7 @@ class InteractUsernames(Plugin):
                 with open(current_file, "w") as f:
                     f.writelines(remaining)
         else:
-            logger.warning(f"File {current_file} not found.")
+            logger.warning(f"File {current_file}.txt not found.")
             return
 
         logger.info(f"Interact with users in {current_file} complete.")

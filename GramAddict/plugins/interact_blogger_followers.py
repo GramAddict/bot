@@ -197,7 +197,7 @@ class InteractBloggerFollowers(Plugin):
             profile_view.navigateToFollowers()
         else:
             search_view = TabBarView(device).navigateToSearch()
-            profile_view = search_view.navigateToUsername(username)
+            profile_view = search_view.navigateToUsername(username, False)
             random_sleep()
             if not profile_view:
                 return False

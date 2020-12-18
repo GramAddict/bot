@@ -296,24 +296,25 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username):
+    def navigateToUsername(self, username, scrape_mode):
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        logger.debug("Close the keyboad")
-        DeviceFacade.back(self.device)
-        random_sleep(1, 2)
-        searched_user_recent = self._getUsernameRow(username)
-        if searched_user_recent.exists(True):
-            searched_user_recent.click()
-        else:
-            search_edit_text.set_text(username)
+        if scrape_mode is False:
+            logger.debug("Close the keyboard")
+            DeviceFacade.back(self.device)
             random_sleep(1, 2)
-            username_view = self._getUsernameRow(username)
-            if not username_view.exists():
-                logger.error("Cannot find user @" + username + ".")
-                return None
-            username_view.click()
+            searched_user_recent = self._getUsernameRow(username)
+            if searched_user_recent.exists(True):
+                searched_user_recent.click()
+                return ProfileView(self.device, is_own_profile=False)
+        search_edit_text.set_text(username)
+        random_sleep(1, 2)
+        username_view = self._getUsernameRow(username)
+        if not username_view.exists():
+            logger.error("Cannot find user @" + username + ".")
+            return None
+        username_view.click()
 
         return ProfileView(self.device, is_own_profile=False)
 
@@ -334,7 +335,7 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboad")
+        logger.debug("Close the keyboard")
         DeviceFacade.back(self.device)
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
