@@ -214,7 +214,7 @@ class InteractUsernames(Plugin):
                 with open(current_file, "w") as f:
                     f.writelines(remaining)
         else:
-            logger.warning(f"File {current_file}.txt not found.")
+            logger.warning(f"File {current_file} not found.")
             return
 
         logger.info(f"Interact with users in {current_file} complete.")
