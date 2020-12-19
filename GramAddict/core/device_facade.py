@@ -537,7 +537,7 @@ class DeviceFacade:
 
                 try:
                     logger.debug(
-                        f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
+                        f"Double click in ({random_x}, {random_y}) with t={int(time_between_clicks*1000)}ms"
                     )
                     self.deviceV2.double_click(
                         random_x, random_y, duration=time_between_clicks

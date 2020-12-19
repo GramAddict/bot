@@ -236,7 +236,7 @@ class SearchView:
         return self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_SEARCH_USER_USERNAME),
             className=ClassName.TEXT_VIEW,
-            text=username,
+            textMatches=case_insensitive_re(username),
         )
 
     def _getHashtagRow(self, hashtag):

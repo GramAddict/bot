@@ -1,7 +1,8 @@
 import logging
-from random import randint, shuffle
+from random import randint, shuffle, choice
 from typing import Tuple
 from time import time
+from os import path
 from colorama import Fore
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
@@ -43,6 +44,7 @@ def interact_with_user(
     on_watch,
     can_follow,
     follow_percentage,
+    comment_percentage,
     profile_filter,
     args,
     session_state,
@@ -104,7 +106,6 @@ def interact_with_user(
         f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
     )
     if current_mode == "hashtag-posts-recent" or current_mode == "hashtag-posts-top":
-        session_state.totalLikes += 1
         photos_indices = photos_indices[1:]
 
     if likes_value > len(photos_indices):
@@ -113,6 +114,9 @@ def interact_with_user(
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]
         photos_indices = sorted(photos_indices)
+    like_done = False
+    comment_done = False
+    interacted = False
     for i in range(0, len(photos_indices)):
         photo_index = photos_indices[i]
         row = photo_index // 3
@@ -131,14 +135,23 @@ def interact_with_user(
                 like_succeed = opened_post_view.likePost(click_btn_like=True)
 
             if like_succeed:
+                session_state.totalLikes += 1
+                like_done = True
                 logger.debug("Like succeed. Check for block.")
                 detect_block(device)
                 on_like()
             else:
                 logger.warning("Fail to like post. Let's continue...")
 
-            logger.info("Back to profile.")
-            device.back()
+        comment_done = _comment(
+            device, my_username, comment_percentage, args, session_state
+        )
+        logger.info("Back to profile.")
+        device.back()
+        if like_done or comment_done:
+            interacted = True
+        else:
+            interacted = False
 
         if not opened_post_view or not like_succeed:
             reason = "open" if not opened_post_view else "like"
@@ -158,15 +171,14 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, followed
-
+            return interacted, followed
         random_sleep()
     if can_follow:
-        return True, _follow(
+        return interacted, _follow(
             device, username, follow_percentage, args, session_state, swipe_amount
         )
 
-    return True, False
+    return interacted, False
 
 
 def do_like(opened_post_view, device, on_like):
@@ -235,6 +247,71 @@ def _on_interaction(
         print_short_report(source, session_state)
 
     return can_continue
+
+
+def _comment(device, my_username, comment_percentage, args, session_state):
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.COMMENTS, output=False
+    ):
+        comment_chance = randint(1, 100)
+        if comment_chance > comment_percentage:
+            return False
+        UniversalActions(device)._swipe_points(
+            direction=Direction.DOWN, delta_y=randint(150, 250)
+        )
+        for _ in range(2):
+            comment_button = device.find(
+                resourceId=ResourceID.ROW_FEED_BUTTON_COMMENT,
+                className=ClassName.IMAGE_VIEW,
+            )
+            if comment_button.exists(True):
+                logger.info("Open comments of post.")
+                comment_button.click()
+                random_sleep()
+                comment_box = device.find(
+                    resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT
+                )
+                comment = load_random_comment()
+                logger.info(
+                    f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
+                )
+                comment_box.set_text(comment)
+                random_sleep()
+                post_button = device.find(
+                    resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
+                )
+                post_button.click()
+                random_sleep()
+                detect_block(device)
+                device.back()
+                logger.debug("Close keyboard.")
+                just_post = device.find(
+                    resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
+                    textMatches=f"{my_username} {comment}",
+                )
+                if just_post.exists(True):
+                    logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
+                    session_state.totalComments += 1
+                else:
+                    logger.warning("Failed to check if comment succeed.")
+                random_sleep(1, 2)
+                logger.info("Go back to post view.")
+                device.back()
+                return True
+            else:
+                UniversalActions(device)._swipe_points(
+                    direction=Direction.DOWN, delta_y=randint(150, 250)
+                )
+                continue
+    return False
+
+
+def load_random_comment():
+    file_name = "comments_list.txt"
+    if path.isfile(file_name):
+        with open(file_name, "r") as f:
+            lines = f.read().splitlines()
+            return choice(lines)
 
 
 def _follow(device, username, follow_percentage, args, session_state, swipe_amount):

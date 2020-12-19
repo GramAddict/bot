@@ -46,6 +46,10 @@ def print_full_report(sessions):
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             logger.info(
+                f"Total comments: {session.totalComments}",
+                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+            )
+            logger.info(
                 f"Total watched: {session.totalWatched}",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
@@ -117,13 +121,16 @@ def print_full_report(sessions):
         f"Total likes: {total_likes}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-
+    total_comments = sum(session.totalComments for session in sessions)
+    logger.info(
+        f"Total comments: {total_comments}",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
     total_watched = sum(session.totalWatched for session in sessions)
     logger.info(
         f"Total watched: {total_watched}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-
     total_unfollowed = sum(session.totalUnfollowed for session in sessions)
     logger.info(
         f"Total unfollowed: {total_unfollowed}",
@@ -133,11 +140,12 @@ def print_full_report(sessions):
 
 def print_short_report(source, session_state):
     total_likes = session_state.totalLikes
+    total_comments = session_state.totalComments
     total_watched = session_state.totalWatched
     total_followed = sum(session_state.totalFollowed.values())
     interactions = session_state.successfulInteractions.get(source, 0)
     logger.info(
-        f"Session progress: {total_likes} likes, {total_watched} watched, {total_followed} followed, {interactions} successful interaction(s) for {source}",
+        f"Session progress: {total_likes} likes, {total_comments} comments, {total_watched} watched, {total_followed} followed, {interactions} successful interaction(s) for {source}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 
