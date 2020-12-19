@@ -1,7 +1,7 @@
 from GramAddict.core.filter import Filter
 import logging
 from functools import partial
-from colorama import Style, Fore
+from colorama import Fore
 from os import path
 from random import shuffle
 from GramAddict.core.decorators import run_safely
