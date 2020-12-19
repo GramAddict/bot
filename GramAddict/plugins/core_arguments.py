@@ -161,17 +161,15 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--delete-interacted-users",
+                "help": "delete the user from the file after processing it",
+                "action": "store_true",
+            },
+            {
                 "arg": "--scrape-to-file",
                 "nargs": None,
                 "help": "generate a file in main directory with given name with target users",
                 "metavar": ("filename"),
                 "default": None,
-            },
-            {
-                "arg": "--total-scrape-limit",
-                "nargs": None,
-                "help": "limit on total scrape per session, 500 by default",
-                "metavar": "500",
-                "default": "500",
             },
         ]

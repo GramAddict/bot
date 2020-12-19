@@ -1,14 +1,17 @@
 from GramAddict.core.filter import Filter
 import logging
-import os
 from functools import partial
-from colorama import Fore, Style
+from colorama import Style, Fore
+from os import path
 from random import shuffle
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.views import TabBarView
-from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.utils import (
+    get_value,
+    random_sleep,
+)
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
@@ -164,55 +167,58 @@ class InteractUsernames(Plugin):
             session_state=self.session_state,
         )
 
-        # start
-        if not current_file.lower().endswith(".txt"):
-            current_file = f"{current_file}.txt"
-        if os.path.isfile(current_file):
+        if path.isfile(current_file):
             with open(current_file, "r") as f:
-                user_list = f.readlines()
+                for line in f:
+                    username = line.strip()
+                    if username != "":
+                        if storage.is_user_in_blacklist(username):
+                            logger.info(f"@{username} is in blacklist. Skip.")
+                            continue
+                        elif storage.check_user_was_interacted(username):
+                            logger.info(f"@{username}: already interacted. Skip.")
+                            continue
+
+                        search_view = TabBarView(device).navigateToSearch()
+                        random_sleep()
+                        profile_view = search_view.navigateToUsername(username)
+                        if not profile_view:
+                            continue
+                        random_sleep()
+
+                        def interact():
+                            can_follow = not is_follow_limit_reached() and (
+                                storage.get_following_status(username)
+                                == FollowingStatus.NONE
+                                or storage.get_following_status(username)
+                                == FollowingStatus.NOT_IN_LIST
+                            )
+
+                            interaction_succeed, followed = interaction(
+                                device, username=username, can_follow=can_follow
+                            )
+                            storage.add_interacted_user(username, followed=followed)
+                            can_continue = on_interaction(
+                                succeed=interaction_succeed, followed=followed
+                            )
+                            if not can_continue:
+                                return False
+                            else:
+                                return True
+
+                        logger.info(f"@{username}: interact")
+                        if not interact():
+                            break
+                        device.back()
+                    else:
+                        logger.info("Line in file is blank, skip.")
+                remaining = f.readlines()
+            if self.args.delete_interacted_users:
+                with open(current_file, "w") as f:
+                    f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")
             return
 
-        for username in user_list:
-            if username[-1:] == "\n":
-                username = username[:-1]
-            search_view = TabBarView(device).navigateToSearch()
-            random_sleep()
-            search_view.navigateToUsername(username)
-            random_sleep()
-
-            def interact():
-                can_follow = not is_follow_limit_reached() and (
-                    storage.get_following_status(username) == FollowingStatus.NONE
-                    or storage.get_following_status(username)
-                    == FollowingStatus.NOT_IN_LIST
-                )
-
-                interaction_succeed, followed, scraped = interaction(
-                    device, username=username, can_follow=can_follow
-                )
-                storage.add_interacted_user(
-                    username, followed=followed, scraped=scraped
-                )
-                can_continue = on_interaction(
-                    succeed=interaction_succeed, followed=followed, scraped=scraped
-                )
-                if not can_continue:
-                    return False
-                else:
-                    return True
-
-            if storage.is_user_in_blacklist(username):
-                logger.info(f"@{username} is in blacklist. Skip.")
-            elif storage.check_user_was_interacted(username):
-                logger.info(f"@{username}: already interacted. Skip.")
-            else:
-                logger.info(f"@{username}: interact")
-                if not interact():
-                    break
-                device.back()
-
-            continue
         logger.info(f"Interact with users in {current_file} complete.")
         device.back()
