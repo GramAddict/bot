@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Style, Fore
+from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
