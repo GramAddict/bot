@@ -179,9 +179,13 @@ def interact_with_user(
 
         random_sleep()
     if can_follow:
-        return True, _follow(
-            device, username, follow_percentage, args, session_state, swipe_amount
-        ), False
+        return (
+            True,
+            _follow(
+                device, username, follow_percentage, args, session_state, swipe_amount
+            ),
+            False,
+        )
 
     return True, False, False
 
