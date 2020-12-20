@@ -74,6 +74,7 @@ class DeviceFacade:
             return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
     def back(self):
+        logger.debug("Press back button")
         if self.deviceV1 is not None:
             self.deviceV1.press.back()
         else:
