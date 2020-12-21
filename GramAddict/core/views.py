@@ -675,7 +675,7 @@ class AccountView:
             )
             if found_obj.exists():
                 logger.info(
-                    f"Switching to {configs.args.username}...",
+                    f"Switching to {username}...",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
                 found_obj.click()
@@ -1148,29 +1148,33 @@ class ProfileView(ActionBarView):
         element_to_swipe_over_obj = self.device.find(
             resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
         )
-        if not element_to_swipe_over_obj.exists():
-            UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
-            element_to_swipe_over_obj = self.device.find(
-                resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
-            )
+        for _ in range(2):
+            if not element_to_swipe_over_obj.exists():
+                UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
+                element_to_swipe_over_obj = self.device.find(
+                    resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
+                )
+                continue
 
-        element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
-        try:
-            bar_countainer = self.device.find(
-                resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
-            ).get_bounds()["bottom"]
+            element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
+            try:
+                bar_countainer = self.device.find(
+                    resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
+                ).get_bounds()["bottom"]
 
-            logger.info("Scrolled down to see more posts.")
-            self.device.swipe_points(
-                displayWidth / 2,
-                element_to_swipe_over,
-                displayWidth / 2,
-                bar_countainer,
-            )
-            return element_to_swipe_over - bar_countainer
-        except:
-            logger.info("I'm not able to scroll down.")
-            return 0
+                logger.info("Scrolled down to see more posts.")
+                self.device.swipe_points(
+                    displayWidth / 2,
+                    element_to_swipe_over,
+                    displayWidth / 2,
+                    bar_countainer,
+                )
+                return element_to_swipe_over - bar_countainer
+            except:
+                logger.info("I'm not able to scroll down.")
+                return 0
+        logger.warning("Maybe a private or empty profile in which check failed.. Skip")
+        return -1
 
     def navigateToPostsTab(self):
         self._navigateToTab(TabBarText.POSTS_CONTENT_DESC)

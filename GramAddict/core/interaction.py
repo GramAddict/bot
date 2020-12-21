@@ -105,6 +105,8 @@ def interact_with_user(
     )
 
     swipe_amount = ProfileView(device).swipe_to_fit_posts()
+    if swipe_amount == -1:
+        return False, False, False
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
