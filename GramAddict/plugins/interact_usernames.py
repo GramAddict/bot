@@ -194,12 +194,16 @@ class InteractUsernames(Plugin):
                                 == FollowingStatus.NOT_IN_LIST
                             )
 
-                            interaction_succeed, followed = interaction(
+                            interaction_succeed, followed, scraped = interaction(
                                 device, username=username, can_follow=can_follow
                             )
-                            storage.add_interacted_user(username, followed=followed)
+                            storage.add_interacted_user(
+                                username, followed=followed, scraped=scraped
+                            )
                             can_continue = on_interaction(
-                                succeed=interaction_succeed, followed=followed
+                                succeed=interaction_succeed,
+                                followed=followed,
+                                scraped=scraped,
                             )
                             if not can_continue:
                                 return False

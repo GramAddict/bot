@@ -71,6 +71,7 @@ class ForceIteract(Plugin):
         self.args = configs.args
         profile_filter = Filter()
         self.current_mode = plugin
+        self.ResourceID = resources(self.args.app_id)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.force_interact]
@@ -190,8 +191,8 @@ class ForceIteract(Plugin):
         interaction_succeed, followed, scraped = interaction(
             device, username=username, can_follow=can_follow
         )
-        storage.add_interacted_user(username, followed=followed)
-        can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
+        storage.add_interacted_user(username, followed=followed, scraped=scraped)
+        can_continue = on_interaction(succeed=interaction_succeed, followed=followed, scraped=scraped)
 
         logger.info("Unfollow @" + username)
         attempts = 0
