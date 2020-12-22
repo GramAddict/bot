@@ -876,16 +876,6 @@ class OpenedPostView:
             text = text.get_text()
         return True if text == "Following" or text == "Requested" else False
 
-    def _isFollowing(self, countainer):
-        text = countainer.child(
-            resourceId=ResourceID.BUTTON,
-            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
-        )
-        # UIA1 doesn't use .get_text()
-        if type(text) != str:
-            text = text.get_text()
-        return True if text == "Following" or text == "Requested" else False
-
 
 class PostsGridView:
     def __init__(self, device: DeviceFacade):
