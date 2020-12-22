@@ -30,10 +30,10 @@ interact-from-file: usernames.txt
 posts-from-file: posts.txt
 
 ## Unfollow
-unfollow: 10
-unfollow-any: 100-200
-unfollow-non-followers: 100-200
-unfollow-any-non-followers: 100-200
+unfollow: 10-20
+unfollow-any: 10-20
+unfollow-non-followers: 10-20
+unfollow-any-non-followers: 10-20
 
 ## Post Processing
 analytics: myusername
@@ -51,6 +51,7 @@ follow-limit: 50
 skipped-list-limit: 10-15
 fling-when-skipped: 0
 interact-percentage: 50
+min-following: 100
 
 ##############################################################################
 # Total Limits
