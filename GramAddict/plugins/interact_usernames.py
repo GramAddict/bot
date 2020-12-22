@@ -178,12 +178,14 @@ class InteractUsernames(Plugin):
                         if need_to_refresh:
                             search_view = TabBarView(device).navigateToSearch()
                             random_sleep()
-                        profile_view = search_view.navigateToUsername(username, True, need_to_refresh)
+                        profile_view = search_view.navigateToUsername(
+                            username, True, need_to_refresh
+                        )
+                        need_to_refresh = False
                         if not profile_view:
-                            need_to_refresh = False
                             continue
                         random_sleep()
-                        need_to_refresh = True
+
                         def interact():
                             can_follow = not is_follow_limit_reached() and (
                                 storage.get_following_status(username)
