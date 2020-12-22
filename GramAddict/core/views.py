@@ -296,11 +296,22 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username, scrape_mode):
+    def navigateToUsername(self, username, interact_usernames):
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        if scrape_mode is False:
+        random_sleep(1, 2)
+        if interact_usernames:
+            logger.debug("Close the keyboard")
+            DeviceFacade.back(self.device)
+            random_sleep(1, 2)
+            DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
+            random_sleep(1, 2)
+            search_edit_text.set_text(username)
+            random_sleep(1, 2)
+            logger.debug("Close the keyboard")
+            DeviceFacade.back(self.device)
+        else:
             logger.debug("Close the keyboard")
             DeviceFacade.back(self.device)
             random_sleep(1, 2)
@@ -308,8 +319,8 @@ class SearchView:
             if searched_user_recent.exists(True):
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
-        search_edit_text.set_text(username)
-        random_sleep(1, 2)
+            search_edit_text.set_text(username)
+            random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists():
             logger.error("Cannot find user @" + username + ".")
@@ -854,6 +865,16 @@ class OpenedPostView:
             resourceId=ResourceID.ROW_USER_PRIMARY_NAME,
             className=ClassName.TEXT_VIEW,
         )
+
+    def _isFollowing(self, countainer):
+        text = countainer.child(
+            resourceId=ResourceID.BUTTON,
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
+        )
+        # UIA1 doesn't use .get_text()
+        if type(text) != str:
+            text = text.get_text()
+        return True if text == "Following" or text == "Requested" else False
 
     def _isFollowing(self, countainer):
         text = countainer.child(
