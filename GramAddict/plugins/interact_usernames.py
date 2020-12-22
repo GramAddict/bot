@@ -163,6 +163,7 @@ class InteractUsernames(Plugin):
             source=current_file,
             session_state=self.session_state,
         )
+        need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
                 for line in f:
@@ -174,13 +175,15 @@ class InteractUsernames(Plugin):
                         elif storage.check_user_was_interacted(username):
                             logger.info(f"@{username}: already interacted. Skip.")
                             continue
-                        search_view = TabBarView(device).navigateToSearch()
-                        random_sleep()
-                        profile_view = search_view.navigateToUsername(username, True)
+                        if need_to_refresh:
+                            search_view = TabBarView(device).navigateToSearch()
+                            random_sleep()
+                        profile_view = search_view.navigateToUsername(username, True, need_to_refresh)
                         if not profile_view:
+                            need_to_refresh = False
                             continue
                         random_sleep()
-
+                        need_to_refresh = True
                         def interact():
                             can_follow = not is_follow_limit_reached() and (
                                 storage.get_following_status(username)

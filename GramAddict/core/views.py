@@ -296,7 +296,7 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username, interact_usernames):
+    def navigateToUsername(self, username, interact_usernames, need_to_refresh = True):
         logger.debug("Navigate to profile @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
@@ -305,8 +305,9 @@ class SearchView:
             logger.debug("Close the keyboard")
             DeviceFacade.back(self.device)
             random_sleep(1, 2)
-            DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
-            random_sleep(1, 2)
+            if need_to_refresh:
+                DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
+                random_sleep(1, 2)
             search_edit_text.set_text(username)
             random_sleep(1, 2)
             logger.debug("Close the keyboard")
@@ -322,7 +323,7 @@ class SearchView:
             search_edit_text.set_text(username)
             random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
-        if not username_view.exists():
+        if not username_view.exists(True):
             logger.error("Cannot find user @" + username + ".")
             return None
         username_view.click()
