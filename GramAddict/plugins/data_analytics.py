@@ -25,7 +25,7 @@ class DataAnalytics(Plugin):
         self.arguments = [
             {
                 "arg": "--analytics",
-                "nargs": 1,
+                "nargs": None,
                 "help": "generates a PDF analytics report of specified username session data",
                 "metavar": "username1",
                 "default": None,
@@ -33,8 +33,9 @@ class DataAnalytics(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
-        self.username = args.analytics[0]
+    def run(self, device, configs, storage, sessions, plugin):
+        self.args = configs.args
+        self.username = self.args.analytics
         sessions = self.load_sessions()
         if not sessions:
             return
@@ -43,7 +44,7 @@ class DataAnalytics(Plugin):
             "report_"
             + self.username
             + "_"
-            + datetime.now().strftime("%Y-%m-%d")
+            + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             + ".pdf"
         )
         with PdfPages(filename) as pdf:
@@ -79,11 +80,15 @@ class DataAnalytics(Plugin):
             return None
 
     def plot_followers_growth(self, sessions, pdf, username, period):
-        followers_count = [int(session["profile"]["followers"]) for session in sessions]
+        followers_count = [
+            int(session.get("profile", {}).get("followers", 0)) for session in sessions
+        ]
         dates = [self.get_start_time(session) for session in sessions]
-        total_followed = [int(session["total_followed"]) for session in sessions]
-        total_unfollowed = [-int(session["total_unfollowed"]) for session in sessions]
-        total_likes = [int(session["total_likes"]) for session in sessions]
+        total_followed = [int(session.get("total_followed", 0)) for session in sessions]
+        total_unfollowed = [
+            -int(session.get("total_unfollowed", 0)) for session in sessions
+        ]
+        total_likes = [int(session.get("total_likes", 0)) for session in sessions]
 
         fig, (axes1, axes2, axes3) = plt.subplots(
             ncols=1,

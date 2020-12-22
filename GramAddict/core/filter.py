@@ -5,13 +5,16 @@ import re
 import unicodedata
 
 from colorama import Fore
-from GramAddict.core.views import ProfileView
+from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
+from GramAddict.core.resources import ClassName, ResourceID as resources
 
 logger = logging.getLogger(__name__)
 
 FILENAME_CONDITIONS = "filter.json"
 FIELD_SKIP_BUSINESS = "skip_business"
 FIELD_SKIP_NON_BUSINESS = "skip_non_business"
+FIELD_SKIP_FOLLOWING = "skip_following"
+FIELD_SKIP_FOLLOWER = "skip_follower"
 FIELD_MIN_FOLLOWERS = "min_followers"
 FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
@@ -28,6 +31,15 @@ FIELD_MIN_POSTS = "min_posts"
 IGNORE_CHARSETS = ["MATHEMATICAL"]
 
 
+def load_config(config):
+    global args
+    global configs
+    global ResourceID
+    args = config.args
+    configs = config
+    ResourceID = resources(config.args.app_id)
+
+
 class Filter:
     conditions = None
 
@@ -35,6 +47,24 @@ class Filter:
         if os.path.exists(FILENAME_CONDITIONS):
             with open(FILENAME_CONDITIONS) as json_file:
                 self.conditions = json.load(json_file)
+
+    def check_profile_from_list(self, device, item, username):
+        if self.conditions is None:
+            return True
+
+        field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
+
+        if field_skip_following:
+            following = OpenedPostView(device)._isFollowing(item)
+
+            if following:
+                logger.info(
+                    f"You follow @{username}, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return False
+
+        return True
 
     def check_profile(self, device, username):
         """
@@ -45,6 +75,8 @@ class Filter:
 
         field_skip_business = self.conditions.get(FIELD_SKIP_BUSINESS, False)
         field_skip_non_business = self.conditions.get(FIELD_SKIP_NON_BUSINESS, False)
+        field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
+        field_skip_follower = self.conditions.get(FIELD_SKIP_FOLLOWER, False)
         field_min_followers = self.conditions.get(FIELD_MIN_FOLLOWERS)
         field_max_followers = self.conditions.get(FIELD_MAX_FOLLOWERS)
         field_min_followings = self.conditions.get(FIELD_MIN_FOLLOWINGS)
@@ -58,6 +90,26 @@ class Filter:
         )
         field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
         field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
+
+        if field_skip_following or field_skip_follower:
+            profileView = ProfileView(device)
+            button, text = profileView.getFollowButton()
+
+            if field_skip_following:
+                if text == FollowStatus.FOLLOWING:
+                    logger.info(
+                        f"You follow @{username}, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
+
+            if field_skip_follower:
+                if text == FollowStatus.FOLLOW_BACK:
+                    logger.info(
+                        f"@{username} follows you, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return False
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -273,10 +325,10 @@ class Filter:
     @staticmethod
     def _has_business_category(device):
         business_category_view = device.find(
-            resourceId="com.instagram.android:id/profile_header_business_category",
-            className="android.widget.TextView",
+            resourceId=ResourceID.PROFILE_HEADER_BUSINESS_CATEGORY,
+            className=ClassName.TEXT_VIEW,
         )
-        return business_category_view.exists()
+        return business_category_view.exists(True)
 
     @staticmethod
     def _is_private_account(device):

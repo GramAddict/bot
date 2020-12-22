@@ -1,6 +1,11 @@
 /venv*
+/.venv
+/build
+/dist
+/gramaddict.egg-info
 /.idea
 /.vscode
+*/*.yml
 interacted_users.*
 sessions.json
 *.pyc
@@ -12,5 +17,5 @@ whitelist.txt
 Pipfile
 Pipfile.lock
 *.pdf
-.venv
 *.log*
+!config-examples/*

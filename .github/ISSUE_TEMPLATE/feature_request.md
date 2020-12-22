@@ -1,6 +1,6 @@
 ---
 name: Enhancement Request
-about: Suggest an enhancement to the Kubernetes project
+about: Suggest an enhancement to the GramAddict project
 labels: kind/feature
 
 ---

@@ -23,11 +23,12 @@ from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     _on_interaction,
     _on_like,
+    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep, save_crash
 
@@ -35,8 +36,6 @@ logger = logging.getLogger(__name__)
 
 from GramAddict.core.views import TabBarView
 
-BUTTON_REGEX = "android.widget.Button"
-BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
 FOLLOWING_REGEX = "^Following|^Requested"
 UNFOLLOW_REGEX = "^Unfollow"
 
@@ -62,18 +61,21 @@ class ForceIteract(Plugin):
             }
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = configs.args
+        self.device_id = configs.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
+        self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
+        self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in args.force_interact]
@@ -94,11 +96,15 @@ class ForceIteract(Plugin):
                 ),
                 sessions=self.sessions,
                 session_state=self.session_state,
-                args=args,
+                args=self.args,
             )
 
             on_like = partial(
                 _on_like, sessions=self.sessions, session_state=self.session_state
+            )
+
+            on_watch = partial(
+                _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
             if args.stories_count != "0":
@@ -126,6 +132,7 @@ class ForceIteract(Plugin):
                     storage,
                     profile_filter,
                     on_like,
+                    on_watch,
                     on_interaction,
                 )
                 self.state.is_job_completed = True
@@ -145,6 +152,7 @@ class ForceIteract(Plugin):
         storage,
         profile_filter,
         on_like,
+        on_watch,
         on_interaction,
     ):
         is_myself = username == self.session_state.my_username
@@ -156,7 +164,11 @@ class ForceIteract(Plugin):
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             on_like=on_like,
+            on_watch=on_watch,
             profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
+            current_mode=self.current_mode,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
@@ -172,11 +184,9 @@ class ForceIteract(Plugin):
             not is_myself
             and not is_follow_limit_reached()
             and (
-                            storage.get_following_status(username)
-                            == FollowingStatus.NONE
-                            or storage.get_following_status(username)
-                            == FollowingStatus.NOT_IN_LIST
-                        )
+                storage.get_following_status(username) == FollowingStatus.NONE
+                or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
+            )
         )
 
         interaction_succeed, followed = interaction(
@@ -188,30 +198,30 @@ class ForceIteract(Plugin):
         logger.info("Unfollow @" + username)
         attempts = 0
 
-        while True:
+        unfollow_button = None
+        attempts = 2
+        for _ in range(attempts)
             unfollow_button = device.find(
-                classNameMatches=BUTTON_REGEX,
+                classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(
-                    classNameMatches="androidx.viewpager.widget.ViewPager"
-                )
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
+            if unfollow_button.exists():
                 break
+            scrollable = device.find(
+                classNameMatches=ClassName.VIEW_PAGER
+            )
+            scrollable.scroll(DeviceFacade.Direction.TOP)
 
-        if not unfollow_button.exists():
+        if not unfollow_button or not unfollow_button.exists():
             logger.error("Cannot find Following button.")
             save_crash(device)
 
         unfollow_button.click()
 
         confirm_unfollow_button = device.find(
-            resourceId="com.instagram.android:id/follow_sheet_unfollow_row",
-            className="android.widget.TextView",
+            resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+            className=ClassName.TEXT_VIEW,
         )
         if not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
@@ -222,7 +232,7 @@ class ForceIteract(Plugin):
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
-            classNameMatches=BUTTON_OR_TEXTVIEW_REGEX,
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
             textMatches=UNFOLLOW_REGEX,
         )
 

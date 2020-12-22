@@ -6,18 +6,17 @@ from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
-from GramAddict.core.views import LanguageNotEnglishException
+from GramAddict.core.views import (
+    LanguageNotEnglishException,
+    UniversalActions,
+    Direction,
+)
 
 logger = logging.getLogger(__name__)
 
-FOLLOWING_BUTTON_ID_REGEX = (
-    "com.instagram.android:id/row_profile_header_following_container"
-    "|com.instagram.android:id/row_profile_header_container_following"
-)
-BUTTON_REGEX = "android.widget.Button"
-BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
 FOLLOWING_REGEX = "^Following|^Requested"
 UNFOLLOW_REGEX = "^Unfollow"
 
@@ -32,24 +31,32 @@ class ActionUnfollowFollowers(Plugin):
             {
                 "arg": "--unfollow",
                 "nargs": None,
-                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-non-followers",
                 "nargs": None,
-                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users, that don't follow you back. Only users followed by this script will be unfollowed. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-any-non-followers",
+                "nargs": None,
+                "help": "unfollow at most given number of users, that don't follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
             {
                 "arg": "--unfollow-any",
                 "nargs": None,
-                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 100) or a range (e.g. 100-200)",
-                "metavar": "100-200",
+                "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
                 "default": None,
                 "operation": True,
             },
@@ -62,7 +69,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, device_id, args, enabled, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
@@ -70,27 +77,31 @@ class ActionUnfollowFollowers(Plugin):
             unfollowed_count = 0
             is_job_completed = False
 
-        self.device_id = device_id
+        self.args = configs.args
+        self.device_id = configs.args.device
         self.state = State()
         self.session_state = sessions[-1]
         self.sessions = sessions
-        self.unfollow_type = plugin[2:]
+        self.unfollow_type = plugin
+        self.ResourceID = resources(self.args.app_id)
 
         count_arg = get_value(
-            getattr(args, self.unfollow_type.replace("-", "_")),
+            getattr(self.args, self.unfollow_type.replace("-", "_")),
             "Unfollow count: {}",
             10,
         )
 
         count = min(
             count_arg,
-            self.session_state.my_following_count - int(args.min_following),
+            self.session_state.my_following_count - int(self.args.min_following),
         )
 
         if self.unfollow_type == "unfollow":
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT
         elif self.unfollow_type == "unfollow-non-followers":
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+        elif self.unfollow_type == "unfollow-any-non-followers":
+            self.unfollow_type = UnfollowRestriction.ANY_NON_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
 
@@ -101,7 +112,7 @@ class ActionUnfollowFollowers(Plugin):
                 + ", you have "
                 + str(self.session_state.my_following_count)
                 + " followings, min following is "
-                + str(args.min_following)
+                + str(self.args.min_following)
                 + ". Finish."
             )
             return
@@ -123,6 +134,7 @@ class ActionUnfollowFollowers(Plugin):
             )
             logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
             self.state.is_job_completed = True
+            device.back()
 
         while not self.state.is_job_completed and (self.state.unfollowed_count < count):
             job()
@@ -144,14 +156,20 @@ class ActionUnfollowFollowers(Plugin):
 
     def open_my_followings(self, device):
         logger.info("Open my followings")
-        followings_button = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
+        followings_button = device.find(
+            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+        )
         followings_button.click()
 
     def sort_followings_by_date(self, device):
         logger.info("Sort followings by date: from oldest to newest.")
+        UniversalActions(device)._swipe_points(
+            direction=Direction.DOWN,
+        )
+
         sort_button = device.find(
-            resourceId="com.instagram.android:id/sorting_entry_row_icon",
-            className="android.widget.ImageView",
+            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
+            className=ClassName.IMAGE_VIEW,
         )
         if not sort_button.exists():
             logger.error(
@@ -161,7 +179,7 @@ class ActionUnfollowFollowers(Plugin):
         sort_button.click()
 
         sort_options_recycler_view = device.find(
-            resourceId="com.instagram.android:id/follow_list_sorting_options_recycler_view"
+            resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
         if not sort_options_recycler_view.exists():
             logger.error(
@@ -176,19 +194,37 @@ class ActionUnfollowFollowers(Plugin):
     ):
         # Wait until list is rendered
         device.find(
-            resourceId="com.instagram.android:id/follow_list_container",
-            className="android.widget.LinearLayout",
+            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+            className=ClassName.LINEAR_LAYOUT,
         ).wait()
+        sort_container_obj = device.find(
+            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
+        )
+        top_tab_obj = device.find(
+            resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
+        )
+        if sort_container_obj.exists() and top_tab_obj.exists():
+            sort_container_bounds = sort_container_obj.get_bounds()["top"]
+            list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
+            delta = sort_container_bounds - list_tab_bounds
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=sort_container_bounds,
+                delta_y=delta - 50,
+            )
+        else:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN,
+            )
         checked = {}
         unfollowed_count = 0
         while True:
             logger.info("Iterate over visible followings")
             random_sleep()
             screen_iterated_followings = 0
-
             for item in device.find(
-                resourceId="com.instagram.android:id/follow_list_container",
-                className="android.widget.LinearLayout",
+                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+                className=ClassName.LINEAR_LAYOUT,
             ):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
@@ -225,7 +261,10 @@ class ActionUnfollowFollowers(Plugin):
                             )
                             continue
 
-                    if unfollow_restriction == UnfollowRestriction.ANY:
+                    if (
+                        unfollow_restriction == UnfollowRestriction.ANY
+                        or unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS
+                    ):
                         following_status = storage.get_following_status(username)
                         if following_status == FollowingStatus.UNFOLLOWED:
                             logger.info(
@@ -233,13 +272,14 @@ class ActionUnfollowFollowers(Plugin):
                             )
                             continue
 
-                    logger.info("Unfollow @" + username)
                     unfollowed = self.do_unfollow(
                         device,
                         username,
                         my_username,
                         unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                        or unfollow_restriction
+                        == UnfollowRestriction.ANY_NON_FOLLOWERS,
                     )
                     if unfollowed:
                         storage.add_interacted_user(username, unfollowed=True)
@@ -255,7 +295,7 @@ class ActionUnfollowFollowers(Plugin):
             if screen_iterated_followings > 0:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
                 list_view = device.find(
-                    resourceId="android:id/list", className="android.widget.ListView"
+                    resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 list_view.scroll(DeviceFacade.Direction.BOTTOM)
             else:
@@ -265,13 +305,15 @@ class ActionUnfollowFollowers(Plugin):
                 )
                 return
 
-    def do_unfollow(self, device, username, my_username, check_if_is_follower):
+    def do_unfollow(
+        self, device: DeviceFacade, username, my_username, check_if_is_follower
+    ):
         """
         :return: whether unfollow was successful
         """
         username_view = device.find(
-            resourceId="com.instagram.android:id/follow_list_username",
-            className="android.widget.TextView",
+            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
+            className=ClassName.TEXT_VIEW,
             text=username,
         )
         if not username_view.exists():
@@ -287,22 +329,26 @@ class ActionUnfollowFollowers(Plugin):
             device.back()
             return False
 
-        attempts = 0
+        unfollow_button = device.find(
+            classNameMatches=ClassName.BUTTON,
+            clickable=True,
+            textMatches=FOLLOWING_REGEX,
+        )
+        # I don't know/remember the origin of this, if someone does - let's document it
+        attempts = 2
+        for _ in range(attempts):
+            if unfollow_button.exists():
+                break
 
-        while True:
+            scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
+            if scrollable.exists():
+                scrollable.scroll(DeviceFacade.Direction.TOP)
+
             unfollow_button = device.find(
-                classNameMatches=BUTTON_REGEX,
+                classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
-            if not unfollow_button.exists() and attempts <= 1:
-                scrollable = device.find(
-                    classNameMatches="androidx.viewpager.widget.ViewPager"
-                )
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-                attempts += 1
-            else:
-                break
 
         if not unfollow_button.exists():
             logger.error(
@@ -311,24 +357,36 @@ class ActionUnfollowFollowers(Plugin):
             save_crash(device)
             switch_to_english(device)
             raise LanguageNotEnglishException()
-        unfollow_button.click()
 
-        confirm_unfollow_button = device.find(
-            resourceId="com.instagram.android:id/follow_sheet_unfollow_row",
-            className="android.widget.TextView",
-        )
-        if not confirm_unfollow_button.exists():
+        unfollow_button.click()
+        logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
+
+        # Weirdly enough, this is a fix for after you unfollow someone that follows
+        # you back - the next person you unfollow the button is missing on first find
+        # additional find - finds it. :shrug:
+        confirm_unfollow_button = None
+        attempts = 2
+        for _ in range(attempts):
+            confirm_unfollow_button = device.find(
+                resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
+                className=ClassName.TEXT_VIEW,
+            )
+            if confirm_unfollow_button.exists():
+                break
+
+        if not confirm_unfollow_button or not confirm_unfollow_button.exists():
             logger.error("Cannot confirm unfollow.")
             save_crash(device)
             device.back()
             return False
+
         confirm_unfollow_button.click()
 
-        random_sleep()
+        random_sleep(0, 1)
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
-            classNameMatches=BUTTON_OR_TEXTVIEW_REGEX,
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
             textMatches=UNFOLLOW_REGEX,
         )
 
@@ -346,14 +404,16 @@ class ActionUnfollowFollowers(Plugin):
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
-        following_container = device.find(resourceIdMatches=FOLLOWING_BUTTON_ID_REGEX)
+        following_container = device.find(
+            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+        )
         following_container.click()
 
-        random_sleep()
+        random_sleep(4, 6)
 
         my_username_view = device.find(
-            resourceId="com.instagram.android:id/follow_list_username",
-            className="android.widget.TextView",
+            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
+            className=ClassName.TEXT_VIEW,
             text=my_username,
         )
         result = my_username_view.exists()
@@ -367,3 +427,4 @@ class UnfollowRestriction(Enum):
     ANY = 0
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
+    ANY_NON_FOLLOWERS = 3

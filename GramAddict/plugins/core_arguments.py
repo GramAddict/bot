@@ -18,9 +18,16 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--username",
+                "nargs": None,
+                "help": "username of the instagram account being used",
+                "metavar": "justinbieber",
+                "default": None,
+            },
+            {
                 "arg": "--likes-count",
                 "nargs": None,
-                "help": "number of likes for each interacted user, 2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "help": "number of likes for each interacted user, 1-2 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
                 "metavar": "2-4",
                 "default": "1-2",
             },
@@ -69,14 +76,14 @@ class CoreArguments(Plugin):
             {
                 "arg": "--stories-percentage",
                 "nargs": None,
-                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "help": "chance of watching stories on a particular profile, 30-40 by default. It can be a number (e.g. 20) or a range (e.g. 20-40)",
                 "metavar": "50-70",
                 "default": "30-40",
             },
             {
                 "arg": "--interactions-count",
                 "nargs": None,
-                "help": "number of interactions per each blogger, 70 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",
+                "help": "number of interactions per each blogger, 30-50 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",
                 "metavar": "60-80",
                 "default": "30-50",
             },
@@ -102,9 +109,42 @@ class CoreArguments(Plugin):
                 "default": None,
             },
             {
+                "arg": "--skipped-list-limit",
+                "nargs": None,
+                "help": "limit how many scrolls tried, with already interacted users, until we move to next source. Does not apply for unfollows.",
+                "metavar": "10-15",
+                "default": "10-15",
+            },
+            {
+                "arg": "--fling-when-skipped",
+                "nargs": None,
+                "help": 'fling after "X" many scrolls tried, with already interacted users. (not recommended - disabled by default)',
+                "metavar": "10-12",
+                "default": "0",
+            },
+            {
+                "arg": "--speed-multiplier",
+                "nargs": None,
+                "help": "modifier for random sleep values - slows down (>1) or speeds up (<1) depending on multiplier passed.",
+                "metavar": 1,
+                "default": 1,
+            },
+            {
                 "arg": "--screen-sleep",
                 "help": "save your screen by turning it off during the inactive time, disabled by default",
                 "action": "store_true",
+            },
+            {
+                "arg": "--debug",
+                "help": "enable debug logging",
+                "action": "store_true",
+            },
+            {
+                "arg": "--uia-version",
+                "nargs": None,
+                "help": "uiautomator version, defaults to 2.",
+                "metavar": 2,
+                "default": 2,
             },
             {
                 "arg": "--interact",
@@ -112,7 +152,6 @@ class CoreArguments(Plugin):
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
                 "metavar": ("@username1", "@username2"),
                 "default": None,
-                "operation": True,
             },
             {
                 "arg": "--hashtag-likers",
@@ -120,6 +159,10 @@ class CoreArguments(Plugin):
                 "help": "list of hashtags with whose likers you want to interact",
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
-                "operation": True,
+            },
+            {
+                "arg": "--delete-interacted-users",
+                "help": "delete the user from the file after processing it",
+                "action": "store_true",
             },
         ]

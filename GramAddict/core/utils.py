@@ -12,10 +12,22 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
+
+
+def load_config(config):
+    global app_id
+    global args
+    global configs
+    global ResourceID
+    app_id = config.args.app_id
+    args = config.args
+    configs = config
+    ResourceID = resources(app_id)
 
 
 def update_available():
@@ -32,7 +44,8 @@ def update_available():
         return False
 
 
-def check_adb_connection(is_device_id_provided):
+def check_adb_connection():
+    is_device_id_provided = configs.device_id is not None
     stream = os.popen("adb devices")
     output = stream.read()
     devices_count = len(re.findall("device\n", output))
@@ -55,11 +68,11 @@ def check_adb_connection(is_device_id_provided):
     return is_ok
 
 
-def get_instagram_version(device_id):
+def get_instagram_version():
     stream = os.popen(
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + " shell dumpsys package com.instagram.android"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell dumpsys package {app_id}"
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
@@ -71,11 +84,11 @@ def get_instagram_version(device_id):
     return version
 
 
-def open_instagram_with_url(device_id, url):
+def open_instagram_with_url(url):
     logger.info("Open Instagram app with url: {}".format(url))
     cmd = (
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
         + " shell am start -a android.intent.action.VIEW -d {}".format(url)
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
@@ -87,12 +100,12 @@ def open_instagram_with_url(device_id, url):
     return True
 
 
-def open_instagram(device_id):
+def open_instagram():
     logger.info("Open Instagram app")
     cmd = (
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + " shell am start -n com.instagram.android/com.instagram.mainactivity.MainActivity"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
@@ -101,17 +114,24 @@ def open_instagram(device_id):
     random_sleep()
 
 
-def close_instagram(device_id):
+def close_instagram():
     logger.info("Close Instagram app")
     os.popen(
         "adb"
-        + ("" if device_id is None else " -s " + device_id)
-        + " shell am force-stop com.instagram.android"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell am force-stop {app_id}"
+    ).close()
+    # close out atx-agent
+    os.popen(
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + " shell pkill atx-agent"
     ).close()
 
 
-def random_sleep():
-    delay = uniform(1.0, 4.0)
+def random_sleep(inf=1.0, sup=4.0):
+    multiplier = float(args.speed_multiplier)
+    delay = uniform(inf, sup) * multiplier
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
@@ -165,8 +185,8 @@ def save_crash(device):
 def detect_block(device):
     logger.debug("Checking for block...")
     block_dialog = device.find(
-        resourceId="com.instagram.android:id/dialog_root_view",
-        className="android.widget.FrameLayout",
+        resourceId=ResourceID.DIALOG_ROOT_VIEW,
+        className=ClassName.FRAME_LAYOUT,
     )
     is_blocked = block_dialog.exists()
     if is_blocked:
@@ -192,20 +212,25 @@ def get_value(count, name, default):
     elif len(parts) == 1:
         try:
             value = int(count)
-            logger.info(name.format(value), extra={"color": Style.BRIGHT})
+            if name is not None:
+                logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
     elif len(parts) == 2:
         try:
             value = randint(int(parts[0]), int(parts[1]))
-            logger.info(name.format(value), extra={"color": Style.BRIGHT})
+            if name is not None:
+                logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
             value = default
             print_error()
     else:
         value = default
         print_error()
+
+    if value == 69:
+        logger.info("69, Noice 😎 https://www.youtube.com/watch?v=VLNxvl3-CpA")
     return value
 
 

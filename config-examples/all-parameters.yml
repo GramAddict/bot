@@ -1,0 +1,70 @@
+---
+##############################################################################
+# For more information on parameters, refer to: 
+# https://docs.gramaddict.org/#/configuration?id=configuration-file
+#
+# Note: be sure to comment out any parameters not used by adding a # in front
+##############################################################################
+# General Configuration
+##############################################################################
+
+username: myusername
+device: abcdefg123456
+app-id: com.instagram.android
+screen-sleep: true
+uia-version: 2
+speed-multiplier: 1
+debug: false
+
+##############################################################################
+# Actions
+##############################################################################
+
+## Interaction
+blogger-followers: [ username1, username2 ]
+hashtag-likers-top: [ hashtag1, hashtag2 ]
+hashtag-likers-recent: [ hashtag1, hashtag2 ]
+hashtag-posts-top: [ hashtag1, hashtag2 ]
+hashtag-posts-recent: [ hashtag1, hashtag2 ]
+interact-from-file: usernames.txt
+posts-from-file: posts.txt
+
+## Unfollow
+unfollow: 10-20
+unfollow-any: 10-20
+unfollow-non-followers: 10-20
+unfollow-any-non-followers: 10-20
+
+## Post Processing
+analytics: myusername
+
+##############################################################################
+# Source Limits
+##############################################################################
+
+likes-count: 1-2
+stories-count: 1-2
+stories-percentage: 30-40
+interactions-count: 20-30
+follow-percentage: 30
+follow-limit: 50
+skipped-list-limit: 10-15
+fling-when-skipped: 0
+interact-percentage: 50
+min-following: 100
+
+##############################################################################
+# Total Limits
+##############################################################################
+
+total-likes-limit: 300
+total-follows-limit: 50
+total-watches-limit: 500
+total-successful-interactions-limit: 100
+total-interactions-limit: 500
+
+##############################################################################
+# Scheduling
+##############################################################################
+
+repeat: 280-320
