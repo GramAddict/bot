@@ -467,7 +467,7 @@ class DeviceFacade:
                         visible_bounds["top"]
                         + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                     )
-                    logger.debug(f"Single click ({x_abs}, {y_abs})")
+                    logger.debug(f"Single click ({x_abs},{y_abs})")
                     self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
                 except uiautomator2.JSONRPCError as e:
