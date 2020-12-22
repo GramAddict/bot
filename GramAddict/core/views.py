@@ -1285,13 +1285,16 @@ class UniversalActions:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def _swipe_points(self, direction: Direction, start_point_y=0, delta_y=450):
-        middle_point_x = self.device.get_info()["displayWidth"] / 2
-        if start_point_y == 0:
-            start_point_y = self.device.get_info()["displayHeight"] / 2
-        if start_point_y - delta_y < 0:
-            delta_y = start_point_y / 2
+    def _swipe_points(self, direction: Direction, start_point_y=-1, delta_y=450):
+        displayWidth = self.device.get_info()["displayWidth"]
+        displayHeight = self.device.get_info()["displayHeight"]
+        middle_point_x = displayWidth / 2
+        if start_point_y == -1:
+            start_point_y = displayHeight / 2
         if direction == Direction.UP:
+            if start_point_y + delta_y > displayHeight:
+                delta = start_point_y + delta_y - displayHeight
+                start_point_y = start_point_y - delta
             self.device.swipe_points(
                 middle_point_x,
                 start_point_y,
@@ -1299,6 +1302,9 @@ class UniversalActions:
                 start_point_y + delta_y,
             )
         elif direction == Direction.DOWN:
+            if start_point_y - delta_y < 0:
+                delta = abs(start_point_y - delta_y)
+                start_point_y = start_point_y + delta
             self.device.swipe_points(
                 middle_point_x,
                 start_point_y,
