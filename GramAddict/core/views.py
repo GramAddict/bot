@@ -3,6 +3,7 @@ import logging
 import re
 from enum import Enum, auto
 from colorama import Fore, Style
+from random import randint
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
@@ -296,24 +297,35 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username):
-        logger.debug("Navigate to profile @" + username)
+    def navigateToUsername(
+        self, username, interact_usernames=False, swipe_to_accounts=True
+    ):
+        logger.debug("Search for @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        logger.debug("Close the keyboad")
+        random_sleep(1, 2)
+        if swipe_to_accounts:
+            logger.debug("Close the keyboard")
+            DeviceFacade.back(self.device)
+            random_sleep(1, 2)
+            DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
+            random_sleep(1, 2)
+        if interact_usernames:
+            search_edit_text.set_text(username)
+        else:
+            searched_user_recent = self._getUsernameRow(username)
+            if searched_user_recent.exists(True):
+                searched_user_recent.click()
+                return ProfileView(self.device, is_own_profile=False)
+            search_edit_text.set_text(username)
+        logger.debug("Close the keyboard")
         DeviceFacade.back(self.device)
         random_sleep(1, 2)
-        searched_user_recent = self._getUsernameRow(username)
-        if searched_user_recent.exists(True):
-            searched_user_recent.click()
-        else:
-            search_edit_text.set_text(username)
-            random_sleep(1, 2)
-            username_view = self._getUsernameRow(username)
-            if not username_view.exists():
-                logger.error("Cannot find user @" + username + ".")
-                return None
-            username_view.click()
+        username_view = self._getUsernameRow(username)
+        if not username_view.exists(True):
+            logger.error("Cannot find user @" + username + ".")
+            return None
+        username_view.click()
 
         return ProfileView(self.device, is_own_profile=False)
 
@@ -334,7 +346,7 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboad")
+        logger.debug("Close the keyboard")
         DeviceFacade.back(self.device)
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
@@ -1148,29 +1160,35 @@ class ProfileView(ActionBarView):
         element_to_swipe_over_obj = self.device.find(
             resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
         )
-        if not element_to_swipe_over_obj.exists():
-            UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
-            element_to_swipe_over_obj = self.device.find(
-                resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
-            )
+        for _ in range(2):
+            if not element_to_swipe_over_obj.exists():
+                UniversalActions(self.device)._swipe_points(
+                    direction=Direction.DOWN, delta_y=randint(300, 350)
+                )
+                element_to_swipe_over_obj = self.device.find(
+                    resourceIdMatches=ResourceID.PROFILE_TABS_CONTAINER
+                )
+                continue
 
-        element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
-        try:
-            bar_countainer = self.device.find(
-                resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
-            ).get_bounds()["bottom"]
+            element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
+            try:
+                bar_countainer = self.device.find(
+                    resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
+                ).get_bounds()["bottom"]
 
-            logger.info("Scrolled down to see more posts.")
-            self.device.swipe_points(
-                displayWidth / 2,
-                element_to_swipe_over,
-                displayWidth / 2,
-                bar_countainer,
-            )
-            return element_to_swipe_over - bar_countainer
-        except:
-            logger.info("I'm not able to scroll down.")
-            return 0
+                logger.info("Scrolled down to see more posts.")
+                self.device.swipe_points(
+                    displayWidth / 2,
+                    element_to_swipe_over,
+                    displayWidth / 2,
+                    bar_countainer,
+                )
+                return element_to_swipe_over - bar_countainer
+            except:
+                logger.info("I'm not able to scroll down.")
+                return 0
+        logger.warning("Maybe a private or empty profile in which check failed.. Skip")
+        return -1
 
     def navigateToPostsTab(self):
         self._navigateToTab(TabBarText.POSTS_CONTENT_DESC)
@@ -1274,13 +1292,16 @@ class UniversalActions:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def _swipe_points(self, direction: Direction, start_point_y=0, delta_y=450):
-        middle_point_x = self.device.get_info()["displayWidth"] / 2
-        if start_point_y == 0:
-            start_point_y = self.device.get_info()["displayHeight"] / 2
-        if start_point_y - delta_y < 0:
-            delta_y = start_point_y / 2
+    def _swipe_points(self, direction: Direction, start_point_y=-1, delta_y=450):
+        displayWidth = self.device.get_info()["displayWidth"]
+        displayHeight = self.device.get_info()["displayHeight"]
+        middle_point_x = displayWidth / 2
+        if start_point_y == -1:
+            start_point_y = displayHeight / 2
         if direction == Direction.UP:
+            if start_point_y + delta_y > displayHeight:
+                delta = start_point_y + delta_y - displayHeight
+                start_point_y = start_point_y - delta
             self.device.swipe_points(
                 middle_point_x,
                 start_point_y,
@@ -1288,6 +1309,9 @@ class UniversalActions:
                 start_point_y + delta_y,
             )
         elif direction == Direction.DOWN:
+            if start_point_y - delta_y < 0:
+                delta = abs(start_point_y - delta_y)
+                start_point_y = start_point_y + delta
             self.device.swipe_points(
                 middle_point_x,
                 start_point_y,
