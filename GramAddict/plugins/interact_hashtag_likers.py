@@ -251,7 +251,6 @@ class InteractHashtagLikers(Plugin):
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 continue
 
-            logger.info("Open list of likers.")
             posts_end_detector.notify_new_page()
             random_sleep()
 
