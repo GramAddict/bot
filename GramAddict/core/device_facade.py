@@ -74,6 +74,7 @@ class DeviceFacade:
             return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
     def back(self):
+        logger.debug("Press back button")
         if self.deviceV1 is not None:
             self.deviceV1.press.back()
         else:
@@ -466,7 +467,7 @@ class DeviceFacade:
                         visible_bounds["top"]
                         + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                     )
-                    logger.debug(f"Single click ({x_abs}, {y_abs})")
+                    logger.debug(f"Single click ({x_abs},{y_abs})")
                     self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
                 except uiautomator2.JSONRPCError as e:
