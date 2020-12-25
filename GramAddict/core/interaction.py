@@ -344,7 +344,9 @@ def _watch_stories(
         if profile_view.isStoryAvailable():
             profile_picture = profile_view.profileImage()
             if profile_picture.exists():
-                profile_picture.click()  # Open the first story
+                logger.debug("Open the first story")
+                profile_picture.click()
+                random_sleep(1, 2)
                 on_watch()
                 random_sleep()
 
