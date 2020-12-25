@@ -423,6 +423,17 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
+        def click_gone(self, maxretry=3, interval=1.0):
+            if self.viewV1 is not None:
+                DeviceFacade.View.click(device=self.deviceV1)
+            else:
+                import uiautomator2
+
+                try:
+                    self.viewV2.click_gone(maxretry, interval)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+
         def click(self, mode=None):
             if self.viewV1 is not None:
                 import uiautomator
@@ -534,7 +545,7 @@ class DeviceFacade:
                         visible_bounds["bottom"] - vertical_padding,
                     )
                 )
-                time_between_clicks = uniform(0.050, 0.200)
+                time_between_clicks = uniform(0.050, 0.170)
 
                 try:
                     logger.debug(
