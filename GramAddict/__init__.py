@@ -109,7 +109,9 @@ def run():
 
         open_instagram()
         if configs.args.screen_record:
-            logger.warning("Start screen recording: it will be saved as debug.mp4 in main folder")
+            logger.warning(
+                "Start screen recording: it will be saved as debug.mp4 in main folder"
+            )
             device.screenrecord()
         try:
             profileView = TabBarView(device).navigateToProfile()
