@@ -108,7 +108,9 @@ def run():
         logger.info("Device screen on and unlocked.")
 
         open_instagram()
-
+        if configs.args.screen_record:
+            logger.warning("Start screen recording: it will be saved as debug.mp4 in main folder")
+            device.screenrecord()
         try:
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()

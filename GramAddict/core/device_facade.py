@@ -80,6 +80,13 @@ class DeviceFacade:
         else:
             self.deviceV2.press("back")
 
+    def screenrecord(self, output="debug.mp4", fps=10):
+        """for debug, available for V2 only"""
+        if self.deviceV1 is not None:
+            logger.error("Screen recording is only available for UA2")
+        else:
+            self.deviceV2.screenrecord(output, fps)
+
     def screenshot(self, path):
         if self.deviceV1 is not None:
             self.deviceV1.screenshot(path)
