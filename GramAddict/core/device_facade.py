@@ -80,7 +80,7 @@ class DeviceFacade:
         else:
             self.deviceV2.press("back")
 
-    def start_screenrecord(self, output="debug 0000.mp4", fps=10):
+    def start_screenrecord(self, output="debug_0000.mp4", fps=10):
         """for debug, available for V2 only"""
         if self.deviceV1 is not None:
             logger.error("Screen recording is only available for UA2")
@@ -89,7 +89,7 @@ class DeviceFacade:
             if mp4_files != []:
                 last_mp4 = mp4_files[-1]
                 debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
-                output = f"debug {debug_number}.mp4"
+                output = f"debug_{debug_number}.mp4"
             logger.warning(
                 f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'"
             )
