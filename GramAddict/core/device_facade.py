@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, auto
-from os import popen
+from os import popen, listdir, getcwd
 from random import uniform
 from re import search
 from time import sleep
@@ -80,12 +80,33 @@ class DeviceFacade:
         else:
             self.deviceV2.press("back")
 
-    def screenrecord(self, output="debug.mp4", fps=10):
+    def start_screenrecord(self, output="debug 0000.mp4", fps=10):
         """for debug, available for V2 only"""
         if self.deviceV1 is not None:
             logger.error("Screen recording is only available for UA2")
         else:
+            mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
+            if mp4_files != []:
+                last_mp4 = mp4_files[-1]
+                debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
+                output = f"debug {debug_number}.mp4"
+            logger.warning(
+                f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'"
+            )
             self.deviceV2.screenrecord(output, fps)
+
+    def stop_screenrecord(self):
+        """for debug, available for V2 only"""
+        if self.deviceV1 is not None:
+            logger.error("Screen recording is only available for UA2")
+        else:
+            if self.deviceV2.screenrecord.stop():
+                mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
+                if mp4_files != []:
+                    last_mp4 = mp4_files[-1]
+                    logger.warning(
+                        f"Screen recorder has been stoped succesfully! File '{last_mp4}' available in '{getcwd()}'"
+                    )
 
     def screenshot(self, path):
         if self.deviceV1 is not None:
