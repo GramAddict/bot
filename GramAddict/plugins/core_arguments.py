@@ -140,6 +140,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--screen-record",
+                "help": "enable screen recording: it will be saved as debug.mp4",
+                "action": "store_true",
+            },
+            {
                 "arg": "--uia-version",
                 "nargs": None,
                 "help": "uiautomator version, defaults to 2.",
