@@ -177,6 +177,7 @@ class ActionUnfollowFollowers(Plugin):
             )
             return
         sort_button.click()
+        random_sleep()
 
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
@@ -357,7 +358,8 @@ class ActionUnfollowFollowers(Plugin):
             save_crash(device)
             switch_to_english(device)
             raise LanguageNotEnglishException()
-
+        random_sleep()
+        logger.debug("Unfollow btn click")
         unfollow_button.click()
         logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
 
@@ -368,8 +370,7 @@ class ActionUnfollowFollowers(Plugin):
         attempts = 2
         for _ in range(attempts):
             confirm_unfollow_button = device.find(
-                resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW,
-                className=ClassName.TEXT_VIEW,
+                resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
             )
             if confirm_unfollow_button.exists():
                 break
@@ -379,7 +380,7 @@ class ActionUnfollowFollowers(Plugin):
             save_crash(device)
             device.back()
             return False
-
+        logger.debug("Confirm unfollow")
         confirm_unfollow_button.click()
 
         random_sleep(0, 1)
@@ -391,6 +392,7 @@ class ActionUnfollowFollowers(Plugin):
         )
 
         if private_unfollow_button.exists():
+            logger.debug("Confirm unfollow private account")
             private_unfollow_button.click()
 
         detect_block(device)
