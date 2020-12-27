@@ -90,10 +90,10 @@ class DeviceFacade:
                 last_mp4 = mp4_files[-1]
                 debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
                 output = f"debug_{debug_number}.mp4"
+            self.deviceV2.screenrecord(output, fps)
             logger.warning(
                 f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'"
             )
-            self.deviceV2.screenrecord(output, fps)
 
     def stop_screenrecord(self):
         """for debug, available for V2 only"""
