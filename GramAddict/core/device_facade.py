@@ -492,6 +492,10 @@ class DeviceFacade:
                     x_offset = uniform(0.6, 0.85)
                     y_offset = uniform(0.15, 0.85)
 
+                elif mode == self.Location.BOTTOMRIGHT:
+                    x_offset = uniform(0.8, 0.9)
+                    y_offset = uniform(0.8, 0.9)
+
                 else:
                     x_offset = 0.5
                     y_offset = 0.5
@@ -762,6 +766,7 @@ class DeviceFacade:
             BOTTOM = auto()
             RIGHT = auto()
             LEFT = auto()
+            BOTTOMRIGHT = auto()
 
     class Direction(Enum):
         TOP = auto()
