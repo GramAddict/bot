@@ -17,7 +17,7 @@ from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep, detect_block
 from GramAddict.core.views import (
     TabBarView,
-    HashTagView,
+    PlacesView,
     PostsViewList,
     SwipeTo,
     LikeMode,
@@ -31,28 +31,28 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
-    """Handles the functionality of interacting with a hashtags post owners"""
+class InteractPlacePosts(Plugin):
+    """Handles the functionality of interacting with a places post owners"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags post owners"
+            "Handles the functionality of interacting with a places post owners"
         )
         self.arguments = [
             {
-                "arg": "--hashtag-posts-recent",
+                "arg": "--place-posts-recent",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in recent tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in recent tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-posts-top",
+                "arg": "--place-posts-top",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in top tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in top tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             }
@@ -76,9 +76,9 @@ class InteractHashtagLikers(Plugin):
         sources = [
             source
             for source in (
-                self.args.hashtag_posts_top
-                if self.current_mode == "hashtag-posts-top"
-                else self.args.hashtag_posts_recent
+                self.args.place_posts_top
+                if self.current_mode == "place-posts-top"
+                else self.args.place_posts_recent
             )
         ]
         shuffle(sources)
@@ -91,8 +91,6 @@ class InteractHashtagLikers(Plugin):
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
@@ -129,7 +127,7 @@ class InteractHashtagLikers(Plugin):
                 session_state=self.session_state,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_place(
                     device,
                     source,
                     self.args.likes_count,
@@ -157,10 +155,10 @@ class InteractHashtagLikers(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_place(
         self,
         device,
-        hashtag,
+        place,
         likes_count,
         stories_count,
         stories_percentage,
@@ -192,24 +190,24 @@ class InteractHashtagLikers(Plugin):
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
-            source=hashtag,
+            source=place,
             session_state=self.session_state,
         )
         search_view = TabBarView(device).navigateToSearch()
-        if not search_view.navigateToHashtag(hashtag):
+        if not search_view.navigateToPlaces(place):
             return
-        if current_job == "hashtag-posts-recent":
+        if current_job == "place-posts-recent":
             logger.info("Switching to Recent tab")
-            HashTagView(device)._getRecentTab().click()
+            PlacesView(device)._getRecentTab().click()
             random_sleep(5, 10)
-        if HashTagView(device)._check_if_no_posts():
+        if PlacesView(device)._check_if_no_posts():
             UniversalActions(device)._reload_page()
             random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
-        result_view = HashTagView(device)._getRecyclerView()
-        HashTagView(device)._getFistImageView(result_view).click()
+        result_view = PlacesView(device)._getRecyclerView()
+        PlacesView(device)._getFistImageView(result_view).click()
         random_sleep()
 
         def interact():
