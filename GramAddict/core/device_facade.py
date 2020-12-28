@@ -114,7 +114,7 @@ class DeviceFacade:
         )
         data = status.read()
         flag = search("mDreamingLockscreen=(true|false)", data)
-        return True if flag.group(1) == "true" else False
+        return True if flag is not None and flag.group(1) == "true" else False
 
     def is_alive(self):
         # v2 only - for atx_agent
