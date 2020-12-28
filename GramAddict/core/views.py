@@ -672,7 +672,10 @@ class AccountView:
     def changeToUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
         current_profile_name = action_bar.get_text().upper()
-        if current_profile_name == username.upper():
+        # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
+        if current_profile_name == username.upper() or current_profile_name == (
+            "  " + username.upper()
+        ):
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
@@ -687,7 +690,7 @@ class AccountView:
             )
             if found_obj.exists():
                 logger.info(
-                    f"Switching to {configs.args.username}...",
+                    f"Switching to {username}...",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
                 found_obj.click()
