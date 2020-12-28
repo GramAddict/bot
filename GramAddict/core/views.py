@@ -304,9 +304,20 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
+        tabbar_container = self.device.find(
+            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+        )
+        if tabbar_container.exists(True):
+            delta = tabbar_container.get_bounds()["bottom"]
+        else:
+            delta = 375
         if swipe_to_accounts:
-            logger.debug("Close the keyboard")
-            DeviceFacade.back(self.device)
+            logger.debug("Swipe up to close the keyboard if present")
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.UP,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(50, 100),
+            )
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -318,8 +329,12 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        logger.debug("Swipe up to close the keyboard if present")
+        UniversalActions(self.device)._swipe_points(
+            direction=Direction.UP,
+            start_point_y=randint(delta + 10, delta + 150),
+            delta_y=randint(50, 100),
+        )
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists(True):
@@ -346,8 +361,19 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        tabbar_container = self.device.find(
+            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+        )
+        if tabbar_container.exists(True):
+            delta = tabbar_container.get_bounds()["bottom"]
+        else:
+            delta = 375
+        logger.debug("Swipe up to close the keyboard if present")
+        UniversalActions(self.device)._swipe_points(
+            direction=Direction.UP,
+            start_point_y=randint(delta + 10, delta + 150),
+            delta_y=randint(50, 100),
+        )
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
