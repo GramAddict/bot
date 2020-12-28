@@ -100,7 +100,7 @@ def open_instagram_with_url(url):
     return True
 
 
-def open_instagram(device, record_screen):
+def open_instagram(device, screen_record):
     logger.info("Open Instagram app")
     cmd = (
         "adb"
@@ -112,18 +112,18 @@ def open_instagram(device, record_screen):
     if err:
         logger.debug(err)
     random_sleep()
-    if record_screen:
+    if screen_record:
         device.start_screenrecord()
 
 
-def close_instagram(device, record_screen):
+def close_instagram(device, screen_record):
     logger.info("Close Instagram app")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
         + f" shell am force-stop {app_id}"
     ).close()
-    if record_screen:
+    if screen_record:
         device.stop_screenrecord()
     # close out atx-agent
     os.popen(
