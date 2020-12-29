@@ -28,6 +28,7 @@ hashtag-posts-top: [ hashtag1, hashtag2 ]
 hashtag-posts-recent: [ hashtag1, hashtag2 ]
 interact-from-file: usernames.txt
 posts-from-file: posts.txt
+like-from-home: 1
 
 ## Unfollow
 unfollow: 10-20
