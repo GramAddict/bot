@@ -636,12 +636,11 @@ class PostsViewList:
     def _check_if_ad(self):
         STR = "Sponsored"
         logger.debug("Checking if it's an ad.")
-        is_ad = False
         ad_like_obj = self.device.find(resourceId='com.instagram.android:id/secondary_label',
                                        className='android.widget.TextView'
                                        )
         if ad_like_obj.exists(True):
-            if ad_like_obj.get_text() == 'Sponsored':
+            if ad_like_obj.get_text() == STR:
                 logger.debug("Looks like an ad.")
                 return True
             else:
