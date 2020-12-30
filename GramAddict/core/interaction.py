@@ -409,7 +409,7 @@ def _search(
 
     TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
 
-    if current_job in ["hashtag-likers-recent", "place-likers-recent"]:
+    if current_job.endswith("recent"):
         logger.info("Switching to Recent tab")
         TargetView(device)._getRecentTab().click()
         random_sleep(5, 10)
