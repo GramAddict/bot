@@ -237,7 +237,7 @@ class SearchView:
         return self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_SEARCH_USER_USERNAME),
             className=ClassName.TEXT_VIEW,
-            textMatches=case_insensitive_re(username),
+            text=username,
         )
 
     def _getHashtagRow(self, hashtag):
@@ -636,9 +636,10 @@ class PostsViewList:
     def _check_if_ad(self):
         STR = "Sponsored"
         logger.debug("Checking if it's an ad.")
-        ad_like_obj = self.device.find(resourceId='com.instagram.android:id/secondary_label',
-                                       className='android.widget.TextView'
-                                       )
+        ad_like_obj = self.device.find(
+            resourceId='com.instagram.android:id/secondary_label',
+            className='android.widget.TextView',
+        )
         if ad_like_obj.exists(True):
             if ad_like_obj.get_text() == STR:
                 logger.debug("Looks like an ad.")
@@ -757,25 +758,26 @@ class OpenedPostView:
         scroll_to_find: if the like button is not found, scroll a bit down
                         to try to find it. Default: True
         """
+        media_group = case_insensitive_re(
+            [
+                ResourceID.MEDIA_GROUP,
+                ResourceID.CAROUSEL_MEDIA_GROUP,
+            ]
+        )
         post_view_area = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.LIST)
         )
         if not post_view_area.exists():
             logger.debug("Cannot find post recycler view area")
-            save_crash(self.device)
-            self.device.back()
             return None
 
         post_media_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-            )
+            resourceIdMatches=media_group,
+            className=ClassName.FRAME_LAYOUT,
         )
 
         if not post_media_view.exists():
             logger.debug("Cannot find post media view area")
-            save_crash(self.device)
-            self.device.back()
             return None
 
         like_btn_view = post_media_view.down(
@@ -835,10 +837,14 @@ class OpenedPostView:
         return like_btn_view.get_selected()
 
     def likePost(self, click_btn_like=False):
+        media_group = case_insensitive_re(
+            [
+                ResourceID.MEDIA_GROUP,
+                ResourceID.CAROUSEL_MEDIA_GROUP,
+            ]
+        )
         post_media_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-            )
+            resourceIdMatches=media_group, className=ClassName.FRAME_LAYOUT
         )
 
         if click_btn_like:
@@ -847,6 +853,7 @@ class OpenedPostView:
                 return False
             like_btn_view.click()
         else:
+
             if post_media_view.exists(True):
                 post_media_view.double_click()
             else:
@@ -911,7 +918,6 @@ class PostsGridView:
         if not post_view.exists():
             return None
         post_view.click()
-        # post_view.click_gone()
 
         return OpenedPostView(self.device)
 
