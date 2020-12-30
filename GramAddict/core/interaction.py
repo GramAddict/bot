@@ -22,6 +22,8 @@ from GramAddict.core.views import (
     PostsViewList,
     OpenedPostView,
     SwipeTo,
+    Owner,
+    LikeMode
 )
 
 logger = logging.getLogger(__name__)
@@ -395,18 +397,17 @@ def _watch_stories(
 def _search(
     device,
     target,
-    target_type,
     current_job
 ):
     search_view = TabBarView(device).navigateToSearch()
     if (
         not search_view.navigateToHashtag(target)
-        if target_type == "hashtag"
+        if current_job.startswith("hashtag")
         else not search_view.navigateToPlaces(target)
     ):
         return
 
-    TargetView = HashTagView if target_type == "hashtag" else PlacesView
+    TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
 
     if current_job in ["hashtag-likers-recent", "place-likers-recent"]:
         logger.info("Switching to Recent tab")
@@ -433,13 +434,11 @@ def handle_likers(
     posts_end_detector,
     on_interaction,
     interaction,
-    is_follow_limit_reached,
-    target_type="hashtag",
+    is_follow_limit_reached
 ):
     _search(
         device,
         target,
-        target_type,
         current_job
     )
 
@@ -583,3 +582,92 @@ def handle_likers(
 
             if posts_end_detector.is_the_end():
                 break
+
+
+def handle_posts(
+    device,
+    target,
+    follow_limit,
+    current_job,
+    storage,
+    interaction,
+    interact_percentage,
+    on_interaction,
+    is_follow_limit_reached,
+):
+    _search(
+        device,
+        target,
+        current_job
+    )
+
+    def interact():
+        can_follow = not is_follow_limit_reached() and (
+            storage.get_following_status(username) == FollowingStatus.NONE
+            or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
+        )
+
+        interaction_succeed, followed = interaction(
+            device, username=username, can_follow=can_follow
+        )
+        storage.add_interacted_user(username, followed=followed)
+        can_continue = on_interaction(
+            succeed=interaction_succeed, followed=followed
+        )
+        if not can_continue:
+            return False
+        else:
+            return True
+
+    def random_choice():
+        from random import randint
+
+        random_number = randint(1, 100)
+        if interact_percentage > random_number:
+            return True
+        else:
+            return False
+
+    post_description = ""
+    nr_same_post = 0
+    nr_same_posts_max = 3
+    while True:
+        flag, post_description = PostsViewList(device)._check_if_last_post(
+            post_description
+        )
+        if flag:
+            nr_same_post += 1
+            logger.info(
+                f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
+            )
+            if nr_same_post == nr_same_posts_max:
+                logger.info(
+                    f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                )
+                break
+        else:
+            nr_same_post = 0
+        if random_choice():
+            username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
+            if storage.is_user_in_blacklist(username):
+                logger.info(f"@{username} is in blacklist. Skip.")
+            elif storage.check_user_was_interacted(username):
+                logger.info(f"@{username}: already interacted. Skip.")
+            else:
+                logger.info(f"@{username}: interact")
+                PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
+                detect_block(device)
+                if not PostsViewList(device)._check_if_liked():
+                    PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
+                    detect_block(device)
+                random_sleep(1, 2)
+                if PostsViewList(device)._post_owner(Owner.OPEN):
+                    if not interact():
+                        break
+                    device.back()
+
+        PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+        random_sleep(0, 1)
+        PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+        random_sleep()
+        continue

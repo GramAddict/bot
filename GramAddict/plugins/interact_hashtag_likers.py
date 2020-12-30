@@ -205,6 +205,5 @@ class InteractHashtagLikers(Plugin):
             posts_end_detector,
             on_interaction,
             interaction,
-            is_follow_limit_reached,
-            target_type="hashtag"
+            is_follow_limit_reached
         )

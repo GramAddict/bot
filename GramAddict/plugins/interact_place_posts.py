@@ -11,6 +11,7 @@ from GramAddict.core.interaction import (
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
+    handle_posts
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
@@ -193,90 +194,15 @@ class InteractPlacePosts(Plugin):
             source=place,
             session_state=self.session_state,
         )
-        search_view = TabBarView(device).navigateToSearch()
-        if not search_view.navigateToPlaces(place):
-            return
-        if current_job == "place-posts-recent":
-            logger.info("Switching to Recent tab")
-            PlacesView(device)._getRecentTab().click()
-            random_sleep(5, 10)
-        if PlacesView(device)._check_if_no_posts():
-            UniversalActions(device)._reload_page()
-            random_sleep(4, 8)
 
-        logger.info("Opening the first result")
-
-        result_view = PlacesView(device)._getRecyclerView()
-        PlacesView(device)._getFistImageView(result_view).click()
-        random_sleep()
-
-        def interact():
-            can_follow = not is_follow_limit_reached() and (
-                storage.get_following_status(username) == FollowingStatus.NONE
-                or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
-            )
-
-            interaction_succeed, followed = interaction(
-                device, username=username, can_follow=can_follow
-            )
-            storage.add_interacted_user(username, followed=followed)
-            can_continue = on_interaction(
-                succeed=interaction_succeed, followed=followed
-            )
-            if not can_continue:
-                return False
-            else:
-                return True
-
-        def random_choice():
-            from random import randint
-
-            random_number = randint(1, 100)
-            if interact_percentage > random_number:
-                return True
-            else:
-                return False
-
-        post_description = ""
-        nr_same_post = 0
-        nr_same_posts_max = 3
-        while True:
-            flag, post_description = PostsViewList(device)._check_if_last_post(
-                post_description
-            )
-            if flag:
-                nr_same_post += 1
-                logger.info(
-                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
-                )
-                if nr_same_post == nr_same_posts_max:
-                    logger.info(
-                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
-                    )
-                    break
-            else:
-                nr_same_post = 0
-            if random_choice():
-                username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
-                if storage.is_user_in_blacklist(username):
-                    logger.info(f"@{username} is in blacklist. Skip.")
-                elif storage.check_user_was_interacted(username):
-                    logger.info(f"@{username}: already interacted. Skip.")
-                else:
-                    logger.info(f"@{username}: interact")
-                    PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
-                    detect_block(device)
-                    if not PostsViewList(device)._check_if_liked():
-                        PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
-                        detect_block(device)
-                    random_sleep(1, 2)
-                    if PostsViewList(device)._post_owner(Owner.OPEN):
-                        if not interact():
-                            break
-                        device.back()
-
-            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
-            random_sleep(0, 1)
-            PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-            random_sleep()
-            continue
+        handle_posts(
+            device,
+            place,
+            follow_limit,
+            current_job,
+            storage,
+            interaction,
+            interact_percentage,
+            on_interaction,
+            is_follow_limit_reached
+        )

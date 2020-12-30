@@ -203,6 +203,5 @@ class InteractPlaceLikers(Plugin):
             posts_end_detector,
             on_interaction,
             interaction,
-            is_follow_limit_reached,
-            target_type="place"
+            is_follow_limit_reached
         )
