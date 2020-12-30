@@ -12,6 +12,7 @@ from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep, detect_block
@@ -219,6 +220,15 @@ class InteractHashtagLikers(Plugin):
         HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
 
+        skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
+        skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
+
+        posts_skip_detector = ScrollEndDetector(
+            repeats_to_end=2,
+            skipped_list_limit=skipped_list_limit,
+            skipped_fling_limit=skipped_fling_limit,
+        )
+
         def interact():
             can_follow = not is_follow_limit_reached() and (
                 storage.get_following_status(username) == FollowingStatus.NONE
@@ -271,10 +281,18 @@ class InteractHashtagLikers(Plugin):
                     logger.info(f"@{username} is in blacklist. Skip.")
                 elif storage.check_user_was_interacted(username):
                     logger.info(f"@{username}: already interacted. Skip.")
+                    posts_skip_detector.notify_skipped_all()
+                    if posts_skip_detector.is_skipped_limit_reached():
+                        posts_skip_detector.reset_skipped_all()
+                        logger.info(f"Skip limit reached.")
+                        break
+                # TODO: implement fling
                 else:
                     logger.info(f"@{username}: interact")
                     PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
                     detect_block(device)
+                    posts_skip_detector.reset_skipped_all()
+
                     if not PostsViewList(device)._check_if_liked():
                         PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
                         detect_block(device)
