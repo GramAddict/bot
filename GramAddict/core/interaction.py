@@ -392,22 +392,12 @@ def _watch_stories(
         return False
 
 
-def handle_likers(
+def _search(
     device,
     target,
-    follow_limit,
-    current_job,
-    storage,
-    profile_filter,
-    posts_end_detector,
-    on_interaction,
-    interaction,
-    is_follow_limit_reached,
-    target_type="hashtag",
+    target_type,
+    current_job
 ):
-
-    # ======================= #
-
     search_view = TabBarView(device).navigateToSearch()
     if (
         not search_view.navigateToHashtag(target)
@@ -431,6 +421,27 @@ def handle_likers(
     result_view = TargetView(device)._getRecyclerView()
     TargetView(device)._getFistImageView(result_view).click()
     random_sleep()
+
+
+def handle_likers(
+    device,
+    target,
+    follow_limit,
+    current_job,
+    storage,
+    profile_filter,
+    posts_end_detector,
+    on_interaction,
+    interaction,
+    is_follow_limit_reached,
+    target_type="hashtag",
+):
+    _search(
+        device,
+        target,
+        target_type,
+        current_job
+    )
 
     post_description = ""
     nr_same_post = 0
