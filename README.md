@@ -56,6 +56,14 @@
 - [Community](https://docs.gramaddict.org/#/community)
 - [FAQ](https://docs.gramaddict.org/#/faq)
 
+### Docker:
+- `git clone https://github.com/GramAddict/bot`
+- `Create a config.yml file in the cloned folder` **(tmp)**
+- `docker build -t gramaddict:latest . `
+- `docker run --name gramaddict --privileged -v /dev/bus/usb:/dev/bus/usb -p 5037:5037 gramaddict` (if you want a daemon add **-d**)
+- `docker start gramaddict`
+- `docker stop gramaddict`
+
 <br />
 
 ## Contributors
