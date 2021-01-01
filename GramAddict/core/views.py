@@ -304,9 +304,20 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
+        tabbar_container = self.device.find(
+            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+        )
+        if tabbar_container.exists(True):
+            delta = tabbar_container.get_bounds()["bottom"]
+        else:
+            delta = 375
         if swipe_to_accounts:
-            logger.debug("Close the keyboard")
-            DeviceFacade.back(self.device)
+            logger.debug("Swipe up to close the keyboard if present")
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.UP,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(50, 100),
+            )
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -318,8 +329,12 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        logger.debug("Swipe up to close the keyboard if present")
+        UniversalActions(self.device)._swipe_points(
+            direction=Direction.UP,
+            start_point_y=randint(delta + 10, delta + 150),
+            delta_y=randint(50, 100),
+        )
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists(True):
@@ -346,8 +361,19 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        tabbar_container = self.device.find(
+            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+        )
+        if tabbar_container.exists(True):
+            delta = tabbar_container.get_bounds()["bottom"]
+        else:
+            delta = 375
+        logger.debug("Swipe up to close the keyboard if present")
+        UniversalActions(self.device)._swipe_points(
+            direction=Direction.UP,
+            start_point_y=randint(delta + 10, delta + 150),
+            delta_y=randint(50, 100),
+        )
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -672,7 +698,10 @@ class AccountView:
     def changeToUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
         current_profile_name = action_bar.get_text().upper()
-        if current_profile_name == username.upper():
+        # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
+        if current_profile_name == username.upper() or current_profile_name == (
+            "  " + username.upper()
+        ):
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
@@ -687,7 +716,7 @@ class AccountView:
             )
             if found_obj.exists():
                 logger.info(
-                    f"Switching to {configs.args.username}...",
+                    f"Switching to {username}...",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
                 found_obj.click()
@@ -1089,19 +1118,19 @@ class ProfileView(ActionBarView):
             ).search(biography_text)
             if is_long_bio is not None:
                 logger.debug('Found "… more" in bio - trying to expand')
-                # Clicking the biography is dangerous. Clicking "right" is safest so we can try to avoid hashtags
-                biography.click(biography.Location.RIGHT)
-                # If we do click a hashtag (VERY possible) - let's back out
-                # a short bio is better than no bio
-                try:
-                    return biography.get_text()
-                except:
+                username = self.getUsername()
+                for _ in range(2):
+                    # Clicking the biography is dangerous. Clicking "bottomright" is safest so we can try to avoid hashtags and tags
+                    biography.click(biography.Location.BOTTOMRIGHT)
+                    random_sleep()
+                    if username == self.getUsername():
+                        return biography.get_text()
                     logger.debug(
-                        "Can't find biography - did we click a hashtag? Go back."
+                        "We're not in the same page - did we click a hashtag or a tag? Go back."
                     )
-                    logger.info("Failed to expand biography - checking short view.")
                     self.device.back()
-                    return biography.get_text()
+                logger.info("Failed to expand biography - checking short view.")
+                return biography.get_text()
             return biography_text
         return ""
 
