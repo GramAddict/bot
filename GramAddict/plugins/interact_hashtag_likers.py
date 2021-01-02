@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Fore, Style
+from colorama import Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
@@ -15,7 +15,7 @@ from GramAddict.core.interaction import (
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
-from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.utils import get_value
 
 logger = logging.getLogger(__name__)
 
