@@ -169,7 +169,7 @@ def interact_with_user(
                 device, username, follow_percentage, args, session_state, swipe_amount
             ),
             number_of_liked,
-            number_of_watched
+            number_of_watched,
         )
 
     return True, False, number_of_liked, number_of_watched
