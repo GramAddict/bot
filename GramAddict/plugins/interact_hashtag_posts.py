@@ -11,7 +11,7 @@ from GramAddict.core.interaction import (
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_posts
+    handle_posts,
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.utils import get_value
@@ -46,7 +46,7 @@ class InteractHashtagPosts(Plugin):
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
-            }
+            },
         ]
 
     def run(self, device, configs, storage, sessions, plugin):
@@ -197,5 +197,5 @@ class InteractHashtagPosts(Plugin):
             interaction,
             interact_percentage,
             on_interaction,
-            is_follow_limit_reached
+            is_follow_limit_reached,
         )

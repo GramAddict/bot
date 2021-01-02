@@ -23,7 +23,7 @@ from GramAddict.core.views import (
     OpenedPostView,
     SwipeTo,
     Owner,
-    LikeMode
+    LikeMode,
 )
 
 logger = logging.getLogger(__name__)
@@ -394,11 +394,7 @@ def _watch_stories(
         return False
 
 
-def _search(
-    device,
-    target,
-    current_job
-):
+def _search(device, target, current_job):
     search_view = TabBarView(device).navigateToSearch()
     if (
         not search_view.navigateToHashtag(target)
@@ -434,13 +430,9 @@ def handle_likers(
     posts_end_detector,
     on_interaction,
     interaction,
-    is_follow_limit_reached
+    is_follow_limit_reached,
 ):
-    _search(
-        device,
-        target,
-        current_job
-    )
+    _search(device, target, current_job)
 
     post_description = ""
     nr_same_post = 0
@@ -595,11 +587,7 @@ def handle_posts(
     on_interaction,
     is_follow_limit_reached,
 ):
-    _search(
-        device,
-        target,
-        current_job
-    )
+    _search(device, target, current_job)
 
     def interact():
         can_follow = not is_follow_limit_reached() and (
@@ -611,9 +599,7 @@ def handle_posts(
             device, username=username, can_follow=can_follow
         )
         storage.add_interacted_user(username, followed=followed)
-        can_continue = on_interaction(
-            succeed=interaction_succeed, followed=followed
-        )
+        can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
         if not can_continue:
             return False
         else:
@@ -637,9 +623,7 @@ def handle_posts(
         )
         if flag:
             nr_same_post += 1
-            logger.info(
-                f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
-            )
+            logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
             if nr_same_post == nr_same_posts_max:
                 logger.info(
                     f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."

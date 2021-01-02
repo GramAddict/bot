@@ -223,6 +223,7 @@ class HashTagView:
 # The place view for the moment It's only a copy/paste of HashTagView
 # Maybe we can add the com.instagram.android:id/category_name == "Country/Region" (or other obv)
 
+
 class PlacesView:
     def __init__(self, device: DeviceFacade):
         self.device = device
@@ -247,6 +248,7 @@ class PlacesView:
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
         ).exists(True)
+
 
 class SearchView:
     def __init__(self, device: DeviceFacade):
@@ -278,10 +280,8 @@ class SearchView:
 
     def _getPlaceRow(self):
         return self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.ROW_PLACE_TITLE
-            ),
-            className=ClassName.TEXT_VIEW
+            resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
+            className=ClassName.TEXT_VIEW,
         )
 
     def _getTabTextView(self, tab: SearchTabs):

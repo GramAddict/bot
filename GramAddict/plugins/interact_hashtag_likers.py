@@ -11,7 +11,7 @@ from GramAddict.core.interaction import (
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_likers
+    handle_likers,
 )
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
@@ -206,5 +206,5 @@ class InteractHashtagLikers(Plugin):
             posts_end_detector,
             on_interaction,
             interaction,
-            is_follow_limit_reached
+            is_follow_limit_reached,
         )
