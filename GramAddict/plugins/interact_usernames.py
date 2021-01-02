@@ -51,7 +51,7 @@ class InteractUsernames(Plugin):
         self.device_id = configs.args.device
         self.sessions = sessions
         self.session_state = sessions[-1]
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         file_list = [file for file in (self.args.interact_from_file)]

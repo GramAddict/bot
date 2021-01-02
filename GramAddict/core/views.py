@@ -966,26 +966,26 @@ class ProfileView(ActionBarView):
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-        following_regex = "^Following|^Requested"
-        followback_regex = "^Follow Back$"
 
+        following_regex = "^Following|^Requested"
         following_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=following_regex,
         )
+        if following_button.exists():
+            return following_button, FollowStatus.FOLLOWING
+
+        followback_regex = "^Follow Back$"
         followback_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=followback_regex,
         )
-        if following_button.exists():
-            return following_button, FollowStatus.FOLLOWING
-
         if followback_button.exists():
             return followback_button, FollowStatus.FOLLOW_BACK
 
-        return None, None
+        return None, FollowStatus.FOLLOW
 
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()

@@ -59,7 +59,7 @@ class InteractBloggerFollowers(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
