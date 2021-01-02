@@ -121,6 +121,7 @@ class InteractBloggerFollowers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -148,6 +149,7 @@ class InteractBloggerFollowers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -175,6 +177,12 @@ class InteractBloggerFollowers(Plugin):
             source=username,
             session_state=self.session_state,
         )
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=username,
+        )
 
         if not self.open_user_followers(device, username):
             return
@@ -185,6 +193,7 @@ class InteractBloggerFollowers(Plugin):
             interaction,
             is_follow_limit_reached,
             storage,
+            add_interacted_user,
             on_interaction,
             is_myself,
             skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
@@ -242,6 +251,7 @@ class InteractBloggerFollowers(Plugin):
         interaction,
         is_follow_limit_reached,
         storage,
+        add_interacted_user,
         on_interaction,
         is_myself,
         skipped_list_limit,
@@ -324,9 +334,8 @@ class InteractBloggerFollowers(Plugin):
                         ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(
+                        add_interacted_user(
                             username,
-                            self.session_state.id,
                             followed=followed,
                             liked=number_of_liked,
                             watched=number_of_watched,

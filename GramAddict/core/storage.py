@@ -66,10 +66,10 @@ class Storage:
         self,
         username,
         session_id,
-        liked=0,
-        watched=0,
         followed=False,
         unfollowed=False,
+        liked=0,
+        watched=0,
         job_name=None,
         target=None,
     ):

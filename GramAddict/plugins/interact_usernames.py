@@ -158,12 +158,21 @@ class InteractUsernames(Plugin):
             session_state=self.session_state,
             current_mode=self.current_mode,
         )
+
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
             source=current_file,
             session_state=self.session_state,
         )
+
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=current_file,
+        )
+
         need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
@@ -203,9 +212,8 @@ class InteractUsernames(Plugin):
                             ) = interaction(
                                 device, username=username, can_follow=can_follow
                             )
-                            storage.add_interacted_user(
+                            add_interacted_user(
                                 username,
-                                self.session_state.id,
                                 followed=followed,
                                 liked=number_of_liked,
                                 watched=number_of_watched,

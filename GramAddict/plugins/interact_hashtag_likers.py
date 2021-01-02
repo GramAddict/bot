@@ -194,6 +194,14 @@ class InteractHashtagLikers(Plugin):
             source=hashtag,
             session_state=self.session_state,
         )
+
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=hashtag,
+        )
+
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
@@ -305,9 +313,8 @@ class InteractHashtagLikers(Plugin):
                         ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(
+                        add_interacted_user(
                             username,
-                            self.session_state.id,
                             followed=followed,
                             liked=number_of_liked,
                             watched=number_of_watched,
