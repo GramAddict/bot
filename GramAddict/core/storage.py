@@ -62,7 +62,17 @@ class Storage:
         else:
             return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
-    def add_interacted_user(self, username, followed=False, unfollowed=False):
+    def add_interacted_user(
+            self,
+            username,
+            session_id,
+            liked=0,
+            watched=0,
+            followed=False,
+            unfollowed=False,
+            job_name=None,
+            target=None
+        ):
         user = self.interacted_users.get(username, {})
         user[USER_LAST_INTERACTION] = str(datetime.now())
 
@@ -72,6 +82,21 @@ class Storage:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.lower()
         else:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+
+        # Save only the last session_id
+        user["session_id"] = session_id
+
+        # Save only the last job_name and target
+        user["job_name"] = job_name
+        user["target"] = target
+
+        # Increase the value of liked or watched if we have already a value
+        user["liked"] = liked if "liked" not in user else (user["liked"] + liked)
+        user["watched"] = watched if "watched" not in user else (user["watched"] + watched)
+
+        # Update the followed or unfollowed boolean only if we have a real update
+        user["followed"] = followed if "followed" not in user or user["followed"] != followed else user["followed"]
+        user["unfollowed"] = unfollowed if "unfollowed" not in user or user["unfollowed"] != unfollowed else user["unfollowed"]
 
         self.interacted_users[username] = user
         self._update_file()

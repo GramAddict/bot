@@ -284,7 +284,7 @@ class ActionUnfollowFollowers(Plugin):
                         == UnfollowRestriction.ANY_NON_FOLLOWERS,
                     )
                     if unfollowed:
-                        storage.add_interacted_user(username, unfollowed=True)
+                        storage.add_interacted_user(username, self.session_state.id, unfollowed=True)
                         on_unfollow()
                         unfollowed_count += 1
 
