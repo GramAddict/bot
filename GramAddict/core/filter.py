@@ -63,7 +63,15 @@ class SkipReason(Enum):
 
 
 class Profile(object):
-    def __init__(self, follow_button_text, is_private, has_business_category, posts_count, biography, fullname):
+    def __init__(
+        self,
+        follow_button_text,
+        is_private,
+        has_business_category,
+        posts_count,
+        biography,
+        fullname,
+    ):
         self.datetime = str(datetime.now())
         self.followers = 0
         self.followings = 0
@@ -78,7 +86,10 @@ class Profile(object):
     def set_followers_and_following(self, followers, followings):
         self.followers = followers
         self.followings = followings
-        self.potency_ratio = 0 if self.followings == 0 else self.followers / self.followings
+        self.potency_ratio = (
+            0 if self.followings == 0 else self.followers / self.followings
+        )
+
 
 class Filter:
     conditions = None
@@ -147,7 +158,9 @@ class Filter:
                         f"You follow @{username}, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.YOU_FOLLOW)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.YOU_FOLLOW
+                    )
 
             if field_skip_follower:
                 if profile_data.follow_button_text == FollowStatus.FOLLOW_BACK:
@@ -155,7 +168,9 @@ class Filter:
                         f"@{username} follows you, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.FOLLOW_YOU)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.FOLLOW_YOU
+                    )
 
         if field_interact_only_private:
             logger.debug("Checking if account is private...")
@@ -166,14 +181,18 @@ class Filter:
                     f"@{username} has public account, skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.IS_PRIVATE)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.IS_PRIVATE
+                )
 
             elif field_interact_only_private and profile_data.is_private is None:
                 logger.info(
                     f"Could not determine if @{username} is public or private, skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.UNKNOWN_PRIVACY)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.UNKNOWN_PRIVACY
+                )
 
         if (
             field_min_followers is not None
@@ -186,7 +205,10 @@ class Filter:
             logger.debug(
                 "Checking if account is within follower/following parameters..."
             )
-            if profile_data.followers is not None and profile_data.followings is not None:
+            if (
+                profile_data.followers is not None
+                and profile_data.followings is not None
+            ):
                 if field_min_followers is not None and profile_data.followers < int(
                     field_min_followers
                 ):
@@ -194,7 +216,9 @@ class Filter:
                         f"@{username} has less than {field_min_followers} followers, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.LT_FOLLOWERS)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.LT_FOLLOWERS
+                    )
                 if field_max_followers is not None and profile_data.followers > int(
                     field_max_followers
                 ):
@@ -202,7 +226,9 @@ class Filter:
                         f"@{username} has has more than {field_max_followers} followers, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.GT_FOLLOWERS)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.GT_FOLLOWERS
+                    )
                 if field_min_followings is not None and profile_data.followings < int(
                     field_min_followings
                 ):
@@ -210,7 +236,9 @@ class Filter:
                         f"@{username} has less than {field_min_followings} followings, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.LT_FOLLOWINGS)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.LT_FOLLOWINGS
+                    )
                 if field_max_followings is not None and profile_data.followings > int(
                     field_max_followings
                 ):
@@ -218,25 +246,33 @@ class Filter:
                         f"@{username} has more than {field_max_followings} followings, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.GT_FOLLOWINGS)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.GT_FOLLOWINGS
+                    )
 
                 if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
                     if (
                         int(profile_data.followings) == 0
-                        or profile_data.followers / profile_data.followings < float(field_min_potency_ratio)
-                        or profile_data.followers / profile_data.followings > float(field_max_potency_ratio)
+                        or profile_data.followers / profile_data.followings
+                        < float(field_min_potency_ratio)
+                        or profile_data.followers / profile_data.followings
+                        > float(field_max_potency_ratio)
                     ):
                         logger.info(
                             f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        return self.return_check_profile(username, profile_data, SkipReason.POTENCY_RATIO)
+                        return self.return_check_profile(
+                            username, profile_data, SkipReason.POTENCY_RATIO
+                        )
 
             else:
                 logger.critical(
                     "Either followers, followings, or possibly both are undefined. Cannot filter."
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
+                )
 
         if field_skip_business or field_skip_non_business:
             logger.debug("Checking if account is a business...")
@@ -245,13 +281,17 @@ class Filter:
                     f"@{username} has business account, skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.HAS_BUSINESS)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.HAS_BUSINESS
+                )
             if field_skip_non_business and profile_data.has_business_category is False:
                 logger.info(
                     f"@{username} has non business account, skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.HAS_NON_BUSINESS)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.HAS_NON_BUSINESS
+                )
 
         if field_min_posts is not None:
             if field_min_posts > profile_data.posts_count:
@@ -259,7 +299,9 @@ class Filter:
                     f"@{username} doesn't have enough posts ({profile_data.posts_count}), skip.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                return self.return_check_profile(username, profile_data, SkipReason.NOT_ENOUGH_POSTS)
+                return self.return_check_profile(
+                    username, profile_data, SkipReason.NOT_ENOUGH_POSTS
+                )
 
         if (
             len(field_blacklist_words) > 0
@@ -281,7 +323,9 @@ class Filter:
                             f"@{username} found a blacklisted word '{w}' in biography, skip.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        return self.return_check_profile(username, profile_data, SkipReason.BLACKLISTED_WORD)
+                        return self.return_check_profile(
+                            username, profile_data, SkipReason.BLACKLISTED_WORD
+                        )
 
             if len(field_mandatory_words) > 0:
                 logger.debug("Checking if account has mandatory words in biography...")
@@ -298,7 +342,9 @@ class Filter:
                         f"@{username} mandatory words not found in biography, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
-                    return self.return_check_profile(username, profile_data, SkipReason.MISSING_MANDATORY_WORDS)
+                    return self.return_check_profile(
+                        username, profile_data, SkipReason.MISSING_MANDATORY_WORDS
+                    )
 
             if field_specific_alphabet is not None:
                 if profile_data.biography != "":
@@ -313,7 +359,9 @@ class Filter:
                             f"@{username}'s biography alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        return self.return_check_profile(username, profile_data, SkipReason.ALPHABET_NOT_MATCH)
+                        return self.return_check_profile(
+                            username, profile_data, SkipReason.ALPHABET_NOT_MATCH
+                        )
                 else:
                     logger.debug("Checking primary character set of name...")
                     if profile_data.fullname != "":
@@ -325,7 +373,11 @@ class Filter:
                                 f"@{username}'s name alphabet is not {field_specific_alphabet}. ({alphabet}), skip.",
                                 extra={"color": f"{Fore.GREEN}"},
                             )
-                            return self.return_check_profile(username, profile_data, SkipReason.ALPHABET_NAME_NOT_MATCH)
+                            return self.return_check_profile(
+                                username,
+                                profile_data,
+                                SkipReason.ALPHABET_NAME_NOT_MATCH,
+                            )
 
         # If no filters return false, we are good to proceed
         return self.return_check_profile(username, profile_data, None)
@@ -349,7 +401,7 @@ class Filter:
             has_business_category=self._has_business_category(device, profileView),
             posts_count=self._get_posts_count(device, profileView),
             biography=self._get_profile_biography(device, profileView),
-            fullname=self._get_fullname(device, profileView)
+            fullname=self._get_fullname(device, profileView),
         )
         followers, following = self._get_followers_and_followings(device)
         profile.set_followers_and_following(followers, following)

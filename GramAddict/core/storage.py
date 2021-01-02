@@ -40,7 +40,9 @@ class Storage:
             with open(self.interacted_users_path) as json_file:
                 self.interacted_users = json.load(json_file)
 
-        self.history_filter_users_path = my_username + "/" + FILENAME_HISTORY_FILTER_USERS
+        self.history_filter_users_path = (
+            my_username + "/" + FILENAME_HISTORY_FILTER_USERS
+        )
         if os.path.exists(self.history_filter_users_path):
             with open(self.history_filter_users_path) as json_file:
                 self.history_filter_users = json.load(json_file)
@@ -75,12 +77,7 @@ class Storage:
         else:
             return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
-    def add_filter_user(
-        self,
-        username,
-        profile_data,
-        skip_reason=None
-    ):
+    def add_filter_user(self, username, profile_data, skip_reason=None):
         # user = self.history_filter_users.get(username, {})
         user = profile_data.__dict__
         user["follow_button_text"] = profile_data.follow_button_text.name
