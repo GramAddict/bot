@@ -670,4 +670,3 @@ def handle_posts(
         random_sleep(0, 1)
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
         random_sleep()
-        continue
