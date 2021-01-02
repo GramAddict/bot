@@ -305,7 +305,7 @@ class Filter:
                     logger.debug(
                         "Checking primary character set of account biography..."
                     )
-                    biography = biography.replace("\n", "")
+                    biography = profile_data.biography.replace("\n", "")
                     alphabet = self._find_alphabet(biography, field_specific_alphabet)
 
                     if alphabet != field_specific_alphabet and alphabet != "":
