@@ -1,6 +1,8 @@
 #!/bin/bash
 
-adb devices;
+adb kill-server;
+adb start-server;
+adb wait-for-device;
 echo "Check if you need to authorized this container on your phone"
 sleep 15s;
 adb devices;
