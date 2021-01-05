@@ -914,8 +914,8 @@ class OpenedPostView:
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
         # UIA1 doesn't use .get_text()
-        if text.exists() and type(text) != str:
-            text = text.get_text()
+        if type(text) != str:
+            text = text.get_text() if text.exists() else ""
         return True if text == "Following" or text == "Requested" else False
 
 
