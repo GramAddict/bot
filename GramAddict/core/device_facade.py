@@ -137,6 +137,14 @@ class DeviceFacade:
         flag = search("mDreamingLockscreen=(true|false)", data)
         return True if flag.group(1) == "true" else False
 
+    def is_keyboard_show(self):
+        status = popen(
+            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys input_method"
+        )
+        data = status.read()
+        flag = search("mInputShown=(true|false)", data)
+        return True if flag.group(1) == "true" else False
+
     def is_alive(self):
         # v2 only - for atx_agent
         return self.deviceV2._is_alive()

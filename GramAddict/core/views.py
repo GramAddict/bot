@@ -288,7 +288,9 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            self.device.back()
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -368,7 +370,8 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
-        logger.debug("Swipe up to close the keyboard if present")
+
+        logger.debug("Swipe up to close the keyboard if present")  # Why not press the back button?
         UniversalActions(self.device)._swipe_points(
             direction=Direction.UP,
             start_point_y=randint(delta + 10, delta + 150),
@@ -389,9 +392,23 @@ class SearchView:
         random_sleep(4, 8)
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag {hashtag}, abort.")
-            save_crash(self.device)
-            return None
+            # Before abort try to close the keyboard and to a little swipe down
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
+                random_sleep()
+
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(150, 250),
+            )
+
+            hashtag_view = self._getHashtagRow(hashtag[1:])
+            if not hashtag_view.exists():
+                logger.error(f"Cannot find hashtag {hashtag}, abort.")
+                save_crash(self.device)
+                return None
 
         hashtag_view.click()
         random_sleep()
@@ -895,7 +912,7 @@ class OpenedPostView:
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
         # UIA1 doesn't use .get_text()
-        if type(text) != str:
+        if text.exists() and type(text) != str:
             text = text.get_text()
         return True if text == "Following" or text == "Requested" else False
 
