@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import seed, shuffle
 
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
+class InteractHashtagPosts(Plugin):
     """Handles the functionality of interacting with a hashtags post owners"""
 
     def __init__(self):
@@ -100,7 +100,7 @@ class InteractHashtagLikers(Plugin):
             self.state = State()
             if source[0] != "#":
                 source = "#" + source
-            logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
+            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
                 _on_interaction,
@@ -134,6 +134,7 @@ class InteractHashtagLikers(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_hashtag(

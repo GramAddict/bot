@@ -18,5 +18,6 @@ Pipfile
 Pipfile.lock
 *.pdf
 *.txt
+*.mp4
 *.log*
 !config-examples/*

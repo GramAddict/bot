@@ -65,13 +65,14 @@ class ForceIteract(Plugin):
 
             is_job_completed = False
 
+        self.args = configs.args
         self.device_id = configs.args.device
+        self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
-        self.args = configs.args
+        self.ResourceID = resources(self.args.app_id)
         profile_filter = Filter()
         self.current_mode = plugin
-        self.ResourceID = resources(self.args.app_id)
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.force_interact]
@@ -103,7 +104,7 @@ class ForceIteract(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if self.args.stories_count != "0":
+            if args.stories_count != "0":
                 stories_percentage = get_value(
                     self.args.stories_percentage, "Chance of watching stories: {}%", 40
                 )
@@ -115,6 +116,7 @@ class ForceIteract(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_blogger(
@@ -199,7 +201,7 @@ class ForceIteract(Plugin):
 
         unfollow_button = None
         attempts = 2
-        for _ in range(attempts):
+        for _ in range(attempts)
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
@@ -242,7 +244,7 @@ class ForceIteract(Plugin):
 
     def open_user(self, device, username):
         search_view = TabBarView(device).navigateToSearch()
-        profile_view = search_view.navigateToUsername(username)
+        profile_view = search_view.navigateToUsername(username, True)
         random_sleep()
         if not profile_view:
             return False

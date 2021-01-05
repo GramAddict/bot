@@ -107,7 +107,7 @@ def run():
 
         logger.info("Device screen on and unlocked.")
 
-        open_instagram()
+        open_instagram(device, configs.args.screen_record)
 
         try:
             profileView = TabBarView(device).navigateToProfile()
@@ -188,7 +188,7 @@ def run():
                 )
                 break
 
-        close_instagram()
+        close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 
         if configs.args.screen_sleep:
