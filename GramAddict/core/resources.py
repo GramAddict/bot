@@ -53,6 +53,7 @@ class ResourceID:
         self.ROW_HASHTAG_TEXTVIEW_TAG_NAME = (
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
+        self.INFORM_BODY = f"{APP_ID}:id/inform_body"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
         self.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER = (
             f"{APP_ID}:id/row_profile_header_empty_profile_notice_container"
