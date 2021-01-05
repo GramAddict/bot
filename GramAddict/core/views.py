@@ -371,7 +371,9 @@ class SearchView:
         else:
             delta = 375
 
-        logger.debug("Swipe up to close the keyboard if present")  # Why not press the back button?
+        logger.debug(
+            "Swipe up to close the keyboard if present"
+        )  # Why not press the back button?
         UniversalActions(self.device)._swipe_points(
             direction=Direction.UP,
             start_point_y=randint(delta + 10, delta + 150),
