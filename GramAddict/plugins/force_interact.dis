@@ -119,6 +119,7 @@ class ForceIteract(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_blogger(
@@ -246,7 +247,7 @@ class ForceIteract(Plugin):
 
     def open_user(self, device, username):
         search_view = TabBarView(device).navigateToSearch()
-        profile_view = search_view.navigateToUsername(username)
+        profile_view = search_view.navigateToUsername(username, True)
         random_sleep()
         if not profile_view:
             return False

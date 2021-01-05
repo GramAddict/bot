@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
+class InteractHashtagPosts(Plugin):
     """Handles the functionality of interacting with a hashtags post owners"""
 
     def __init__(self):
@@ -134,6 +134,7 @@ class InteractHashtagLikers(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_hashtag(

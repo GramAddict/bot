@@ -98,6 +98,7 @@ class InteractUsernames(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_username_file(
@@ -166,7 +167,7 @@ class InteractUsernames(Plugin):
             source=current_file,
             session_state=self.session_state,
         )
-
+        need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
                 for line in f:
@@ -178,10 +179,13 @@ class InteractUsernames(Plugin):
                         elif storage.check_user_was_interacted(username):
                             logger.info(f"@{username}: already interacted. Skip.")
                             continue
-
-                        search_view = TabBarView(device).navigateToSearch()
-                        random_sleep()
-                        profile_view = search_view.navigateToUsername(username)
+                        if need_to_refresh:
+                            search_view = TabBarView(device).navigateToSearch()
+                            random_sleep()
+                        profile_view = search_view.navigateToUsername(
+                            username, True, need_to_refresh
+                        )
+                        need_to_refresh = False
                         if not profile_view:
                             continue
                         random_sleep()

@@ -96,7 +96,15 @@ def interact_with_user(
     )
 
     swipe_amount = ProfileView(device).swipe_to_fit_posts()
+    if swipe_amount == -1:
+        return False, False
     random_sleep()
+
+    likes_value = get_value(likes_count, "Likes count: {}", 2)
+    if likes_value > 12:
+        logger.error("Max number of likes per user is 12.")
+        likes_value = 12
+
     start_time = time()
     full_rows, columns_last_row = profile_view.count_photo_in_view()
     end_time = format(time() - start_time, ".2f")
@@ -410,7 +418,9 @@ def _watch_stories(
         if profile_view.isStoryAvailable():
             profile_picture = profile_view.profileImage()
             if profile_picture.exists():
-                profile_picture.click()  # Open the first story
+                logger.debug("Open the first story")
+                profile_picture.click()
+                random_sleep(1, 2)
                 on_watch()
                 random_sleep()
 

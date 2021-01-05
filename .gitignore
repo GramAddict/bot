@@ -17,5 +17,6 @@ whitelist.txt
 Pipfile
 Pipfile.lock
 *.pdf
+*.mp4
 *.log*
 !config-examples/*

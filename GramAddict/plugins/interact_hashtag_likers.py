@@ -127,6 +127,7 @@ class InteractHashtagLikers(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_hashtag(
@@ -254,7 +255,6 @@ class InteractHashtagLikers(Plugin):
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 continue
 
-            logger.info("Open list of likers.")
             posts_end_detector.notify_new_page()
             random_sleep()
 
@@ -339,6 +339,17 @@ class InteractHashtagLikers(Plugin):
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     go_back = True
+                if go_back:
+                    prev_screen_iterated_likers.clear()
+                    prev_screen_iterated_likers += screen_iterated_likers
+                    logger.info(
+                        f"Back to {hashtag}'s posts list.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    device.back()
+                    logger.info("Going to the next post.")
+                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+                    break
                 if posts_end_detector.is_fling_limit_reached():
                     prev_screen_iterated_likers.clear()
                     prev_screen_iterated_likers += screen_iterated_likers
@@ -355,17 +366,6 @@ class InteractHashtagLikers(Plugin):
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
-                if go_back:
-                    prev_screen_iterated_likers.clear()
-                    prev_screen_iterated_likers += screen_iterated_likers
-                    logger.info(
-                        f"Back to {hashtag}'s posts list.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    device.back()
-                    logger.info("Going to the next post.")
-                    PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-                    break
 
                 if posts_end_detector.is_the_end():
                     break
