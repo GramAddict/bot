@@ -15,7 +15,6 @@ from GramAddict.core.utils import (
 logger = logging.getLogger(__name__)
 
 
-
 class LikeFromURLs(Plugin):
     """Likes a post from url. The urls are read from a plaintext file"""
 
