@@ -22,7 +22,6 @@ from GramAddict.core.views import TabBarView
 
 logger = logging.getLogger(__name__)
 
-from GramAddict.core.views import TabBarView
 
 # Script Initialization
 seed()
