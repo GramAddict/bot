@@ -888,10 +888,6 @@ class OpenedPostView:
             resourceId=ResourceID.ROW_USER_PRIMARY_NAME,
             className=ClassName.TEXT_VIEW,
         )
-        # UIA1 doesn't use .get_text()
-        if type(text) != str:
-            text = text.get_text()
-        return True if text == "Following" or text == "Requested" else False
 
     def _isFollowing(self, countainer):
         text = countainer.child(
