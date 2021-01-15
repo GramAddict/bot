@@ -125,12 +125,6 @@ def close_instagram(device, screen_record):
     ).close()
     if screen_record:
         device.stop_screenrecord()
-    # close out atx-agent
-    os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell pkill atx-agent"
-    ).close()
 
 
 def random_sleep(inf=1.0, sup=4.0):
