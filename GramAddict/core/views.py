@@ -215,6 +215,12 @@ class HashTagView:
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
 
+    def _getInformBody(self):
+        return self.device.find(
+            className=ClassName.TEXT_VIEW,
+            resourceId=ResourceID.INFORM_BODY,
+        )
+
     def _check_if_no_posts(self):
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
