@@ -214,10 +214,19 @@ class InteractHashtagPosts(Plugin):
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
+
         if current_job == "hashtag-posts-recent":
             logger.info("Switching to Recent tab")
-            HashTagView(device)._getRecentTab().click()
+            recent_tab = HashTagView(device)._getRecentTab()
+            if recent_tab.exists() is True:
+                recent_tab.click()
+            else:
+                inform_body = HashTagView(device)._getInformBody()
+                if inform_body.exists():
+                    logger.info(inform_body.get_text())
+                    return
             random_sleep(5, 10)
+
         if HashTagView(device)._check_if_no_posts():
             UniversalActions(device)._reload_page()
             random_sleep(4, 8)

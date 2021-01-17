@@ -208,11 +208,19 @@ class InteractHashtagLikers(Plugin):
 
         if current_job == "hashtag-likers-recent":
             logger.info("Switching to Recent tab")
-            HashTagView(device)._getRecentTab().click()
+            recent_tab = HashTagView(device)._getRecentTab()
+            if recent_tab.exists() is True:
+                recent_tab.click()
+            else:
+                inform_body = HashTagView(device)._getInformBody()
+                if inform_body.exists():
+                    logger.info(inform_body.get_text())
+                    return
             random_sleep(5, 10)
-            if HashTagView(device)._check_if_no_posts():
-                HashTagView(device)._reload_page()
-                random_sleep(4, 8)
+
+        if HashTagView(device)._check_if_no_posts():
+            HashTagView(device)._reload_page()
+            random_sleep(4, 8)
 
         logger.info("Opening the first result")
 
