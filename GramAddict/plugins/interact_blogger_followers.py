@@ -344,7 +344,7 @@ class InteractBloggerFollowers(Plugin):
                         add_interacted_user(
                             username,
                             followed=followed,
-                            scraped=scraped
+                            scraped=scraped,
                             liked=number_of_liked,
                             watched=number_of_watched,
                         )

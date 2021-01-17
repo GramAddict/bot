@@ -88,10 +88,10 @@ def interact_with_user(
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         if can_follow and profile_filter.can_follow_private_or_empty():
             if scraping_file is None:
-              followed = _follow(
-                  device, username, follow_percentage, args, session_state, 0
-              )
-              return True, followed, True, number_of_liked, number_of_watched
+                followed = _follow(
+                    device, username, follow_percentage, args, session_state, 0
+                )
+                return True, followed, True, number_of_liked, number_of_watched
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
             return False, False, False, number_of_liked, number_of_watched
@@ -118,7 +118,7 @@ def interact_with_user(
     swipe_amount = ProfileView(device).swipe_to_fit_posts()
     if swipe_amount == -1:
         return False, False, False, number_of_liked, number_of_watched
-      
+
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
@@ -201,9 +201,9 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return interacted, followed, False number_of_liked, number_of_watched
+            return interacted, followed, False, number_of_liked, number_of_watched
         random_sleep()
-        
+
     if can_follow:
         return (
             True,
@@ -216,6 +216,7 @@ def interact_with_user(
         )
 
     return interacted, False, False, number_of_liked, number_of_watched
+
 
 def do_like(opened_post_view, device, on_like):
     logger.info("Double click post.")
