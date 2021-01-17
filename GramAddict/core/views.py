@@ -314,12 +314,9 @@ class SearchView:
         else:
             delta = 375
         if swipe_to_accounts:
-            logger.debug("Swipe up to close the keyboard if present")
-            UniversalActions(self.device)._swipe_points(
-                direction=Direction.UP,
-                start_point_y=randint(delta + 10, delta + 150),
-                delta_y=randint(50, 100),
-            )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -331,12 +328,9 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-        logger.debug("Swipe up to close the keyboard if present")
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists(True):
@@ -371,14 +365,9 @@ class SearchView:
         else:
             delta = 375
 
-        logger.debug(
-            "Swipe up to close the keyboard if present"
-        )  # Why not press the back button?
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+        if self.device.is_keyboard_show() is True:
+            logger.debug("The keyboard is currently open. Press back to close")
+            self.device.back()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -394,7 +383,6 @@ class SearchView:
         random_sleep(4, 8)
 
         if not hashtag_view.exists():
-            # Before abort try to close the keyboard and to a little swipe down
             if self.device.is_keyboard_show() is True:
                 logger.debug("The keyboard is currently open. Press back to close")
                 self.device.back()
