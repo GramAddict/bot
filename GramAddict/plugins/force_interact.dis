@@ -74,7 +74,7 @@ class ForceIteract(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.ResourceID = resources(self.args.app_id)
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -131,6 +131,7 @@ class ForceIteract(Plugin):
                     int(args.follow_percentage),
                     int(args.follow_limit) if args.follow_limit else None,
                     int(self.args.comment_percentage),
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -152,6 +153,7 @@ class ForceIteract(Plugin):
         follow_percentage,
         follow_limit,
         comment_percentage,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -193,10 +195,18 @@ class ForceIteract(Plugin):
             )
         )
 
-        interaction_succeed, followed = interaction(
+        interaction_succeed, followed, number_of_liked, number_of_watched = interaction(
             device, username=username, can_follow=can_follow
         )
-        storage.add_interacted_user(username, followed=followed)
+        storage.add_interacted_user(
+            username,
+            self.session_state.id,
+            followed=followed,
+            liked=number_of_liked,
+            watched=number_of_watched,
+            job_name=current_job
+            target=username
+        )
         can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
 
         logger.info("Unfollow @" + username)
