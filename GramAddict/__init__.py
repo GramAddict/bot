@@ -1,4 +1,4 @@
-import logging
+import logging, os
 from datetime import datetime
 from sys import exit
 from time import sleep
@@ -189,6 +189,13 @@ def run():
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time")
+
+        # close out atx-agent
+        os.popen(
+            "adb"
+            + ("" if configs.device_id is None else " -s " + configs.device_id)
+            + " shell pkill atx-agent"
+        ).close()
 
         logger.info(
             "-------- FINISH: " + str(session_state.finishTime) + " --------",
