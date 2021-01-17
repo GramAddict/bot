@@ -309,10 +309,6 @@ class SearchView:
         tabbar_container = self.device.find(
             resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
         )
-        if tabbar_container.exists(True):
-            delta = tabbar_container.get_bounds()["bottom"]
-        else:
-            delta = 375
         if swipe_to_accounts:
             if self.device.is_keyboard_show() is True:
                 logger.debug("The keyboard is currently open. Press back to close")
