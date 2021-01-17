@@ -27,6 +27,12 @@ class ResourceID:
         )
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
+        self.LAYOUT_COMMENT_THREAD_EDITTEXT = (
+            f"{APP_ID}:id/layout_comment_thread_edittext"
+        )
+        self.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA = (
+            f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
+        )
         self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
@@ -43,6 +49,7 @@ class ResourceID:
         self.REEL_VIEWER_IMAGE_VIEW = f"{APP_ID}:id/reel_viewer_image_view"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
+        self.ROW_COMMENT_TEXTVIEW_COMMENT = f"{APP_ID}:id/row_comment_textview_comment"
         self.ROW_FEED_BUTTON_COMMENT = f"{APP_ID}:id/row_feed_button_comment"
         self.ROW_FEED_BUTTON_LIKE = f"{APP_ID}:id/row_feed_button_like"
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (

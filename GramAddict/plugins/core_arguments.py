@@ -170,4 +170,18 @@ class CoreArguments(Plugin):
                 "help": "delete the user from the file after processing it",
                 "action": "store_true",
             },
+            {
+                "arg": "--comment-percentage",
+                "nargs": None,
+                "help": "comment given percentage of interacted users, 0 by default",
+                "metavar": "50",
+                "default": "0",
+            },
+            {
+                "arg": "--total-comments-limit",
+                "nargs": None,
+                "help": "limit on total comments per session, disabled by default",
+                "metavar": "10-90",
+                "default": "0",
+            },
         ]

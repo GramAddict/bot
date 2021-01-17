@@ -223,7 +223,7 @@ class Filter:
                     field_max_followers
                 ):
                     logger.info(
-                        f"@{username} has has more than {field_max_followers} followers, skip.",
+                        f"@{username} has more than {field_max_followers} followers, skip.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     return self.return_check_profile(
