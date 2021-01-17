@@ -335,7 +335,7 @@ class InteractBloggerFollowers(Plugin):
                         (
                             interaction_succeed,
                             followed,
-                            scraped
+                            scraped,
                             number_of_liked,
                             number_of_watched,
                         ) = interaction(

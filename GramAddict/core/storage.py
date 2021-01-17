@@ -94,7 +94,7 @@ class Storage:
         session_id,
         followed=False,
         unfollowed=False,
-        scraped=False
+        scraped=False,
         liked=0,
         watched=0,
         job_name=None,

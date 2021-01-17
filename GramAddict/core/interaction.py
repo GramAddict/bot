@@ -94,7 +94,7 @@ def interact_with_user(
               return True, followed, True, number_of_liked, number_of_watched
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, False, False number_of_liked, number_of_watched
+            return False, False, False, number_of_liked, number_of_watched
 
     if scraping_file is not None:
         append_to_file(scraping_file, username)
