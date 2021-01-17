@@ -110,6 +110,7 @@ def run():
         open_instagram(device, configs.args.screen_record)
 
         try:
+            random_sleep()
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()
             if configs.args.username is not None:
