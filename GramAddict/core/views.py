@@ -294,7 +294,9 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            self.device.back()
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -310,20 +312,10 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
-        tabbar_container = self.device.find(
-            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
-        )
-        if tabbar_container.exists(True):
-            delta = tabbar_container.get_bounds()["bottom"]
-        else:
-            delta = 375
         if swipe_to_accounts:
-            logger.debug("Swipe up to close the keyboard if present")
-            UniversalActions(self.device)._swipe_points(
-                direction=Direction.UP,
-                start_point_y=randint(delta + 10, delta + 150),
-                delta_y=randint(50, 100),
-            )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -335,12 +327,9 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-        logger.debug("Swipe up to close the keyboard if present")
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists(True):
@@ -374,12 +363,10 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
-        logger.debug("Swipe up to close the keyboard if present")
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+
+        if self.device.is_keyboard_show() is True:
+            logger.debug("The keyboard is currently open. Press back to close")
+            self.device.back()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -395,9 +382,22 @@ class SearchView:
         random_sleep(4, 8)
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag {hashtag}, abort.")
-            save_crash(self.device)
-            return None
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
+                random_sleep()
+
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(150, 250),
+            )
+
+            hashtag_view = self._getHashtagRow(hashtag[1:])
+            if not hashtag_view.exists():
+                logger.error(f"Cannot find hashtag {hashtag}, abort.")
+                save_crash(self.device)
+                return None
 
         hashtag_view.click()
         random_sleep()
@@ -902,7 +902,7 @@ class OpenedPostView:
         )
         # UIA1 doesn't use .get_text()
         if type(text) != str:
-            text = text.get_text()
+            text = text.get_text() if text.exists() else ""
         return True if text == "Following" or text == "Requested" else False
 
 
