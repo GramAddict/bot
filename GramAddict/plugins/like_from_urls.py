@@ -90,7 +90,9 @@ class LikeFromURLs(Plugin):
                             )
                             if like_succeed:
                                 logger.info("Back to profile")
-                                storage.add_interacted_user(username)
+                                storage.add_interacted_user(
+                                    username, self.session_state.id, liked=1
+                                )
                                 self.device.back()
                                 random_sleep()
                     else:

@@ -47,18 +47,21 @@ def interact_with_user(
     args,
     session_state,
     current_mode,
-) -> Tuple[bool, bool]:
+) -> Tuple[bool, bool, int, int]:
     """
-    :return: (whether interaction succeed, whether @username was followed during the interaction)
+    :return: (whether interaction succeed, whether @username was followed during the interaction, number of liked, number of watched)
     """
+    number_of_liked = 0
+    number_of_watched = 0
+
     if username == my_username:
         logger.info("It's you, skip.")
-        return False, False
+        return False, False, number_of_liked, number_of_watched
 
     random_sleep()
 
     if not profile_filter.check_profile(device, username):
-        return False, False
+        return False, False, number_of_liked, number_of_watched
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
     if likes_value > 12:
@@ -77,12 +80,12 @@ def interact_with_user(
             followed = _follow(
                 device, username, follow_percentage, args, session_state, 0
             )
-            return True, followed
+            return True, followed, number_of_liked, number_of_watched
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, False
+            return False, False, number_of_liked, number_of_watched
 
-    _watch_stories(
+    number_of_watched = _watch_stories(
         device,
         profile_view,
         username,
@@ -95,7 +98,7 @@ def interact_with_user(
 
     swipe_amount = ProfileView(device).swipe_to_fit_posts()
     if swipe_amount == -1:
-        return False, False
+        return False, False, number_of_liked, number_of_watched
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
@@ -131,19 +134,9 @@ def interact_with_user(
 
         like_succeed = False
         if opened_post_view:
-            logger.info("Double click post.")
-
-            like_succeed = opened_post_view.likePost()
-            if not like_succeed:
-                logger.debug("Double click failed. Try the like button.")
-                like_succeed = opened_post_view.likePost(click_btn_like=True)
-
-            if like_succeed:
-                logger.debug("Like succeed. Check for block.")
-                detect_block(device)
-                on_like()
-            else:
-                logger.warning("Fail to like post. Let's continue...")
+            like_succeed = do_like(opened_post_view, device, on_like)
+            if like_succeed is True:
+                number_of_liked += 1
 
             logger.info("Back to profile.")
             device.back()
@@ -166,7 +159,7 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, followed
+            return False, followed, number_of_liked, number_of_watched
 
         random_sleep()
     if can_follow:
@@ -175,13 +168,15 @@ def interact_with_user(
             _follow(
                 device, username, follow_percentage, args, session_state, swipe_amount
             ),
+            number_of_liked,
+            number_of_watched,
         )
 
-    return True, False
+    return True, False, number_of_liked, number_of_watched
 
 
 def do_like(opened_post_view, device, on_like):
-    logger.info("Double click post")
+    logger.info("Double click post.")
 
     like_succeed = opened_post_view.likePost()
     if not like_succeed:
@@ -189,7 +184,7 @@ def do_like(opened_post_view, device, on_like):
         like_succeed = opened_post_view.likePost(click_btn_like=True)
 
     if like_succeed:
-        logger.info("Like succeeded!")
+        logger.debug("Like succeed. Check for block.")
         detect_block(device)
         on_like()
     else:
@@ -330,7 +325,7 @@ def _watch_stories(
     ):
         story_chance = randint(1, 100)
         if story_chance > stories_percentage:
-            return False
+            return 0
 
         stories_to_watch = get_value(stories_to_watch, "Stories count: {}", 0)
 
@@ -339,15 +334,17 @@ def _watch_stories(
             stories_to_watch = 6
 
         if stories_to_watch == 0:
-            return False
+            return 0
 
         if profile_view.isStoryAvailable():
             profile_picture = profile_view.profileImage()
+            stories_counter = 0
             if profile_picture.exists():
                 logger.debug("Open the first story")
                 profile_picture.click()
                 random_sleep(1, 2)
                 on_watch()
+                stories_counter += 1
                 random_sleep()
 
                 if stories_to_watch > 1:
@@ -362,6 +359,7 @@ def _watch_stories(
                                 ):
                                     story_frame.click(story_view.Location.RIGHT)
                                     on_watch()
+                                    stories_counter += 1
                                     random_sleep()
                             except Exception:
                                 break
@@ -377,8 +375,8 @@ def _watch_stories(
                         random_sleep()
                     else:
                         break
-                return True
-        return False
+                return stories_counter
+        return 0
     else:
         logger.info("Reached total watch limit, not watching stories.")
-        return False
+        return 0

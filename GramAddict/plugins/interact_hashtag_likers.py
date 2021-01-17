@@ -69,7 +69,7 @@ class InteractHashtagLikers(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -194,6 +194,14 @@ class InteractHashtagLikers(Plugin):
             source=hashtag,
             session_state=self.session_state,
         )
+
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=hashtag,
+        )
+
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
@@ -305,10 +313,20 @@ class InteractHashtagLikers(Plugin):
                             == FollowingStatus.NOT_IN_LIST
                         )
 
-                        interaction_succeed, followed = interaction(
+                        (
+                            interaction_succeed,
+                            followed,
+                            number_of_liked,
+                            number_of_watched,
+                        ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(username, followed=followed)
+                        add_interacted_user(
+                            username,
+                            followed=followed,
+                            liked=number_of_liked,
+                            watched=number_of_watched,
+                        )
                         opened = True
                         can_continue = on_interaction(
                             succeed=interaction_succeed, followed=followed
