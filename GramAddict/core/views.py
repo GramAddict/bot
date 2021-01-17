@@ -306,9 +306,6 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
-        tabbar_container = self.device.find(
-            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
-        )
         if swipe_to_accounts:
             if self.device.is_keyboard_show() is True:
                 logger.debug("The keyboard is currently open. Press back to close")
