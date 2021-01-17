@@ -160,6 +160,10 @@ def interact_with_user(
         )
         logger.info("Back to profile.")
         device.back()
+        if like_done or comment_done:
+            interacted = True
+        else:
+            interacted = False
 
         if not opened_post_view or not like_succeed:
             reason = "open" if not opened_post_view else "like"
@@ -179,7 +183,7 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, followed, number_of_liked, number_of_watched
+            return interacted, followed, number_of_liked, number_of_watched
         random_sleep()
     if can_follow:
         return (
@@ -191,7 +195,7 @@ def interact_with_user(
             number_of_watched,
         )
 
-    return True, False, number_of_liked, number_of_watched
+    return interacted, False, number_of_liked, number_of_watched
 
 
 def do_like(opened_post_view, device, on_like):
