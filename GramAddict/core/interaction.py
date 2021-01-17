@@ -160,10 +160,6 @@ def interact_with_user(
         )
         logger.info("Back to profile.")
         device.back()
-        if like_done or comment_done:
-            interacted = True
-        else:
-            interacted = False
 
         if not opened_post_view or not like_succeed:
             reason = "open" if not opened_post_view else "like"
