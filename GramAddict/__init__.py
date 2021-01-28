@@ -29,6 +29,7 @@ from GramAddict.core.utils import (
     random_sleep,
     save_crash,
     update_available,
+    kill_atx_agent
 )
 from GramAddict.core.views import (
     AccountView,
@@ -189,6 +190,8 @@ def run():
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time")
+
+        kill_atx_agent(device)
 
         logger.info(
             "-------- FINISH: " + str(session_state.finishTime) + " --------",
