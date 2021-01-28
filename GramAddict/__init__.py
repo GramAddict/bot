@@ -29,7 +29,7 @@ from GramAddict.core.utils import (
     random_sleep,
     save_crash,
     update_available,
-    kill_atx_agent
+    kill_atx_agent,
 )
 from GramAddict.core.views import (
     AccountView,
