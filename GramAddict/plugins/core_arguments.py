@@ -184,4 +184,16 @@ class CoreArguments(Plugin):
                 "metavar": "10-90",
                 "default": "0",
             },
+            {
+                "arg": "--truncate-sources",
+                "nargs": None,
+                "help": "truncate the source list to a finite number of items",
+                "metavar": "2-4",
+                "default": "0",
+            },
+            {
+                "arg": "--shuffle-jobs",
+                "help": "shuffle jobs order",
+                "action": "store_true",
+            },
         ]

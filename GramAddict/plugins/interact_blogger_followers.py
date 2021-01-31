@@ -1,6 +1,6 @@
 import logging
 from functools import partial
-from random import seed, shuffle
+from random import seed, randint, sample
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
@@ -64,9 +64,17 @@ class InteractBloggerFollowers(Plugin):
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.blogger_followers]
-        shuffle(sources)
+        sources_limit_input = self.args.truncate_sources.split("-")
+        if len(sources_limit_input) > 1:
+            sources_limit = randint(
+                int(sources_limit_input[0]), int(sources_limit_input[1])
+            )
+        else:
+            sources_limit = int(sources_limit_input[0])
+        if len(sources) < sources_limit or sources_limit == 0:
+            sources_limit = len(sources)
 
-        for source in sources:
+        for source in sample(sources, sources_limit):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(

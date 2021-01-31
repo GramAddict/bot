@@ -2,6 +2,7 @@ import logging, os
 from datetime import datetime
 from sys import exit
 from time import sleep
+import random
 
 from colorama import Fore, Style
 
@@ -168,7 +169,11 @@ def run():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-        for plugin in configs.enabled:
+        if configs.args.shuffle_jobs:
+            jobs_list = random.sample(configs.enabled, len(configs.enabled))
+        else:
+            jobs_list = configs.enabled
+        for plugin in jobs_list:
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
             ):

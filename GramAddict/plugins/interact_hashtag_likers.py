@@ -1,6 +1,6 @@
 import logging
 from functools import partial
-from random import seed, shuffle
+from random import sample, seed, randint
 
 from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
@@ -81,9 +81,15 @@ class InteractHashtagLikers(Plugin):
                 else self.args.hashtag_likers_recent
             )
         ]
-        shuffle(sources)
+        sources_limit_input = self.args.truncate_sources.split("-")
+        if len(sources_limit_input)>1:
+            sources_limit = randint(int(sources_limit_input[0]), int(sources_limit_input[1]))
+        else:
+            sources_limit = int(sources_limit_input[0])
+        if len(sources) < sources_limit or sources_limit == 0:
+            sources_limit = len(sources)
 
-        for source in sources:
+        for source in sample(sources, sources_limit):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
