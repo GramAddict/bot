@@ -25,6 +25,7 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
+    kill_atx_agent,
     load_config as load_utils,
     open_instagram,
     random_sleep,
@@ -196,12 +197,7 @@ def run():
             device.screen_off()
             logger.info("Screen turned off for sleeping time")
 
-        # close out atx-agent
-        os.popen(
-            "adb"
-            + ("" if configs.device_id is None else " -s " + configs.device_id)
-            + " shell pkill atx-agent"
-        ).close()
+        kill_atx_agent(device)
 
         logger.info(
             "-------- FINISH: " + str(session_state.finishTime) + " --------",
