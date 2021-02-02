@@ -82,8 +82,10 @@ class InteractHashtagLikers(Plugin):
             )
         ]
         sources_limit_input = self.args.truncate_sources.split("-")
-        if len(sources_limit_input)>1:
-            sources_limit = randint(int(sources_limit_input[0]), int(sources_limit_input[1]))
+        if len(sources_limit_input) > 1:
+            sources_limit = randint(
+                int(sources_limit_input[0]), int(sources_limit_input[1])
+            )
         else:
             sources_limit = int(sources_limit_input[0])
         if len(sources) < sources_limit or sources_limit == 0:

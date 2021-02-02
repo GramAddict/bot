@@ -1,3 +1,4 @@
+from GramAddict.core import storage
 import logging
 from random import randint, shuffle, choice
 from typing import Tuple
@@ -279,7 +280,6 @@ def _comment(device, my_username, comment_percentage, args, session_state):
         for _ in range(2):
             comment_button = device.find(
                 resourceId=ResourceID.ROW_FEED_BUTTON_COMMENT,
-                className=ClassName.IMAGE_VIEW,
             )
             if comment_button.exists(True):
                 logger.info("Open comments of post.")
@@ -288,7 +288,7 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                 comment_box = device.find(
                     resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT
                 )
-                comment = load_random_comment()
+                comment = load_random_comment(my_username)
                 logger.info(
                     f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
                 )
@@ -323,8 +323,8 @@ def _comment(device, my_username, comment_percentage, args, session_state):
     return False
 
 
-def load_random_comment():
-    file_name = "comments_list.txt"
+def load_random_comment(my_username):
+    file_name = my_username + "/" + storage.FILENAME_COMMENTS
     if path.isfile(file_name):
         with open(file_name, "r") as f:
             lines = f.read().splitlines()

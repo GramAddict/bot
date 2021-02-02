@@ -95,8 +95,9 @@ class Filter:
     conditions = None
 
     def __init__(self, storage=None):
-        if os.path.exists(FILENAME_CONDITIONS):
-            with open(FILENAME_CONDITIONS) as json_file:
+        filter_path = storage.filter_path
+        if os.path.exists(filter_path):
+            with open(filter_path) as json_file:
                 self.conditions = json.load(json_file)
         self.storage = storage
 

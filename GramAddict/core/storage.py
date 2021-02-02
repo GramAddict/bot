@@ -8,11 +8,13 @@ logger = logging.getLogger(__name__)
 
 FILENAME_HISTORY_FILTER_USERS = "history_filters_users.json"
 FILENAME_INTERACTED_USERS = "interacted_users.json"
+FILTER = "filter.json"
 USER_LAST_INTERACTION = "last_interaction"
 USER_FOLLOWING_STATUS = "following_status"
 
 FILENAME_WHITELIST = "whitelist.txt"
 FILENAME_BLACKLIST = "blacklist.txt"
+FILENAME_COMMENTS = "comments_list.txt"
 
 
 class Storage:
@@ -21,6 +23,12 @@ class Storage:
 
     history_filter_users_path = None
     history_filter_users = {}
+
+    filter_path = None
+    filter = {}
+
+    comment_path = None
+    comment = []
 
     whitelist = []
     blacklist = []
@@ -43,9 +51,12 @@ class Storage:
         self.history_filter_users_path = (
             my_username + "/" + FILENAME_HISTORY_FILTER_USERS
         )
+
         if os.path.exists(self.history_filter_users_path):
             with open(self.history_filter_users_path) as json_file:
                 self.history_filter_users = json.load(json_file)
+
+        self.filter_path = my_username + "/" + FILTER
 
         whitelist_path = my_username + "/" + FILENAME_WHITELIST
         if os.path.exists(whitelist_path):
@@ -56,6 +67,8 @@ class Storage:
         if os.path.exists(blacklist_path):
             with open(blacklist_path) as file:
                 self.blacklist = [line.rstrip() for line in file]
+
+        comments_path = my_username + "/" + FILENAME_COMMENTS
 
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
