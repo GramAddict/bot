@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import seed, randint, sample
 
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
@@ -84,7 +84,7 @@ class InteractBloggerFollowers(Plugin):
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
             its_you = is_myself and " (it's you)" or ""
-            logger.info(f"Handle {source} {its_you}")
+            logger.info(f"Handle {source} {its_you}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
                 _on_interaction,

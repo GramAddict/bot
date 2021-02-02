@@ -394,6 +394,9 @@ class Filter:
             field_follow_private_or_empty
         )
 
+    def can_comment(self, current_mode):
+        return self.conditions.get("comment_" + current_mode.replace("-", "_"), False)
+
     def get_all_data(self, device):
         profileView = ProfileView(device)
         profile = Profile(

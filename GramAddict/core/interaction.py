@@ -5,6 +5,7 @@ from typing import Tuple
 from time import time
 from os import path
 from colorama import Fore
+from GramAddict.core.filter import Filter
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
@@ -155,10 +156,10 @@ def interact_with_user(
                 on_like()
             else:
                 logger.warning("Fail to like post. Let's continue...")
-
-        comment_done = _comment(
-            device, my_username, comment_percentage, args, session_state
-        )
+        if profile_filter.can_comment(current_mode):
+            comment_done = _comment(
+                device, my_username, comment_percentage, args, session_state
+            )
         logger.info("Back to profile.")
         device.back()
         if like_done or comment_done:
