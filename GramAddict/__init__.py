@@ -1,5 +1,5 @@
 import logging, os
-from datetime import datetime
+from datetime import datetime, timedelta
 from sys import exit
 from time import sleep
 import random
@@ -93,7 +93,9 @@ def run():
         device.wake_up()
 
         logger.info(
-            "-------- START: " + str(session_state.startTime) + " --------",
+            "-------- START: "
+            + str(session_state.startTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
@@ -200,13 +202,18 @@ def run():
         kill_atx_agent(device)
 
         logger.info(
-            "-------- FINISH: " + str(session_state.finishTime) + " --------",
+            "-------- FINISH: "
+            + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
         if configs.args.repeat:
             print_full_report(sessions)
             repeat = get_value(configs.args.repeat, "Sleep for {} minutes", 180)
+            logger.info(
+                f'Will start again at {(datetime.now()+ timedelta(minutes=repeat)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+            )
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:

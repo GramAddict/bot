@@ -84,7 +84,9 @@ class InteractBloggerFollowers(Plugin):
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
             its_you = is_myself and " (it's you)" or ""
-            logger.info(f"Handle {source} {its_you}", extra={"color": f"{Style.BRIGHT}"})
+            logger.info(
+                f"Handle {source} {its_you}", extra={"color": f"{Style.BRIGHT}"}
+            )
 
             on_interaction = partial(
                 _on_interaction,

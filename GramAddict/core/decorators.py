@@ -35,7 +35,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     logger.info(
-                        f"-------- PAUSED: {datetime.now().time()} --------",
+                        f"-------- PAUSED: {datetime.now().strftime('%H:%M:%S')} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     logger.info(
@@ -50,14 +50,14 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                     input("")
 
                     logger.info(
-                        f"-------- RESUMING: {datetime.now().time()} --------",
+                        f"-------- RESUMING: {datetime.now().strftime('%H:%M:%S')} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
                     close_instagram(device, screen_record)
                     logger.info(
-                        f"-------- FINISH: {datetime.now().time()} --------",
+                        f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     print_full_report(sessions)

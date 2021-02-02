@@ -22,12 +22,17 @@ debug: false
 
 ## Interaction
 blogger-followers: [ username1, username2 ]
+blogger-post-likers: [ username1, username2 ]
 hashtag-likers-top: [ hashtag1, hashtag2 ]
 hashtag-likers-recent: [ hashtag1, hashtag2 ]
 hashtag-posts-top: [ hashtag1, hashtag2 ]
 hashtag-posts-recent: [ hashtag1, hashtag2 ]
 interact-from-file: usernames.txt
 posts-from-file: posts.txt
+
+## Special modificators for jobs and sources
+shuffle-jobs: true
+truncate-sources: 2-5
 
 ## Unfollow
 unfollow: 10-20
