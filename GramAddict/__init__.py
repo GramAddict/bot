@@ -123,6 +123,7 @@ def run():
                     logger.error(
                         f"Not able to change to {configs.args.username}, abort!"
                     )
+                    save_crash(device)
                     device.back()
                     break
 

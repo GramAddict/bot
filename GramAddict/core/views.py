@@ -703,16 +703,16 @@ class AccountView:
 
     def changeToUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
-        current_profile_name = action_bar.get_text().upper()
+        current_profile_name = action_bar.get_text()
+        current_profile_name_upper = current_profile_name.upper()
         # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
-        if current_profile_name == username.upper() or current_profile_name == (
-            "  " + username.upper()
-        ):
+        if current_profile_name_upper.replace(" ", "") == username.upper():
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
             )
             return True
+        logger.debug(f"You're logged as {current_profile_name.replace(' ', '')}")
         if action_bar.exists():
             action_bar.click()
             random_sleep()
@@ -731,7 +731,7 @@ class AccountView:
                     resourceId=ResourceID.ACTION_BAR_LARGE_TITLE
                 )
                 current_profile_name = action_bar.get_text().upper()
-                if current_profile_name == username.upper():
+                if current_profile_name.replace(" ", "") == username.upper():
                     return True
         return False
 
