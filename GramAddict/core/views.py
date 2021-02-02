@@ -879,14 +879,11 @@ class OpenedPostView:
         return self._isPostLiked()
 
     def _getListViewLikers(self):
-        return self.device.find(
-            resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
-        )
+        return self.device.find(resourceId=ResourceID.LIST)
 
     def _getUserCountainer(self):
         return self.device.find(
             resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
-            className=ClassName.LINEAR_LAYOUT,
         )
 
     def _getUserName(self, countainer):
