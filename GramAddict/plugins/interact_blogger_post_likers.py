@@ -33,13 +33,13 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
-    """Handles the functionality of interacting with a hashtags likers"""
+class InteractBloggerPostLikers(Plugin):
+    """Handles the functionality of interacting with a  blogger post likers"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags likers"
+            "Handles the functionality of interacting with a blogger post likers"
         )
         self.arguments = [
             {
@@ -49,6 +49,13 @@ class InteractHashtagLikers(Plugin):
                 "metavar": ("blogger1", "blogger2"),
                 "default": None,
                 "operation": True,
+            },
+            {
+                "arg": "--blogger-post-limits",
+                "nargs": None,
+                "help": "limit the posts you're looking for likers",
+                "metavar": "2",
+                "default": 0,
             },
         ]
 
