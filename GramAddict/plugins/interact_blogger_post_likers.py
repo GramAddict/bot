@@ -18,6 +18,8 @@ from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
+    PostsGridView,
+    ProfileView,
     TabBarView,
     HashTagView,
     OpenedPostView,
@@ -202,22 +204,26 @@ class InteractHashtagLikers(Plugin):
             search_view = TabBarView(device).navigateToSearch()
             if not search_view.navigateToUsername(username):
                 return
-
-        logger.info("Opening the first post")
-
-        result_view = HashTagView(device)._getRecyclerView()
-        HashTagView(device)._getFistImageView(result_view).click()
         random_sleep()
-
+        profile_view = ProfileView(device)
+        is_private = profile_view.isPrivateAccount()
+        posts_count = profile_view.getPostsCount()
+        is_empty = posts_count == 0
+        if is_private or is_empty:
+            private_empty = "Private" if is_private else "Empty"
+            logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
+            return
+        logger.info("Opening the first post")
+        ProfileView(device).swipe_to_fit_posts()
+        PostsGridView(device).navigateToPost(0, 0)
+        random_sleep()
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
         skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
-
         posts_end_detector = ScrollEndDetector(
             repeats_to_end=2,
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-
         post_description = ""
         nr_same_post = 0
         nr_same_posts_max = 3

@@ -395,7 +395,12 @@ class Filter:
         )
 
     def can_comment(self, current_mode):
-        return self.conditions.get("comment_" + current_mode.replace("-", "_"), False)
+        try:
+            return self.conditions.get(
+                "comment_" + current_mode.replace("-", "_"), False
+            )
+        except:
+            return False
 
     def get_all_data(self, device):
         profileView = ProfileView(device)

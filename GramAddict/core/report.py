@@ -78,7 +78,7 @@ def print_full_report(sessions):
         finish_time = session.finishTime or datetime.now()
         duration += finish_time - session.startTime
     logger.info(
-        f"Total duration: {duration}",
+        f"Total duration: {str(duration).split('.')[0]}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 
