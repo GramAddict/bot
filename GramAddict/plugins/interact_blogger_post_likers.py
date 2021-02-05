@@ -85,7 +85,6 @@ class InteractHashtagLikers(Plugin):
 
             self.state = State()
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
-            
 
             on_interaction = partial(
                 _on_interaction,
@@ -196,7 +195,7 @@ class InteractHashtagLikers(Plugin):
             target=username,
         )
 
-        #START
+        # START
         if username == self.session_state.my_username:
             TabBarView(device).navigateToProfile()
         else:
@@ -348,7 +347,7 @@ class InteractHashtagLikers(Plugin):
                     prev_screen_iterated_likers.clear()
                     prev_screen_iterated_likers += screen_iterated_likers
                     logger.info(
-                        f"Back to {hashtag}'s posts list.",
+                        f"Back to posts list.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     device.back()
