@@ -11,10 +11,9 @@ from GramAddict.core.interaction import (
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_likers,
+    handle_posts,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.utils import get_value
 
 logger = logging.getLogger(__name__)
@@ -23,28 +22,28 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
-    """Handles the functionality of interacting with a hashtags likers"""
+class InteractPlacePosts(Plugin):
+    """Handles the functionality of interacting with a places post owners"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags likers"
+            "Handles the functionality of interacting with a places post owners"
         )
         self.arguments = [
             {
-                "arg": "--hashtag-likers-top",
+                "arg": "--place-posts-recent",
                 "nargs": "+",
-                "help": "list of hashtags in top results with whose likers you want to interact",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in recent tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-likers-recent",
+                "arg": "--place-posts-top",
                 "nargs": "+",
-                "help": "list of hashtags in recent results with whose likers you want to interact",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in top tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
@@ -61,16 +60,16 @@ class InteractHashtagLikers(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter(storage)
+        profile_filter = Filter()
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
             source
             for source in (
-                self.args.hashtag_likers_top
-                if self.current_mode == "hashtag-likers-top"
-                else self.args.hashtag_likers_recent
+                self.args.place_posts_top
+                if self.current_mode == "place-posts-top"
+                else self.args.place_posts_recent
             )
         ]
         shuffle(sources)
@@ -83,8 +82,6 @@ class InteractHashtagLikers(Plugin):
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
@@ -119,10 +116,9 @@ class InteractHashtagLikers(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
-                screen_record=self.args.screen_record,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_place(
                     device,
                     source,
                     self.args.likes_count,
@@ -130,7 +126,7 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.comment_percentage),
+                    int(self.args.interact_percentage),
                     plugin,
                     storage,
                     profile_filter,
@@ -150,16 +146,16 @@ class InteractHashtagLikers(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_place(
         self,
         device,
-        hashtag,
+        place,
         likes_count,
         stories_count,
         stories_percentage,
         follow_percentage,
         follow_limit,
-        comment_percentage,
+        interact_percentage,
         current_job,
         storage,
         profile_filter,
@@ -174,7 +170,6 @@ class InteractHashtagLikers(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
-            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -186,28 +181,18 @@ class InteractHashtagLikers(Plugin):
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
-            source=hashtag,
+            source=place,
             session_state=self.session_state,
         )
 
-        skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
-        skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
-
-        posts_end_detector = ScrollEndDetector(
-            repeats_to_end=2,
-            skipped_list_limit=skipped_list_limit,
-            skipped_fling_limit=skipped_fling_limit,
-        )
-
-        handle_likers(
+        handle_posts(
             device,
-            hashtag,
+            place,
             follow_limit,
             current_job,
             storage,
-            profile_filter,
-            posts_end_detector,
-            on_interaction,
             interaction,
+            interact_percentage,
+            on_interaction,
             is_follow_limit_reached,
         )
