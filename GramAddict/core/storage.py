@@ -90,8 +90,28 @@ class Storage:
         else:
             return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
+    def add_filter_user(self, username, profile_data, skip_reason=None):
+        # user = self.history_filter_users.get(username, {})
+        user = profile_data.__dict__
+        user["follow_button_text"] = profile_data.follow_button_text.name
+        user["skip_reason"] = None if skip_reason is None else skip_reason.name
+        self.history_filter_users[username] = user
+        # self._update_file()
+        if self.history_filter_users_path is not None:
+            with open(self.history_filter_users_path, "w") as outfile:
+                json.dump(self.history_filter_users, outfile, indent=4, sort_keys=False)
+
     def add_interacted_user(
-        self, username, followed=False, unfollowed=False, scraped=False
+        self,
+        username,
+        session_id,
+        followed=False,
+        unfollowed=False,
+        scraped=False,
+        liked=0,
+        watched=0,
+        job_name=None,
+        target=None,
     ):
         user = self.interacted_users.get(username, {})
         user[USER_LAST_INTERACTION] = str(datetime.now())

@@ -4,7 +4,7 @@ from random import randint, shuffle, choice
 from typing import Tuple
 from time import time
 from os import path
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.filter import Filter
 from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.report import print_short_report
@@ -58,7 +58,7 @@ def interact_with_user(
     session_state,
     scraping_file,
     current_mode,
-) -> Tuple[bool, bool, bool]:
+) -> Tuple[bool, bool, bool, int, int]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction, number of liked, number of watched)
     """
@@ -67,12 +67,12 @@ def interact_with_user(
 
     if username == my_username:
         logger.info("It's you, skip.")
-        return False, False, False
+        return False, False, False, number_of_liked, number_of_watched
 
     random_sleep()
 
     if not profile_filter.check_profile(device, username):
-        return False, False, False
+        return False, False, False, number_of_liked, number_of_watched
 
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()
@@ -87,10 +87,10 @@ def interact_with_user(
                 followed = _follow(
                     device, username, follow_percentage, args, session_state, 0
                 )
-                return True, followed, False
+                return True, followed, False, number_of_liked, number_of_watched
         else:
             logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, False, False
+            return False, False, False, number_of_liked, number_of_watched
 
     if scraping_file is not None:
         append_to_file(scraping_file, username)
@@ -98,7 +98,7 @@ def interact_with_user(
             f"Added @{username} at {scraping_file}.txt",
             extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
         )
-        return False, False, True
+        return False, False, True, number_of_liked, number_of_watched
 
     number_of_watched = _watch_stories(
         device,
@@ -113,7 +113,7 @@ def interact_with_user(
 
     swipe_amount = ProfileView(device).swipe_to_fit_posts()
     if swipe_amount == -1:
-        return False, False, False
+        return False, False, False, number_of_liked, number_of_watched
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
@@ -152,21 +152,9 @@ def interact_with_user(
 
         like_succeed = False
         if opened_post_view:
-            logger.info("Double click post.")
-
             like_succeed = do_like(opened_post_view, device, on_like)
-            if not like_succeed:
-                logger.debug("Double click failed. Try the like button.")
-                like_succeed = opened_post_view.likePost(click_btn_like=True)
-
             if like_succeed is True:
                 number_of_liked += 1
-                like_done = True
-                logger.debug("Like succeed. Check for block.")
-                detect_block(device)
-                on_like()
-            else:
-                logger.warning("Fail to like post. Let's continue...")
         if profile_filter.can_comment(current_mode):
             comment_done = _comment(
                 device, my_username, comment_percentage, args, session_state
@@ -196,7 +184,7 @@ def interact_with_user(
 
             if not followed:
                 logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-            return False, followed, False
+            return False, followed, False, number_of_liked, number_of_watched
 
         random_sleep()
     if can_follow:
@@ -205,10 +193,10 @@ def interact_with_user(
             _follow(
                 device, username, follow_percentage, args, session_state, swipe_amount
             ),
-            False,
+            False, number_of_liked, number_of_watched
         )
 
-    return True, False, False
+    return True, False, False, number_of_liked, number_of_watched
 
 
 def do_like(opened_post_view, device, on_like):
@@ -220,7 +208,7 @@ def do_like(opened_post_view, device, on_like):
         like_succeed = opened_post_view.likePost(click_btn_like=True)
 
     if like_succeed:
-        logger.debug("Like succeed. Check for block.")
+        logger.debug("Like succeed.")
         detect_block(device)
         on_like()
     else:

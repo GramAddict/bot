@@ -257,14 +257,15 @@ class InteractHashtagPosts(Plugin):
                 or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
             )
 
-            interaction_succeed, followed, scraped = interaction(
+            interaction_succeed, followed, scraped, number_of_liked, number_of_watched  = interaction(
                 device,
                 username=username,
                 can_follow=can_follow,
             )
             storage.add_interacted_user(username, followed=followed, scraped=scraped)
             can_continue = on_interaction(
-                succeed=interaction_succeed, followed=followed, scraped=scraped
+                succeed=interaction_succeed, followed=followed, scraped=scraped, liked=number_of_liked,
+                            watched=number_of_watched,
             )
             if not can_continue:
                 return False
