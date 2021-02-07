@@ -5,6 +5,7 @@ from os import path
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _on_like, do_like
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.views import OpenedPostView
 from GramAddict.core.utils import (
     random_sleep,
     open_instagram_with_url,
@@ -12,8 +13,6 @@ from GramAddict.core.utils import (
 )
 
 logger = logging.getLogger(__name__)
-
-from GramAddict.core.views import OpenedPostView
 
 
 class LikeFromURLs(Plugin):
@@ -64,6 +63,7 @@ class LikeFromURLs(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.process_file(filename, on_like, storage)
@@ -89,7 +89,9 @@ class LikeFromURLs(Plugin):
                             )
                             if like_succeed:
                                 logger.info("Back to profile")
-                                storage.add_interacted_user(username)
+                                storage.add_interacted_user(
+                                    username, self.session_state.id, liked=1
+                                )
                                 self.device.back()
                                 random_sleep()
                     else:

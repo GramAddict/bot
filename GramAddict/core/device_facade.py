@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, auto
-from os import popen
+from os import popen, listdir, getcwd
 from random import uniform
 from re import search
 from time import sleep
@@ -80,6 +80,34 @@ class DeviceFacade:
         else:
             self.deviceV2.press("back")
 
+    def start_screenrecord(self, output="debug_0000.mp4", fps=10):
+        """for debug, available for V2 only"""
+        if self.deviceV1 is not None:
+            logger.error("Screen recording is only available for UA2")
+        else:
+            mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
+            if mp4_files != []:
+                last_mp4 = mp4_files[-1]
+                debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
+                output = f"debug_{debug_number}.mp4"
+            self.deviceV2.screenrecord(output, fps)
+            logger.warning(
+                f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'"
+            )
+
+    def stop_screenrecord(self):
+        """for debug, available for V2 only"""
+        if self.deviceV1 is not None:
+            logger.error("Screen recording is only available for UA2")
+        else:
+            if self.deviceV2.screenrecord.stop():
+                mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
+                if mp4_files != []:
+                    last_mp4 = mp4_files[-1]
+                    logger.warning(
+                        f"Screen recorder has been stoped succesfully! File '{last_mp4}' available in '{getcwd()}'"
+                    )
+
     def screenshot(self, path):
         if self.deviceV1 is not None:
             self.deviceV1.screenshot(path)
@@ -107,6 +135,14 @@ class DeviceFacade:
         )
         data = status.read()
         flag = search("mDreamingLockscreen=(true|false)", data)
+        return True if flag is not None and flag.group(1) == "true" else False
+
+    def is_keyboard_show(self):
+        status = popen(
+            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys input_method"
+        )
+        data = status.read()
+        flag = search("mInputShown=(true|false)", data)
         return True if flag.group(1) == "true" else False
 
     def is_alive(self):
@@ -423,6 +459,17 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
+        def click_gone(self, maxretry=3, interval=1.0):
+            if self.viewV1 is not None:
+                DeviceFacade.View.click(device=self.deviceV1)
+            else:
+                import uiautomator2
+
+                try:
+                    self.viewV2.click_gone(maxretry, interval)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+
         def click(self, mode=None):
             if self.viewV1 is not None:
                 import uiautomator
@@ -453,6 +500,10 @@ class DeviceFacade:
                     x_offset = uniform(0.6, 0.85)
                     y_offset = uniform(0.15, 0.85)
 
+                elif mode == self.Location.BOTTOMRIGHT:
+                    x_offset = uniform(0.8, 0.9)
+                    y_offset = uniform(0.8, 0.9)
+
                 else:
                     x_offset = 0.5
                     y_offset = 0.5
@@ -467,7 +518,7 @@ class DeviceFacade:
                         visible_bounds["top"]
                         + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                     )
-                    logger.debug(f"Single click ({x_abs}, {y_abs})")
+                    logger.debug(f"Single click ({x_abs},{y_abs})")
                     self.viewV2.click(UI_TIMEOUT_LONG, offset=(x_offset, y_offset))
 
                 except uiautomator2.JSONRPCError as e:
@@ -534,7 +585,7 @@ class DeviceFacade:
                         visible_bounds["bottom"] - vertical_padding,
                     )
                 )
-                time_between_clicks = uniform(0.050, 0.200)
+                time_between_clicks = uniform(0.050, 0.170)
 
                 try:
                     logger.debug(
@@ -723,6 +774,7 @@ class DeviceFacade:
             BOTTOM = auto()
             RIGHT = auto()
             LEFT = auto()
+            BOTTOMRIGHT = auto()
 
     class Direction(Enum):
         TOP = auto()

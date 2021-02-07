@@ -59,7 +59,7 @@ class InteractBloggerFollowers(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -110,6 +110,7 @@ class InteractBloggerFollowers(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_blogger(
@@ -121,6 +122,8 @@ class InteractBloggerFollowers(Plugin):
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
                     self.args.scrape_to_file,
+                    int(self.args.comment_percentage),
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -149,6 +152,8 @@ class InteractBloggerFollowers(Plugin):
         follow_percentage,
         follow_limit,
         scraping_file,
+        comment_percentage,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -163,6 +168,7 @@ class InteractBloggerFollowers(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -177,6 +183,12 @@ class InteractBloggerFollowers(Plugin):
             source=username,
             session_state=self.session_state,
         )
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=username,
+        )
 
         if not self.open_user_followers(device, username):
             return
@@ -187,6 +199,7 @@ class InteractBloggerFollowers(Plugin):
             interaction,
             is_follow_limit_reached,
             storage,
+            add_interacted_user,
             on_interaction,
             is_myself,
             skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
@@ -244,6 +257,7 @@ class InteractBloggerFollowers(Plugin):
         interaction,
         is_follow_limit_reached,
         storage,
+        add_interacted_user,
         on_interaction,
         is_myself,
         skipped_list_limit,
@@ -318,11 +332,21 @@ class InteractBloggerFollowers(Plugin):
                             )
                         )
 
-                        interaction_succeed, followed, scraped = interaction(
+                        (
+                            interaction_succeed,
+                            followed,
+                            scraped,
+                            number_of_liked,
+                            number_of_watched,
+                        ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(
-                            username, followed=followed, scraped=scraped
+                        add_interacted_user(
+                            username,
+                            followed=followed,
+                            scraped=scraped,
+                            liked=number_of_liked,
+                            watched=number_of_watched,
                         )
                         can_continue = on_interaction(
                             succeed=interaction_succeed,

@@ -1,7 +1,7 @@
 from GramAddict.core.filter import Filter
 import logging
 from functools import partial
-from colorama import Fore
+from colorama import Style
 from os import path
 from random import shuffle
 from GramAddict.core.decorators import run_safely
@@ -51,7 +51,7 @@ class InteractUsernames(Plugin):
         self.device_id = configs.args.device
         self.sessions = sessions
         self.session_state = sessions[-1]
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         file_list = [file for file in (self.args.interact_from_file)]
@@ -65,7 +65,7 @@ class InteractUsernames(Plugin):
             )
 
             self.state = State()
-            logger.info(f"Handle {file}", extra={"color": f"{Fore.BLUE}"})
+            logger.info(f"Handle {file}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
                 _on_interaction,
@@ -98,6 +98,7 @@ class InteractUsernames(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_username_file(
@@ -109,6 +110,7 @@ class InteractUsernames(Plugin):
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
                     self.args.scrape_to_file,
+                    int(self.args.comment_percentage),
                     plugin,
                     storage,
                     profile_filter,
@@ -138,6 +140,7 @@ class InteractUsernames(Plugin):
         follow_percentage,
         follow_limit,
         scraping_file,
+        comment_percentage,
         current_job,
         storage,
         profile_filter,
@@ -152,6 +155,7 @@ class InteractUsernames(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -160,6 +164,7 @@ class InteractUsernames(Plugin):
             scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
+
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
@@ -167,6 +172,14 @@ class InteractUsernames(Plugin):
             session_state=self.session_state,
         )
 
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=current_file,
+        )
+
+        need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
                 for line in f:
@@ -178,10 +191,13 @@ class InteractUsernames(Plugin):
                         elif storage.check_user_was_interacted(username):
                             logger.info(f"@{username}: already interacted. Skip.")
                             continue
-
-                        search_view = TabBarView(device).navigateToSearch()
-                        random_sleep()
-                        profile_view = search_view.navigateToUsername(username)
+                        if need_to_refresh:
+                            search_view = TabBarView(device).navigateToSearch()
+                            random_sleep()
+                        profile_view = search_view.navigateToUsername(
+                            username, True, need_to_refresh
+                        )
+                        need_to_refresh = False
                         if not profile_view:
                             continue
                         random_sleep()
@@ -193,12 +209,21 @@ class InteractUsernames(Plugin):
                                 or storage.get_following_status(username)
                                 == FollowingStatus.NOT_IN_LIST
                             )
-
-                            interaction_succeed, followed, scraped = interaction(
+                            (
+                                interaction_succeed,
+                                followed,
+                                scrapped,
+                                number_of_liked,
+                                number_of_watched,
+                            ) = interaction(
                                 device, username=username, can_follow=can_follow
                             )
-                            storage.add_interacted_user(
-                                username, followed=followed, scraped=scraped
+                            add_interacted_user(
+                                username,
+                                followed=followed,
+                                scraped=scraped,
+                                liked=number_of_liked,
+                                watched=number_of_watched,
                             )
                             can_continue = on_interaction(
                                 succeed=interaction_succeed,

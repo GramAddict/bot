@@ -140,6 +140,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--screen-record",
+                "help": "enable screen recording: it will be saved as debug.mp4",
+                "action": "store_true",
+            },
+            {
                 "arg": "--uia-version",
                 "nargs": None,
                 "help": "uiautomator version, defaults to 2.",
@@ -171,5 +176,19 @@ class CoreArguments(Plugin):
                 "help": "generate a file in main directory with given name with target users",
                 "metavar": ("filename"),
                 "default": None,
+            },
+           {
+                "arg": "--comment-percentage",
+                "nargs": None,
+                "help": "comment given percentage of interacted users, 0 by default",
+                "metavar": "50",
+                "default": "0",
+            },
+            {
+                "arg": "--total-comments-limit",
+                "nargs": None,
+                "help": "limit on total comments per session, disabled by default",
+                "metavar": "10-90",
+                "default": "0",
             },
         ]

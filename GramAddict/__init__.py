@@ -1,4 +1,4 @@
-import logging
+import logging, os
 from datetime import datetime
 from sys import exit
 from time import sleep
@@ -107,9 +107,10 @@ def run():
 
         logger.info("Device screen on and unlocked.")
 
-        open_instagram()
+        open_instagram(device, configs.args.screen_record)
 
         try:
+            random_sleep()
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()
             if configs.args.username is not None:
@@ -188,12 +189,19 @@ def run():
                 )
                 break
 
-        close_instagram()
+        close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time")
+
+        # close out atx-agent
+        os.popen(
+            "adb"
+            + ("" if configs.device_id is None else " -s " + configs.device_id)
+            + " shell pkill atx-agent"
+        ).close()
 
         logger.info(
             "-------- FINISH: " + str(session_state.finishTime) + " --------",

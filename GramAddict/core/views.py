@@ -215,6 +215,12 @@ class HashTagView:
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
 
+    def _getInformBody(self):
+        return self.device.find(
+            className=ClassName.TEXT_VIEW,
+            resourceId=ResourceID.INFORM_BODY,
+        )
+
     def _check_if_no_posts(self):
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
@@ -237,7 +243,7 @@ class SearchView:
         return self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_SEARCH_USER_USERNAME),
             className=ClassName.TEXT_VIEW,
-            text=username,
+            textMatches=case_insensitive_re(username),
         )
 
     def _getHashtagRow(self, hashtag):
@@ -288,7 +294,9 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            self.device.back()
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -297,24 +305,37 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username):
-        logger.debug("Navigate to profile @" + username)
+    def navigateToUsername(
+        self, username, interact_usernames=False, swipe_to_accounts=True
+    ):
+        logger.debug("Search for @" + username)
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
         random_sleep(1, 2)
-        searched_user_recent = self._getUsernameRow(username)
-        if searched_user_recent.exists(True):
-            searched_user_recent.click()
-        else:
-            search_edit_text.set_text(username)
+        if swipe_to_accounts:
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
             random_sleep(1, 2)
-            username_view = self._getUsernameRow(username)
-            if not username_view.exists():
-                logger.error("Cannot find user @" + username + ".")
-                return None
-            username_view.click()
+            DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
+            random_sleep(1, 2)
+        if interact_usernames:
+            search_edit_text.set_text(username)
+        else:
+            searched_user_recent = self._getUsernameRow(username)
+            if searched_user_recent.exists(True):
+                searched_user_recent.click()
+                return ProfileView(self.device, is_own_profile=False)
+            search_edit_text.set_text(username)
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
+        random_sleep(1, 2)
+        username_view = self._getUsernameRow(username)
+        if not username_view.exists(True):
+            logger.error("Cannot find user @" + username + ".")
+            return None
+        username_view.click()
 
         return ProfileView(self.device, is_own_profile=False)
 
@@ -335,8 +356,17 @@ class SearchView:
                 return None
         hashtag_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        tabbar_container = self.device.find(
+            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+        )
+        if tabbar_container.exists(True):
+            delta = tabbar_container.get_bounds()["bottom"]
+        else:
+            delta = 375
+
+        if self.device.is_keyboard_show() is True:
+            logger.debug("The keyboard is currently open. Press back to close")
+            self.device.back()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -352,9 +382,22 @@ class SearchView:
         random_sleep(4, 8)
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag {hashtag}, abort.")
-            save_crash(self.device)
-            return None
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
+                random_sleep()
+
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(150, 250),
+            )
+
+            hashtag_view = self._getHashtagRow(hashtag[1:])
+            if not hashtag_view.exists():
+                logger.error(f"Cannot find hashtag {hashtag}, abort.")
+                save_crash(self.device)
+                return None
 
         hashtag_view.click()
         random_sleep()
@@ -661,7 +704,10 @@ class AccountView:
     def changeToUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
         current_profile_name = action_bar.get_text().upper()
-        if current_profile_name == username.upper():
+        # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
+        if current_profile_name == username.upper() or current_profile_name == (
+            "  " + username.upper()
+        ):
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
@@ -732,26 +778,25 @@ class OpenedPostView:
         scroll_to_find: if the like button is not found, scroll a bit down
                         to try to find it. Default: True
         """
-        media_group = case_insensitive_re(
-            [
-                ResourceID.MEDIA_GROUP,
-                ResourceID.CAROUSEL_MEDIA_GROUP,
-            ]
-        )
         post_view_area = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.LIST)
         )
         if not post_view_area.exists():
             logger.debug("Cannot find post recycler view area")
+            save_crash(self.device)
+            self.device.back()
             return None
 
         post_media_view = self.device.find(
-            resourceIdMatches=media_group,
-            className=ClassName.FRAME_LAYOUT,
+            resourceIdMatches=case_insensitive_re(
+                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+            )
         )
 
         if not post_media_view.exists():
             logger.debug("Cannot find post media view area")
+            save_crash(self.device)
+            self.device.back()
             return None
 
         like_btn_view = post_media_view.down(
@@ -811,14 +856,10 @@ class OpenedPostView:
         return like_btn_view.get_selected()
 
     def likePost(self, click_btn_like=False):
-        media_group = case_insensitive_re(
-            [
-                ResourceID.MEDIA_GROUP,
-                ResourceID.CAROUSEL_MEDIA_GROUP,
-            ]
-        )
         post_media_view = self.device.find(
-            resourceIdMatches=media_group, className=ClassName.FRAME_LAYOUT
+            resourceIdMatches=case_insensitive_re(
+                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+            )
         )
 
         if click_btn_like:
@@ -827,7 +868,6 @@ class OpenedPostView:
                 return False
             like_btn_view.click()
         else:
-
             if post_media_view.exists(True):
                 post_media_view.double_click()
             else:
@@ -862,7 +902,7 @@ class OpenedPostView:
         )
         # UIA1 doesn't use .get_text()
         if type(text) != str:
-            text = text.get_text()
+            text = text.get_text() if text.exists() else ""
         return True if text == "Following" or text == "Requested" else False
 
 
@@ -892,6 +932,7 @@ class PostsGridView:
         if not post_view.exists():
             return None
         post_view.click()
+        # post_view.click_gone()
 
         return OpenedPostView(self.device)
 
@@ -931,26 +972,26 @@ class ProfileView(ActionBarView):
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-        following_regex = "^Following|^Requested"
-        followback_regex = "^Follow Back$"
 
+        following_regex = "^Following|^Requested"
         following_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=following_regex,
         )
+        if following_button.exists():
+            return following_button, FollowStatus.FOLLOWING
+
+        followback_regex = "^Follow Back$"
         followback_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=followback_regex,
         )
-        if following_button.exists():
-            return following_button, FollowStatus.FOLLOWING
-
         if followback_button.exists():
             return followback_button, FollowStatus.FOLLOW_BACK
 
-        return None, None
+        return None, FollowStatus.FOLLOW
 
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
@@ -1083,19 +1124,19 @@ class ProfileView(ActionBarView):
             ).search(biography_text)
             if is_long_bio is not None:
                 logger.debug('Found "… more" in bio - trying to expand')
-                # Clicking the biography is dangerous. Clicking "right" is safest so we can try to avoid hashtags
-                biography.click(biography.Location.RIGHT)
-                # If we do click a hashtag (VERY possible) - let's back out
-                # a short bio is better than no bio
-                try:
-                    return biography.get_text()
-                except:
+                username = self.getUsername()
+                for _ in range(2):
+                    # Clicking the biography is dangerous. Clicking "bottomright" is safest so we can try to avoid hashtags and tags
+                    biography.click(biography.Location.BOTTOMRIGHT)
+                    random_sleep()
+                    if username == self.getUsername():
+                        return biography.get_text()
                     logger.debug(
-                        "Can't find biography - did we click a hashtag? Go back."
+                        "We're not in the same page - did we click a hashtag or a tag? Go back."
                     )
-                    logger.info("Failed to expand biography - checking short view.")
                     self.device.back()
-                    return biography.get_text()
+                logger.info("Failed to expand biography - checking short view.")
+                return biography.get_text()
             return biography_text
         return ""
 
