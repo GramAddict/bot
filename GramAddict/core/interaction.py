@@ -95,7 +95,7 @@ def interact_with_user(
     if scraping_file is not None:
         append_to_file(scraping_file, username)
         logger.info(
-            f"Added @{username} at {scraping_file}.txt",
+            f"Added @{username} at {scraping_file}",
             extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
         )
         return False, False, True, number_of_liked, number_of_watched
@@ -193,7 +193,9 @@ def interact_with_user(
             _follow(
                 device, username, follow_percentage, args, session_state, swipe_amount
             ),
-            False, number_of_liked, number_of_watched
+            False,
+            number_of_liked,
+            number_of_watched,
         )
 
     return True, False, False, number_of_liked, number_of_watched

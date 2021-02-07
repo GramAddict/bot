@@ -342,11 +342,20 @@ class InteractBloggerFollowers(Plugin):
                             )
                         )
 
-                        interaction_succeed, followed, scraped, number_of_liked, number_of_watched = interaction(
+                        (
+                            interaction_succeed,
+                            followed,
+                            scraped,
+                            number_of_liked,
+                            number_of_watched,
+                        ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
                         storage.add_interacted_user(
-                            username, followed=followed, scraped=scraped, liked=number_of_liked,
+                            username,
+                            followed=followed,
+                            scraped=scraped,
+                            liked=number_of_liked,
                             watched=number_of_watched,
                         )
                         can_continue = on_interaction(

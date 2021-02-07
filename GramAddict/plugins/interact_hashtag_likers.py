@@ -347,8 +347,6 @@ class InteractHashtagLikers(Plugin):
                             succeed=interaction_succeed,
                             followed=followed,
                             scraped=scraped,
-
-
                         )
                         if not can_continue:
                             return

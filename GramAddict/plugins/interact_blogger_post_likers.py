@@ -309,7 +309,8 @@ class InteractBloggerPostLikers(Plugin):
 
                         (
                             interaction_succeed,
-                            followed, scraped,
+                            followed,
+                            scraped,
                             number_of_liked,
                             number_of_watched,
                         ) = interaction(
