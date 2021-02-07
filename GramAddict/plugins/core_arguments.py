@@ -177,4 +177,30 @@ class CoreArguments(Plugin):
                 "metavar": ("filename"),
                 "default": None,
             },
+            {
+                "arg": "--comment-percentage",
+                "nargs": None,
+                "help": "comment given percentage of interacted users, 0 by default",
+                "metavar": "50",
+                "default": "0",
+            },
+            {
+                "arg": "--total-comments-limit",
+                "nargs": None,
+                "help": "limit on total comments per session, disabled by default",
+                "metavar": "10-90",
+                "default": "0",
+            },
+            {
+                "arg": "--truncate-sources",
+                "nargs": None,
+                "help": "truncate the source list to a finite number of items",
+                "metavar": "2-4",
+                "default": "0",
+            },
+            {
+                "arg": "--shuffle-jobs",
+                "help": "shuffle jobs order",
+                "action": "store_true",
+            },
         ]

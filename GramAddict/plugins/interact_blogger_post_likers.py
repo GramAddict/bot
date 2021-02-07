@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from random import sample, seed, randint
 
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
@@ -18,6 +18,8 @@ from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
+    PostsGridView,
+    ProfileView,
     TabBarView,
     HashTagView,
     OpenedPostView,
@@ -31,30 +33,29 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagLikers(Plugin):
-    """Handles the functionality of interacting with a hashtags likers"""
+class InteractBloggerPostLikers(Plugin):
+    """Handles the functionality of interacting with a  blogger post likers"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags likers"
+            "Handles the functionality of interacting with a blogger post likers"
         )
         self.arguments = [
             {
-                "arg": "--hashtag-likers-top",
+                "arg": "--blogger-post-likers",
                 "nargs": "+",
-                "help": "list of hashtags in top results with whose likers you want to interact",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact with likers of post for a specified blogger",
+                "metavar": ("blogger1", "blogger2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-likers-recent",
-                "nargs": "+",
-                "help": "list of hashtags in recent results with whose likers you want to interact",
-                "metavar": ("hashtag1", "hashtag2"),
-                "default": None,
-                "operation": True,
+                "arg": "--blogger-post-limits",
+                "nargs": None,
+                "help": "limit the posts you're looking for likers",
+                "metavar": "2",
+                "default": 0,
             },
         ]
 
@@ -73,14 +74,7 @@ class InteractHashtagLikers(Plugin):
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [
-            source
-            for source in (
-                self.args.hashtag_likers_top
-                if self.current_mode == "hashtag-likers-top"
-                else self.args.hashtag_likers_recent
-            )
-        ]
+        sources = [source for source in self.args.blogger_post_likers]
         sources_limit_input = self.args.truncate_sources.split("-")
         if len(sources_limit_input) > 1:
             sources_limit = randint(
@@ -99,9 +93,7 @@ class InteractHashtagLikers(Plugin):
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
-            logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
+            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
                 _on_interaction,
@@ -138,15 +130,14 @@ class InteractHashtagLikers(Plugin):
                 screen_record=self.args.screen_record,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_blogger(
                     device,
-                    source,
+                    source[1:] if "@" in source else source,
                     self.args.likes_count,
                     self.args.stories_count,
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scrape_to_file,
                     int(self.args.comment_percentage),
                     plugin,
                     storage,
@@ -167,16 +158,15 @@ class InteractHashtagLikers(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_blogger(
         self,
         device,
-        hashtag,
+        username,
         likes_count,
         stories_count,
         stories_percentage,
         follow_percentage,
         follow_limit,
-        scraping_file,
         comment_percentage,
         current_job,
         storage,
@@ -185,6 +175,7 @@ class InteractHashtagLikers(Plugin):
         on_watch,
         on_interaction,
     ):
+        is_myself = username == self.session_state.my_username
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
@@ -198,59 +189,48 @@ class InteractHashtagLikers(Plugin):
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
-
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
-            source=hashtag,
+            source=username,
             session_state=self.session_state,
         )
-
         add_interacted_user = partial(
             storage.add_interacted_user,
             session_id=self.session_state.id,
             job_name=current_job,
-            target=hashtag,
+            target=username,
         )
 
-        search_view = TabBarView(device).navigateToSearch()
-        if not search_view.navigateToHashtag(hashtag):
-            return
-
-        if current_job == "hashtag-likers-recent":
-            logger.info("Switching to Recent tab")
-            recent_tab = HashTagView(device)._getRecentTab()
-            if recent_tab.exists() is True:
-                recent_tab.click()
-            else:
-                inform_body = HashTagView(device)._getInformBody()
-                if inform_body.exists():
-                    logger.info(inform_body.get_text())
-                    return
-            random_sleep(5, 10)
-
-        if HashTagView(device)._check_if_no_posts():
-            HashTagView(device)._reload_page()
-            random_sleep(4, 8)
-
-        logger.info("Opening the first result")
-
-        result_view = HashTagView(device)._getRecyclerView()
-        HashTagView(device)._getFistImageView(result_view).click()
+        # START
+        if username == self.session_state.my_username:
+            TabBarView(device).navigateToProfile()
+        else:
+            search_view = TabBarView(device).navigateToSearch()
+            if not search_view.navigateToUsername(username):
+                return
         random_sleep()
-
+        profile_view = ProfileView(device)
+        is_private = profile_view.isPrivateAccount()
+        posts_count = profile_view.getPostsCount()
+        is_empty = posts_count == 0
+        if is_private or is_empty:
+            private_empty = "Private" if is_private else "Empty"
+            logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
+            return
+        logger.info("Opening the first post")
+        ProfileView(device).swipe_to_fit_posts()
+        PostsGridView(device).navigateToPost(0, 0)
+        random_sleep()
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
         skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
-
         posts_end_detector = ScrollEndDetector(
             repeats_to_end=2,
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-
         post_description = ""
         nr_same_post = 0
         nr_same_posts_max = 3
@@ -327,17 +307,23 @@ class InteractHashtagLikers(Plugin):
                             == FollowingStatus.NOT_IN_LIST
                         )
 
-                        interaction_succeed, followed, scraped = interaction(
+                        (
+                            interaction_succeed,
+                            followed,
+                            number_of_liked,
+                            number_of_watched,
+                        ) = interaction(
                             device, username=username, can_follow=can_follow
                         )
-                        storage.add_interacted_user(
-                            username, followed=followed, scraped=scraped
+                        add_interacted_user(
+                            username,
+                            followed=followed,
+                            liked=number_of_liked,
+                            watched=number_of_watched,
                         )
                         opened = True
                         can_continue = on_interaction(
-                            succeed=interaction_succeed,
-                            followed=followed,
-                            scraped=scraped,
+                            succeed=interaction_succeed, followed=followed
                         )
                         if not can_continue:
                             return
@@ -374,7 +360,7 @@ class InteractHashtagLikers(Plugin):
                     prev_screen_iterated_likers.clear()
                     prev_screen_iterated_likers += screen_iterated_likers
                     logger.info(
-                        f"Back to {hashtag}'s posts list.",
+                        f"Back to posts list.",
                         extra={"color": f"{Fore.GREEN}"},
                     )
                     device.back()

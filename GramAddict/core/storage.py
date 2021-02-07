@@ -6,17 +6,30 @@ from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 
+FILENAME_HISTORY_FILTER_USERS = "history_filters_users.json"
 FILENAME_INTERACTED_USERS = "interacted_users.json"
+FILTER = "filter.json"
 USER_LAST_INTERACTION = "last_interaction"
 USER_FOLLOWING_STATUS = "following_status"
 
 FILENAME_WHITELIST = "whitelist.txt"
 FILENAME_BLACKLIST = "blacklist.txt"
+FILENAME_COMMENTS = "comments_list.txt"
 
 
 class Storage:
     interacted_users_path = None
     interacted_users = {}
+
+    history_filter_users_path = None
+    history_filter_users = {}
+
+    filter_path = None
+    filter = {}
+
+    comment_path = None
+    comment = []
+
     whitelist = []
     blacklist = []
 
@@ -29,18 +42,33 @@ class Storage:
 
         if not os.path.exists(my_username):
             os.makedirs(my_username)
+
         self.interacted_users_path = my_username + "/" + FILENAME_INTERACTED_USERS
         if os.path.exists(self.interacted_users_path):
             with open(self.interacted_users_path) as json_file:
                 self.interacted_users = json.load(json_file)
+
+        self.history_filter_users_path = (
+            my_username + "/" + FILENAME_HISTORY_FILTER_USERS
+        )
+
+        if os.path.exists(self.history_filter_users_path):
+            with open(self.history_filter_users_path) as json_file:
+                self.history_filter_users = json.load(json_file)
+
+        self.filter_path = my_username + "/" + FILTER
+
         whitelist_path = my_username + "/" + FILENAME_WHITELIST
         if os.path.exists(whitelist_path):
             with open(whitelist_path) as file:
                 self.whitelist = [line.rstrip() for line in file]
+
         blacklist_path = my_username + "/" + FILENAME_BLACKLIST
         if os.path.exists(blacklist_path):
             with open(blacklist_path) as file:
                 self.blacklist = [line.rstrip() for line in file]
+
+        comments_path = my_username + "/" + FILENAME_COMMENTS
 
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
@@ -76,6 +104,31 @@ class Storage:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.lower()
         else:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+
+        # Save only the last session_id
+        user["session_id"] = session_id
+
+        # Save only the last job_name and target
+        user["job_name"] = job_name
+        user["target"] = target
+
+        # Increase the value of liked or watched if we have already a value
+        user["liked"] = liked if "liked" not in user else (user["liked"] + liked)
+        user["watched"] = (
+            watched if "watched" not in user else (user["watched"] + watched)
+        )
+
+        # Update the followed or unfollowed boolean only if we have a real update
+        user["followed"] = (
+            followed
+            if "followed" not in user or user["followed"] != followed
+            else user["followed"]
+        )
+        user["unfollowed"] = (
+            unfollowed
+            if "unfollowed" not in user or user["unfollowed"] != unfollowed
+            else user["unfollowed"]
+        )
 
         self.interacted_users[username] = user
         self._update_file()

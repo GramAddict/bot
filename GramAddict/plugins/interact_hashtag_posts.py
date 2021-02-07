@@ -1,6 +1,6 @@
 import logging
 from functools import partial
-from random import seed, shuffle
+from random import seed, sample, randint
 
 from colorama import Style
 from GramAddict.core.decorators import run_safely
@@ -76,7 +76,7 @@ class InteractHashtagPosts(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
@@ -88,9 +88,17 @@ class InteractHashtagPosts(Plugin):
                 else self.args.hashtag_posts_recent
             )
         ]
-        shuffle(sources)
+        sources_limit_input = self.args.truncate_sources.split("-")
+        if len(sources_limit_input) > 1:
+            sources_limit = randint(
+                int(sources_limit_input[0]), int(sources_limit_input[1])
+            )
+        else:
+            sources_limit = int(sources_limit_input[0])
+        if len(sources) < sources_limit or sources_limit == 0:
+            sources_limit = len(sources)
 
-        for source in sources:
+        for source in sample(sources, sources_limit):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -145,6 +153,7 @@ class InteractHashtagPosts(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    int(self.args.comment_percentage),
                     int(self.args.interact_percentage),
                     self.args.scrape_to_file,
                     plugin,
@@ -175,6 +184,7 @@ class InteractHashtagPosts(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        comment_percentage,
         interact_percentage,
         scraping_file,
         current_job,
@@ -191,6 +201,7 @@ class InteractHashtagPosts(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -206,13 +217,30 @@ class InteractHashtagPosts(Plugin):
             source=hashtag,
             session_state=self.session_state,
         )
+
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=hashtag,
+        )
+
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToHashtag(hashtag):
             return
+
         if current_job == "hashtag-posts-recent":
             logger.info("Switching to Recent tab")
-            HashTagView(device)._getRecentTab().click()
+            recent_tab = HashTagView(device)._getRecentTab()
+            if recent_tab.exists() is True:
+                recent_tab.click()
+            else:
+                inform_body = HashTagView(device)._getInformBody()
+                if inform_body.exists():
+                    logger.info(inform_body.get_text())
+                    return
             random_sleep(5, 10)
+
         if HashTagView(device)._check_if_no_posts():
             UniversalActions(device)._reload_page()
             random_sleep(4, 8)

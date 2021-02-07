@@ -6,6 +6,7 @@
 /.idea
 /.vscode
 */*.yml
+history_filters_users.*
 interacted_users.*
 sessions.json
 *.pyc

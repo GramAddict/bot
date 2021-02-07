@@ -14,5 +14,12 @@
     "min_posts": 7,
     "blacklist_words": [],
     "mandatory_words": [],
-    "specific_alphabet": "LATIN"
+    "specific_alphabet": "LATIN",
+    "comment_hashtag_likers_top": false,
+    "comment_hashtag_likers_recent": false,
+    "comment_hashtag_posts_top": false,
+    "comment_hashtag_posts_recent": false,
+    "comment_blogger_followers": false,
+    "comment_interact_usernames": false,
+    "comment_blogger_post_likers": false
 }

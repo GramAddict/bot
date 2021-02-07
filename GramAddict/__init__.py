@@ -1,7 +1,8 @@
-import logging
-from datetime import datetime
+import logging, os
+from datetime import datetime, timedelta
 from sys import exit
 from time import sleep
+import random
 
 from colorama import Fore, Style
 
@@ -24,6 +25,7 @@ from GramAddict.core.utils import (
     close_instagram,
     get_instagram_version,
     get_value,
+    kill_atx_agent,
     load_config as load_utils,
     open_instagram,
     random_sleep,
@@ -91,7 +93,9 @@ def run():
         device.wake_up()
 
         logger.info(
-            "-------- START: " + str(session_state.startTime) + " --------",
+            "-------- START: "
+            + str(session_state.startTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
@@ -110,6 +114,7 @@ def run():
         open_instagram(device, configs.args.screen_record)
 
         try:
+            random_sleep()
             profileView = TabBarView(device).navigateToProfile()
             random_sleep()
             if configs.args.username is not None:
@@ -118,6 +123,7 @@ def run():
                     logger.error(
                         f"Not able to change to {configs.args.username}, abort!"
                     )
+                    save_crash(device)
                     device.back()
                     break
 
@@ -167,7 +173,11 @@ def run():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-        for plugin in configs.enabled:
+        if configs.args.shuffle_jobs:
+            jobs_list = random.sample(configs.enabled, len(configs.enabled))
+        else:
+            jobs_list = configs.enabled
+        for plugin in jobs_list:
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
             ):
@@ -195,14 +205,21 @@ def run():
             device.screen_off()
             logger.info("Screen turned off for sleeping time")
 
+        kill_atx_agent(device)
+
         logger.info(
-            "-------- FINISH: " + str(session_state.finishTime) + " --------",
+            "-------- FINISH: "
+            + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
         if configs.args.repeat:
             print_full_report(sessions)
             repeat = get_value(configs.args.repeat, "Sleep for {} minutes", 180)
+            logger.info(
+                f'Will start again at {(datetime.now()+ timedelta(minutes=repeat)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+            )
             try:
                 sleep(60 * repeat)
             except KeyboardInterrupt:

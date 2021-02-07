@@ -1,8 +1,8 @@
 import logging
 from functools import partial
-from random import seed, shuffle
+from random import seed, randint, sample
 
-from colorama import Fore
+from colorama import Fore, Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.filter import Filter
@@ -59,14 +59,22 @@ class InteractBloggerFollowers(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [source for source in self.args.blogger_followers]
-        shuffle(sources)
+        sources_limit_input = self.args.truncate_sources.split("-")
+        if len(sources_limit_input) > 1:
+            sources_limit = randint(
+                int(sources_limit_input[0]), int(sources_limit_input[1])
+            )
+        else:
+            sources_limit = int(sources_limit_input[0])
+        if len(sources) < sources_limit or sources_limit == 0:
+            sources_limit = len(sources)
 
-        for source in sources:
+        for source in sample(sources, sources_limit):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -76,7 +84,9 @@ class InteractBloggerFollowers(Plugin):
             self.state = State()
             is_myself = source[1:] == self.session_state.my_username
             its_you = is_myself and " (it's you)" or ""
-            logger.info(f"Handle {source} {its_you}", extra={"color": f"{Fore.BLUE}"})
+            logger.info(
+                f"Handle {source} {its_you}", extra={"color": f"{Style.BRIGHT}"}
+            )
 
             on_interaction = partial(
                 _on_interaction,
@@ -122,6 +132,8 @@ class InteractBloggerFollowers(Plugin):
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
                     self.args.scrape_to_file,
+                    int(self.args.comment_percentage),
+                    plugin,
                     storage,
                     profile_filter,
                     on_like,
@@ -150,6 +162,8 @@ class InteractBloggerFollowers(Plugin):
         follow_percentage,
         follow_limit,
         scraping_file,
+        comment_percentage,
+        current_job,
         storage,
         profile_filter,
         on_like,
@@ -164,6 +178,7 @@ class InteractBloggerFollowers(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -178,6 +193,12 @@ class InteractBloggerFollowers(Plugin):
             source=username,
             session_state=self.session_state,
         )
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=username,
+        )
 
         if not self.open_user_followers(device, username):
             return
@@ -188,6 +209,7 @@ class InteractBloggerFollowers(Plugin):
             interaction,
             is_follow_limit_reached,
             storage,
+            add_interacted_user,
             on_interaction,
             is_myself,
             skipped_list_limit=get_value(self.args.skipped_list_limit, None, 15),
@@ -245,6 +267,7 @@ class InteractBloggerFollowers(Plugin):
         interaction,
         is_follow_limit_reached,
         storage,
+        add_interacted_user,
         on_interaction,
         is_myself,
         skipped_list_limit,

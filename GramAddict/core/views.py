@@ -215,6 +215,12 @@ class HashTagView:
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
 
+    def _getInformBody(self):
+        return self.device.find(
+            className=ClassName.TEXT_VIEW,
+            resourceId=ResourceID.INFORM_BODY,
+        )
+
     def _check_if_no_posts(self):
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
@@ -288,7 +294,9 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            self.device.back()
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -304,20 +312,10 @@ class SearchView:
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
-        tabbar_container = self.device.find(
-            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
-        )
-        if tabbar_container.exists(True):
-            delta = tabbar_container.get_bounds()["bottom"]
-        else:
-            delta = 375
         if swipe_to_accounts:
-            logger.debug("Swipe up to close the keyboard if present")
-            UniversalActions(self.device)._swipe_points(
-                direction=Direction.UP,
-                start_point_y=randint(delta + 10, delta + 150),
-                delta_y=randint(50, 100),
-            )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -329,12 +327,9 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-        logger.debug("Swipe up to close the keyboard if present")
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists(True):
@@ -368,12 +363,10 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
-        logger.debug("Swipe up to close the keyboard if present")
-        UniversalActions(self.device)._swipe_points(
-            direction=Direction.UP,
-            start_point_y=randint(delta + 10, delta + 150),
-            delta_y=randint(50, 100),
-        )
+
+        if self.device.is_keyboard_show() is True:
+            logger.debug("The keyboard is currently open. Press back to close")
+            self.device.back()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -389,9 +382,22 @@ class SearchView:
         random_sleep(4, 8)
 
         if not hashtag_view.exists():
-            logger.error(f"Cannot find hashtag {hashtag}, abort.")
-            save_crash(self.device)
-            return None
+            if self.device.is_keyboard_show() is True:
+                logger.debug("The keyboard is currently open. Press back to close")
+                self.device.back()
+                random_sleep()
+
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.DOWN,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(150, 250),
+            )
+
+            hashtag_view = self._getHashtagRow(hashtag[1:])
+            if not hashtag_view.exists():
+                logger.error(f"Cannot find hashtag {hashtag}, abort.")
+                save_crash(self.device)
+                return None
 
         hashtag_view.click()
         random_sleep()
@@ -697,16 +703,16 @@ class AccountView:
 
     def changeToUsername(self, username):
         action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
-        current_profile_name = action_bar.get_text().upper()
+        current_profile_name = action_bar.get_text()
+        current_profile_name_upper = current_profile_name.upper()
         # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
-        if current_profile_name == username.upper() or current_profile_name == (
-            "  " + username.upper()
-        ):
+        if current_profile_name_upper.replace(" ", "") == username.upper():
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
             )
             return True
+        logger.debug(f"You're logged as {current_profile_name.replace(' ', '')}")
         if action_bar.exists():
             action_bar.click()
             random_sleep()
@@ -725,7 +731,7 @@ class AccountView:
                     resourceId=ResourceID.ACTION_BAR_LARGE_TITLE
                 )
                 current_profile_name = action_bar.get_text().upper()
-                if current_profile_name == username.upper():
+                if current_profile_name.replace(" ", "") == username.upper():
                     return True
         return False
 
@@ -873,14 +879,11 @@ class OpenedPostView:
         return self._isPostLiked()
 
     def _getListViewLikers(self):
-        return self.device.find(
-            resourceId=ResourceID.LIST, className=ClassName.LIST_VIEW
-        )
+        return self.device.find(resourceId=ResourceID.LIST)
 
     def _getUserCountainer(self):
         return self.device.find(
             resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
-            className=ClassName.LINEAR_LAYOUT,
         )
 
     def _getUserName(self, countainer):
@@ -896,7 +899,7 @@ class OpenedPostView:
         )
         # UIA1 doesn't use .get_text()
         if type(text) != str:
-            text = text.get_text()
+            text = text.get_text() if text.exists() else ""
         return True if text == "Following" or text == "Requested" else False
 
 
@@ -966,26 +969,26 @@ class ProfileView(ActionBarView):
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-        following_regex = "^Following|^Requested"
-        followback_regex = "^Follow Back$"
 
+        following_regex = "^Following|^Requested"
         following_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=following_regex,
         )
+        if following_button.exists():
+            return following_button, FollowStatus.FOLLOWING
+
+        followback_regex = "^Follow Back$"
         followback_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=followback_regex,
         )
-        if following_button.exists():
-            return following_button, FollowStatus.FOLLOWING
-
         if followback_button.exists():
             return followback_button, FollowStatus.FOLLOW_BACK
 
-        return None, None
+        return None, FollowStatus.FOLLOW
 
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()

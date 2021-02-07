@@ -51,7 +51,7 @@ class InteractUsernames(Plugin):
         self.device_id = configs.args.device
         self.sessions = sessions
         self.session_state = sessions[-1]
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         file_list = [file for file in (self.args.interact_from_file)]
@@ -110,6 +110,7 @@ class InteractUsernames(Plugin):
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
                     self.args.scrape_to_file,
+                    int(self.args.comment_percentage),
                     plugin,
                     storage,
                     profile_filter,
@@ -139,6 +140,7 @@ class InteractUsernames(Plugin):
         follow_percentage,
         follow_limit,
         scraping_file,
+        comment_percentage,
         current_job,
         storage,
         profile_filter,
@@ -153,6 +155,7 @@ class InteractUsernames(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
@@ -161,12 +164,21 @@ class InteractUsernames(Plugin):
             scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
+
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
             source=current_file,
             session_state=self.session_state,
         )
+
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=current_file,
+        )
+
         need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
