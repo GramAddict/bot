@@ -11,10 +11,19 @@ from GramAddict.core.interaction import (
     _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_posts,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value
+from GramAddict.core.storage import FollowingStatus
+from GramAddict.core.utils import get_value, random_sleep, detect_block
+from GramAddict.core.views import (
+    TabBarView,
+    HashTagView,
+    PostsViewList,
+    SwipeTo,
+    LikeMode,
+    Owner,
+    UniversalActions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +55,13 @@ class InteractHashtagPosts(Plugin):
                 "metavar": ("hashtag1", "hashtag2"),
                 "default": None,
                 "operation": True,
+            },
+            {
+                "arg": "--interact-percentage",
+                "nargs": None,
+                "help": "chance to interact with user/hashtag when applicable (currently in hashtag-posts-recent/top)",
+                "metavar": "50",
+                "default": "50",
             },
         ]
 
@@ -191,14 +207,114 @@ class InteractHashtagPosts(Plugin):
             session_state=self.session_state,
         )
 
-        handle_posts(
-            device,
-            hashtag,
-            follow_limit,
-            current_job,
-            storage,
-            interaction,
-            interact_percentage,
-            on_interaction,
-            is_follow_limit_reached,
+        add_interacted_user = partial(
+            storage.add_interacted_user,
+            session_id=self.session_state.id,
+            job_name=current_job,
+            target=hashtag,
         )
+
+        search_view = TabBarView(device).navigateToSearch()
+        if not search_view.navigateToHashtag(hashtag):
+            return
+
+        if current_job == "hashtag-posts-recent":
+            logger.info("Switching to Recent tab")
+            recent_tab = HashTagView(device)._getRecentTab()
+            if recent_tab.exists() is True:
+                recent_tab.click()
+            else:
+                inform_body = HashTagView(device)._getInformBody()
+                if inform_body.exists():
+                    logger.info(inform_body.get_text())
+                    return
+            random_sleep(5, 10)
+
+        if HashTagView(device)._check_if_no_posts():
+            UniversalActions(device)._reload_page()
+            random_sleep(4, 8)
+
+        logger.info("Opening the first result")
+
+        result_view = HashTagView(device)._getRecyclerView()
+        HashTagView(device)._getFistImageView(result_view).click()
+        random_sleep()
+
+        def interact():
+            can_follow = not is_follow_limit_reached() and (
+                storage.get_following_status(username) == FollowingStatus.NONE
+                or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
+            )
+
+            (
+                interaction_succeed,
+                followed,
+                number_of_liked,
+                number_of_watched,
+            ) = interaction(device, username=username, can_follow=can_follow)
+            add_interacted_user(
+                username,
+                followed=followed,
+                liked=number_of_liked,
+                watched=number_of_watched,
+            )
+            can_continue = on_interaction(
+                succeed=interaction_succeed, followed=followed
+            )
+            if not can_continue:
+                return False
+            else:
+                return True
+
+        def random_choice():
+            from random import randint
+
+            random_number = randint(1, 100)
+            if interact_percentage > random_number:
+                return True
+            else:
+                return False
+
+        post_description = ""
+        nr_same_post = 0
+        nr_same_posts_max = 3
+        while True:
+            flag, post_description = PostsViewList(device)._check_if_last_post(
+                post_description
+            )
+            if flag:
+                nr_same_post += 1
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
+                )
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
+                    break
+            else:
+                nr_same_post = 0
+            if random_choice():
+                username = PostsViewList(device)._post_owner(Owner.GET_NAME)[:-3]
+                if storage.is_user_in_blacklist(username):
+                    logger.info(f"@{username} is in blacklist. Skip.")
+                elif storage.check_user_was_interacted(username):
+                    logger.info(f"@{username}: already interacted. Skip.")
+                else:
+                    logger.info(f"@{username}: interact")
+                    PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
+                    detect_block(device)
+                    if not PostsViewList(device)._check_if_liked():
+                        PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
+                        detect_block(device)
+                    random_sleep(1, 2)
+                    if PostsViewList(device)._post_owner(Owner.OPEN):
+                        if not interact():
+                            break
+                        device.back()
+
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+            random_sleep(0, 1)
+            PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+            random_sleep()
+            continue
