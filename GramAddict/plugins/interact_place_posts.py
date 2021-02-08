@@ -1,6 +1,6 @@
 import logging
 from functools import partial
-from random import seed, sample, randint
+from random import seed, shuffle
 
 from colorama import Style
 from GramAddict.core.decorators import run_safely
@@ -22,28 +22,28 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagPosts(Plugin):
-    """Handles the functionality of interacting with a hashtags post owners"""
+class InteractPlacePosts(Plugin):
+    """Handles the functionality of interacting with a places post owners"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags post owners"
+            "Handles the functionality of interacting with a places post owners"
         )
         self.arguments = [
             {
-                "arg": "--hashtag-posts-recent",
+                "arg": "--place-posts-recent",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in recent tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in recent tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-posts-top",
+                "arg": "--place-posts-top",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in top tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in top tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
@@ -60,29 +60,21 @@ class InteractHashtagPosts(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter(storage)
+        profile_filter = Filter()
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         sources = [
             source
             for source in (
-                self.args.hashtag_posts_top
-                if self.current_mode == "hashtag-posts-top"
-                else self.args.hashtag_posts_recent
+                self.args.place_posts_top
+                if self.current_mode == "place-posts-top"
+                else self.args.place_posts_recent
             )
         ]
-        sources_limit_input = self.args.truncate_sources.split("-")
-        if len(sources_limit_input) > 1:
-            sources_limit = randint(
-                int(sources_limit_input[0]), int(sources_limit_input[1])
-            )
-        else:
-            sources_limit = int(sources_limit_input[0])
-        if len(sources) < sources_limit or sources_limit == 0:
-            sources_limit = len(sources)
+        shuffle(sources)
 
-        for source in sample(sources, sources_limit):
+        for source in sources:
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -90,8 +82,6 @@ class InteractHashtagPosts(Plugin):
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             on_interaction = partial(
@@ -126,10 +116,9 @@ class InteractHashtagPosts(Plugin):
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
-                screen_record=self.args.screen_record,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_place(
                     device,
                     source,
                     self.args.likes_count,
@@ -137,9 +126,7 @@ class InteractHashtagPosts(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.comment_percentage),
                     int(self.args.interact_percentage),
-                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
@@ -159,18 +146,16 @@ class InteractHashtagPosts(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_place(
         self,
         device,
-        hashtag,
+        place,
         likes_count,
         stories_count,
         stories_percentage,
         follow_percentage,
         follow_limit,
-        comment_percentage,
         interact_percentage,
-        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -185,26 +170,24 @@ class InteractHashtagPosts(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
-            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             follow_limit=follow_limit,
-            source=hashtag,
+            source=place,
             session_state=self.session_state,
         )
 
         handle_posts(
             device,
-            hashtag,
+            place,
             follow_limit,
             current_job,
             storage,

@@ -88,6 +88,13 @@ class CoreArguments(Plugin):
                 "default": "30-50",
             },
             {
+                "arg": "--interact-percentage",
+                "nargs": None,
+                "help": "chance to interact with user/hashtag or place when applicable (currently in hashtag or place-posts-recent/top)",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
                 "arg": "--repeat",
                 "nargs": None,
                 "help": "repeat the same session again after N minutes after completion, disabled by default. It can be a number of minutes (e.g. 180) or a range (e.g. 120-180)",

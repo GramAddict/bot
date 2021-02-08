@@ -200,7 +200,36 @@ class HashTagView:
 
     def _getRecyclerView(self):
         views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
+        return self.device.find(classNameMatches=views)
 
+    def _getFistImageView(self, recycler):
+        return recycler.child(
+            className=ClassName.IMAGE_VIEW,
+            resourceIdMatches=ResourceID.IMAGE_BUTTON,
+        )
+
+    def _getRecentTab(self):
+        return self.device.find(
+            className=ClassName.TEXT_VIEW,
+            textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
+        )
+
+    def _check_if_no_posts(self):
+        return self.device.find(
+            resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
+        ).exists(True)
+
+
+# The place view for the moment It's only a copy/paste of HashTagView
+# Maybe we can add the com.instagram.android:id/category_name == "Country/Region" (or other obv)
+
+
+class PlacesView:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def _getRecyclerView(self):
+        views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
         return self.device.find(classNameMatches=views)
 
     def _getFistImageView(self, recycler):
@@ -253,6 +282,12 @@ class SearchView:
             ),
             className=ClassName.TEXT_VIEW,
             text=f"#{hashtag}",
+        )
+
+    def _getPlaceRow(self):
+        return self.device.find(
+            resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
+            className=ClassName.TEXT_VIEW,
         )
 
     def _getTabTextView(self, tab: SearchTabs):
@@ -403,6 +438,46 @@ class SearchView:
         random_sleep()
 
         return HashTagView(self.device)
+
+    def navigateToPlaces(self, place):
+        logger.info(f"Navigate to place {place}")
+        search_edit_text = self._getSearchEditText()
+        search_edit_text.click()
+        random_sleep(1, 2)
+        place_tab = self._getTabTextView(SearchTabs.PLACES)
+        if not place_tab.exists():
+            logger.debug(
+                "Cannot find tab: Places. Going to attempt to search for placeholder in all tabs"
+            )
+            place_tab = self._searchTabWithTextPlaceholder(SearchTabs.PLACES)
+            if place_tab is None:
+                logger.error("Cannot find tab: Places.")
+                save_crash(self.device)
+                return None
+        place_tab.click()
+        random_sleep(1, 2)
+        logger.debug("Close the keyboard")
+        DeviceFacade.back(self.device)
+        random_sleep(1, 2)
+
+        search_edit_text.set_text(place)
+
+        # After set_text we assume that the the first occurency It's correct
+        # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
+        # I mean, we can't search for text because 'Italia' != 'Italy', but It's also the correct item
+
+        place_view = self._getPlaceRow()
+        random_sleep(4, 8)
+
+        if not place_view.exists():
+            logger.error(f"Cannot find place {place}, abort.")
+            save_crash(self.device)
+            return None
+
+        place_view.click()
+        random_sleep()
+
+        return PlacesView(self.device)
 
 
 class PostsViewList:
