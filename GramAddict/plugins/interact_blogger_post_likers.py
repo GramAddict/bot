@@ -138,6 +138,7 @@ class InteractBloggerPostLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    self.args.scrape_to_file,
                     int(self.args.comment_percentage),
                     plugin,
                     storage,
@@ -167,6 +168,7 @@ class InteractBloggerPostLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        scraping_file,
         comment_percentage,
         current_job,
         storage,
@@ -190,6 +192,7 @@ class InteractBloggerPostLikers(Plugin):
             args=self.args,
             session_state=self.session_state,
             current_mode=self.current_mode,
+            scraping_file=scraping_file,
         )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
@@ -325,7 +328,7 @@ class InteractBloggerPostLikers(Plugin):
                         )
                         opened = True
                         can_continue = on_interaction(
-                            succeed=interaction_succeed, followed=followed
+                            succeed=interaction_succeed, followed=followed, scraped=scraped,
                         )
                         if not can_continue:
                             return
