@@ -68,8 +68,6 @@ class Storage:
             with open(blacklist_path) as file:
                 self.blacklist = [line.rstrip() for line in file]
 
-        comments_path = my_username + "/" + FILENAME_COMMENTS
-
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
 
@@ -110,6 +108,7 @@ class Storage:
         scraped=False,
         liked=0,
         watched=0,
+        commented=0,
         job_name=None,
         target=None,
     ):
@@ -132,10 +131,13 @@ class Storage:
         user["job_name"] = job_name
         user["target"] = target
 
-        # Increase the value of liked or watched if we have already a value
+        # Increase the value of liked, watched or commented if we have already a value
         user["liked"] = liked if "liked" not in user else (user["liked"] + liked)
         user["watched"] = (
             watched if "watched" not in user else (user["watched"] + watched)
+        )
+        user["commented"] = (
+            commented if "commented" not in user else (user["commented"] + commented)
         )
 
         # Update the followed or unfollowed boolean only if we have a real update
@@ -148,6 +150,11 @@ class Storage:
             unfollowed
             if "unfollowed" not in user or user["unfollowed"] != unfollowed
             else user["unfollowed"]
+        )
+        user["scraped"] = (
+            scraped
+            if "scraped" not in user or user["scraped"] != scraped
+            else user["scraped"]
         )
 
         self.interacted_users[username] = user

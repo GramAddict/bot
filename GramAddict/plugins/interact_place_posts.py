@@ -1,20 +1,16 @@
 import logging
 from functools import partial
-from random import seed, shuffle
-
+from random import seed
 from colorama import Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
-    _on_interaction,
-    _on_like,
-    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_posts,
 )
+from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value
+from GramAddict.core.utils import sample_sources, init_on_things
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +56,10 @@ class InteractPlacePosts(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter()
+        profile_filter = Filter(storage)
         self.current_mode = plugin
 
-        # IMPORTANT: in each job we assume being on the top of the Profile tab already
+        # Handle sources
         sources = [
             source
             for source in (
@@ -72,9 +68,8 @@ class InteractPlacePosts(Plugin):
                 else self.args.place_posts_recent
             )
         ]
-        shuffle(sources)
 
-        for source in sources:
+        for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -84,38 +79,17 @@ class InteractPlacePosts(Plugin):
             self.state = State()
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
-            on_interaction = partial(
-                _on_interaction,
-                likes_limit=int(self.args.total_likes_limit),
-                source=source,
-                interactions_limit=get_value(
-                    self.args.interactions_count, "Interactions count: {}", 70
-                ),
-                sessions=self.sessions,
-                session_state=self.session_state,
-                args=self.args,
+            # Init common things
+            on_interaction, on_like, on_watch, stories_percentage = init_on_things(
+                source, self.args, self.sessions, self.session_state
             )
-
-            on_like = partial(
-                _on_like, sessions=self.sessions, session_state=self.session_state
-            )
-
-            on_watch = partial(
-                _on_watch, sessions=self.sessions, session_state=self.session_state
-            )
-
-            if self.args.stories_count != "0":
-                stories_percentage = get_value(
-                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
-                )
-            else:
-                stories_percentage = 0
 
             @run_safely(
                 device=device,
                 device_id=self.device_id,
                 sessions=self.sessions,
                 session_state=self.session_state,
+                screen_record=self.args.screen_record,
             )
             def job():
                 self.handle_place(
@@ -126,7 +100,9 @@ class InteractPlacePosts(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
+                    int(self.args.comment_percentage),
                     int(self.args.interact_percentage),
+                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
@@ -155,7 +131,9 @@ class InteractPlacePosts(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
+        comment_percentage,
         interact_percentage,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -170,11 +148,13 @@ class InteractPlacePosts(Plugin):
             stories_count=stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
             on_like=on_like,
             on_watch=on_watch,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
+            scraping_file=scraping_file,
             current_mode=self.current_mode,
         )
 
@@ -187,12 +167,15 @@ class InteractPlacePosts(Plugin):
 
         handle_posts(
             device,
+            self.session_state,
             place,
             follow_limit,
             current_job,
             storage,
-            interaction,
-            interact_percentage,
+            scraping_file,
+            profile_filter,
             on_interaction,
+            interaction,
             is_follow_limit_reached,
+            interact_percentage,
         )

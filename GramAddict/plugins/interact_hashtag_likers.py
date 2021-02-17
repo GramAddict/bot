@@ -1,21 +1,18 @@
 import logging
 from functools import partial
-from random import sample, seed, randint
+from random import seed
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
-    _on_interaction,
-    _on_like,
-    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_likers,
 )
+from GramAddict.core.handle_sources import handle_likers
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
-from GramAddict.core.utils import get_value
+from GramAddict.core.utils import get_value, init_on_things, sample_sources
 
 logger = logging.getLogger(__name__)
 
@@ -73,17 +70,8 @@ class InteractHashtagLikers(Plugin):
                 else self.args.hashtag_likers_recent
             )
         ]
-        sources_limit_input = self.args.truncate_sources.split("-")
-        if len(sources_limit_input) > 1:
-            sources_limit = randint(
-                int(sources_limit_input[0]), int(sources_limit_input[1])
-            )
-        else:
-            sources_limit = int(sources_limit_input[0])
-        if len(sources) < sources_limit or sources_limit == 0:
-            sources_limit = len(sources)
-
-        for source in sample(sources, sources_limit):
+        # Start
+        for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -95,32 +83,10 @@ class InteractHashtagLikers(Plugin):
                 source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
 
-            on_interaction = partial(
-                _on_interaction,
-                likes_limit=int(self.args.total_likes_limit),
-                source=source,
-                interactions_limit=get_value(
-                    self.args.interactions_count, "Interactions count: {}", 70
-                ),
-                sessions=self.sessions,
-                session_state=self.session_state,
-                args=self.args,
+            # Init common things
+            on_interaction, on_like, on_watch, stories_percentage = init_on_things(
+                source, self.args, self.sessions, self.session_state
             )
-
-            on_like = partial(
-                _on_like, sessions=self.sessions, session_state=self.session_state
-            )
-
-            on_watch = partial(
-                _on_watch, sessions=self.sessions, session_state=self.session_state
-            )
-
-            if self.args.stories_count != "0":
-                stories_percentage = get_value(
-                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
-                )
-            else:
-                stories_percentage = 0
 
             @run_safely(
                 device=device,
@@ -138,8 +104,9 @@ class InteractHashtagLikers(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scrape_to_file,
                     int(self.args.comment_percentage),
+                    int(self.args.interact_percentage),
+                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
@@ -168,8 +135,9 @@ class InteractHashtagLikers(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        scraping_file,
         comment_percentage,
+        interact_percentage,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -196,9 +164,9 @@ class InteractHashtagLikers(Plugin):
 
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
+            session_state=self.session_state,
             follow_limit=follow_limit,
             source=hashtag,
-            session_state=self.session_state,
         )
 
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
@@ -212,6 +180,7 @@ class InteractHashtagLikers(Plugin):
 
         handle_likers(
             device,
+            self.session_state,
             hashtag,
             follow_limit,
             current_job,
@@ -221,4 +190,5 @@ class InteractHashtagLikers(Plugin):
             on_interaction,
             interaction,
             is_follow_limit_reached,
+            False,
         )

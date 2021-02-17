@@ -19,6 +19,10 @@
     "comment_hashtag_likers_recent": false,
     "comment_hashtag_posts_top": false,
     "comment_hashtag_posts_recent": false,
+    "comment_place_likers_top": false,
+    "comment_place_likers_recent": false,
+    "comment_place_posts_top": false,
+    "comment_place_posts_recent": false,
     "comment_blogger_followers": false,
     "comment_interact_usernames": false,
     "comment_blogger_post_likers": false

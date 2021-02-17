@@ -185,6 +185,7 @@ class SessionStateEncoder(JSONEncoder):
             "total_comments": session_state.totalComments,
             "total_watched": session_state.totalWatched,
             "total_unfollowed": session_state.totalUnfollowed,
+            "total_scraped": session_state.totalScraped,
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
             "args": session_state.args.__dict__,

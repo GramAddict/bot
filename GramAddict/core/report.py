@@ -162,7 +162,7 @@ def print_short_report(source, session_state):
     total_scraped = sum(session_state.totalScraped.values())
     interactions = session_state.successfulInteractions.get(source, 0)
     logger.info(
-        f"Session progress: {total_likes} likes, {total_watched} watched, {total_followed} followed, {total_scraped} users scraped, {interactions} successful interaction(s) for {source}",
+        f"Session progress: {total_likes} likes, {total_watched} watched, {total_comments} commented, {total_followed} followed, {total_scraped} users scraped, {interactions} successful interaction(s) for {source}.",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 

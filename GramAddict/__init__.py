@@ -1,4 +1,5 @@
-import logging, os
+from GramAddict.core.navigation import check_if_english
+import logging
 from datetime import datetime, timedelta
 from sys import exit
 from time import sleep
@@ -15,7 +16,6 @@ from GramAddict.core.log import (
     update_log_file_name,
     is_log_file_updated,
 )
-from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.report import print_full_report
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
@@ -116,6 +116,7 @@ def run():
         try:
             random_sleep()
             profileView = TabBarView(device).navigateToProfile()
+            check_if_english(device)
             random_sleep()
             if configs.args.username is not None:
                 success = AccountView(device).changeToUsername(configs.args.username)
@@ -135,15 +136,7 @@ def run():
         except Exception as e:
             logger.error(f"Exception: {e}")
             save_crash(device)
-            switch_to_english(device)
-            # Try again on the correct language
-            profileView = TabBarView(device).navigateToProfile()
-            random_sleep()
-            (
-                session_state.my_username,
-                session_state.my_followers_count,
-                session_state.my_following_count,
-            ) = profileView.getProfileInfo()
+            break
 
         if (
             session_state.my_username is None
@@ -166,7 +159,7 @@ def run():
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-                save_crash(device)
+                # save_crash(device)
 
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
 
@@ -213,6 +206,8 @@ def run():
             + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
+
+        # print report now if asked
 
         if configs.args.repeat:
             print_full_report(sessions)

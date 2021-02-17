@@ -1,20 +1,17 @@
 import logging
 from functools import partial
-from random import seed, sample, randint
+from random import seed
 
 from colorama import Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
-    _on_interaction,
-    _on_like,
-    _on_watch,
     interact_with_user,
     is_follow_limit_reached_for_source,
-    handle_posts,
 )
+from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value
+from GramAddict.core.utils import init_on_things, sample_sources
 
 logger = logging.getLogger(__name__)
 
@@ -72,17 +69,9 @@ class InteractHashtagPosts(Plugin):
                 else self.args.hashtag_posts_recent
             )
         ]
-        sources_limit_input = self.args.truncate_sources.split("-")
-        if len(sources_limit_input) > 1:
-            sources_limit = randint(
-                int(sources_limit_input[0]), int(sources_limit_input[1])
-            )
-        else:
-            sources_limit = int(sources_limit_input[0])
-        if len(sources) < sources_limit or sources_limit == 0:
-            sources_limit = len(sources)
 
-        for source in sample(sources, sources_limit):
+        # Start
+        for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.LIKES
             ) and self.session_state.check_limit(
@@ -94,32 +83,10 @@ class InteractHashtagPosts(Plugin):
                 source = "#" + source
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
-            on_interaction = partial(
-                _on_interaction,
-                likes_limit=int(self.args.total_likes_limit),
-                source=source,
-                interactions_limit=get_value(
-                    self.args.interactions_count, "Interactions count: {}", 70
-                ),
-                sessions=self.sessions,
-                session_state=self.session_state,
-                args=self.args,
+            # Init common things
+            on_interaction, on_like, on_watch, stories_percentage = init_on_things(
+                source, self.args, self.sessions, self.session_state
             )
-
-            on_like = partial(
-                _on_like, sessions=self.sessions, session_state=self.session_state
-            )
-
-            on_watch = partial(
-                _on_watch, sessions=self.sessions, session_state=self.session_state
-            )
-
-            if self.args.stories_count != "0":
-                stories_percentage = get_value(
-                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
-                )
-            else:
-                stories_percentage = 0
 
             @run_safely(
                 device=device,
@@ -204,12 +171,15 @@ class InteractHashtagPosts(Plugin):
 
         handle_posts(
             device,
+            self.session_state,
             hashtag,
             follow_limit,
             current_job,
             storage,
-            interaction,
-            interact_percentage,
+            scraping_file,
+            profile_filter,
             on_interaction,
+            interaction,
             is_follow_limit_reached,
+            interact_percentage,
         )

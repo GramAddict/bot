@@ -1,3 +1,4 @@
+from GramAddict.core.storage import Storage
 import logging
 import os
 import subprocess
@@ -5,7 +6,8 @@ import re
 import shutil
 import urllib3
 from datetime import datetime
-from random import randint, uniform
+from random import randint, uniform, choice
+from os import path
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
@@ -251,10 +253,73 @@ def validate_url(x):
 
 
 def append_to_file(filename, username):
-    if not filename.lower().endswith(".txt"):
-        filename = filename + ".txt"
-    with open(filename, "a+", encoding="UTF-8") as file:
-        file.write(username + "\n")
+    try:
+        if not filename.lower().endswith(".txt"):
+            filename = filename + ".txt"
+        with open(filename, "a+", encoding="UTF-8") as file:
+            file.write(username + "\n")
+    except:
+        logger.error(f"Failed to append {username} to: {filename}")
+
+
+def sample_sources(sources, n_sources):
+    from random import sample
+
+    sources_limit_input = n_sources.split("-")
+    if len(sources_limit_input) > 1:
+        sources_limit = randint(
+            int(sources_limit_input[0]), int(sources_limit_input[1])
+        )
+    else:
+        sources_limit = int(sources_limit_input[0])
+    if len(sources) < sources_limit or sources_limit == 0:
+        sources_limit = len(sources)
+    return sample(sources, sources_limit)
+
+
+def init_on_things(source, args, sessions, session_state):
+    from functools import partial
+    from GramAddict.core.interaction import (
+        _on_interaction,
+        _on_like,
+        _on_watch,
+        _on_comment,
+    )
+
+    on_interaction = partial(
+        _on_interaction,
+        likes_limit=int(args.total_likes_limit),
+        source=source,
+        interactions_limit=get_value(
+            args.interactions_count, "Interactions count: {}", 70
+        ),
+        sessions=sessions,
+        session_state=session_state,
+        args=args,
+    )
+
+    on_like = partial(_on_like, sessions=sessions, session_state=session_state)
+
+    on_watch = partial(_on_watch, sessions=sessions, session_state=session_state)
+
+    on_comment = partial(_on_comment, sessions=sessions, session_state=session_state)
+
+    if args.stories_count != "0":
+        stories_percentage = get_value(
+            args.stories_percentage, "Chance of watching stories: {}%", 40
+        )
+    else:
+        stories_percentage = 0
+
+    return on_interaction, on_like, on_watch, stories_percentage
+
+
+def load_random_comment(my_username):
+    file_name = my_username + "/" + Storage.FILENAME_COMMENTS
+    if path.isfile(file_name):
+        with open(file_name, "r") as f:
+            lines = f.read().splitlines()
+            return choice(lines)
 
 
 class ActionBlockedError(Exception):

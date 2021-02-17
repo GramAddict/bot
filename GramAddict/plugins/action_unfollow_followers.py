@@ -4,13 +4,11 @@ from enum import Enum, unique
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade
-from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
 from GramAddict.core.views import (
-    LanguageNotEnglishException,
     UniversalActions,
     Direction,
 )
@@ -355,12 +353,8 @@ class ActionUnfollowFollowers(Plugin):
             )
 
         if not unfollow_button.exists():
-            logger.error(
-                "Cannot find Following button. Maybe not English language is set?"
-            )
+            logger.error("Cannot find Following button.")
             save_crash(device)
-            switch_to_english(device)
-            raise LanguageNotEnglishException()
         random_sleep()
         logger.debug("Unfollow btn click")
         unfollow_button.click()

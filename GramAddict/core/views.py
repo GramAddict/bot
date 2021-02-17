@@ -159,11 +159,9 @@ class TabBarView:
 
             return
 
-        logger.error(
-            f"Didn't find tab {tab_name} in the tab bar... Maybe English language is not set!?"
-        )
+        logger.error(f"Didn't find tab {tab_name} in the tab bar...")
 
-        raise LanguageNotEnglishException()
+        # raise LanguageNotEnglishException()
 
 
 class ActionBarView:
@@ -200,6 +198,8 @@ class HashTagView:
 
     def _getRecyclerView(self):
         views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
+        # wait until it gest rendered
+        self.device.find(classNameMatches=views).wait()
         return self.device.find(classNameMatches=views)
 
     def _getFistImageView(self, recycler):
@@ -215,6 +215,8 @@ class HashTagView:
         )
 
     def _check_if_no_posts(self):
+        # wait until it gest rendered
+        self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE).wait()
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
         ).exists(True)
@@ -251,6 +253,8 @@ class PlacesView:
         )
 
     def _check_if_no_posts(self):
+        # wait until it gest rendered
+        self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE).wait()
         return self.device.find(
             resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
         ).exists(True)
@@ -408,13 +412,13 @@ class SearchView:
 
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
-            random_sleep(5, 10)
+            random_sleep()
             return HashTagView(self.device)
 
         logger.info(f"{hashtag} is not in recent searching history..")
         search_edit_text.set_text(hashtag)
         hashtag_view = self._getHashtagRow(hashtag[1:])
-        random_sleep(4, 8)
+        random_sleep()
 
         if not hashtag_view.exists():
             if self.device.is_keyboard_show() is True:
@@ -606,7 +610,9 @@ class PostsViewList:
                     swiped_a_bit = True
                     n += 1
                 else:
-                    logger.warning("Can't find the description of this post.")
+                    logger.info(
+                        "Can't find the description of this post. Maybe it's blank.."
+                    )
                     return False, ""
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
@@ -1177,7 +1183,7 @@ class ProfileView(ActionBarView):
 
     def getProfileInfo(self):
 
-        username = self.getUsername()
+        username = self.getUsername().replace(" ", "")
         followers = self.getFollowersCount()
         following = self.getFollowingCount()
 
