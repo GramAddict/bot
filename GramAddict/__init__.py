@@ -115,8 +115,8 @@ def run():
 
         try:
             random_sleep()
-            profileView = TabBarView(device).navigateToProfile()
             check_if_english(device)
+            profileView = TabBarView(device).navigateToProfile()
             random_sleep()
             if configs.args.username is not None:
                 success = AccountView(device).changeToUsername(configs.args.username)

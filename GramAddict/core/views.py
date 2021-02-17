@@ -161,8 +161,6 @@ class TabBarView:
 
         logger.error(f"Didn't find tab {tab_name} in the tab bar...")
 
-        # raise LanguageNotEnglishException()
-
 
 class ActionBarView:
     def __init__(self, device: DeviceFacade):
@@ -774,9 +772,10 @@ class AccountView:
     def navigateToLanguage(self):
         logger.debug("Navigate to Language")
         button = self.device.find(
-            textMatches=case_insensitive_re("Language"),
-            resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
-            className=ClassName.TEXT_VIEW,
+            # textMatches=case_insensitive_re("Language"),
+            # resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
+            className=ClassName.BUTTON,
+            index=5,
         )
         button.click()
 
@@ -824,9 +823,10 @@ class SettingsView:
     def navigateToAccount(self):
         logger.debug("Navigate to Account")
         button = self.device.find(
-            textMatches=case_insensitive_re("Account"),
-            resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
-            className=ClassName.TEXT_VIEW,
+            # textMatches=case_insensitive_re("Account"),
+            # resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
+            className=ClassName.BUTTON,
+            index=6,
         )
         button.click()
         return AccountView(self.device)
@@ -839,7 +839,7 @@ class OptionsView:
     def navigateToSettings(self):
         logger.debug("Navigate to Settings")
         button = self.device.find(
-            textMatches=case_insensitive_re("Settings"),
+            # textMatches=case_insensitive_re("Settings"),
             resourceId=ResourceID.MENU_SETTINGS_ROW,
             className=ClassName.TEXT_VIEW,
         )
@@ -1024,7 +1024,8 @@ class ProfileView(ActionBarView):
     def navigateToOptions(self):
         logger.debug("Navigate to Options")
         button = self.action_bar.child(
-            descriptionMatches=case_insensitive_re("Options")
+            index=2
+            # descriptionMatches=case_insensitive_re("Options")
         )
         button.click()
 
@@ -1047,6 +1048,36 @@ class ProfileView(ActionBarView):
                 resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
             )
         return bar
+
+    def _getSomeText(self):
+        post = (
+            self.device.find(
+                resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
+            )
+            .child(index=1)
+            .get_text()
+        )
+        followers = (
+            self.device.find(
+                resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
+            )
+            .child(index=1)
+            .get_text()
+        )
+        following = (
+            self.device.find(
+                resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+            )
+            .child(index=1)
+            .get_text()
+        )
+        # post = view_group.child(index=0).child(index=1).get_text()
+        # followers = view_group.child(index=1).child(index=1).get_text()
+        # following = view_group.child(index=1).child(index=1).get_text()
+        return post, followers, following
+
+    def _click_on_avatar(self):
+        self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR).click()
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"

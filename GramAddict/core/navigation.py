@@ -2,10 +2,14 @@ import logging
 
 from colorama import Fore
 from GramAddict.core.views import (
+    AccountView,
     HashTagView,
+    LanguageView,
+    OptionsView,
     PlacesView,
     PostsGridView,
     ProfileView,
+    SettingsView,
     TabBarView,
 )
 from GramAddict.core.utils import random_sleep
@@ -14,16 +18,24 @@ logger = logging.getLogger(__name__)
 
 
 def check_if_english(device):
-    pass
-    # logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
-    # profile_view = TabBarView(device).navigateToProfile()
-    # logger.info("Changing language in settings")
-
-    # options_view = profile_view.navigateToOptions()
-    # settingts_view = options_view.navigateToSettings()
-    # account_view = settingts_view.navigateToAccount()
-    # language_view = account_view.navigateToLanguage()
-    # language_view.setLanguage("english")
+    ProfileView(device)._click_on_avatar()
+    random_sleep()
+    logger.debug("Checking if English..")
+    post, follower, following = ProfileView(device)._getSomeText()
+    if post == "Posts" and follower == "Followers" and following == "Following":
+        logger.debug("Instagram in English..")
+    else:
+        logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
+        ProfileView(device).navigateToOptions()
+        random_sleep()
+        OptionsView(device).navigateToSettings()
+        random_sleep()
+        SettingsView(device).navigateToAccount()
+        random_sleep()
+        AccountView(device).navigateToLanguage()
+        random_sleep()
+        LanguageView(device).setLanguage("english")
+        random_sleep()
 
 
 def nav_to_blogger(device, username, current_job):

@@ -75,6 +75,9 @@ class ResourceID:
         self.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWERS_COUNT = (
             f"{APP_ID}:id/row_profile_header_textview_followers_count"
         )
+        self.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER = (
+            f"{APP_ID}:id/row_profile_header_post_count_container"
+        )
         self.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWING_COUNT = (
             f"{APP_ID}:id/row_profile_header_textview_following_count"
         )
@@ -90,6 +93,7 @@ class ResourceID:
         self.SEARCH = f"{APP_ID}:id/search"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
+        self.TAB_AVATAR = f"{APP_ID}:id/tab_avatar"
         self.TAB_BAR = f"{APP_ID}:id/tab_bar"
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
