@@ -68,6 +68,8 @@ class Storage:
             with open(blacklist_path) as file:
                 self.blacklist = [line.rstrip() for line in file]
 
+        self.report_path = my_username + "/Reports/"
+
     def check_user_was_interacted(self, username):
         return not self.interacted_users.get(username) is None
 

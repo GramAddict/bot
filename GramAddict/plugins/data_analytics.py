@@ -1,7 +1,8 @@
 import json
 import matplotlib.pyplot as plt
 import os
-
+import logging
+from colorama import Fore, Style
 from datetime import timedelta, datetime
 from enum import Enum, unique
 from matplotlib import ticker
@@ -12,6 +13,8 @@ from GramAddict.core.plugin_loader import Plugin
 
 A4_WIDTH_INCHES = 8.27
 A4_HEIGHT_INCHES = 11.69
+
+logger = logging.getLogger(__name__)
 
 
 class DataAnalytics(Plugin):
@@ -40,8 +43,12 @@ class DataAnalytics(Plugin):
         if not sessions:
             return
 
+        if not os.path.exists(storage.report_path):
+            os.makedirs(storage.report_path)
+
         filename = (
-            "report_"
+            storage.report_path
+            + "report_"
             + self.username
             + "_"
             + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -67,7 +74,10 @@ class DataAnalytics(Plugin):
             )
             self.plot_duration_statistics(sessions, pdf, self.username, Period.ALL_TIME)
 
-        print("Report saved as " + filename)
+        logger.info(
+            "Report saved as " + filename,
+            extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+        )
 
     def load_sessions(self):
         path = self.username + "/sessions.json"
