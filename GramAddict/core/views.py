@@ -1123,8 +1123,7 @@ class ProfileView(ActionBarView):
         try:
             count = int(float(text) * multiplier)
         except ValueError:
-            logger.error(f"Cannot parse {text}. Probably wrong language ?!")
-            raise LanguageNotEnglishException()
+            logger.error(f"Cannot parse {text}.")
         return count
 
     def _getFollowersTextView(self):
@@ -1422,9 +1421,6 @@ class CurrentStoryView:
                 )
         return None
 
-
-class LanguageNotEnglishException(Exception):
-    pass
 
 
 class UniversalActions:

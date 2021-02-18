@@ -16,7 +16,7 @@ from GramAddict.core.utils import (
     random_sleep,
     save_crash,
 )
-from GramAddict.core.views import LanguageNotEnglishException, TabBarView
+from GramAddict.core.views import TabBarView
 
 logger = logging.getLogger(__name__)
 
@@ -78,11 +78,6 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                 close_instagram(device, screen_record)
                 random_sleep()
                 open_instagram(device, screen_record)
-                TabBarView(device).navigateToProfile()
-            except LanguageNotEnglishException:
-                logger.info(
-                    "Language was changed. We'll have to start from the beginning."
-                )
                 TabBarView(device).navigateToProfile()
             except Exception as e:
                 logger.error(traceback.format_exc())
