@@ -170,6 +170,11 @@ def run():
             jobs_list = random.sample(configs.enabled, len(configs.enabled))
         else:
             jobs_list = configs.enabled
+        if "analytics" in jobs_list:
+            jobs_list.remove("analytics")
+            analytics_at_end = True
+        else:
+            analytics_at_end = False
         for plugin in jobs_list:
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
@@ -190,7 +195,10 @@ def run():
                     "Successful or Total Interactions limit reached. Ending session."
                 )
                 break
-
+        if analytics_at_end:
+            configs.actions["analytics"].run(
+                device, configs, storage, sessions, "analytics"
+            )
         close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 

@@ -1422,7 +1422,6 @@ class CurrentStoryView:
         return None
 
 
-
 class UniversalActions:
     def __init__(self, device: DeviceFacade):
         self.device = device

@@ -69,10 +69,7 @@ def interact(
         followed=followed,
         scraped=scraped,
     )
-    if not can_continue:
-        return False
-    else:
-        return True
+    return can_continue
 
 
 # def iterate_over_followers(
@@ -338,7 +335,7 @@ def handle_likers(
                             target,
                             on_interaction,
                         ):
-                            break
+                            return
 
                     opened = True
                     logger.info("Back to likers list.")
@@ -351,7 +348,6 @@ def handle_likers(
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 break
-
             go_back = False
             if not opened:
                 logger.info(
@@ -464,7 +460,7 @@ def handle_posts(
                         target,
                         on_interaction,
                     ):
-                        break
+                        return
                     device.back()
 
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
