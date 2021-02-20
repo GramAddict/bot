@@ -1,3 +1,4 @@
+from GramAddict.core.handle_sources import interact
 from GramAddict.core.filter import Filter
 import logging
 from functools import partial
@@ -109,8 +110,9 @@ class InteractUsernames(Plugin):
                     stories_percentage,
                     int(self.args.follow_percentage),
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    self.args.scrape_to_file,
                     int(self.args.comment_percentage),
+                    int(self.args.interact_percentage),
+                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
@@ -139,8 +141,9 @@ class InteractUsernames(Plugin):
         stories_percentage,
         follow_percentage,
         follow_limit,
-        scraping_file,
         comment_percentage,
+        interact_percentage,
+        scraping_file,
         current_job,
         storage,
         profile_filter,
@@ -172,13 +175,6 @@ class InteractUsernames(Plugin):
             session_state=self.session_state,
         )
 
-        add_interacted_user = partial(
-            storage.add_interacted_user,
-            session_id=self.session_state.id,
-            job_name=current_job,
-            target=current_file,
-        )
-
         need_to_refresh = True
         if path.isfile(current_file):
             with open(current_file, "r") as f:
@@ -202,33 +198,18 @@ class InteractUsernames(Plugin):
                             continue
                         random_sleep()
 
-                        def interact():
-                            can_follow = not is_follow_limit_reached() and (
-                                storage.get_following_status(username)
-                                == FollowingStatus.NONE
-                                or storage.get_following_status(username)
-                                == FollowingStatus.NOT_IN_LIST
-                            )
-
-                            interaction_succeed, followed, scraped = interaction(
-                                device, username=username, can_follow=can_follow
-                            )
-                            storage.add_interacted_user(
-                                username, followed=followed, scraped=scraped
-                            )
-                            can_continue = on_interaction(
-                                succeed=interaction_succeed,
-                                followed=followed,
-                                scraped=scraped,
-                            )
-                            if not can_continue:
-                                return False
-                            else:
-                                return True
-
-                        logger.info(f"@{username}: interact")
-                        if not interact():
-                            break
+                        if not interact(
+                            storage,
+                            is_follow_limit_reached,
+                            username,
+                            interaction,
+                            device,
+                            self.session_state,
+                            current_job,
+                            username,
+                            on_interaction,
+                        ):
+                            return
                         device.back()
                     else:
                         logger.info("Line in file is blank, skip.")
