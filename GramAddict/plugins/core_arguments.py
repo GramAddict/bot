@@ -132,7 +132,7 @@ class CoreArguments(Plugin):
             {
                 "arg": "--speed-multiplier",
                 "nargs": None,
-                "help": "modifier for random sleep values - slows down (>1) or speeds up (<1) depending on multiplier passed.",
+                "help": "modifier for random sleep values - slows down (<1) or speeds up (>1) depending on multiplier passed.",
                 "metavar": 1,
                 "default": 1,
             },
@@ -195,8 +195,15 @@ class CoreArguments(Plugin):
                 "arg": "--total-comments-limit",
                 "nargs": None,
                 "help": "limit on total comments per session, disabled by default",
-                "metavar": "10-90",
+                "metavar": "10",
                 "default": "0",
+            },
+            {
+                "arg": "--max-comments-pro-user",
+                "nargs": None,
+                "help": "limit on max possibile comments for each interacted user",
+                "metavar": "1-2",
+                "default": "1",
             },
             {
                 "arg": "--truncate-sources",
@@ -209,5 +216,19 @@ class CoreArguments(Plugin):
                 "arg": "--shuffle-jobs",
                 "help": "shuffle jobs order",
                 "action": "store_true",
+            },
+            {
+                "arg": "--working-hours",
+                "nargs": "+",
+                "help": "specify working hours",
+                "metavar": "10-22",
+                "default": "0.00-23.59",
+            },
+            {
+                "arg": "--time-delta",
+                "nargs": None,
+                "help": "delta time to add or subtract from working hours",
+                "metavar": "10-15",
+                "default": "0",
             },
         ]

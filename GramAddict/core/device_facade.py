@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # How long we're waiting until UI element appears (loading content + animation)
 UI_TIMEOUT_LONG = 5
 UI_TIMEOUT_SHORT = 1
+UI_TIMEOUT_NONE = 0
 
 
 def create_device(device_id, version=2):
@@ -641,7 +642,7 @@ class DeviceFacade:
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
 
-        def exists(self, quick=False):
+        def exists(self, none=True):
             if self.viewV1 is not None:
                 import uiautomator
 
@@ -660,7 +661,7 @@ class DeviceFacade:
                     if self.viewV2 is None:
                         return False
                     return self.viewV2.exists(
-                        UI_TIMEOUT_SHORT if quick else UI_TIMEOUT_LONG
+                        UI_TIMEOUT_NONE if none else UI_TIMEOUT_SHORT
                     )
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)

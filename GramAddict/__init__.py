@@ -88,8 +88,29 @@ def run():
 
     while True:
         session_state = SessionState(configs)
-        sessions.append(session_state)
+        configs.args.time_delta_session = get_value(
+            configs.args.time_delta, None, 0
+        ) * (1 if random.random() < 0.5 else -1)
+        logger.info(
+            f"Time delta has setted to {configs.args.time_delta_session} minutes for this session."
+        )
+        inside_working_hours, time_left = session_state.inside_working_hours(
+            configs.args.working_hours, configs.args.time_delta_session
+        )
+        if not inside_working_hours:
+            hours, remainder = divmod(time_left.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
 
+            logger.info(
+                f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}',
+                extra={"color": f"{Fore.GREEN}"},
+            )
+            logger.info(
+                f"Time left: {hours}:{minutes}:{seconds}",
+                extra={"color": f"{Fore.GREEN}"},
+            )
+            sleep(time_left.total_seconds())
+        sessions.append(session_state)
         device.wake_up()
 
         logger.info(
@@ -159,7 +180,6 @@ def run():
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-                # save_crash(device)
 
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
 
@@ -176,6 +196,15 @@ def run():
         else:
             analytics_at_end = False
         for plugin in jobs_list:
+            inside_working_hours, time_left = session_state.inside_working_hours(
+                configs.args.working_hours, configs.args.time_delta_session
+            )
+            if not inside_working_hours:
+                logger.info(
+                    f"Outside of working hours. Ending session.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
+                break
             if not session_state.check_limit(
                 configs.args, limit_type=session_state.Limit.ALL, output=False
             ):
@@ -192,7 +221,8 @@ def run():
 
             else:
                 logger.info(
-                    "Successful or Total Interactions limit reached. Ending session."
+                    "Successful or Total Interactions limit reached. Ending session.",
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 break
         if analytics_at_end:

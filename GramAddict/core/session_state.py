@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum, auto
 from json import JSONEncoder
 from GramAddict.core.utils import get_value
@@ -74,7 +74,7 @@ class SessionState:
         total_likes = self.totalLikes >= int(likes_limit)
         follow_limit = get_value(args.total_follows_limit, None, 50)
         total_followed = sum(self.totalFollowed.values()) >= int(follow_limit)
-        comments_limit = get_value(args.total_comments_limit, None, 50)
+        comments_limit = get_value(args.total_comments_limit, None, 10)
         total_comments = self.totalComments >= int(comments_limit)
         watch_limit = get_value(args.total_watches_limit, None, 50)
         total_watched = self.totalWatched >= int(watch_limit)
@@ -158,6 +158,32 @@ class SessionState:
                 logger.debug(session_info[6])
             return total_scraped
 
+    def inside_working_hours(self, working_hours, delta_min, return_time_left=False):
+        def time_in_range(start, end, x):
+            if start <= end:
+                return start <= x <= end
+            else:
+                return start <= x or x <= end
+
+        in_range = False
+        time_left_list = []
+        current_time = datetime.now()
+        delta = timedelta(minutes=delta_min)
+        for n in working_hours:
+            today = current_time.strftime("%Y-%m-%d")
+            inf_value = f"{n.split('-')[0]} {today}"
+            inf = datetime.strptime(inf_value, "%H.%M %Y-%m-%d") + delta
+            sup_value = f"{n.split('-')[1]} {today}"
+            sup = datetime.strptime(sup_value, "%H.%M %Y-%m-%d") + delta
+            if time_in_range(inf.time(), sup.time(), current_time.time()):
+                in_range = True
+                return in_range, 0
+            else:
+                time_left = inf - current_time
+                if time_left >= timedelta(0):
+                    time_left_list.append(time_left)
+        return in_range, min(time_left_list)
+
     def is_finished(self):
         return self.finishTime is not None
 
@@ -191,3 +217,6 @@ class SessionStateEncoder(JSONEncoder):
             "args": session_state.args.__dict__,
             "profile": {"followers": str(session_state.my_followers_count)},
         }
+
+
+# %%

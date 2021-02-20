@@ -22,20 +22,25 @@ def check_if_english(device):
     random_sleep()
     logger.debug("Checking if English..")
     post, follower, following = ProfileView(device)._getSomeText()
-    if post == "Posts" and follower == "Followers" and following == "Following":
-        logger.debug("Instagram in English..")
+    if post is not None:
+        if post == "Posts" and follower == "Followers" and following == "Following":
+            logger.debug("Instagram in English..")
+        else:
+            logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
+            ProfileView(device).navigateToOptions()
+            random_sleep()
+            OptionsView(device).navigateToSettings()
+            random_sleep()
+            SettingsView(device).navigateToAccount()
+            random_sleep()
+            AccountView(device).navigateToLanguage()
+            random_sleep()
+            LanguageView(device).setLanguage("english")
+            random_sleep()
     else:
-        logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
-        ProfileView(device).navigateToOptions()
-        random_sleep()
-        OptionsView(device).navigateToSettings()
-        random_sleep()
-        SettingsView(device).navigateToAccount()
-        random_sleep()
-        AccountView(device).navigateToLanguage()
-        random_sleep()
-        LanguageView(device).setLanguage("english")
-        random_sleep()
+        logger.warning(
+            "Failed to check your Instagram language. Be sure to set it to English."
+        )
 
 
 def nav_to_blogger(device, username, current_job):
@@ -72,7 +77,7 @@ def nav_to_hashtag_or_place(device, target, current_job):
     TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
 
     if current_job.endswith("recent"):
-        logger.info("Switching to Recent tab")
+        logger.info("Switching to Recent tab.")
         TargetView(device)._getRecentTab().click()
 
         random_sleep()

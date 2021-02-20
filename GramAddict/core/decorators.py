@@ -74,7 +74,6 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                 logger.error(traceback.format_exc())
                 save_crash(device)
                 logger.info("No idea what it was. Let's try again.")
-                # Hack for the case when IGTV was accidentally opened
                 close_instagram(device, screen_record)
                 random_sleep()
                 open_instagram(device, screen_record)

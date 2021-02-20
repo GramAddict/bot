@@ -115,7 +115,12 @@ def open_instagram(device, screen_record):
         logger.debug(err)
     random_sleep()
     if screen_record:
-        device.start_screenrecord()
+        try:
+            device.start_screenrecord()
+        except:
+            logger.warning(
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -r requirements_screen_record.txt'"
+            )
 
 
 def close_instagram(device, screen_record):
@@ -126,7 +131,12 @@ def close_instagram(device, screen_record):
         + f" shell am force-stop {app_id}"
     ).close()
     if screen_record:
-        device.stop_screenrecord()
+        try:
+            device.stop_screenrecord()
+        except:
+            logger.warning(
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -r requirements_screen_record.txt'"
+            )
 
 
 def kill_atx_agent(device):
@@ -140,7 +150,7 @@ def kill_atx_agent(device):
 
 def random_sleep(inf=1.0, sup=4.0):
     multiplier = float(args.speed_multiplier)
-    delay = uniform(inf, sup) * multiplier
+    delay = uniform(inf, sup) / multiplier
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
@@ -197,7 +207,7 @@ def detect_block(device):
         resourceId=ResourceID.DIALOG_ROOT_VIEW,
         className=ClassName.FRAME_LAYOUT,
     )
-    is_blocked = block_dialog.exists()
+    is_blocked = block_dialog.exists(False)
     if is_blocked:
         logger.error("Probably block dialog is shown.")
         raise ActionBlockedError(
@@ -274,7 +284,14 @@ def sample_sources(sources, n_sources):
         sources_limit = int(sources_limit_input[0])
     if len(sources) < sources_limit or sources_limit == 0:
         sources_limit = len(sources)
-    return sample(sources, sources_limit)
+    truncaded = sample(sources, sources_limit)
+    logger.info(
+        f"Source list truncated at {len(truncaded)} {'item' if len(truncaded)<=1 else 'items'}."
+    )
+    logger.info(
+        f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(str(x) for x in truncaded)}"
+    )
+    return truncaded
 
 
 def init_on_things(source, args, sessions, session_state):

@@ -169,8 +169,8 @@ class InteractBloggerFollowers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-
         handle_followers(
+            self,
             device,
             self.session_state,
             blogger,

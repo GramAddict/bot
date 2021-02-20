@@ -81,8 +81,11 @@ def interact_with_user(
         )
 
     random_sleep()
-
+    logger.debug("Checking profile..")
+    start_time = time()
     if not profile_filter.check_profile(device, username):
+        end_time = format(time() - start_time, ".2f")
+        logger.debug(f"Profile checked in {end_time}s")
         return (
             interacted,
             followed,
@@ -96,7 +99,8 @@ def interact_with_user(
     is_private = profile_view.isPrivateAccount()
     posts_count = profile_view.getPostsCount()
     is_empty = posts_count == 0
-
+    end_time = format(time() - start_time, ".2f")
+    logger.debug(f"Profile checked in {end_time}s")
     if is_private or is_empty:
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
@@ -164,6 +168,10 @@ def interact_with_user(
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
+    if profile_filter.can_comment(current_mode) and comment_percentage != 0:
+        max_comments_pro_user = get_value(
+            args.max_comments_pro_user, "Max comment count: {}", 1
+        )
     if likes_value > 12:
         logger.error("Max number of likes per user is 12.")
         likes_value = 12
@@ -174,7 +182,7 @@ def interact_with_user(
     photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
 
     logger.info(
-        f"There are {len(photos_indices)} posts fully visible. Calculated in {end_time}s"
+        f"There {f'is {len(photos_indices)} post' if len(photos_indices)<=1 else f'are {len(photos_indices)} posts'} fully visible. Calculated in {end_time}s"
     )
     if (
         current_mode == "hashtag-posts-recent"
@@ -187,7 +195,9 @@ def interact_with_user(
         # sometimes we liked not the last picture, have to introduce the already liked thing..
 
     if likes_value > len(photos_indices):
-        logger.info(f"Only {len(photos_indices)} photo(s) available")
+        logger.info(
+            f"Only {len(photos_indices)} {'photo' if len(photos_indices)<=1 else 'photos'} available"
+        )
     else:
         shuffle(photos_indices)
         photos_indices = photos_indices[:likes_value]
@@ -207,11 +217,16 @@ def interact_with_user(
             if like_succeed is True:
                 number_of_liked += 1
         if profile_filter.can_comment(current_mode) and comment_percentage != 0:
-            comment_done = _comment(
-                device, my_username, comment_percentage, args, session_state
-            )
-            if comment_done:
-                number_of_commented += 1
+            if number_of_commented < max_comments_pro_user:
+                comment_done = _comment(
+                    device, my_username, comment_percentage, args, session_state
+                )
+                if comment_done:
+                    number_of_commented += 1
+            else:
+                logger.info(
+                    f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
+                )
         else:
             logger.debug(f"Comment filter: {profile_filter.can_comment(current_mode)}")
         logger.info("Back to profile.")
@@ -321,14 +336,23 @@ def _on_interaction(
         if session_state.check_limit(
             args, limit_type=session_state.Limit.SCRAPED, output=False
         ):
-            logger.info("Reached interaction limit, finish.")
+            logger.info(
+                "Reached interaction limit, finish.", extra={"color": f"{Fore.CYAN}"}
+            )
             can_continue = False
     else:
         if session_state.check_limit(
             args, limit_type=session_state.Limit.LIKES, output=False
         ):
-            logger.info("Reached interaction limit, finish.")
+            logger.info(
+                "Reached interaction limit, finish.", extra={"color": f"{Fore.CYAN}"}
+            )
             can_continue = False
+    inside_working_hours, time_left = session_state.inside_working_hours(
+        args.working_hours, args.time_delta_session
+    )
+    if not inside_working_hours:
+        can_continue = False
 
     if args.scrape_to_file is not None:
         successful_user_scraped_count = session_state.totalScraped.get(source)
@@ -336,7 +360,10 @@ def _on_interaction(
             successful_user_scraped_count
             and successful_user_scraped_count >= interactions_limit
         ):
-            logger.info(f"Scraped {successful_user_scraped_count} users, finish.")
+            logger.info(
+                f"Scraped {successful_user_scraped_count} users, finish.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
             can_continue = False
     else:
         successful_interactions_count = session_state.successfulInteractions.get(source)
@@ -345,7 +372,8 @@ def _on_interaction(
             and successful_interactions_count >= interactions_limit
         ):
             logger.info(
-                f"Made {successful_interactions_count} successful interactions, finish."
+                f"Made {successful_interactions_count} successful interactions, finish.",
+                extra={"color": f"{Fore.CYAN}"},
             )
             can_continue = False
 
@@ -369,23 +397,31 @@ def _comment(device, my_username, comment_percentage, args, session_state):
             comment_button = device.find(
                 resourceId=ResourceID.ROW_FEED_BUTTON_COMMENT,
             )
-            if comment_button.exists(True):
+            if comment_button.exists():
                 logger.info("Open comments of post.")
                 comment_button.click()
                 random_sleep()
                 comment_box = device.find(
                     resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT
                 )
-                comment = load_random_comment(my_username)
-                logger.info(
-                    f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
-                )
-                comment_box.set_text(comment)
-                random_sleep()
-                post_button = device.find(
-                    resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
-                )
-                post_button.click()
+
+                text = comment_box.get_text()
+                limited = "Comments on this post have been limited"
+                if comment_box.exists() and text.upper() != limited.upper():
+                    comment = load_random_comment(my_username)
+                    logger.info(
+                        f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
+                    )
+                    comment_box.set_text(comment)
+                    random_sleep()
+                    post_button = device.find(
+                        resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
+                    )
+                    post_button.click()
+                else:
+                    logger.info("Comments on this post are limited.")
+                    device.back()
+                    return False
                 random_sleep()
                 detect_block(device)
                 device.back()
@@ -394,7 +430,8 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                     resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
                     textMatches=f"{my_username} {comment}",
                 )
-                if just_post.exists(True):
+                # and ! doens't exist
+                if just_post.exists():
                     logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
                     session_state.totalComments += 1
                 else:

@@ -65,7 +65,7 @@ class ScrollEndDetector:
 
         if is_the_end:
             logger.info(
-                f"Same users iterated {repeats} times. End of the list, finish.",
+                f"Same users iterated {repeats} times. End of the list.",
                 extra={"color": f"{Fore.BLUE}"},
             )
         elif repeats > 1:

@@ -228,7 +228,7 @@ class ActionUnfollowFollowers(Plugin):
             ):
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
-                if not user_name_view.exists(quick=True):
+                if not user_name_view.exists():
                     logger.info(
                         "Next item not found: probably reached end of the screen.",
                         extra={"color": f"{Fore.GREEN}"},
@@ -345,7 +345,11 @@ class ActionUnfollowFollowers(Plugin):
             scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
             if scrollable.exists():
                 scrollable.scroll(DeviceFacade.Direction.TOP)
-
+            device.find(
+                classNameMatches=ClassName.BUTTON,
+                clickable=True,
+                textMatches=FOLLOWING_REGEX,
+            ).wait()
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
@@ -356,7 +360,7 @@ class ActionUnfollowFollowers(Plugin):
             logger.error("Cannot find Following button.")
             save_crash(device)
         random_sleep()
-        logger.debug("Unfollow btn click")
+        logger.debug("Unfollow button click.")
         unfollow_button.click()
         logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
 
@@ -369,6 +373,7 @@ class ActionUnfollowFollowers(Plugin):
             confirm_unfollow_button = device.find(
                 resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
             )
+            confirm_unfollow_button.wait()
             if confirm_unfollow_button.exists():
                 break
 
@@ -408,8 +413,11 @@ class ActionUnfollowFollowers(Plugin):
         )
         following_container.click()
 
-        random_sleep(4, 6)
-
+        random_sleep()
+        device.find(
+            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
+            className=ClassName.TEXT_VIEW,
+        ).wait()
         my_username_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
             className=ClassName.TEXT_VIEW,

@@ -83,7 +83,7 @@ class Profile(object):
         self.biography = biography
         self.fullname = fullname
 
-    def set_followers_and_following(self, followers, followings):
+    def set_followers_and_following(self, followers: int, followings: int):
         self.followers = followers
         self.followings = followings
         self.potency_ratio = (
@@ -432,8 +432,10 @@ class Filter:
         except Exception as e:
             logger.error(f"Cannot find followings count view, default is {followings}")
             logger.debug(f"Error: {e}")
-
-        return followers, followings
+        if followers is not None and followings is not None:
+            return followers, followings
+        else:
+            return 0, 1
 
     @staticmethod
     def _has_business_category(device, profileView=None):
@@ -441,7 +443,7 @@ class Filter:
             resourceId=ResourceID.PROFILE_HEADER_BUSINESS_CATEGORY,
             className=ClassName.TEXT_VIEW,
         )
-        return business_category_view.exists(True)
+        return business_category_view.exists()
 
     @staticmethod
     def _is_private_account(device, profileView=None):

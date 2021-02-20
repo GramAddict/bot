@@ -18,19 +18,19 @@ logger = logging.getLogger(__name__)
 
 
 class DataAnalytics(Plugin):
-    """Generates a PDF analytics report of specified username session data"""
+    """Generates a PDF analytics report of current username session data"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Generates a PDF analytics report of specified username session data"
+            "Generates a PDF analytics report of current username session data"
         )
         self.arguments = [
             {
                 "arg": "--analytics",
                 "nargs": None,
-                "help": "generates a PDF analytics report of specified username session data",
-                "metavar": "username1",
+                "help": "generates a PDF analytics report of current username session data",
+                "metavar": "report",
                 "default": None,
                 "operation": True,
             }
@@ -38,8 +38,10 @@ class DataAnalytics(Plugin):
 
     def run(self, device, configs, storage, sessions, plugin):
         self.args = configs.args
-        self.username = self.args.analytics
+        self.session_state = sessions[-1]
+        self.username = self.session_state.my_username
         sessions = self.load_sessions()
+        # will introduce new types of report
         if not sessions:
             return
 
