@@ -182,6 +182,8 @@ class SessionState:
                 time_left = inf - current_time
                 if time_left >= timedelta(0):
                     time_left_list.append(time_left)
+                else:
+                    time_left_list.append(time_left + timedelta(days=1))
 
         return (
             in_range,

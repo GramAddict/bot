@@ -249,16 +249,22 @@ def run():
 
         if configs.args.repeat:
             print_full_report(sessions)
-            repeat = get_value(configs.args.repeat, "Sleep for {} minutes", 180)
-            logger.info(
-                f'Will start again at {(datetime.now()+ timedelta(minutes=repeat)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+            inside_working_hours, time_left = session_state.inside_working_hours(
+                configs.args.working_hours, configs.args.time_delta_session
             )
-            try:
-                sleep(60 * repeat)
-            except KeyboardInterrupt:
-                print_full_report(sessions)
-                sessions.persist(directory=session_state.my_username)
-                exit(0)
+            if inside_working_hours:
+                time_left = (
+                    get_value(configs.args.repeat, "Sleep for {} minutes", 180) * 60
+                )
+                logger.info(
+                    f'Will start again at {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+                )
+                try:
+                    sleep(time_left)
+                except KeyboardInterrupt:
+                    print_full_report(sessions)
+                    sessions.persist(directory=session_state.my_username)
+                    exit(0)
         else:
             break
 
