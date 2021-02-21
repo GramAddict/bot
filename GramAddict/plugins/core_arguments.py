@@ -188,14 +188,14 @@ class CoreArguments(Plugin):
                 "arg": "--comment-percentage",
                 "nargs": None,
                 "help": "comment given percentage of interacted users, 0 by default",
-                "metavar": "50",
+                "metavar": "40-60",
                 "default": "0",
             },
             {
                 "arg": "--total-comments-limit",
                 "nargs": None,
                 "help": "limit on total comments per session, disabled by default",
-                "metavar": "10",
+                "metavar": "5-10",
                 "default": "0",
             },
             {
@@ -230,5 +230,10 @@ class CoreArguments(Plugin):
                 "help": "delta time to add or subtract from working hours",
                 "metavar": "10-15",
                 "default": "0",
+            },
+            {
+                "arg": "--disable-filters",
+                "help": "disable the using of filters without have to remove/rename the json file",
+                "action": "store_true",
             },
         ]

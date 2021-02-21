@@ -419,7 +419,7 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                     )
                     post_button.click()
                 else:
-                    logger.info("Comments on this post are limited.")
+                    logger.info("Comments on this post have been limited.")
                     device.back()
                     return False
                 random_sleep()

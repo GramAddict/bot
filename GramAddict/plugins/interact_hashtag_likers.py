@@ -84,9 +84,15 @@ class InteractHashtagLikers(Plugin):
             logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
 
             # Init common things
-            on_interaction, on_like, on_watch, stories_percentage = init_on_things(
-                source, self.args, self.sessions, self.session_state
-            )
+            (
+                on_interaction,
+                on_like,
+                on_watch,
+                stories_percentage,
+                follow_percentage,
+                comment_percentage,
+                interact_percentage,
+            ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
             @run_safely(
                 device=device,
@@ -102,10 +108,10 @@ class InteractHashtagLikers(Plugin):
                     self.args.likes_count,
                     self.args.stories_count,
                     stories_percentage,
-                    int(self.args.follow_percentage),
+                    follow_percentage,
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.comment_percentage),
-                    int(self.args.interact_percentage),
+                    comment_percentage,
+                    interact_percentage,
                     self.args.scrape_to_file,
                     plugin,
                     storage,

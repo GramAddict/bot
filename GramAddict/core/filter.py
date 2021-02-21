@@ -96,9 +96,14 @@ class Filter:
 
     def __init__(self, storage=None):
         filter_path = storage.filter_path
-        if os.path.exists(filter_path):
-            with open(filter_path) as json_file:
-                self.conditions = json.load(json_file)
+        if not configs.args.disable_filters:
+            if os.path.exists(filter_path):
+                with open(filter_path) as json_file:
+                    self.conditions = json.load(json_file)
+            else:
+                logger.warning(f"The filters file {filter_path} doesn't exists")
+        else:
+            logger.warning(f"Filters are disabled!")
         self.storage = storage
 
     def check_profile_from_list(self, device, item, username):

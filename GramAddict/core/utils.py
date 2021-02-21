@@ -328,7 +328,25 @@ def init_on_things(source, args, sessions, session_state):
     else:
         stories_percentage = 0
 
-    return on_interaction, on_like, on_watch, stories_percentage
+    follow_percentage = get_value(
+        args.follow_percentage, "Chance of following: {}%", 40
+    )
+    comment_percentage = get_value(
+        args.comment_percentage, "Chance of commenting: {}%", 40
+    )
+    interact_percentage = get_value(
+        args.interact_percentage, "Chance of interacting: {}%", 40
+    )
+
+    return (
+        on_interaction,
+        on_like,
+        on_watch,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        interact_percentage,
+    )
 
 
 def load_random_comment(my_username):

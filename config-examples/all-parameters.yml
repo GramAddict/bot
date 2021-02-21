@@ -17,6 +17,7 @@ uia-version: 2
 speed-multiplier: 1
 debug: false
 scrape-to-file: scraped.txt
+disable-filters: false
 
 ##############################################################################
 # Actions
@@ -54,16 +55,17 @@ analytics: report
 # Source Limits
 ##############################################################################
 
+interactions-count: 30-40
 likes-count: 1-2
 stories-count: 1-2
 stories-percentage: 30-40
+max-comments-pro-user: 1-2
 comment-percentage: 30-40
-interactions-count: 20-30
-follow-percentage: 30
+interact-percentage: 30-40
+follow-percentage: 30-40
 follow-limit: 50
 skipped-list-limit: 10-15
 fling-when-skipped: 0
-interact-percentage: 50
 min-following: 100
 
 ##############################################################################
@@ -76,7 +78,6 @@ total-watches-limit: 500
 total-successful-interactions-limit: 100
 total-interactions-limit: 500
 total-comments-limit: 5
-max-comments-pro-user: 1
 
 ##############################################################################
 # Scheduling

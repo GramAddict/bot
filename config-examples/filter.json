@@ -25,5 +25,6 @@
     "comment_place_posts_recent": false,
     "comment_blogger_followers": false,
     "comment_interact_usernames": false,
-    "comment_blogger_post_likers": false
+    "comment_blogger_post_likers": false,
+    "comment_interact_from_file": false
 }

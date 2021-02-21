@@ -87,12 +87,39 @@ class InteractUsernames(Plugin):
                 _on_watch, sessions=self.sessions, session_state=self.session_state
             )
 
-            if self.args.stories_count != "0":
+            def get_int_from_percentage_ranges(
+                stories_range, follow_range, comment_range, interact_range
+            ):
                 stories_percentage = get_value(
-                    self.args.stories_percentage, "Chance of watching stories: {}%", 40
+                    stories_range, "Chance of watching stories: {}%", 40
                 )
-            else:
-                stories_percentage = 0
+                follow_percentage = get_value(
+                    follow_range, "Chance of following: {}%", 40
+                )
+                comment_percentage = get_value(
+                    comment_range, "Chance of commenting: {}%", 40
+                )
+                interact_percentage = get_value(
+                    interact_range, "Chance of interacting: {}%", 40
+                )
+                return (
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    interact_percentage,
+                )
+
+            (
+                stories_percentage,
+                follow_percentage,
+                comment_percentage,
+                interact_percentage,
+            ) = get_int_from_percentage_ranges(
+                self.args.stories_percentage,
+                self.args.follow_percentage,
+                self.args.comment_percentage,
+                self.args.interact_percentage,
+            )
 
             @run_safely(
                 device=device,
@@ -108,10 +135,10 @@ class InteractUsernames(Plugin):
                     self.args.likes_count,
                     self.args.stories_count,
                     stories_percentage,
-                    int(self.args.follow_percentage),
+                    follow_percentage,
                     int(self.args.follow_limit) if self.args.follow_limit else None,
-                    int(self.args.comment_percentage),
-                    int(self.args.interact_percentage),
+                    comment_percentage,
+                    interact_percentage,
                     self.args.scrape_to_file,
                     plugin,
                     storage,
@@ -215,7 +242,7 @@ class InteractUsernames(Plugin):
                         logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
             if self.args.delete_interacted_users:
-                with open(current_file, "w") as f:
+                with open(current_file, "w", encoding="UTF-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")
