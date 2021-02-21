@@ -182,7 +182,11 @@ class SessionState:
                 time_left = inf - current_time
                 if time_left >= timedelta(0):
                     time_left_list.append(time_left)
-        return in_range, min(time_left_list)
+
+        return (
+            in_range,
+            min(time_left_list) if len(time_left_list) > 1 else time_left_list,
+        )
 
     def is_finished(self):
         return self.finishTime is not None
