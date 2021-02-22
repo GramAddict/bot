@@ -16,7 +16,7 @@ screen-record: false
 uia-version: 2
 speed-multiplier: 1
 debug: false
-scrape-to-file: scraped.txt
+# scrape-to-file: scraped.txt
 disable-filters: false
 
 ##############################################################################

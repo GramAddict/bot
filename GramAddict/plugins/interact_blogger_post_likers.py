@@ -17,11 +17,6 @@ from GramAddict.core.utils import (
     sample_sources,
     init_on_things,
 )
-from GramAddict.core.views import (
-    OpenedPostView,
-    PostsViewList,
-    SwipeTo,
-)
 
 logger = logging.getLogger(__name__)
 

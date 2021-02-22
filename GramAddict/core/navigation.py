@@ -10,7 +10,8 @@ from GramAddict.core.views import (
     PostsGridView,
     ProfileView,
     SettingsView,
-    TabBarView, UniversalActions,
+    TabBarView,
+    UniversalActions,
 )
 from GramAddict.core.utils import random_sleep
 

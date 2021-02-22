@@ -369,9 +369,7 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            if self.device.is_keyboard_show() is True:
-                logger.debug("The keyboard is currently open. Press back to close.")
-                self.device.back()
+            SearchView(self.device)._close_keyboard()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -388,9 +386,7 @@ class SearchView:
         search_edit_text.click()
         random_sleep(1, 2)
         if swipe_to_accounts:
-            if self.device.is_keyboard_show() is True:
-                logger.debug("The keyboard is currently open. Press back to close.")
-                self.device.back()
+            SearchView(self.device)._close_keyboard()
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -402,9 +398,7 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-            if self.device.is_keyboard_show() is True:
-                logger.debug("The keyboard is currently open. Press back to close.")
-                self.device.back()
+            SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
         username_view = self._getUsernameRow(username)
         if not username_view.exists():
@@ -439,9 +433,7 @@ class SearchView:
         else:
             delta = 375
 
-        if self.device.is_keyboard_show() is True:
-            logger.debug("The keyboard is currently open. Press back to close.")
-            self.device.back()
+        SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(hashtag[1:])
@@ -457,11 +449,7 @@ class SearchView:
         random_sleep()
 
         if not hashtag_view.exists():
-            if self.device.is_keyboard_show() is True:
-                logger.debug("The keyboard is currently open. Press back to close.")
-                self.device.back()
-                random_sleep()
-
+            SearchView(self.device)._close_keyboard()
             UniversalActions(self.device)._swipe_points(
                 direction=Direction.DOWN,
                 start_point_y=randint(delta + 10, delta + 150),
@@ -470,8 +458,7 @@ class SearchView:
 
             hashtag_view = self._getHashtagRow(hashtag[1:])
             if not hashtag_view.exists():
-                logger.error(f"Cannot find hashtag {hashtag}, abort.")
-                save_crash(self.device)
+                logger.error(f"Cannot find hashtag {hashtag}.")
                 return None
 
         hashtag_view.click()
@@ -496,8 +483,7 @@ class SearchView:
                 return None
         place_tab.click()
         random_sleep(1, 2)
-        logger.debug("Close the keyboard")
-        DeviceFacade.back(self.device)
+        SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
 
         search_edit_text.set_text(place)
@@ -518,6 +504,28 @@ class SearchView:
         random_sleep()
 
         return PlacesView(self.device)
+
+    def _close_keyboard(self):
+        flag = DeviceFacade.is_keyboard_show(self.device)
+        if flag:
+            logger.debug("The keyboard is currently open. Press back to close")
+            self.device.back()
+        elif flag is None:
+            tabbar_container = self.device.find(
+                resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+            )
+            if tabbar_container.exists(True):
+                delta = tabbar_container.get_bounds()["bottom"]
+            else:
+                delta = 375
+            logger.debug(
+                "Failed to check if keyboard is open! Will do a little swipe up to prevent errors."
+            )
+            UniversalActions(self.device)._swipe_points(
+                direction=Direction.UP,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(50, 100),
+            )
 
 
 class PostsViewList:

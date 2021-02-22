@@ -6,8 +6,8 @@ import re
 import shutil
 import urllib3
 from datetime import datetime
-from random import randint, uniform, choice
-from os import path
+from random import randint, shuffle, uniform, choice
+from os import path, truncate
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
@@ -282,12 +282,16 @@ def sample_sources(sources, n_sources):
         )
     else:
         sources_limit = int(sources_limit_input[0])
-    if len(sources) < sources_limit or sources_limit == 0:
+    if len(sources) < sources_limit:
         sources_limit = len(sources)
-    truncaded = sample(sources, sources_limit)
-    logger.info(
-        f"Source list truncated at {len(truncaded)} {'item' if len(truncaded)<=1 else 'items'}."
-    )
+    if sources_limit == 0:
+        truncaded = sources
+        shuffle(truncaded)
+    else:
+        truncaded = sample(sources, sources_limit)
+        logger.info(
+            f"Source list truncated at {len(truncaded)} {'item' if len(truncaded)<=1 else 'items'}."
+        )
     logger.info(
         f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(str(x) for x in truncaded)}"
     )
