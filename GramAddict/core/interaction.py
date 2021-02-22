@@ -1,3 +1,4 @@
+from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
 from random import randint, shuffle, choice
@@ -348,7 +349,7 @@ def _on_interaction(
                 "Reached interaction limit, finish.", extra={"color": f"{Fore.CYAN}"}
             )
             can_continue = False
-    inside_working_hours, time_left = session_state.inside_working_hours(
+    inside_working_hours, time_left = SessionState.inside_working_hours(
         args.working_hours, args.time_delta_session
     )
     if not inside_working_hours:

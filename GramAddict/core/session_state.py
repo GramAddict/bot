@@ -158,7 +158,8 @@ class SessionState:
                 logger.debug(session_info[6])
             return total_scraped
 
-    def inside_working_hours(self, working_hours, delta_min, return_time_left=False):
+    @staticmethod
+    def inside_working_hours(working_hours, delta_min):
         def time_in_range(start, end, x):
             if start <= end:
                 return start <= x <= end

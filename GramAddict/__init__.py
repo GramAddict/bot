@@ -87,14 +87,13 @@ def run():
         return
 
     while True:
-        session_state = SessionState(configs)
         configs.args.time_delta_session = get_value(
             configs.args.time_delta, None, 0
         ) * (1 if random.random() < 0.5 else -1)
         logger.info(
             f"Time delta has setted to {configs.args.time_delta_session} minutes for this session."
         )
-        inside_working_hours, time_left = session_state.inside_working_hours(
+        inside_working_hours, time_left = SessionState.inside_working_hours(
             configs.args.working_hours, configs.args.time_delta_session
         )
         if not inside_working_hours:
@@ -110,6 +109,7 @@ def run():
                 extra={"color": f"{Fore.GREEN}"},
             )
             sleep(time_left.total_seconds())
+        session_state = SessionState(configs)
         sessions.append(session_state)
         device.wake_up()
 
@@ -196,7 +196,7 @@ def run():
         else:
             analytics_at_end = False
         for plugin in jobs_list:
-            inside_working_hours, time_left = session_state.inside_working_hours(
+            inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
             )
             if not inside_working_hours:
@@ -249,7 +249,7 @@ def run():
 
         if configs.args.repeat:
             print_full_report(sessions)
-            inside_working_hours, time_left = session_state.inside_working_hours(
+            inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
             )
             if inside_working_hours:
