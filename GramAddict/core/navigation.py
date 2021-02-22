@@ -10,7 +10,7 @@ from GramAddict.core.views import (
     PostsGridView,
     ProfileView,
     SettingsView,
-    TabBarView,
+    TabBarView, UniversalActions,
 )
 from GramAddict.core.utils import random_sleep
 
@@ -82,7 +82,7 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
         random_sleep()
         if TargetView(device)._check_if_no_posts():
-            TargetView(device)._reload_page()
+            UniversalActions._reload_page()
             random_sleep()
 
     logger.info("Opening the first result.")

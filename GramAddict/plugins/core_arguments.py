@@ -222,7 +222,7 @@ class CoreArguments(Plugin):
                 "nargs": "+",
                 "help": "specify working hours",
                 "metavar": "10-22",
-                "default": "0.00-23.59",
+                "default": ["00.00-23.59"],
             },
             {
                 "arg": "--time-delta",

@@ -108,6 +108,7 @@ def run():
                 f"Time left: {hours}:{minutes}:{seconds}",
                 extra={"color": f"{Fore.GREEN}"},
             )
+            kill_atx_agent(device)
             sleep(time_left.total_seconds())
         session_state = SessionState(configs)
         sessions.append(session_state)
