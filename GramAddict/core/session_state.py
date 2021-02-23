@@ -188,7 +188,7 @@ class SessionState:
 
         return (
             in_range,
-            min(time_left_list) if len(time_left_list) > 1 else time_left_list,
+            min(time_left_list) if len(time_left_list) > 1 else time_left_list[0],
         )
 
     def is_finished(self):

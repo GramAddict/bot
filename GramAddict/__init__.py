@@ -109,7 +109,12 @@ def run():
                 extra={"color": f"{Fore.GREEN}"},
             )
             kill_atx_agent(device)
-            sleep(time_left.total_seconds())
+            try:
+                sleep(time_left.total_seconds())
+            except KeyboardInterrupt:
+                print_full_report(sessions)
+                sessions.persist(directory=session_state.my_username)
+                exit(0)
         session_state = SessionState(configs)
         sessions.append(session_state)
         device.wake_up()

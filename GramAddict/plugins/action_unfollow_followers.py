@@ -65,6 +65,11 @@ class ActionUnfollowFollowers(Plugin):
                 "metavar": "100",
                 "default": 0,
             },
+            {
+                "arg": "--sort-followers-newest-to-oldest",
+                "help": "sort the followers from newest to oldest instead of viceversa (default)",
+                "action": "store_true",
+            },
         ]
 
     def run(self, device, configs, storage, sessions, plugin):
@@ -143,7 +148,7 @@ class ActionUnfollowFollowers(Plugin):
     ):
         self.open_my_followings(device)
         random_sleep()
-        self.sort_followings_by_date(device)
+        self.sort_followings_by_date(device, self.args.sort_followers_newest_to_oldest)
         random_sleep()
         self.iterate_over_followings(
             device, count, on_unfollow, storage, unfollow_restriction, my_username
@@ -160,8 +165,8 @@ class ActionUnfollowFollowers(Plugin):
         )
         followings_button.click()
 
-    def sort_followings_by_date(self, device):
-        logger.info("Sort followings by date: from oldest to newest.")
+    def sort_followings_by_date(self, device, newest_to_oldest=False):
+
         UniversalActions(device)._swipe_points(
             direction=Direction.DOWN,
         )
@@ -186,8 +191,17 @@ class ActionUnfollowFollowers(Plugin):
                 "Cannot find options to sort followings. Continue without sorting."
             )
             return
-
-        sort_options_recycler_view.child(index=2).click()
+        if newest_to_oldest:
+            logger.info("Sort followings by date: from newsest to oldest.")
+            sort_options_recycler_view.child(
+                textMatches="Date Followed: Latest"
+            ).click()
+        else:
+            logger.info("Sort followings by date: from oldest to newest.")
+            sort_options_recycler_view.child(
+                textMatches="Date Followed: Earliest"
+            ).click()
+        random_sleep()
 
     def iterate_over_followings(
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
@@ -416,11 +430,9 @@ class ActionUnfollowFollowers(Plugin):
         random_sleep()
         device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
-            className=ClassName.TEXT_VIEW,
         ).wait()
         my_username_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
-            className=ClassName.TEXT_VIEW,
             text=my_username,
         )
         result = my_username_view.exists()

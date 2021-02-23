@@ -391,6 +391,18 @@ class DeviceFacade:
                     raise DeviceFacade.JsonRpcError(e)
                 return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
+        def sibling(self, *args, **kwargs):
+            if self.viewV1 is not None:
+                pass
+            else:
+                import uiautomator2
+
+                try:
+                    view = self.viewV2.sibling(*args, **kwargs)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+                return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+
         def left(self, *args, **kwargs):
             if self.viewV1 is not None:
                 import uiautomator

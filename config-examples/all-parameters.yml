@@ -47,6 +47,7 @@ unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
+sort-followers-newest-to-oldest: false
 
 ## Post Processing
 analytics: report

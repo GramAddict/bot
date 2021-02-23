@@ -49,7 +49,11 @@ class ResourceID:
         self.REEL_VIEWER_IMAGE_VIEW = f"{APP_ID}:id/reel_viewer_image_view"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
+        self.ROW_COMMENT_SUB_ITEMS_BAR = f"{APP_ID}:id/row_comment_sub_items_bar"
         self.ROW_COMMENT_TEXTVIEW_COMMENT = f"{APP_ID}:id/row_comment_textview_comment"
+        self.ROW_COMMENT_TEXTVIEW_TIME_AGO = (
+            f"{APP_ID}:id/row_comment_textview_time_ago"
+        )
         self.ROW_FEED_BUTTON_COMMENT = f"{APP_ID}:id/row_feed_button_comment"
         self.ROW_FEED_BUTTON_LIKE = f"{APP_ID}:id/row_feed_button_like"
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (

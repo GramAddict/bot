@@ -148,9 +148,9 @@ def kill_atx_agent(device):
     ).close()
 
 
-def random_sleep(inf=1.0, sup=4.0):
+def random_sleep(inf=1.0, sup=4.0, modulable=True):
     multiplier = float(args.speed_multiplier)
-    delay = uniform(inf, sup) / multiplier
+    delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
     logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 

@@ -1,6 +1,7 @@
 from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
+import emoji
 from random import randint, shuffle, choice
 from typing import Tuple
 from time import time
@@ -19,6 +20,7 @@ from GramAddict.core.views import (
     ProfileView,
     CurrentStoryView,
     PostsGridView,
+    SearchView,
     UniversalActions,
     Direction,
     PostsViewList,
@@ -413,6 +415,8 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                     logger.info(
                         f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
                     )
+                    if comment[-1] == " ":
+                        comment = comment[:-1]
                     comment_box.set_text(comment)
                     random_sleep()
                     post_button = device.find(
@@ -425,14 +429,18 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                     return False
                 random_sleep()
                 detect_block(device)
-                device.back()
-                logger.debug("Close keyboard.")
-                just_post = device.find(
+                SearchView(device)._close_keyboard()
+                random_sleep()
+                posted_text = device.find(
                     resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
                     textMatches=f"{my_username} {comment}",
                 )
-                # and ! doens't exist
-                if just_post.exists():
+                when_posted = (
+                    posted_text.sibling(resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR)
+                    .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
+                    .wait()
+                )
+                if posted_text.exists() and when_posted:
                     logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
                     session_state.totalComments += 1
                 else:
@@ -454,7 +462,11 @@ def load_random_comment(my_username):
     if path.isfile(file_name):
         with open(file_name, "r") as f:
             lines = f.read().splitlines()
-            return choice(lines)
+            random_comment = choice(lines)
+            return emoji.emojize(random_comment, use_aliases=True)
+    else:
+        logger.warning(f"{file_name} not found!")
+        return None
 
 
 def _follow(device, username, follow_percentage, args, session_state, swipe_amount):
@@ -508,10 +520,23 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
                 save_crash(device)
 
         follow_button.click()
-        detect_block(device)
-        logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
-        random_sleep()
-        return True
+        if device.find(
+            classNameMatches=ClassName.BUTTON,
+            clickable=True,
+            textMatches=UNFOLLOW_REGEX,
+        ).wait():
+            logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
+            detect_block(device)
+            random_sleep()
+            return True
+        else:
+            logger.info(
+                f"Looks like I was not able to follow @{username}",
+                extra={"color": f"{Fore.RED}"},
+            )
+            detect_block(device)
+            random_sleep()
+            return False
     else:
         logger.info("Reached total follows limit, not following.")
         return False
@@ -559,10 +584,9 @@ def _watch_stories(
             if profile_picture.exists():
                 logger.debug("Open the first story")
                 profile_picture.click()
-                random_sleep(1, 2)
+                random_sleep(5, 7, modulable=False)
                 on_watch()
                 stories_counter += 1
-                random_sleep()
 
                 if stories_to_watch > 1:
                     story_view = CurrentStoryView(device)
@@ -577,7 +601,7 @@ def _watch_stories(
                                     story_frame.click(story_view.Location.RIGHT)
                                     on_watch()
                                     stories_counter += 1
-                                    random_sleep()
+                                    random_sleep(5, 7, modulable=False)
                             except Exception:
                                 break
                         else:
