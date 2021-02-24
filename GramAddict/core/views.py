@@ -111,20 +111,20 @@ class TabBarView:
         button = None
         if tab == TabBarTabs.HOME:
             self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             ).wait
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
         elif tab == TabBarTabs.SEARCH:
             self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             ).wait()
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
             if not button.exists():

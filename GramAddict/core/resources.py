@@ -130,6 +130,7 @@ class TabBarText:
 class ClassName:
     BUTTON = "android.widget.Button"
     BUTTON_OR_TEXTVIEW_REGEX = "android.widget.Button|android.widget.TextView"
+    BUTTON_OR_FRAME_LAYOUT_REGEX = "android.widget.Button|android.widget.FrameLayout"
     EDIT_TEXT = "android.widget.EditText"
     FRAME_LAYOUT = "android.widget.FrameLayout"
     HORIZONTAL_SCROLL_VIEW = "android.widget.HorizontalScrollView"
