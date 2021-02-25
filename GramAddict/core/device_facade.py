@@ -714,7 +714,7 @@ class DeviceFacade:
                 except uiautomator2.JSONRPCError as e:
                     raise DeviceFacade.JsonRpcError(e)
 
-        def get_text(self, retry=True):
+        def get_text(self, retry=True, error=True):
             max_attempts = 1 if not retry else 3
             attempts = 0
             while attempts < max_attempts:
@@ -746,7 +746,8 @@ class DeviceFacade:
                         else:
                             return text
                     except uiautomator2.JSONRPCError as e:
-                        raise DeviceFacade.JsonRpcError(e)
+                        if error:
+                            raise DeviceFacade.JsonRpcError(e)
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )

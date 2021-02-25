@@ -98,7 +98,7 @@ class LikeFromURLs(Plugin):
                         logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
             if self.args.delete_interacted_users:
-                with open(current_file, "w") as f:
+                with open(current_file, "w", encoding="UTF-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")

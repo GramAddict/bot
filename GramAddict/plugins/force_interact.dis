@@ -195,7 +195,7 @@ class ForceIteract(Plugin):
             )
         )
 
-        interaction_succeed, followed, scraped, number_of_liked, number_of_watched = interaction(
+        interaction_succeed, followed, scraped, number_of_liked, number_of_watched, number_of_commented = interaction(
             device, username=username, can_follow=can_follow
         )
         storage.add_interacted_user(
@@ -204,7 +204,7 @@ class ForceIteract(Plugin):
             followed=followed,
             liked=number_of_liked,
             watched=number_of_watched,
-            job_name=current_job
+            job_name=current_job,
             target=username
         )
         can_continue = on_interaction(succeed=interaction_succeed, followed=followed)
@@ -214,7 +214,7 @@ class ForceIteract(Plugin):
 
         unfollow_button = None
         attempts = 2
-        for _ in range(attempts)
+        for _ in range(attempts):
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,

@@ -2,6 +2,7 @@ from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
 import emoji
+from datetime import datetime
 from random import randint, shuffle, choice
 from typing import Tuple
 from time import time
@@ -87,8 +88,8 @@ def interact_with_user(
     logger.debug("Checking profile..")
     start_time = time()
     if not profile_filter.check_profile(device, username):
-        end_time = format(time() - start_time, ".2f")
-        logger.debug(f"Profile checked in {end_time}s")
+        delta = format(time() - start_time, ".2f")
+        logger.debug(f"Profile checked in {delta}s")
         return (
             interacted,
             followed,
@@ -99,11 +100,11 @@ def interact_with_user(
         )
 
     profile_view = ProfileView(device)
-    is_private = profile_view.isPrivateAccount()
     posts_count = profile_view.getPostsCount()
+    is_private = profile_view.isPrivateAccount()
     is_empty = posts_count == 0
-    end_time = format(time() - start_time, ".2f")
-    logger.debug(f"Profile checked in {end_time}s")
+    delta = format(time() - start_time, ".2f")
+    logger.debug(f"Profile checked in {delta}s")
     if is_private or is_empty:
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
@@ -231,7 +232,9 @@ def interact_with_user(
                     f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
                 )
         else:
-            logger.debug(f"Comment filter: {profile_filter.can_comment(current_mode)}")
+            logger.debug(
+                f"Comment filter for {current_mode}: {profile_filter.can_comment(current_mode)}"
+            )
         logger.info("Back to profile.")
         device.back()
         if like_succeed or comment_done:
@@ -407,48 +410,65 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                 comment_box = device.find(
                     resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT
                 )
-
-                text = comment_box.get_text()
-                limited = "Comments on this post have been limited"
-                if comment_box.exists() and text.upper() != limited.upper():
-                    comment = load_random_comment(my_username)
-                    logger.info(
-                        f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
-                    )
-                    if comment[-1] == " ":
-                        comment = comment[:-1]
-                    comment_box.set_text(comment)
+                try:
+                    text = comment_box.get_text()
+                    limited = "Comments on this post have been limited"
+                    if comment_box.exists() and text.upper() != limited.upper():
+                        comment = load_random_comment(my_username)
+                        if comment is None:
+                            return False
+                        logger.info(
+                            f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
+                        )
+                        comment_box.set_text(comment)
+                        random_sleep()
+                        post_button = device.find(
+                            resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
+                        )
+                        post_button.click()
+                    else:
+                        logger.info("Comments on this post have been limited.")
+                        device.back()
+                        return False
                     random_sleep()
-                    post_button = device.find(
-                        resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
+                    detect_block(device)
+                    SearchView(device)._close_keyboard()
+                    random_sleep()
+                    posted_text = device.find(
+                        resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
+                        textMatches=f"{my_username} {comment}",
                     )
-                    post_button.click()
-                else:
-                    logger.info("Comments on this post have been limited.")
+                    when_posted = (
+                        posted_text.sibling(
+                            resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR
+                        )
+                        .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
+                        .wait()
+                    )
+                    if posted_text.exists() and when_posted:
+                        logger.info(
+                            "Comment succeed.", extra={"color": f"{Fore.GREEN}"}
+                        )
+                        session_state.totalComments += 1
+                        comment_confirmed = True
+                    else:
+                        logger.warning("Failed to check if comment succeed.")
+                        comment_confirmed = False
+                    random_sleep()
+                    logger.info("Go back to post view.")
+                    device.back()
+                    return comment_confirmed
+                except:
+                    logger.error(
+                        "Maybe some elements there have another IDs! Can't comment.."
+                    )
+                    save_crash(device)
+                    logger.info("Go back to post view.")
+                    random_sleep()
+                    SearchView(device)._close_keyboard()
+                    random_sleep()
                     device.back()
                     return False
-                random_sleep()
-                detect_block(device)
-                SearchView(device)._close_keyboard()
-                random_sleep()
-                posted_text = device.find(
-                    resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
-                    textMatches=f"{my_username} {comment}",
-                )
-                when_posted = (
-                    posted_text.sibling(resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR)
-                    .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
-                    .wait()
-                )
-                if posted_text.exists() and when_posted:
-                    logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
-                    session_state.totalComments += 1
-                else:
-                    logger.warning("Failed to check if comment succeed.")
-                random_sleep(1, 2)
-                logger.info("Go back to post view.")
-                device.back()
-                return True
             else:
                 UniversalActions(device)._swipe_points(
                     direction=Direction.DOWN, delta_y=randint(150, 250)
@@ -458,10 +478,18 @@ def _comment(device, my_username, comment_percentage, args, session_state):
 
 
 def load_random_comment(my_username):
+    def nonblank_lines(f):
+        for l in f:
+            line = l.rstrip()
+            if line:
+                yield line
+
+    lines = []
     file_name = my_username + "/" + storage.FILENAME_COMMENTS
     if path.isfile(file_name):
         with open(file_name, "r") as f:
-            lines = f.read().splitlines()
+            for line in nonblank_lines(f):
+                lines.append(line)
             random_comment = choice(lines)
             return emoji.emojize(random_comment, use_aliases=True)
     else:
@@ -577,16 +605,23 @@ def _watch_stories(
 
         if stories_to_watch == 0:
             return 0
-
-        if profile_view.isStoryAvailable():
-            profile_picture = profile_view.profileImage()
+        stories_ring = profile_view.StoryRing()
+        if stories_ring.exists():
             stories_counter = 0
-            if profile_picture.exists():
-                logger.debug("Open the first story")
-                profile_picture.click()
-                random_sleep(5, 7, modulable=False)
+            logger.debug("Open the first story")
+            stories_ring.click()
+            story_view = CurrentStoryView(device)
+            random_sleep(1, 2, modulable=False)
+            story_view.getStoryFrame().wait()
+
+            if profile_view.getUsername(error=False) != username:
+                start = datetime.now()
                 on_watch()
                 stories_counter += 1
+                for _ in range(0, 7):
+                    random_sleep(0.5, 1, modulable=False)
+                    if profile_view.getUsername(error=False) == username:
+                        break
 
                 if stories_to_watch > 1:
                     story_view = CurrentStoryView(device)
@@ -598,25 +633,38 @@ def _watch_stories(
                                     story_frame.exists()
                                     and _iter <= stories_to_watch - 1
                                 ):
-                                    story_frame.click(story_view.Location.RIGHT)
+                                    logger.debug("Going to the next story..")
+                                    story_frame.click(story_frame.Location.RIGHT)
                                     on_watch()
                                     stories_counter += 1
-                                    random_sleep(5, 7, modulable=False)
-                            except Exception:
+                                    for _ in range(0, 7):
+                                        random_sleep(0.5, 1, modulable=False)
+                                        if (
+                                            profile_view.getUsername(error=False)
+                                            == username
+                                        ):
+                                            break
+
+                            except Exception as e:
+                                logger.error(e)
+                                save_crash(device)
                                 break
                         else:
                             break
 
-                for attempt in range(0, 4):
+                for _ in range(0, 4):
                     if profile_view.getUsername(error=False) != username:
-                        if attempt != 0:
-                            device.back()
-                        # Maybe it's just an error please one half seconds before search again for username tab
-                        # This little delay prevent too much back tap and to see more stories than stories_to_watch value
+                        device.back()
                         random_sleep()
                     else:
                         break
+                logger.info(
+                    f"Watched stories for {(datetime.now()-start).total_seconds():.2f}s."
+                )
                 return stories_counter
+            else:
+                logger.warning("Failed to open the story container.")
+                return False
         return 0
     else:
         logger.info("Reached total watch limit, not watching stories.")

@@ -47,6 +47,7 @@ class ResourceID:
         self.PROFILE_TABS_CONTAINER = f"{APP_ID}:id/profile_tabs_container"
         self.REEL_RING = f"{APP_ID}:id/reel_ring"
         self.REEL_VIEWER_IMAGE_VIEW = f"{APP_ID}:id/reel_viewer_image_view"
+        self.REEL_VIEWER_MEDIA_CONTAINER = f"{APP_ID}:id/reel_viewer_media_container"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
         self.ROW_COMMENT_SUB_ITEMS_BAR = f"{APP_ID}:id/row_comment_sub_items_bar"

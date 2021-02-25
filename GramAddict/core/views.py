@@ -110,23 +110,17 @@ class TabBarView:
         logger.debug(f"Navigate to {tab_name}")
         button = None
         if tab == TabBarTabs.HOME:
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
-            ).wait
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
+            button.wait()
         elif tab == TabBarTabs.SEARCH:
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
-            ).wait()
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
+            button.wait()
             if not button.exists():
                 # Some accounts display the search btn only in Home -> action bar
                 logger.debug("Didn't find search in the tab bar...")
@@ -134,45 +128,32 @@ class TabBarView:
                 home_view.navigateToSearch()
                 return
         elif tab == TabBarTabs.REELS:
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
-            ).wait()
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
             )
+            button.wait()
         elif tab == TabBarTabs.ORDERS:
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
-            ).wait()
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
             )
+            button.wait()
+
         elif tab == TabBarTabs.ACTIVITY:
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(
-                    TabBarText.ACTIVITY_CONTENT_DESC
-                ),
-            ).wait()
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(
                     TabBarText.ACTIVITY_CONTENT_DESC
                 ),
             )
+            button.wait()
         elif tab == TabBarTabs.PROFILE:
             button = self.device.find(
                 className=ClassName.BUTTON,
                 descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
-            self.device.find(
-                className=ClassName.BUTTON,
-                descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
-            ).wait()
+            button.wait()
 
         if button.exists():
             # Two clicks to reset tab content
@@ -223,35 +204,31 @@ class HashTagView:
     def _getRecyclerView(self):
         views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
         # wait until it gest rendered
-        self.device.find(classNameMatches=views).wait()
-        return self.device.find(classNameMatches=views)
+        obj = self.device.find(classNameMatches=views)
+        obj.wait()
+        return obj
 
     def _getFistImageView(self, recycler):
-        recycler.child(
-            className=ClassName.IMAGE_VIEW,
-            resourceIdMatches=ResourceID.IMAGE_BUTTON,
-        ).wait()
-        return recycler.child(
+        obj = recycler.child(
             className=ClassName.IMAGE_VIEW,
             resourceIdMatches=ResourceID.IMAGE_BUTTON,
         )
+        obj.wait()
+        return obj
 
     def _getRecentTab(self):
-        self.device.find(
-            className=ClassName.TEXT_VIEW,
-            textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
-        ).wait()
-        return self.device.find(
+        obj = self.device.find(
             className=ClassName.TEXT_VIEW,
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
+        obj.wait()
+        return obj
 
     def _check_if_no_posts(self):
         # wait until it gest rendered
-        self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE).wait()
-        return self.device.find(
-            resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
-        ).exists()
+        obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
+        obj.wait()
+        return obj.exists()
 
 
 # The place view for the moment It's only a copy/paste of HashTagView
@@ -286,10 +263,9 @@ class PlacesView:
 
     def _check_if_no_posts(self):
         # wait until it gest rendered
-        self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE).wait()
-        return self.device.find(
-            resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE
-        ).exists()
+        obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
+        obj.wait()
+        return obj.exists()
 
 
 class SearchView:
@@ -305,11 +281,13 @@ class SearchView:
         )
 
     def _getUsernameRow(self, username):
-        return self.device.find(
+        obj = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_SEARCH_USER_USERNAME),
             className=ClassName.TEXT_VIEW,
             textMatches=case_insensitive_re(username),
         )
+        obj.wait()
+        return obj
 
     def _getHashtagRow(self, hashtag):
         return self.device.find(
@@ -321,14 +299,12 @@ class SearchView:
         )
 
     def _getPlaceRow(self):
-        self.device.find(
-            resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
-            className=ClassName.TEXT_VIEW,
-        ).wait()
-        return self.device.find(
+        obj = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
             className=ClassName.TEXT_VIEW,
         )
+        obj.wait()
+        return obj
 
     def _getTabTextView(self, tab: SearchTabs):
         tab_layout = self.device.find(
@@ -399,10 +375,11 @@ class SearchView:
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
             SearchView(self.device)._close_keyboard()
-        random_sleep(1, 2)
+        random_sleep()
         username_view = self._getUsernameRow(username)
         if not username_view.exists():
             logger.error("Cannot find user @" + username + ".")
+            save_crash(self.device)
             return None
         username_view.click()
 
@@ -1156,7 +1133,7 @@ class ProfileView(ActionBarView):
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
-            return title_view.get_text()
+            return title_view.get_text(error).replace(" ", "")
         if error:
             logger.error("Cannot get username")
         return None
@@ -1183,13 +1160,8 @@ class ProfileView(ActionBarView):
                 ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWERS_COUNT
             ),
             className=ClassName.TEXT_VIEW,
-        ).wait
-        followers_text_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWERS_COUNT
-            ),
-            className=ClassName.TEXT_VIEW,
         )
+        followers_text_view.wait
         return followers_text_view
 
     def getFollowersCount(self):
@@ -1207,18 +1179,13 @@ class ProfileView(ActionBarView):
         return followers
 
     def _getFollowingTextView(self):
-        self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWING_COUNT
-            ),
-            className=ClassName.TEXT_VIEW,
-        ).wait()
         following_text_view = self.device.find(
             resourceIdMatches=case_insensitive_re(
                 ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWING_COUNT
             ),
             className=ClassName.TEXT_VIEW,
         )
+        following_text_view.wait()
         return following_text_view
 
     def getFollowingCount(self):
@@ -1236,18 +1203,13 @@ class ProfileView(ActionBarView):
         return following
 
     def getPostsCount(self):
-        self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_COUNT
-            ),
-            className=ClassName.TEXT_VIEW,
-        ).wait()
         post_count_view = self.device.find(
             resourceIdMatches=case_insensitive_re(
                 ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_COUNT
             ),
             className=ClassName.TEXT_VIEW,
         )
+        post_count_view.wait()
         if post_count_view.exists():
             count = post_count_view.get_text()
             if count is not None:
@@ -1340,11 +1302,11 @@ class ProfileView(ActionBarView):
         )
         return private_profile_view.exists()
 
-    def isStoryAvailable(self):
+    def StoryRing(self):
         return self.device.find(
             resourceId=ResourceID.REEL_RING,
             className=ClassName.VIEW,
-        ).exists()
+        )
 
     def profileImage(self):
         return self.device.find(
@@ -1395,6 +1357,7 @@ class ProfileView(ActionBarView):
                 logger.info("I'm not able to scroll down.")
                 return 0
         logger.warning("Maybe a private or empty profile in which check failed.. Skip")
+        save_crash(self.device)
         return -1
 
     def navigateToPostsTab(self):
@@ -1451,7 +1414,7 @@ class CurrentStoryView:
 
     def getStoryFrame(self):
         return self.device.find(
-            resourceId=ResourceID.REEL_VIEWER_IMAGE_VIEW,
+            resourceId=ResourceID.REEL_VIEWER_MEDIA_CONTAINER,
             className=ClassName.FRAME_LAYOUT,
         )
 
@@ -1460,7 +1423,11 @@ class CurrentStoryView:
             resourceId=ResourceID.REEL_VIEWER_TITLE,
             className=ClassName.TEXT_VIEW,
         )
-        return "" if not reel_viewer_title.exists() else reel_viewer_title.get_text()
+        return (
+            ""
+            if not reel_viewer_title.exists()
+            else reel_viewer_title.get_text(error=False).replace(" ", "")
+        )
 
     def getTimestamp(self):
         reel_viewer_timestamp = self.device.find(

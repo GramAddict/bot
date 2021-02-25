@@ -405,6 +405,7 @@ class Filter:
                 "comment_" + current_mode.replace("-", "_"), False
             )
         except:
+            logger.debug("filter.json not loaded!")
             return False
 
     def get_all_data(self, device):
