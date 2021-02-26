@@ -111,13 +111,13 @@ class TabBarView:
         button = None
         if tab == TabBarTabs.HOME:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
             button.wait()
         elif tab == TabBarTabs.SEARCH:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
             button.wait()
@@ -129,20 +129,20 @@ class TabBarView:
                 return
         elif tab == TabBarTabs.REELS:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
             )
             button.wait()
         elif tab == TabBarTabs.ORDERS:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
             )
             button.wait()
 
         elif tab == TabBarTabs.ACTIVITY:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(
                     TabBarText.ACTIVITY_CONTENT_DESC
                 ),
@@ -150,7 +150,7 @@ class TabBarView:
             button.wait()
         elif tab == TabBarTabs.PROFILE:
             button = self.device.find(
-                className=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
             button.wait()
