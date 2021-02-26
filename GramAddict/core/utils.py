@@ -125,7 +125,10 @@ def close_instagram(device, screen_record):
     ).close()
     if screen_record:
         device.stop_screenrecord()
-    # close out atx-agent
+
+
+def kill_atx_agent(device):
+    logger.info("Kill atx agent")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
