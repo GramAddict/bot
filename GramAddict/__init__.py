@@ -82,7 +82,15 @@ def run():
 
     logger.info("Instagram version: " + get_instagram_version())
     device = create_device(configs.device_id, configs.args.uia_version)
-
+    logger.debug(
+        f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
+    )
+    logger.debug(
+        f"Screen dimension: {device.get_info()['displayWidth']}x{device.get_info()['displayHeight']}"
+    )
+    logger.debug(
+        f"Screen resolution: {device.get_info()['displaySizeDpX']}x{device.get_info()['displaySizeDpY']}"
+    )
     if device is None:
         return
 
@@ -116,6 +124,7 @@ def run():
                 sessions.persist(directory=session_state.my_username)
                 exit(0)
         session_state = SessionState(configs)
+        session_state.set_limits_session(configs.args)
         sessions.append(session_state)
         device.wake_up()
 

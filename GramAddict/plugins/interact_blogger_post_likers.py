@@ -68,9 +68,7 @@ class InteractBloggerPostLikers(Plugin):
         sources = [source for source in self.args.blogger_post_likers]
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.LIKES
-            ) and self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()

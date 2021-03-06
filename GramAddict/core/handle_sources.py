@@ -297,6 +297,7 @@ def handle_posts(
                     if not PostsViewList(device)._check_if_liked():
                         PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
                         detect_block(device)
+                    session_state.totalLikes += 1
                     random_sleep(1, 2)
                 if PostsViewList(device)._post_owner(Owner.OPEN):
                     if not interact(

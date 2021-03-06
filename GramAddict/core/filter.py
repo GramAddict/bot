@@ -24,6 +24,8 @@ FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
+FIELD_COMMENT_PHOTOS = "comment_photos"
+FIELD_COMMENT_VIDEOS = "comment_videos"
 FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
@@ -401,8 +403,10 @@ class Filter:
 
     def can_comment(self, current_mode):
         try:
-            return self.conditions.get(
-                "comment_" + current_mode.replace("-", "_"), False
+            return (
+                self.conditions.get(FIELD_COMMENT_PHOTOS, True),
+                self.conditions.get(FIELD_COMMENT_VIDEOS, True),
+                self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         except:
             logger.debug("filter.json not loaded!")

@@ -81,6 +81,32 @@ class CoreArguments(Plugin):
                 "default": "30-40",
             },
             {
+                "arg": "--carousel-count",
+                "nargs": None,
+                "help": "number of photos in carousel to watch, 1 by default. It can be a number (e.g. 2) or a range (e.g. 2-4)",
+                "metavar": "2-4",
+                "default": "1",
+            },
+            {
+                "arg": "--carousel-percentage",
+                "nargs": None,
+                "help": "chance of watching photos in carousel, 60-70 by default. It can be a number (e.g. 75) or a range (e.g. 60-70)",
+                "metavar": "10-90",
+                "default": "60-70",
+            },
+            {
+                "arg": "--watch-video",
+                "help": "if you open a video, you will watch it for (15 to 40 seconds)",
+                "action": "store_true",
+            },
+            {
+                "arg": "--watch-video-time",
+                "nargs": None,
+                "help": "amount of time (seconds) you want to watch a video, if --watch-video is enabled. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "metavar": "15-55",
+                "default": "20-40",
+            },
+            {
                 "arg": "--interactions-count",
                 "nargs": None,
                 "help": "number of interactions per each blogger, 30-50 by default. It can be a number (e.g. 70) or a range (e.g. 60-80). Only successful interactions count",
@@ -183,6 +209,13 @@ class CoreArguments(Plugin):
                 "help": "generate a file in main directory with given name with target users",
                 "metavar": ("filename"),
                 "default": None,
+            },
+            {
+                "arg": "--total-scraped-limit",
+                "nargs": None,
+                "help": "limit on total scrape per session, 50 by default",
+                "metavar": "5-10",
+                "default": "50",
             },
             {
                 "arg": "--comment-percentage",

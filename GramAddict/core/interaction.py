@@ -3,12 +3,12 @@ from GramAddict.core import storage
 import logging
 import emoji
 from datetime import datetime
-from random import randint, shuffle, choice
+from random import randint, shuffle, choice, uniform
 from typing import Tuple
-from time import time
+from time import sleep, time
 from os import path
 from colorama import Fore, Style
-from GramAddict.core.report import print_short_report
+from GramAddict.core.report import print_scrape_report, print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.utils import (
     detect_block,
@@ -18,6 +18,7 @@ from GramAddict.core.utils import (
     save_crash,
 )
 from GramAddict.core.views import (
+    MediaType,
     ProfileView,
     CurrentStoryView,
     PostsGridView,
@@ -172,7 +173,12 @@ def interact_with_user(
     random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
-    if profile_filter.can_comment(current_mode) and comment_percentage != 0:
+    (
+        can_comment_photos,
+        can_comment_videos,
+        can_comment_job,
+    ) = profile_filter.can_comment(current_mode)
+    if can_comment_job and comment_percentage != 0:
         max_comments_pro_user = get_value(
             args.max_comments_pro_user, "Max comment count: {}", 1
         )
@@ -211,30 +217,36 @@ def interact_with_user(
         photo_index = photos_indices[i]
         row = photo_index // 3
         column = photo_index - row * 3
-        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column)")
-        opened_post_view = PostsGridView(device).navigateToPost(row, column)
+        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column).")
+        opened_post_view, media_type, obj_count = PostsGridView(device).navigateToPost(
+            row, column
+        )
         random_sleep()
 
         like_succeed = False
         if opened_post_view:
-            like_succeed = do_like(opened_post_view, device, on_like)
+            _browse_carousel(device, media_type, obj_count)
+            like_succeed = do_like(opened_post_view, device, on_like, media_type)
             if like_succeed is True:
                 number_of_liked += 1
-        if profile_filter.can_comment(current_mode) and comment_percentage != 0:
-            if number_of_commented < max_comments_pro_user:
-                comment_done = _comment(
-                    device, my_username, comment_percentage, args, session_state
-                )
-                if comment_done:
-                    number_of_commented += 1
-            else:
-                logger.info(
-                    f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
-                )
-        else:
-            logger.debug(
-                f"Comment filter for {current_mode}: {profile_filter.can_comment(current_mode)}"
-            )
+            if comment_percentage != 0:
+                if can_comment(media_type, profile_filter, current_mode):
+                    if number_of_commented < max_comments_pro_user:
+                        comment_done = _comment(
+                            device,
+                            my_username,
+                            comment_percentage,
+                            args,
+                            session_state,
+                            media_type,
+                        )
+                        if comment_done:
+                            number_of_commented += 1
+                    else:
+                        logger.info(
+                            f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
+                        )
+
         logger.info("Back to profile.")
         device.back()
         if like_succeed or comment_done:
@@ -292,9 +304,31 @@ def interact_with_user(
     )
 
 
-def do_like(opened_post_view, device, on_like):
-    logger.info("Double click post.")
+def can_comment(media_type, profile_filter, current_mode):
+    (
+        can_comment_photos,
+        can_comment_videos,
+        can_comment_job,
+    ) = profile_filter.can_comment(current_mode)
+    if can_comment_job:
+        if media_type == MediaType.PHOTO and can_comment_photos:
+            return True
+        elif media_type == MediaType.VIDEO and can_comment_videos:
+            return True
+    else:
+        logger.debug(
+            f"Can't comment because filter for {current_mode} in json is: {profile_filter.can_comment(current_mode)}"
+        )
+        return False
 
+
+def do_like(opened_post_view, device, on_like, media_type):
+    logger.info("Double click post.")
+    if (
+        media_type == MediaType.VIDEO or media_type == MediaType.IGTV
+    ) and args.watch_video:
+        watching_time = get_value(args.watch_video_time, "Watching video for {}s.", 0)
+        sleep(watching_time)
     like_succeed = opened_post_view.likePost()
     if not like_succeed:
         logger.debug("Double click failed. Try the like button.")
@@ -338,39 +372,12 @@ def _on_interaction(
     session_state.add_interaction(source, succeed, followed, scraped)
 
     can_continue = True
-    if args.scrape_to_file is not None:
-        if session_state.check_limit(
-            args, limit_type=session_state.Limit.SCRAPED, output=False
-        ):
-            logger.info(
-                "Reached interaction limit, finish.", extra={"color": f"{Fore.CYAN}"}
-            )
-            can_continue = False
-    else:
-        if session_state.check_limit(
-            args, limit_type=session_state.Limit.LIKES, output=False
-        ):
-            logger.info(
-                "Reached interaction limit, finish.", extra={"color": f"{Fore.CYAN}"}
-            )
-            can_continue = False
+
     inside_working_hours, time_left = SessionState.inside_working_hours(
         args.working_hours, args.time_delta_session
     )
     if not inside_working_hours:
         can_continue = False
-
-    if args.scrape_to_file is not None:
-        successful_user_scraped_count = session_state.totalScraped.get(source)
-        if (
-            successful_user_scraped_count
-            and successful_user_scraped_count >= interactions_limit
-        ):
-            logger.info(
-                f"Scraped {successful_user_scraped_count} users, finish.",
-                extra={"color": f"{Fore.CYAN}"},
-            )
-            can_continue = False
     else:
         successful_interactions_count = session_state.successfulInteractions.get(source)
         if (
@@ -378,27 +385,99 @@ def _on_interaction(
             and successful_interactions_count >= interactions_limit
         ):
             logger.info(
-                f"Made {successful_interactions_count} successful interactions, finish.",
+                "Reached interaction limit for that source, going to the next one..",
                 extra={"color": f"{Fore.CYAN}"},
             )
             can_continue = False
 
-    if can_continue and succeed or can_continue and scraped:
-        print_short_report(source, session_state)
+        if args.scrape_to_file is not None:
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.SCRAPED, output=False
+            ):
+                logger.info(
+                    "Reached scraped limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                )
+                can_continue = False
+        else:
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.LIKES, output=False
+            ):
+                logger.info(
+                    "Reached likes limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                )
+                can_continue = False
+            # if session_state.check_limit(
+            #     args, limit_type=session_state.Limit.COMMENTS, output=False
+            # ):
+            #     logger.info(
+            #         "Reached comments limit, finish.", extra={"color": f"{Fore.CYAN}"}
+            #     )
+            #     can_continue = False
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.FOLLOWS, output=False
+            ):
+                logger.info(
+                    "Reached followed limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                )
+                can_continue = False
+            # if session_state.check_limit(
+            #     args, limit_type=session_state.Limit.WATCHES, output=False
+            # ):
+            #     logger.info(
+            #         "Reached story watched limit, finish.", extra={"color": f"{Fore.CYAN}"}
+            #     )
+            #     can_continue = False
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.TOTAL, output=False
+            ):
+                logger.info(
+                    "Reached total interaction limit, finish.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
+                can_continue = False
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.SUCCESS, output=False
+            ):
+                logger.info(
+                    "Reached total succesfully interaction limit, finish.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
+                can_continue = False
+
+    if (can_continue and succeed) or scraped:
+        if scraped:
+            print_scrape_report(source, session_state)
+        else:
+            print_short_report(source, session_state)
 
     return can_continue
 
 
-def _comment(device, my_username, comment_percentage, args, session_state):
+def _browse_carousel(device, media_type, obj_count):
+    if media_type == MediaType.CAROUSEL:
+        carousel_percentage = get_value(configs.args.carousel_percentage, None, 0)
+        carousel_count = get_value(configs.args.carousel_count, None, 1)
+        if carousel_percentage > randint(0, 100) and carousel_count > 1:
+            logger.info("Watching photos/videos in carousel.")
+            if obj_count < carousel_count:
+                logger.info(f"There are only {obj_count} photos in this carousel!")
+                carousel_count = obj_count
+            n = 1
+            while n < carousel_count:
+                UniversalActions(device)._swipe_points(
+                    direction=Direction.LEFT,
+                )
+                random_sleep()
+                n += 1
+
+
+def _comment(device, my_username, comment_percentage, args, session_state, media_type):
     if not session_state.check_limit(
         args, limit_type=session_state.Limit.COMMENTS, output=False
     ):
         comment_chance = randint(1, 100)
         if comment_chance > comment_percentage:
             return False
-        UniversalActions(device)._swipe_points(
-            direction=Direction.DOWN, delta_y=randint(150, 250)
-        )
         for _ in range(2):
             comment_button = device.find(
                 resourceId=ResourceID.ROW_FEED_BUTTON_COMMENT,
@@ -407,14 +486,14 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                 logger.info("Open comments of post.")
                 comment_button.click()
                 random_sleep()
+                detect_block(device)
                 comment_box = device.find(
-                    resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT
+                    resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT,
+                    enabled="true",
                 )
                 try:
-                    text = comment_box.get_text()
-                    limited = "Comments on this post have been limited"
-                    if comment_box.exists() and text.upper() != limited.upper():
-                        comment = load_random_comment(my_username)
+                    if comment_box.exists():
+                        comment = load_random_comment(my_username, media_type)
                         if comment is None:
                             return False
                         logger.info(
@@ -428,7 +507,10 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                         post_button.click()
                     else:
                         logger.info("Comments on this post have been limited.")
+                        SearchView(device)._close_keyboard()
+                        random_sleep()
                         device.back()
+
                         return False
                     random_sleep()
                     detect_block(device)
@@ -470,6 +552,12 @@ def _comment(device, my_username, comment_percentage, args, session_state):
                     device.back()
                     return False
             else:
+                like_button = device.find(
+                    resourceId=ResourceID.ROW_FEED_BUTTON_LIKE,
+                )
+                if like_button.exists():
+                    logger.info("This post have comments disabled.")
+                    return False
                 UniversalActions(device)._swipe_points(
                     direction=Direction.DOWN, delta_y=randint(150, 250)
                 )
@@ -477,7 +565,7 @@ def _comment(device, my_username, comment_percentage, args, session_state):
     return False
 
 
-def load_random_comment(my_username):
+def load_random_comment(my_username, media_type):
     def nonblank_lines(f):
         for l in f:
             line = l.rstrip()
@@ -487,11 +575,31 @@ def load_random_comment(my_username):
     lines = []
     file_name = my_username + "/" + storage.FILENAME_COMMENTS
     if path.isfile(file_name):
-        with open(file_name, "r") as f:
+        with open(file_name, "r", encoding="utf-8") as f:
             for line in nonblank_lines(f):
                 lines.append(line)
-            random_comment = choice(lines)
-            return emoji.emojize(random_comment, use_aliases=True)
+            photo_header = lines.index("%PHOTO")
+            video_header = lines.index("%VIDEO")
+            carousel_header = lines.index("%CAROUSEL")
+            photo_comments = lines[photo_header + 1 : video_header]
+            video_comments = lines[video_header + 1 : carousel_header]
+            carousel_comments = lines[carousel_header + 1 :]
+            if media_type == MediaType.PHOTO:
+                random_comment = (
+                    choice(photo_comments) if len(photo_comments) > 0 else ""
+                )
+            if media_type == MediaType.VIDEO or media_type == MediaType.IGTV:
+                random_comment = (
+                    choice(video_comments) if len(video_comments) > 0 else ""
+                )
+            if media_type == MediaType.CAROUSEL:
+                random_comment = (
+                    choice(carousel_comments) if len(carousel_comments) > 0 else ""
+                )
+            if random_comment != "":
+                return emoji.emojize(random_comment, use_aliases=True)
+            else:
+                return None
     else:
         logger.warning(f"{file_name} not found!")
         return None

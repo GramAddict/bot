@@ -18,11 +18,11 @@ def print_full_report(sessions):
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             logger.info(
-                f"Start time: {session.startTime}",
+                f"Start time: {session.startTime.strftime('%H:%M:%S (%Y/%m/%d)')}",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             logger.info(
-                f"Finish time: {finish_time}",
+                f"Finish time: {finish_time.strftime('%H:%M:%S (%Y/%m/%d)')}",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             logger.info(
@@ -159,10 +159,17 @@ def print_short_report(source, session_state):
     total_comments = session_state.totalComments
     total_watched = session_state.totalWatched
     total_followed = sum(session_state.totalFollowed.values())
-    total_scraped = sum(session_state.totalScraped.values())
     interactions = session_state.successfulInteractions.get(source, 0)
     logger.info(
-        f"Session progress: {total_likes} likes, {total_watched} watched, {total_comments} commented, {total_followed} followed, {total_scraped} users scraped, {interactions} successful interaction(s) for {source}.",
+        f"Session progress: {total_likes} likes, {total_watched} watched, {total_comments} commented, {total_followed} followed, {interactions} successful interaction(s) for {source}.",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+
+
+def print_scrape_report(source, session_state):
+    total_scraped = sum(session_state.totalScraped.values())
+    logger.info(
+        f"Session progress: {total_scraped} users scraped for {source}.",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 

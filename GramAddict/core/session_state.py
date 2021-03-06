@@ -67,34 +67,51 @@ class SessionState:
             if scraped:
                 self.totalScraped[source] += 1
 
+    def set_limits_session(
+        self,
+        args,
+    ):
+        """set the limits for current session"""
+        args.current_likes_limit = get_value(args.total_likes_limit, None, 300)
+        args.current_follow_limit = get_value(args.total_follows_limit, None, 50)
+        args.current_comments_limit = get_value(args.total_comments_limit, None, 10)
+        args.current_watch_limit = get_value(args.total_watches_limit, None, 50)
+        args.current_success_limit = get_value(
+            args.total_successful_interactions_limit, None, 100
+        )
+        args.current_total_limit = get_value(args.total_interactions_limit, None, 1000)
+        args.current_scraped_limit = get_value(args.total_scraped_limit, None, 200)
+
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
         limit_type = SessionState.Limit.ALL if limit_type is None else limit_type
-        likes_limit = get_value(args.total_likes_limit, None, 300)
-        total_likes = self.totalLikes >= int(likes_limit)
-        follow_limit = get_value(args.total_follows_limit, None, 50)
-        total_followed = sum(self.totalFollowed.values()) >= int(follow_limit)
-        comments_limit = get_value(args.total_comments_limit, None, 10)
-        total_comments = self.totalComments >= int(comments_limit)
-        watch_limit = get_value(args.total_watches_limit, None, 50)
-        total_watched = self.totalWatched >= int(watch_limit)
-        success_limit = get_value(args.total_successful_interactions_limit, None, 100)
-        total_successful = sum(self.successfulInteractions.values()) >= int(
-            success_limit
+        # check limits
+        total_likes = self.totalLikes >= int(args.current_likes_limit)
+        total_followed = sum(self.totalFollowed.values()) >= int(
+            args.current_follow_limit
         )
-        total_limit = get_value(args.total_interactions_limit, None, 1000)
-        total_interactions = sum(self.totalInteractions.values()) >= int(total_limit)
-        total_scraped = sum(self.totalScraped.values()) >= int(total_limit)
+        total_comments = self.totalComments >= int(args.current_comments_limit)
+        total_watched = self.totalWatched >= int(args.current_watch_limit)
+        total_successful = sum(self.successfulInteractions.values()) >= int(
+            args.current_success_limit
+        )
+        total_interactions = sum(self.totalInteractions.values()) >= int(
+            args.current_total_limit
+        )
+
+        total_scraped = sum(self.totalScraped.values()) >= int(
+            args.current_scraped_limit
+        )
 
         session_info = [
             "Checking session limits:",
-            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{likes_limit})",
-            f"- Total Comments:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalComments}/{comments_limit})",
-            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{follow_limit})",
-            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{watch_limit})",
-            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{success_limit})",
-            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{total_limit})",
-            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{total_limit})",
+            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
+            f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{args.current_comments_limit})",
+            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.current_follow_limit})",
+            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",
+            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.current_success_limit})",
+            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.current_total_limit})",
+            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{args.current_scraped_limit})",
         ]
 
         if limit_type == SessionState.Limit.ALL:
@@ -105,8 +122,12 @@ class SessionState:
                 for line in session_info:
                     logger.debug(line)
 
-            return (total_likes and total_followed) or (
-                total_interactions or total_successful
+            return (
+                total_likes
+                or total_followed
+                or total_interactions
+                or total_successful
+                or total_scraped
             )
 
         elif limit_type == SessionState.Limit.LIKES:
@@ -114,48 +135,48 @@ class SessionState:
                 logger.info(session_info[1])
             else:
                 logger.debug(session_info[1])
-            return total_likes or (total_interactions or total_successful)
+            return total_likes
 
         elif limit_type == SessionState.Limit.COMMENTS:
             if output:
                 logger.info(session_info[2])
             else:
                 logger.debug(session_info[2])
-            return total_comments or (total_interactions or total_successful)
+            return total_comments
 
         elif limit_type == SessionState.Limit.FOLLOWS:
             if output:
                 logger.info(session_info[3])
             else:
                 logger.debug(session_info[3])
-            return total_followed or (total_interactions or total_successful)
+            return total_followed
 
         elif limit_type == SessionState.Limit.WATCHES:
             if output:
                 logger.info(session_info[4])
             else:
                 logger.debug(session_info[4])
-            return total_watched or (total_interactions or total_successful)
+            return total_watched
 
         elif limit_type == SessionState.Limit.SUCCESS:
             if output:
                 logger.info(session_info[5])
             else:
                 logger.debug(session_info[5])
-            return total_successful or total_interactions
+            return total_successful
 
         elif limit_type == SessionState.Limit.TOTAL:
             if output:
                 logger.info(session_info[6])
             else:
                 logger.debug(session_info[6])
-            return total_interactions or total_successful
+            return total_interactions
 
         elif limit_type == SessionState.Limit.SCRAPED:
             if output:
-                logger.info(session_info[6])
+                logger.info(session_info[7])
             else:
-                logger.debug(session_info[6])
+                logger.debug(session_info[7])
             return total_scraped
 
     @staticmethod
@@ -224,6 +245,3 @@ class SessionStateEncoder(JSONEncoder):
             "args": session_state.args.__dict__,
             "profile": {"followers": str(session_state.my_followers_count)},
         }
-
-
-# %%

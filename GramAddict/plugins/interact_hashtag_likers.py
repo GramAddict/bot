@@ -1,4 +1,5 @@
 import logging
+import emoji
 from functools import partial
 from random import seed
 
@@ -73,15 +74,16 @@ class InteractHashtagLikers(Plugin):
         # Start
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.LIKES
-            ) and self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()
             if source[0] != "#":
                 source = "#" + source
-            logger.info(f"Handle {source}", extra={"color": f"{Fore.BLUE}"})
+            logger.info(
+                f"Handle {emoji.emojize(source, use_aliases=True)}",
+                extra={"color": f"{Fore.BLUE}"},
+            )
 
             # Init common things
             (
@@ -126,7 +128,7 @@ class InteractHashtagLikers(Plugin):
                 job()
 
             if limit_reached:
-                logger.info("Likes and follows limit reached.")
+                logger.info("Ending session.")
                 self.session_state.check_limit(
                     self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )

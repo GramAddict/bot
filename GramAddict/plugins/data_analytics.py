@@ -8,6 +8,7 @@ from enum import Enum, unique
 from matplotlib import ticker
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.dates import DateFormatter
+import sys
 
 from GramAddict.core.plugin_loader import Plugin
 
@@ -85,7 +86,13 @@ class DataAnalytics(Plugin):
         path = self.username + "/sessions.json"
         if os.path.exists(path):
             with open(path) as json_file:
-                json_array = json.load(json_file)
+                try:
+                    json_array = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
             return json_array
         else:
             print("No sessions.json file found for @" + self.username)

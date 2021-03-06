@@ -60,9 +60,7 @@ class InteractUsernames(Plugin):
 
         for file in file_list:
             limit_reached = self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.LIKES
-            ) and self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.FOLLOWS
+                self.args, limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()

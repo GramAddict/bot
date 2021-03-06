@@ -5,6 +5,7 @@ import subprocess
 import re
 import shutil
 import urllib3
+import emoji
 from datetime import datetime
 from random import randint, shuffle, uniform, choice
 from os import path, truncate
@@ -203,9 +204,9 @@ def save_crash(device):
 
 def detect_block(device):
     logger.debug("Checking for block...")
+
     block_dialog = device.find(
-        resourceId=ResourceID.DIALOG_ROOT_VIEW,
-        className=ClassName.FRAME_LAYOUT,
+        resourceIdMatches=ResourceID.BLOCK_POPUP,
     )
     is_blocked = block_dialog.exists(False)
     if is_blocked:
@@ -293,7 +294,7 @@ def sample_sources(sources, n_sources):
             f"Source list truncated at {len(truncaded)} {'item' if len(truncaded)<=1 else 'items'}."
         )
     logger.info(
-        f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(str(x) for x in truncaded)}"
+        f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(emoji.emojize(str(x), use_aliases=True) for x in truncaded)}"
     )
     return truncaded
 
@@ -351,14 +352,6 @@ def init_on_things(source, args, sessions, session_state):
         comment_percentage,
         interact_percentage,
     )
-
-
-def load_random_comment(my_username):
-    file_name = my_username + "/" + Storage.FILENAME_COMMENTS
-    if path.isfile(file_name):
-        with open(file_name, "r") as f:
-            lines = f.read().splitlines()
-            return choice(lines)
 
 
 class ActionBlockedError(Exception):

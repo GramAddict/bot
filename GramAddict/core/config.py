@@ -22,7 +22,7 @@ class Config:
         if "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
-                with open(file_name) as fin:
+                with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
                     fin.seek(0)
@@ -46,7 +46,10 @@ class Config:
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
-            description="GramAddict Instagram Bot"
+            config_file_open_func=lambda filename: open(
+                filename, "r+", encoding="utf-8"
+            ),
+            description="GramAddict Instagram Bot",
         )
         self.parser.add(
             "-c",

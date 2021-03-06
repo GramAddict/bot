@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from enum import Enum, unique
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,13 @@ class Storage:
         self.interacted_users_path = my_username + "/" + FILENAME_INTERACTED_USERS
         if os.path.exists(self.interacted_users_path):
             with open(self.interacted_users_path) as json_file:
-                self.interacted_users = json.load(json_file)
+                try:
+                    self.interacted_users = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
 
         self.history_filter_users_path = (
             my_username + "/" + FILENAME_HISTORY_FILTER_USERS
@@ -54,7 +61,13 @@ class Storage:
 
         if os.path.exists(self.history_filter_users_path):
             with open(self.history_filter_users_path) as json_file:
-                self.history_filter_users = json.load(json_file)
+                try:
+                    self.history_filter_users = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
 
         self.filter_path = my_username + "/" + FILTER
 

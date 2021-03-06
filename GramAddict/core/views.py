@@ -3,7 +3,9 @@ import logging
 import re
 from enum import Enum, auto
 from colorama import Fore, Style
-from random import randint
+from random import randint, uniform
+
+import emoji
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
@@ -66,6 +68,15 @@ class LikeMode(Enum):
 class Direction(Enum):
     UP = auto()
     DOWN = auto()
+    LEFT = auto()
+    RIGHT = auto()
+
+
+class MediaType(Enum):
+    PHOTO = auto()
+    VIDEO = auto()
+    IGTV = auto()
+    CAROUSEL = auto()
 
 
 class Owner(Enum):
@@ -386,7 +397,7 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        logger.info(f"Navigate to hashtag {hashtag}")
+        logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
         search_edit_text = self._getSearchEditText()
         search_edit_text.click()
         random_sleep(1, 2)
@@ -413,16 +424,20 @@ class SearchView:
         SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
-        hashtag_view_recent = self._getHashtagRow(hashtag[1:])
+        hashtag_view_recent = self._getHashtagRow(
+            emoji.demojize(hashtag, use_aliases=True)[1:]
+        )
 
         if hashtag_view_recent.exists():
             hashtag_view_recent.click()
             random_sleep()
             return HashTagView(self.device)
 
-        logger.info(f"{hashtag} is not in recent searching history..")
-        search_edit_text.set_text(hashtag)
-        hashtag_view = self._getHashtagRow(hashtag[1:])
+        logger.info(
+            f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
+        )
+        search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+        hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
         random_sleep()
 
         if not hashtag_view.exists():
@@ -433,9 +448,13 @@ class SearchView:
                 delta_y=randint(150, 250),
             )
 
-            hashtag_view = self._getHashtagRow(hashtag[1:])
+            hashtag_view = self._getHashtagRow(
+                emoji.emojize(hashtag, use_aliases=True)[1:]
+            )
             if not hashtag_view.exists():
-                logger.error(f"Cannot find hashtag {hashtag}.")
+                logger.error(
+                    f"Cannot find hashtag {emoji.emojize(hashtag, use_aliases=True)}."
+                )
                 return None
 
         hashtag_view.click()
@@ -795,8 +814,6 @@ class AccountView:
     def navigateToLanguage(self):
         logger.debug("Navigate to Language")
         button = self.device.find(
-            # textMatches=case_insensitive_re("Language"),
-            # resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
             className=ClassName.BUTTON,
             index=5,
         )
@@ -862,7 +879,6 @@ class OptionsView:
     def navigateToSettings(self):
         logger.debug("Navigate to Settings")
         button = self.device.find(
-            # textMatches=case_insensitive_re("Settings"),
             resourceId=ResourceID.MENU_SETTINGS_ROW,
             className=ClassName.TEXT_VIEW,
         )
@@ -1026,20 +1042,50 @@ class PostsGridView:
         return False
 
     def navigateToPost(self, row, col):
+        obj_count = 1
         post_list_view = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.LIST)
         )
+        post_list_view.wait()
         OFFSET = 1  # row with post starts from index 1
         row_view = post_list_view.child(index=row + OFFSET)
         if not row_view.exists():
-            return None
+            return None, None, None
         post_view = row_view.child(index=col)
         if not post_view.exists():
-            return None
+            return None, None, None
+        content_desc = post_view.ui_info()["contentDescription"]
+        if re.match("^Photo", content_desc, re.IGNORECASE):
+            logger.info("It's a photo.")
+            media_type = MediaType.PHOTO
+        elif re.match("^Video", content_desc, re.IGNORECASE):
+            logger.info("It's a video.")
+            media_type = MediaType.VIDEO
+        elif re.match("^IGTV", content_desc, re.IGNORECASE):
+            logger.info("It's a IGTV.")
+            media_type = MediaType.IGTV
+        else:
+            carousel_obj = re.match(
+                "(\d+ photo)|(\d+ video)", content_desc, re.IGNORECASE
+            )
+            n_photos = (
+                int(carousel_obj.group(1)[0])
+                if (carousel_obj.group(1) is not None)
+                else 0
+            )
+            n_videos = (
+                int(carousel_obj.group(2)[0])
+                if (carousel_obj.group(2) is not None)
+                else 0
+            )
+            logger.info(
+                f"It's a carousel with {n_photos} photo(s) and {n_videos} video(s)."
+            )
+            obj_count = n_photos + n_videos
+            media_type = MediaType.CAROUSEL
         post_view.click()
-        # post_view.click_gone()
 
-        return OpenedPostView(self.device)
+        return OpenedPostView(self.device), media_type, obj_count
 
 
 class ProfileView(ActionBarView):
@@ -1050,10 +1096,7 @@ class ProfileView(ActionBarView):
 
     def navigateToOptions(self):
         logger.debug("Navigate to Options")
-        button = self.action_bar.child(
-            index=2
-            # descriptionMatches=case_insensitive_re("Options")
-        )
+        button = self.action_bar.child(index=2)
         button.click()
 
         return OptionsView(self.device)
@@ -1227,6 +1270,7 @@ class ProfileView(ActionBarView):
         grid_post = self.device.find(
             classNameMatches=views, resourceIdMatches=ResourceID.LIST
         )
+        grid_post.wait()
         if grid_post.exists():  # max 4 rows supported
             for i in range(2, 6):
                 lin_layout = grid_post.child(index=i, className=ClassName.LINEAR_LAYOUT)
@@ -1460,7 +1504,14 @@ class UniversalActions:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def _swipe_points(self, direction: Direction, start_point_y=-1, delta_y=450):
+    def _swipe_points(
+        self,
+        direction: Direction,
+        start_point_x=-1,
+        start_point_y=-1,
+        delta_x=-1,
+        delta_y=450,
+    ):
         displayWidth = self.device.get_info()["displayWidth"]
         displayHeight = self.device.get_info()["displayHeight"]
         middle_point_x = displayWidth / 2
@@ -1485,6 +1536,17 @@ class UniversalActions:
                 start_point_y,
                 middle_point_x,
                 start_point_y - delta_y,
+            )
+        elif direction == Direction.LEFT:
+            if start_point_x == -1:
+                start_point_x = displayWidth * 2 / 3
+            if delta_x == -1:
+                delta_x = uniform(0.95, 1.25) * (displayWidth / 2)
+            self.device.swipe_points(
+                start_point_x,
+                start_point_y,
+                start_point_x - delta_x,
+                start_point_y,
             )
 
     def _reload_page(self):

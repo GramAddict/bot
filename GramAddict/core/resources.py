@@ -11,8 +11,12 @@ class ResourceID:
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
+        self.CAROUSEL_INDEX_INDICATOR_TEXT_VIEW = (
+            f"{APP_ID}:id/carousel_index_indicator_text_view"
+        )
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
+        self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
         self.FIXED_TABBAR_TABS_CONTAINER = f"{APP_ID}:id/fixed_tabbar_tabs_container"
         self.FOLLOW_LIST_CONTAINER = f"{APP_ID}:id/follow_list_container"
         self.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW = (
@@ -112,6 +116,7 @@ class ResourceID:
             f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
         )
         self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
+        self.BLOCK_POPUP = f"{self.DIALOG_CONTAINER}|{self.DIALOG_ROOT_VIEW}"
 
 
 class TabBarText:
