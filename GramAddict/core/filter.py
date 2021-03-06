@@ -409,8 +409,8 @@ class Filter:
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         except:
-            logger.debug("filter.json not loaded!")
-            return False
+            logger.warning("filter.json is not loaded!")
+            return False, False, False
 
     def get_all_data(self, device):
         profileView = ProfileView(device)
