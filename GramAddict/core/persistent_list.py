@@ -1,5 +1,9 @@
 import json
 import os
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
 
 
 class PersistentList(list):
@@ -22,7 +26,13 @@ class PersistentList(list):
 
         if os.path.exists(path):
             with open(path) as json_file:
-                json_array = json.load(json_file)
+                try:
+                    json_array = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
             os.remove(path)
         else:
             json_array = []

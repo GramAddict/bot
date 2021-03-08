@@ -26,6 +26,7 @@ class ResourceID:
         self.FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
         self.FOOTER_SPACE = f"{APP_ID}:id/footer_space"
         self.GAP_VIEW = f"{APP_ID}:id/gap_view"
+        self.IGDS_HEADLINE_BODY = f"{APP_ID}:id/igds_headline_body"
         self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
             f"{APP_ID}:id/igds_headline_emphasized_headline"
         )
@@ -40,6 +41,7 @@ class ResourceID:
         self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
+        self.NEGATIVE_BUTTON = f"{APP_ID}id/negative_button"
         self.PRIVATE_PROFILE_EMPTY_STATE = f"{APP_ID}:id/private_profile_empty_state"
         self.PROFILE_HEADER_BIO_TEXT = f"{APP_ID}:id/profile_header_bio_text"
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (

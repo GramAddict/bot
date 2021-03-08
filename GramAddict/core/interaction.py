@@ -578,9 +578,15 @@ def load_random_comment(my_username, media_type):
         with open(file_name, "r", encoding="utf-8") as f:
             for line in nonblank_lines(f):
                 lines.append(line)
-            photo_header = lines.index("%PHOTO")
-            video_header = lines.index("%VIDEO")
-            carousel_header = lines.index("%CAROUSEL")
+            try:
+                photo_header = lines.index("%PHOTO")
+                video_header = lines.index("%VIDEO")
+                carousel_header = lines.index("%CAROUSEL")
+            except:
+                logger.warning(
+                    f"You didn't follow the rules of sections for {file_name}! Look at config example."
+                )
+                return None
             photo_comments = lines[photo_header + 1 : video_header]
             video_comments = lines[video_header + 1 : carousel_header]
             carousel_comments = lines[carousel_header + 1 :]

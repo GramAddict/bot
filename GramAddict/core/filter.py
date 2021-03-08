@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import unicodedata
+import sys
 
 from colorama import Fore
 from enum import Enum, auto
@@ -101,7 +102,13 @@ class Filter:
         if not configs.args.disable_filters:
             if os.path.exists(filter_path):
                 with open(filter_path) as json_file:
-                    self.conditions = json.load(json_file)
+                    try:
+                        self.conditions = json.load(json_file)
+                    except Exception as e:
+                        logger.error(
+                            f"Please check {json_file.name}, it contains this error: {e}"
+                        )
+                        sys.exit(0)
             else:
                 logger.warning(f"The filters file {filter_path} doesn't exists")
         else:

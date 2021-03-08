@@ -136,7 +136,7 @@ def close_instagram(device, screen_record):
             device.stop_screenrecord()
         except:
             logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -r requirements_screen_record.txt'"
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
             )
 
 
@@ -204,11 +204,28 @@ def save_crash(device):
 
 def detect_block(device):
     logger.debug("Checking for block...")
-
     block_dialog = device.find(
         resourceIdMatches=ResourceID.BLOCK_POPUP,
     )
-    is_blocked = block_dialog.exists(False)
+    popup_body = device.find(
+        resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
+    )
+    regex = r".+deleted"
+    popup_appears = block_dialog.exists(False)
+    if popup_appears and popup_body.exists():
+        is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
+        if is_post_deleted:
+            logger.info(f"{is_post_deleted.group()}")
+            logger.debug("Click on OK button.")
+            device.find(
+                resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
+            ).click()
+            is_blocked = False
+        else:
+            is_blocked = True
+    else:
+        is_blocked = True
+
     if is_blocked:
         logger.error("Probably block dialog is shown.")
         raise ActionBlockedError(
