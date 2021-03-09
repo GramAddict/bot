@@ -212,19 +212,22 @@ def detect_block(device):
     )
     regex = r".+deleted"
     popup_appears = block_dialog.exists(False)
-    if popup_appears and popup_body.exists():
-        is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
-        if is_post_deleted:
-            logger.info(f"{is_post_deleted.group()}")
-            logger.debug("Click on OK button.")
-            device.find(
-                resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
-            ).click()
-            is_blocked = False
+    if popup_appears:
+        if popup_body.exists():
+            is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
+            if is_post_deleted:
+                logger.info(f"{is_post_deleted.group()}")
+                logger.debug("Click on OK button.")
+                device.find(
+                    resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
+                ).click()
+                is_blocked = False
+            else:
+                is_blocked = True
         else:
             is_blocked = True
     else:
-        is_blocked = True
+        is_blocked = False
 
     if is_blocked:
         logger.error("Probably block dialog is shown.")
