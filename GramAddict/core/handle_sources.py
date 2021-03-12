@@ -10,7 +10,6 @@ from GramAddict.core.navigation import (
 )
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.utils import (
-    detect_block,
     random_sleep,
 )
 from GramAddict.core.views import (
@@ -19,6 +18,7 @@ from GramAddict.core.views import (
     SwipeTo,
     Owner,
     LikeMode,
+    UniversalActions,
 )
 
 logger = logging.getLogger(__name__)
@@ -197,15 +197,6 @@ def handle_likers(
                 )
                 break
             go_back = False
-            if not opened:
-                logger.info(
-                    "All likers skipped.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                posts_end_detector.notify_skipped_all()
-                if posts_end_detector.is_skipped_limit_reached():
-                    posts_end_detector.reset_skipped_all()
-                    return
             if screen_iterated_likers == prev_screen_iterated_likers:
                 logger.info(
                     "Iterated exactly the same likers twice.",
@@ -246,6 +237,15 @@ def handle_likers(
                 device.back()
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 break
+            if not opened:
+                logger.info(
+                    "All likers skipped.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                posts_end_detector.notify_skipped_all()
+                if posts_end_detector.is_skipped_limit_reached():
+                    posts_end_detector.reset_skipped_all()
+                    return
 
 
 def handle_posts(
@@ -293,10 +293,10 @@ def handle_posts(
                 logger.info(f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"})
                 if scraping_file is None:
                     PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
-                    detect_block(device)
+                    UniversalActions.detect_block(device)
                     if not PostsViewList(device)._check_if_liked():
                         PostsViewList(device)._like_in_post_view(LikeMode.SINGLE_CLICK)
-                        detect_block(device)
+                        UniversalActions.detect_block(device)
                     session_state.totalLikes += 1
                     random_sleep(1, 2)
                 if PostsViewList(device)._post_owner(Owner.OPEN):

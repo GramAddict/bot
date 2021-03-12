@@ -20,9 +20,9 @@ setuptools.setup(
         "matplotlib==3.3.3",
         "numpy==1.19.3",
         "PyYAML==5.3.1",
-        "uiautomator==1.0.2",
-        "uiautomator2==2.11.2",
+        "uiautomator2==2.13.2",
         "urllib3==1.26.2",
+        "emoji==1.2.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3.6",

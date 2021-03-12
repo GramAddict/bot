@@ -81,7 +81,7 @@ def run():
         return
 
     logger.info("Instagram version: " + get_instagram_version())
-    device = create_device(configs.device_id, configs.args.uia_version)
+    device = create_device(configs.device_id)
     logger.debug(
         f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
     )
@@ -107,7 +107,7 @@ def run():
         if not inside_working_hours:
             hours, remainder = divmod(time_left.seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
-
+            kill_atx_agent(device)
             logger.info(
                 f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}',
                 extra={"color": f"{Fore.GREEN}"},
@@ -116,7 +116,6 @@ def run():
                 f"Time left: {hours}:{minutes}:{seconds}",
                 extra={"color": f"{Fore.GREEN}"},
             )
-            kill_atx_agent(device)
             try:
                 sleep(time_left.total_seconds())
             except KeyboardInterrupt:
@@ -221,7 +220,7 @@ def run():
                 )
                 break
             if not session_state.check_limit(
-                configs.args, limit_type=session_state.Limit.ALL, output=False
+                configs.args, limit_type=session_state.Limit.ALL, output=True
             ):
                 logger.info(
                     f"Current job: {plugin}",
@@ -236,7 +235,7 @@ def run():
 
             else:
                 logger.info(
-                    "Successful or Total Interactions limit reached. Ending session.",
+                    "At last one of these limits has been reached: interactions/succesful/follower/likes or scraped. Ending session.",
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break

@@ -7,7 +7,7 @@ from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import detect_block, random_sleep, save_crash, get_value
+from GramAddict.core.utils import random_sleep, save_crash, get_value
 from GramAddict.core.views import (
     UniversalActions,
     Direction,
@@ -186,6 +186,7 @@ class ActionUnfollowFollowers(Plugin):
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
+        sort_options_recycler_view(DeviceFacade.Timeout.SHORT)
         if not sort_options_recycler_view.exists():
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
@@ -377,6 +378,9 @@ class ActionUnfollowFollowers(Plugin):
         logger.debug("Unfollow button click.")
         unfollow_button.click()
         logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
+        self.session_state.check_limit(
+            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+        )
 
         # Weirdly enough, this is a fix for after you unfollow someone that follows
         # you back - the next person you unfollow the button is missing on first find
@@ -399,7 +403,7 @@ class ActionUnfollowFollowers(Plugin):
         logger.debug("Confirm unfollow")
         confirm_unfollow_button.click()
 
-        random_sleep(0, 1)
+        random_sleep(0, 1, modulable=False)
 
         # Check if private account confirmation
         private_unfollow_button = device.find(
@@ -411,7 +415,7 @@ class ActionUnfollowFollowers(Plugin):
             logger.debug("Confirm unfollow private account")
             private_unfollow_button.click()
 
-        detect_block(device)
+        UniversalActions.detect_block(device)
 
         logger.info("Back to the followings list.")
         device.back()

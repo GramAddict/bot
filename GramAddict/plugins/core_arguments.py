@@ -178,13 +178,6 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
-                "arg": "--uia-version",
-                "nargs": None,
-                "help": "uiautomator version, defaults to 2.",
-                "metavar": 2,
-                "default": 2,
-            },
-            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
@@ -268,5 +261,12 @@ class CoreArguments(Plugin):
                 "arg": "--disable-filters",
                 "help": "disable the using of filters without have to remove/rename the json file",
                 "action": "store_true",
+            },
+            {
+                "arg": "--total-crashes-limit",
+                "nargs": None,
+                "help": "limit on total allowed crashes for session, 5 by default",
+                "metavar": "5-10",
+                "default": "5",
             },
         ]

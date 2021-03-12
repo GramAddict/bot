@@ -82,9 +82,11 @@ def nav_to_hashtag_or_place(device, target, current_job):
         TargetView(device)._getRecentTab().click()
 
         random_sleep()
-        if TargetView(device)._check_if_no_posts():
+        if UniversalActions(device)._check_if_no_posts():
             UniversalActions._reload_page()
             random_sleep()
+            if UniversalActions(device)._check_if_no_posts():
+                return False
 
     logger.info("Opening the first result.")
 

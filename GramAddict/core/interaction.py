@@ -1,7 +1,9 @@
+from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
 import emoji
+import sys
 from datetime import datetime
 from random import randint, shuffle, choice, uniform
 from typing import Tuple
@@ -11,11 +13,12 @@ from colorama import Fore, Style
 from GramAddict.core.report import print_scrape_report, print_short_report
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.utils import (
-    detect_block,
+    close_instagram,
     get_value,
     random_sleep,
     append_to_file,
     save_crash,
+    stop_bot,
 )
 from GramAddict.core.views import (
     MediaType,
@@ -336,7 +339,7 @@ def do_like(opened_post_view, device, on_like, media_type):
 
     if like_succeed:
         logger.debug("Like succeed.")
-        detect_block(device)
+        UniversalActions.detect_block(device)
         on_like()
     else:
         logger.warning("Fail to like post. Let's continue...")
@@ -444,6 +447,14 @@ def _on_interaction(
                 )
                 can_continue = False
 
+            if session_state.check_limit(
+                args, limit_type=session_state.Limit.CRASHES, output=False
+            ):
+                logger.error(
+                    "Reached crashes limit. Bot has crashed too much! Please check what's going on."
+                )
+                stop_bot(args.device, sessions, session_state, args.screen_record)
+
     if (can_continue and succeed) or scraped:
         if scraped:
             print_scrape_report(source, session_state)
@@ -478,6 +489,24 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
         comment_chance = randint(1, 100)
         if comment_chance > comment_percentage:
             return False
+        # we have to do a little swipe for preventing get the previus post comments button (which is covered by top bar, but present in hierarchy!!)
+        UniversalActions(device)._swipe_points(
+            direction=Direction.DOWN, delta_y=randint(150, 250)
+        )
+        tab_bar = device.find(
+            resourceId=ResourceID.TAB_BAR,
+        )
+        group_buttons = device.find(
+            resourceId=ResourceID.ROW_FEED_VIEW_GROUP_BUTTONS,
+        )
+        media = device.find(
+            resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER,
+        )
+        if int(tab_bar.get_bounds()["top"]) - int(media.get_bounds()["bottom"]) < 150:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.DOWN, delta_y=randint(150, 250)
+            )
+        # look at hashtag of comment
         for _ in range(2):
             comment_button = device.find(
                 resourceId=ResourceID.ROW_FEED_BUTTON_COMMENT,
@@ -486,71 +515,55 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 logger.info("Open comments of post.")
                 comment_button.click()
                 random_sleep()
-                detect_block(device)
                 comment_box = device.find(
                     resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT,
                     enabled="true",
                 )
-                try:
-                    if comment_box.exists():
-                        comment = load_random_comment(my_username, media_type)
-                        if comment is None:
-                            return False
-                        logger.info(
-                            f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
-                        )
-                        comment_box.set_text(comment)
-                        random_sleep()
-                        post_button = device.find(
-                            resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
-                        )
-                        post_button.click()
-                    else:
-                        logger.info("Comments on this post have been limited.")
-                        SearchView(device)._close_keyboard()
-                        random_sleep()
-                        device.back()
-
+                if comment_box.exists():
+                    comment = load_random_comment(my_username, media_type)
+                    if comment is None:
                         return False
-                    random_sleep()
-                    detect_block(device)
-                    SearchView(device)._close_keyboard()
-                    random_sleep()
-                    posted_text = device.find(
-                        resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
-                        textMatches=f"{my_username} {comment}",
+                    logger.info(
+                        f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
                     )
-                    when_posted = (
-                        posted_text.sibling(
-                            resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR
-                        )
-                        .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
-                        .wait()
-                    )
-                    if posted_text.exists() and when_posted:
-                        logger.info(
-                            "Comment succeed.", extra={"color": f"{Fore.GREEN}"}
-                        )
-                        session_state.totalComments += 1
-                        comment_confirmed = True
-                    else:
-                        logger.warning("Failed to check if comment succeed.")
-                        comment_confirmed = False
+                    comment_box.set_text(comment)
                     random_sleep()
-                    logger.info("Go back to post view.")
-                    device.back()
-                    return comment_confirmed
-                except:
-                    logger.error(
-                        "Maybe some elements there have another IDs! Can't comment.."
+                    post_button = device.find(
+                        resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
                     )
-                    save_crash(device)
-                    logger.info("Go back to post view.")
-                    random_sleep()
+                    post_button.click()
+                else:
+                    logger.info("Comments on this post have been limited.")
                     SearchView(device)._close_keyboard()
                     random_sleep()
                     device.back()
                     return False
+
+                random_sleep()
+                UniversalActions.detect_block(device)
+                SearchView(device)._close_keyboard()
+                random_sleep()
+                posted_text = device.find(
+                    resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
+                    textMatches=f"{my_username} {comment}",
+                )
+                posted_text.wait()
+                when_posted = (
+                    posted_text.sibling(resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR)
+                    .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
+                    .wait()
+                )
+                if posted_text.exists() and when_posted:
+                    logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
+                    session_state.totalComments += 1
+                    comment_confirmed = True
+                else:
+                    logger.warning("Failed to check if comment succeed.")
+                    comment_confirmed = False
+                random_sleep()
+                logger.info("Go back to post view.")
+                device.back()
+                return comment_confirmed
             else:
                 like_button = device.find(
                     resourceId=ResourceID.ROW_FEED_BUTTON_LIKE,
@@ -668,7 +681,7 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
             textMatches=UNFOLLOW_REGEX,
         ).wait():
             logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
-            detect_block(device)
+            UniversalActions.detect_block(device)
             random_sleep()
             return True
         else:
@@ -676,7 +689,7 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
                 f"Looks like I was not able to follow @{username}",
                 extra={"color": f"{Fore.RED}"},
             )
-            detect_block(device)
+            UniversalActions.detect_block(device)
             random_sleep()
             return False
     else:
@@ -726,7 +739,7 @@ def _watch_stories(
             stories_ring.click()
             story_view = CurrentStoryView(device)
             random_sleep(1, 2, modulable=False)
-            story_view.getStoryFrame().wait()
+            story_view.getStoryFrame().wait(DeviceFacade.Timeout.SHORT)
 
             if profile_view.getUsername(error=False) != username:
                 start = datetime.now()
@@ -748,7 +761,7 @@ def _watch_stories(
                                     and _iter <= stories_to_watch - 1
                                 ):
                                     logger.debug("Going to the next story..")
-                                    story_frame.click(story_frame.Location.RIGHT)
+                                    story_frame.click(DeviceFacade.Location.RIGHT)
                                     on_watch()
                                     stories_counter += 1
                                     for _ in range(0, 7):

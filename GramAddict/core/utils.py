@@ -1,4 +1,5 @@
-from GramAddict.core.storage import Storage
+import sys
+from GramAddict.core.report import print_full_report
 import logging
 import os
 import subprocess
@@ -7,15 +8,14 @@ import shutil
 import urllib3
 import emoji
 from datetime import datetime
-from random import randint, shuffle, uniform, choice
-from os import path, truncate
+from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.resources import ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -125,7 +125,7 @@ def open_instagram(device, screen_record):
 
 
 def close_instagram(device, screen_record):
-    logger.info("Close Instagram app")
+    logger.info("Close Instagram app.")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
@@ -141,7 +141,7 @@ def close_instagram(device, screen_record):
 
 
 def kill_atx_agent(device):
-    logger.info("Kill atx agent")
+    logger.info("Kill atx agent.")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
@@ -202,39 +202,16 @@ def save_crash(device):
     logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
 
 
-def detect_block(device):
-    logger.debug("Checking for block...")
-    block_dialog = device.find(
-        resourceIdMatches=ResourceID.BLOCK_POPUP,
+def stop_bot(device, sessions, session_state, screen_record):
+    close_instagram(device, screen_record)
+    kill_atx_agent(device)
+    logger.info(
+        f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-    popup_body = device.find(
-        resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
-    )
-    regex = r".+deleted"
-    popup_appears = block_dialog.exists(False)
-    if popup_appears:
-        if popup_body.exists():
-            is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
-            if is_post_deleted:
-                logger.info(f"{is_post_deleted.group()}")
-                logger.debug("Click on OK button.")
-                device.find(
-                    resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
-                ).click()
-                is_blocked = False
-            else:
-                is_blocked = True
-        else:
-            is_blocked = True
-    else:
-        is_blocked = False
-
-    if is_blocked:
-        logger.error("Probably block dialog is shown.")
-        raise ActionBlockedError(
-            "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
-            " with limits!"
-        )
+    print_full_report(sessions)
+    sessions.persist(directory=session_state.my_username)
+    sys.exit(0)
 
 
 def get_value(count, name, default):

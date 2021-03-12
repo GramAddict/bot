@@ -23,6 +23,7 @@ class SessionState:
     totalUnfollowed = 0
     removedMassFollowers = []
     totalScraped = 0
+    totalCrashes = 0
     startTime = None
     finishTime = None
 
@@ -41,6 +42,7 @@ class SessionState:
         self.totalUnfollowed = 0
         self.removedMassFollowers = []
         self.totalScraped = {}
+        self.totalCrashes = 0
         self.startTime = datetime.now()
         self.finishTime = None
 
@@ -81,6 +83,7 @@ class SessionState:
         )
         args.current_total_limit = get_value(args.total_interactions_limit, None, 1000)
         args.current_scraped_limit = get_value(args.total_scraped_limit, None, 200)
+        args.current_crashes_limit = get_value(args.total_crashes_limit, None, 5)
 
     def check_limit(self, args, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
@@ -103,6 +106,8 @@ class SessionState:
             args.current_scraped_limit
         )
 
+        total_crashes = self.totalCrashes >= int(args.current_crashes_limit)
+
         session_info = [
             "Checking session limits:",
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
@@ -111,6 +116,7 @@ class SessionState:
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.current_success_limit})",
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.current_total_limit})",
+            f"- Total Crashes:\t\t\t\t{'Limit Reached' if total_crashes else 'OK'} ({self.totalCrashes}/{args.current_crashes_limit})",
             f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{args.current_scraped_limit})",
         ]
 
@@ -172,11 +178,18 @@ class SessionState:
                 logger.debug(session_info[6])
             return total_interactions
 
-        elif limit_type == SessionState.Limit.SCRAPED:
+        elif limit_type == SessionState.Limit.CRASHES:
             if output:
                 logger.info(session_info[7])
             else:
                 logger.debug(session_info[7])
+            return total_crashes
+
+        elif limit_type == SessionState.Limit.SCRAPED:
+            if output:
+                logger.info(session_info[8])
+            else:
+                logger.debug(session_info[8])
             return total_scraped
 
     @staticmethod
@@ -220,10 +233,12 @@ class SessionState:
         LIKES = auto()
         COMMENTS = auto()
         FOLLOWS = auto()
+        UNFOLLOWS = auto()
         WATCHES = auto()
         SUCCESS = auto()
         TOTAL = auto()
         SCRAPED = auto()
+        CRASHES = auto()
 
 
 class SessionStateEncoder(JSONEncoder):

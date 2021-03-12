@@ -9,7 +9,7 @@ import emoji
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
-from GramAddict.core.utils import random_sleep, save_crash
+from GramAddict.core.utils import ActionBlockedError, random_sleep, save_crash
 
 logger = logging.getLogger(__name__)
 
@@ -235,12 +235,6 @@ class HashTagView:
         obj.wait()
         return obj
 
-    def _check_if_no_posts(self):
-        # wait until it gest rendered
-        obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
-        obj.wait()
-        return obj.exists()
-
 
 # The place view for the moment It's only a copy/paste of HashTagView
 # Maybe we can add the com.instagram.android:id/category_name == "Country/Region" (or other obv)
@@ -271,12 +265,6 @@ class PlacesView:
             className=ClassName.TEXT_VIEW,
             resourceId=ResourceID.INFORM_BODY,
         )
-
-    def _check_if_no_posts(self):
-        # wait until it gest rendered
-        obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
-        obj.wait()
-        return obj.exists()
 
 
 class SearchView:
@@ -510,7 +498,7 @@ class SearchView:
             tabbar_container = self.device.find(
                 resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
             )
-            if tabbar_container.exists(True):
+            if tabbar_container.exists():
                 delta = tabbar_container.get_bounds()["bottom"]
             else:
                 delta = 375
@@ -617,7 +605,7 @@ class PostsViewList:
         )
         logger.info("Opening post likers.")
         random_sleep()
-        likes_view.click(likes_view.Location.RIGHT)
+        likes_view.click(DeviceFacade.Location.RIGHT)
 
     def _check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
@@ -727,7 +715,7 @@ class PostsViewList:
                     PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(
                         likes_view
                     )
-                    likes_view.click(likes_view.Location.RIGHT)
+                    likes_view.click(DeviceFacade.Location.RIGHT)
                     return True
                 else:
                     logger.info("This post has only 1 liker, skip")
@@ -1249,20 +1237,15 @@ class ProfileView(ActionBarView):
         post_count_view = self.device.find(
             resourceIdMatches=case_insensitive_re(
                 ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_COUNT
-            ),
-            className=ClassName.TEXT_VIEW,
+            )
         )
         post_count_view.wait()
         if post_count_view.exists():
             count = post_count_view.get_text()
             if count is not None:
                 return self._parseCounter(count)
-            else:
-                logger.error("Cannot get posts count text")
-                return 0
-        else:
-            logger.error("Cannot get posts count text")
-            return 0
+        logger.error("Cannot get posts count text")
+        return 0
 
     def count_photo_in_view(self):
         """return rows filled and the number of post in the last row"""
@@ -1310,7 +1293,7 @@ class ProfileView(ActionBarView):
                 username = self.getUsername()
                 for _ in range(2):
                     # Clicking the biography is dangerous. Clicking "bottomright" is safest so we can try to avoid hashtags and tags
-                    biography.click(biography.Location.BOTTOMRIGHT)
+                    biography.click(DeviceFacade.Location.BOTTOMRIGHT)
                     random_sleep()
                     if username == self.getUsername():
                         return biography.get_text()
@@ -1552,3 +1535,43 @@ class UniversalActions:
     def _reload_page(self):
         logger.info("Reload page")
         UniversalActions(self.device)._swipe_points(direction=Direction.UP)
+
+    def detect_block(device):
+        logger.debug("Checking for block...")
+        block_dialog = device.find(
+            resourceIdMatches=ResourceID.BLOCK_POPUP,
+        )
+        popup_body = device.find(
+            resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
+        )
+        regex = r".+deleted"
+        popup_appears = block_dialog.exists(DeviceFacade.Timeout.SHORT)
+        if popup_appears:
+            if popup_body.exists():
+                is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
+                if is_post_deleted:
+                    logger.info(f"{is_post_deleted.group()}")
+                    logger.debug("Click on OK button.")
+                    device.find(
+                        resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
+                    ).click()
+                    is_blocked = False
+                else:
+                    is_blocked = True
+            else:
+                is_blocked = True
+        else:
+            is_blocked = False
+
+        if is_blocked:
+            logger.error("Probably block dialog is shown.")
+            raise ActionBlockedError(
+                "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
+                " with limits!"
+            )
+
+    def _check_if_no_posts(self):
+        # wait until it gest rendered
+        obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
+        obj.wait(DeviceFacade.Timeout.SHORT)
+        return obj.exists()

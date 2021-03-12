@@ -15,6 +15,7 @@ from GramAddict.core.utils import (
     open_instagram,
     random_sleep,
     save_crash,
+    stop_bot,
 )
 from GramAddict.core.views import TabBarView
 
@@ -55,14 +56,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                     )
                     TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
-                    close_instagram(device, screen_record)
-                    logger.info(
-                        f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    print_full_report(sessions)
-                    sessions.persist(directory=session_state.my_username)
-                    sys.exit(0)
+                    stop_bot(device, sessions, session_state, screen_record)
 
             except (
                 DeviceFacade.JsonRpcError,
@@ -74,6 +68,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                 logger.error(traceback.format_exc())
                 save_crash(device)
                 logger.info("No idea what it was. Let's try again.")
+                session_state.totalCrashes += 1
                 close_instagram(device, screen_record)
                 random_sleep()
                 open_instagram(device, screen_record)
