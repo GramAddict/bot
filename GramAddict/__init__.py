@@ -95,11 +95,15 @@ def run():
         return
 
     while True:
-        configs.args.time_delta_session = get_value(
-            configs.args.time_delta, None, 0
-        ) * (1 if random.random() < 0.5 else -1)
+        configs.args.time_delta_session = (
+            get_value(configs.args.time_delta, None, 0)
+            * (1 if random.random() < 0.5 else -1)
+            * 60
+        ) + random.randint(0, 59)
+        m, s = divmod(abs(configs.args.time_delta_session), 60)
+        h, m = divmod(m, 60)
         logger.info(
-            f"Time delta has setted to {configs.args.time_delta_session} minutes for this session."
+            f"Time delta has setted to {'' if configs.args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
         )
         inside_working_hours, time_left = SessionState.inside_working_hours(
             configs.args.working_hours, configs.args.time_delta_session
@@ -109,11 +113,11 @@ def run():
             minutes, seconds = divmod(remainder, 60)
             kill_atx_agent(device)
             logger.info(
-                f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}',
+                f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
                 extra={"color": f"{Fore.GREEN}"},
             )
             logger.info(
-                f"Time left: {hours}:{minutes}:{seconds}",
+                f"Time left: {hours:02d}:{minutes:02d}:{seconds:02d}.",
                 extra={"color": f"{Fore.GREEN}"},
             )
             try:

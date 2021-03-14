@@ -1,4 +1,5 @@
 import logging
+from random import randint
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum, auto
@@ -193,7 +194,7 @@ class SessionState:
             return total_scraped
 
     @staticmethod
-    def inside_working_hours(working_hours, delta_min):
+    def inside_working_hours(working_hours, delta_sec):
         def time_in_range(start, end, x):
             if start <= end:
                 return start <= x <= end
@@ -203,7 +204,7 @@ class SessionState:
         in_range = False
         time_left_list = []
         current_time = datetime.now()
-        delta = timedelta(minutes=delta_min)
+        delta = timedelta(seconds=delta_sec)
         for n in working_hours:
             today = current_time.strftime("%Y-%m-%d")
             inf_value = f"{n.split('-')[0]} {today}"

@@ -410,7 +410,7 @@ class ActionUnfollowFollowers(Plugin):
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
             textMatches=UNFOLLOW_REGEX,
         )
-
+        private_unfollow_button.wait(DeviceFacade.Timeout.SHORT)
         if private_unfollow_button.exists():
             logger.debug("Confirm unfollow private account")
             private_unfollow_button.click()
