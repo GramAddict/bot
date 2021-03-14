@@ -186,7 +186,7 @@ class ActionUnfollowFollowers(Plugin):
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
-        sort_options_recycler_view(DeviceFacade.Timeout.SHORT)
+        sort_options_recycler_view.wait(DeviceFacade.Timeout.SHORT)
         if not sort_options_recycler_view.exists():
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
