@@ -471,7 +471,7 @@ def _browse_carousel(device, media_type, obj_count):
         if carousel_percentage > randint(0, 100) and carousel_count > 1:
             logger.info("Watching photos/videos in carousel.")
             if obj_count < carousel_count:
-                logger.info(f"There are only {obj_count} photos in this carousel!")
+                logger.info(f"There are only {obj_count} media in this carousel!")
                 carousel_count = obj_count
             n = 1
             while n < carousel_count:
