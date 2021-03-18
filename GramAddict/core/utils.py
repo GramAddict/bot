@@ -1,3 +1,4 @@
+import random
 import sys
 from GramAddict.core.report import print_full_report
 import logging
@@ -349,6 +350,38 @@ def init_on_things(source, args, sessions, session_state):
         comment_percentage,
         interact_percentage,
     )
+
+
+def set_time_delta(args):
+    args.time_delta_session = (
+        get_value(args.time_delta, None, 0) * (1 if random.random() < 0.5 else -1) * 60
+    ) + random.randint(0, 59)
+    m, s = divmod(abs(args.time_delta_session), 60)
+    h, m = divmod(m, 60)
+    logger.info(
+        f"Time delta has setted to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
+    )
+
+
+def wait_for_next_session(time_left, session_state, sessions, device):
+    hours, remainder = divmod(time_left.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    kill_atx_agent(device)
+    logger.info(
+        f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
+        extra={"color": f"{Fore.GREEN}"},
+    )
+    logger.info(
+        f"Time left: {hours:02d}:{minutes:02d}:{seconds:02d}.",
+        extra={"color": f"{Fore.GREEN}"},
+    )
+    try:
+        sleep(time_left.total_seconds())
+    except KeyboardInterrupt:
+        if session_state is not None:
+            print_full_report(sessions)
+            sessions.persist(directory=session_state.my_username)
+        exit(0)
 
 
 class ActionBlockedError(Exception):

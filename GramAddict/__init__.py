@@ -30,7 +30,9 @@ from GramAddict.core.utils import (
     open_instagram,
     random_sleep,
     save_crash,
+    set_time_delta,
     update_available,
+    wait_for_next_session,
 )
 from GramAddict.core.views import (
     AccountView,
@@ -93,39 +95,14 @@ def run():
     )
     if device is None:
         return
-
+    session_state = None
     while True:
-        configs.args.time_delta_session = (
-            get_value(configs.args.time_delta, None, 0)
-            * (1 if random.random() < 0.5 else -1)
-            * 60
-        ) + random.randint(0, 59)
-        m, s = divmod(abs(configs.args.time_delta_session), 60)
-        h, m = divmod(m, 60)
-        logger.info(
-            f"Time delta has setted to {'' if configs.args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
-        )
+        set_time_delta(configs.args)
         inside_working_hours, time_left = SessionState.inside_working_hours(
             configs.args.working_hours, configs.args.time_delta_session
         )
         if not inside_working_hours:
-            hours, remainder = divmod(time_left.seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            kill_atx_agent(device)
-            logger.info(
-                f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
-                extra={"color": f"{Fore.GREEN}"},
-            )
-            logger.info(
-                f"Time left: {hours:02d}:{minutes:02d}:{seconds:02d}.",
-                extra={"color": f"{Fore.GREEN}"},
-            )
-            try:
-                sleep(time_left.total_seconds())
-            except KeyboardInterrupt:
-                print_full_report(sessions)
-                sessions.persist(directory=session_state.my_username)
-                exit(0)
+            wait_for_next_session(time_left, session_state, sessions, device)
         session_state = SessionState(configs)
         session_state.set_limits_session(configs.args)
         sessions.append(session_state)
@@ -283,6 +260,8 @@ def run():
                     print_full_report(sessions)
                     sessions.persist(directory=session_state.my_username)
                     exit(0)
+            else:
+                wait_for_next_session(time_left, session_state, sessions, device)
         else:
             break
 
