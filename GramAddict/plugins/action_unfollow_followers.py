@@ -338,85 +338,88 @@ class ActionUnfollowFollowers(Plugin):
             return False
         username_view.click()
 
-        if check_if_is_follower and self.check_is_follower(
-            device, username, my_username
-        ):
-            logger.info(f"Skip @{username}. This user is following you.")
-            logger.info("Back to the followings list.")
-            device.back()
-            return False
+        is_following_you = self.check_is_follower(device, username, my_username)
+        if is_following_you is not None:
+            if check_if_is_follower and is_following_you:
+                logger.info(f"Skip @{username}. This user is following you.")
+                logger.info("Back to the followings list.")
+                device.back()
+                return False
 
-        unfollow_button = device.find(
-            classNameMatches=ClassName.BUTTON,
-            clickable=True,
-            textMatches=FOLLOWING_REGEX,
-        )
-        # I don't know/remember the origin of this, if someone does - let's document it
-        attempts = 2
-        for _ in range(attempts):
-            if unfollow_button.exists():
-                break
-
-            scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
-            if scrollable.exists():
-                scrollable.scroll(DeviceFacade.Direction.TOP)
-            device.find(
-                classNameMatches=ClassName.BUTTON,
-                clickable=True,
-                textMatches=FOLLOWING_REGEX,
-            ).wait()
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
+            # I don't know/remember the origin of this, if someone does - let's document it
+            attempts = 2
+            for _ in range(attempts):
+                if unfollow_button.exists():
+                    break
 
-        if not unfollow_button.exists():
-            logger.error("Cannot find Following button.")
-            save_crash(device)
-        random_sleep()
-        logger.debug("Unfollow button click.")
-        unfollow_button.click()
-        logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
-        self.session_state.check_limit(
-            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
-        )
+                scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
+                if scrollable.exists():
+                    scrollable.scroll(DeviceFacade.Direction.TOP)
+                device.find(
+                    classNameMatches=ClassName.BUTTON,
+                    clickable=True,
+                    textMatches=FOLLOWING_REGEX,
+                ).wait()
+                unfollow_button = device.find(
+                    classNameMatches=ClassName.BUTTON,
+                    clickable=True,
+                    textMatches=FOLLOWING_REGEX,
+                )
 
-        # Weirdly enough, this is a fix for after you unfollow someone that follows
-        # you back - the next person you unfollow the button is missing on first find
-        # additional find - finds it. :shrug:
-        confirm_unfollow_button = None
-        attempts = 2
-        for _ in range(attempts):
-            confirm_unfollow_button = device.find(
-                resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
+            if not unfollow_button.exists():
+                logger.error("Cannot find Following button.")
+                save_crash(device)
+            random_sleep()
+            logger.debug("Unfollow button click.")
+            unfollow_button.click()
+            logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
+            self.session_state.check_limit(
+                self.args, limit_type=self.session_state.Limit.UNFOLLOWS
             )
-            confirm_unfollow_button.wait()
-            if confirm_unfollow_button.exists():
-                break
 
-        if not confirm_unfollow_button or not confirm_unfollow_button.exists():
-            logger.error("Cannot confirm unfollow.")
-            save_crash(device)
+            # Weirdly enough, this is a fix for after you unfollow someone that follows
+            # you back - the next person you unfollow the button is missing on first find
+            # additional find - finds it. :shrug:
+            confirm_unfollow_button = None
+            attempts = 2
+            for _ in range(attempts):
+                confirm_unfollow_button = device.find(
+                    resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
+                )
+                confirm_unfollow_button.wait()
+                if confirm_unfollow_button.exists():
+                    break
+
+            if not confirm_unfollow_button or not confirm_unfollow_button.exists():
+                logger.error("Cannot confirm unfollow.")
+                save_crash(device)
+                device.back()
+                return False
+            logger.debug("Confirm unfollow")
+            confirm_unfollow_button.click()
+
+            random_sleep(0, 1, modulable=False)
+
+            # Check if private account confirmation
+            private_unfollow_button = device.find(
+                classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
+                textMatches=UNFOLLOW_REGEX,
+            )
+            private_unfollow_button.wait(DeviceFacade.Timeout.SHORT)
+            if private_unfollow_button.exists():
+                logger.debug("Confirm unfollow private account")
+                private_unfollow_button.click()
+
+            UniversalActions.detect_block(device)
+        else:
+            logger.info("Back to the followings list.")
             device.back()
             return False
-        logger.debug("Confirm unfollow")
-        confirm_unfollow_button.click()
-
-        random_sleep(0, 1, modulable=False)
-
-        # Check if private account confirmation
-        private_unfollow_button = device.find(
-            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
-            textMatches=UNFOLLOW_REGEX,
-        )
-        private_unfollow_button.wait(DeviceFacade.Timeout.SHORT)
-        if private_unfollow_button.exists():
-            logger.debug("Confirm unfollow private account")
-            private_unfollow_button.click()
-
-        UniversalActions.detect_block(device)
-
         logger.info("Back to the followings list.")
         device.back()
         return True
@@ -431,18 +434,26 @@ class ActionUnfollowFollowers(Plugin):
         )
         following_container.click()
 
-        random_sleep()
-        device.find(
+        rows = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
-        ).wait()
-        my_username_view = device.find(
-            resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
-            text=my_username,
+            className=ClassName.TEXT_VIEW,
         )
-        result = my_username_view.exists()
-        logger.info("Back to the profile.")
-        device.back()
-        return result
+        rows.wait(DeviceFacade.Timeout.LONG)
+        if rows.exists():
+            random_sleep()
+            my_username_view = device.find(
+                resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
+                className=ClassName.TEXT_VIEW,
+                text=my_username,
+            )
+            result = my_username_view.exists()
+            logger.info("Back to the profile.")
+            device.back()
+            return result
+        else:
+            logger.info("Can't load profile followers in time. Skip.")
+            device.back()
+            return None
 
 
 @unique

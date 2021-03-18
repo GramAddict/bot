@@ -265,6 +265,10 @@ class DeviceFacade:
                 x_offset = uniform(0.6, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
+            elif mode == DeviceFacade.Location.RIGHTEDGE:
+                x_offset = uniform(0.8, 0.9)
+                y_offset = uniform(0.30, 0.70)
+
             elif mode == DeviceFacade.Location.BOTTOMRIGHT:
                 x_offset = uniform(0.8, 0.9)
                 y_offset = uniform(0.8, 0.9)
@@ -428,6 +432,7 @@ class DeviceFacade:
         RIGHT = auto()
         LEFT = auto()
         BOTTOMRIGHT = auto()
+        RIGHTEDGE = auto()
 
     class Timeout(Enum):
         ZERO = auto()

@@ -761,7 +761,7 @@ def _watch_stories(
                                     and _iter <= stories_to_watch - 1
                                 ):
                                     logger.debug("Going to the next story..")
-                                    story_frame.click(DeviceFacade.Location.RIGHT)
+                                    story_frame.click(DeviceFacade.Location.RIGHTEDGE)
                                     on_watch()
                                     stories_counter += 1
                                     for _ in range(0, 7):
