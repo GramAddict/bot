@@ -34,16 +34,16 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, config, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.args = config.args
+        self.args = configs.args
         self.device = device
-        self.device_id = config.args.device
+        self.device_id = configs.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
@@ -64,6 +64,7 @@ class LikeFromURLs(Plugin):
                 sessions=self.sessions,
                 session_state=self.session_state,
                 screen_record=self.args.screen_record,
+                configs=configs,
             )
             def job():
                 self.process_file(filename, on_like, storage)

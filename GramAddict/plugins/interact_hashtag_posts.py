@@ -103,6 +103,7 @@ class InteractHashtagPosts(Plugin):
                 sessions=self.sessions,
                 session_state=self.session_state,
                 screen_record=self.args.screen_record,
+                configs=configs,
             )
             def job():
                 self.handle_hashtag(

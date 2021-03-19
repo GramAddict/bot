@@ -232,7 +232,7 @@ def run():
 
         if configs.args.screen_sleep:
             device.screen_off()
-            logger.info("Screen turned off for sleeping time")
+            logger.info("Screen turned off for sleeping time.")
 
         kill_atx_agent(device)
 

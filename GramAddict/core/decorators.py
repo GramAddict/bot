@@ -22,7 +22,7 @@ from GramAddict.core.views import TabBarView
 logger = logging.getLogger(__name__)
 
 
-def run_safely(device, device_id, sessions, session_state, screen_record):
+def run_safely(device, device_id, sessions, session_state, screen_record, configs):
     def actual_decorator(func):
         def wrapper(*args, **kwargs):
             session_state = sessions[-1]
@@ -67,8 +67,15 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
             ):
                 logger.error(traceback.format_exc())
                 save_crash(device)
-                logger.info("No idea what it was. Let's try again.")
                 session_state.totalCrashes += 1
+                if session_state.check_limit(
+                    configs.args, limit_type=session_state.Limit.CRASHES, output=True
+                ):
+                    logger.error(
+                        "Reached crashes limit. Bot has crashed too much! Please check what's going on."
+                    )
+                    stop_bot(device, sessions, session_state, screen_record)
+                logger.info("Something unexpected happened. Let's try again.")
                 close_instagram(device, screen_record)
                 random_sleep()
                 open_instagram(device, screen_record)
