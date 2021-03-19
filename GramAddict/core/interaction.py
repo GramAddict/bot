@@ -547,7 +547,7 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                     resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
                     textMatches=f"{my_username} {comment}",
                 )
-                posted_text.wait()
+                posted_text.wait(DeviceFacade.Timeout.MEDIUM)
                 when_posted = (
                     posted_text.sibling(resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR)
                     .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)

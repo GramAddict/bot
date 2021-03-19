@@ -264,7 +264,13 @@ def run():
                         device, sessions, session_state, configs.args.screen_record
                     )
             else:
-                wait_for_next_session(time_left, session_state, sessions, device)
+                wait_for_next_session(
+                    time_left,
+                    session_state,
+                    sessions,
+                    device,
+                    configs.args.screen_record,
+                )
         else:
             break
 

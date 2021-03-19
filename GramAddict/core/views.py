@@ -492,7 +492,7 @@ class SearchView:
     def _close_keyboard(self):
         flag = DeviceFacade.is_keyboard_show(self.device)
         if flag:
-            logger.debug("The keyboard is currently open. Press back to close")
+            logger.debug("The keyboard is currently open. Press back to close.")
             self.device.back()
         elif flag is None:
             tabbar_container = self.device.find(
