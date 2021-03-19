@@ -133,7 +133,7 @@ class TabBarText:
     PROFILE_CONTENT_DESC = "Profile"
     RECENT_CONTENT_DESC = "Recent"
     REELS_CONTENT_DESC = "Reels"
-    SEARCH_CONTENT_DESC = "[Ss]earch and [Ee]xplore"
+    SEARCH_CONTENT_DESC = "Search and Explore"
 
 
 class ClassName:

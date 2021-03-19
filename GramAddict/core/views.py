@@ -214,9 +214,11 @@ class HashTagView:
 
     def _getRecyclerView(self):
         views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
-        # wait until it gest rendered
         obj = self.device.find(classNameMatches=views)
-        obj.wait()
+        if obj.exists(DeviceFacade.Timeout.LONG):
+            logger.debug("RecyclerView exists.")
+        else:
+            logger.debug("RecyclerView doesn't exists.")
         return obj
 
     def _getFistImageView(self, recycler):
@@ -224,7 +226,10 @@ class HashTagView:
             className=ClassName.IMAGE_VIEW,
             resourceIdMatches=ResourceID.IMAGE_BUTTON,
         )
-        obj.wait()
+        if obj.exists(DeviceFacade.Timeout.LONG):
+            logger.debug("First image in view exists.")
+        else:
+            logger.debug("First image in view doesn't exists.")
         return obj
 
     def _getRecentTab(self):
@@ -232,7 +237,10 @@ class HashTagView:
             className=ClassName.TEXT_VIEW,
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
-        obj.wait()
+        if obj.exists(DeviceFacade.Timeout.LONG):
+            logger.debug("Recent Tab exists.")
+        else:
+            logger.debug("Recent Tab doesn't exists.")
         return obj
 
 

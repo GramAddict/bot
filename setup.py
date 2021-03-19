@@ -21,7 +21,7 @@ setuptools.setup(
         "numpy==1.19.3",
         "PyYAML==5.3.1",
         "uiautomator2==2.13.2",
-        "urllib3==1.26.2",
+        "urllib3==1.26.3",
         "emoji==1.2.0",
     ],
     classifiers=[
