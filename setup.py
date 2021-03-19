@@ -22,7 +22,7 @@ setuptools.setup(
         "PyYAML==5.3.1",
         "uiautomator==1.0.2",
         "uiautomator2==2.11.2",
-        "urllib3==1.26.2",
+        "urllib3==1.26.3",
     ],
     classifiers=[
         "Programming Language :: Python :: 3.6",
