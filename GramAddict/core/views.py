@@ -1140,24 +1140,32 @@ class ProfileView(ActionBarView):
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-
-        following_regex = "^Following|^Requested"
-        following_button = self.device.find(
+        following_regex_all = "^Following|^Requested|^Follow Back$"
+        following_or_follow_back_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
-            textMatches=following_regex,
+            textMatches=following_regex_all,
         )
-        if following_button.exists():
-            return following_button, FollowStatus.FOLLOWING
+        following_or_follow_back_button.wait(DeviceFacade.Timeout.SHORT)
+        if following_or_follow_back_button.exists():
+            following_regex = "^Following|^Requested"
+            following_button = self.device.find(
+                classNameMatches=button_regex,
+                clickable=True,
+                textMatches=following_regex,
+            )
 
-        followback_regex = "^Follow Back$"
-        followback_button = self.device.find(
-            classNameMatches=button_regex,
-            clickable=True,
-            textMatches=followback_regex,
-        )
-        if followback_button.exists():
-            return followback_button, FollowStatus.FOLLOW_BACK
+            if following_button.exists():
+                return following_button, FollowStatus.FOLLOWING
+
+            followback_regex = "^Follow Back$"
+            followback_button = self.device.find(
+                classNameMatches=button_regex,
+                clickable=True,
+                textMatches=followback_regex,
+            )
+            if followback_button.exists():
+                return followback_button, FollowStatus.FOLLOW_BACK
 
         return None, FollowStatus.FOLLOW
 
@@ -1282,6 +1290,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(ResourceID.PROFILE_HEADER_BIO_TEXT),
             className=ClassName.TEXT_VIEW,
         )
+        biography.wait(DeviceFacade.Timeout.SHORT)
         if biography.exists():
             biography_text = biography.get_text()
             # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
@@ -1311,6 +1320,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(ResourceID.PROFILE_HEADER_FULL_NAME),
             className=ClassName.TEXT_VIEW,
         )
+        full_name_view.wait(DeviceFacade.Timeout.SHORT)
         if full_name_view.exists():
             fullname_text = full_name_view.get_text()
             if fullname_text is not None:

@@ -210,8 +210,9 @@ def stop_bot(device, sessions, session_state, screen_record):
         f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-    print_full_report(sessions)
-    sessions.persist(directory=session_state.my_username)
+    if session_state is not None:
+        print_full_report(sessions)
+        sessions.persist(directory=session_state.my_username)
     sys.exit(0)
 
 
@@ -363,7 +364,7 @@ def set_time_delta(args):
     )
 
 
-def wait_for_next_session(time_left, session_state, sessions, device):
+def wait_for_next_session(time_left, session_state, sessions, device, screen_record):
     hours, remainder = divmod(time_left.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     kill_atx_agent(device)
@@ -378,10 +379,7 @@ def wait_for_next_session(time_left, session_state, sessions, device):
     try:
         sleep(time_left.total_seconds())
     except KeyboardInterrupt:
-        if session_state is not None:
-            print_full_report(sessions)
-            sessions.persist(directory=session_state.my_username)
-        exit(0)
+        stop_bot(device, sessions, session_state, screen_record)
 
 
 class ActionBlockedError(Exception):

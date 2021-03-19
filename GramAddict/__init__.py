@@ -31,6 +31,7 @@ from GramAddict.core.utils import (
     random_sleep,
     save_crash,
     set_time_delta,
+    stop_bot,
     update_available,
     wait_for_next_session,
 )
@@ -102,7 +103,9 @@ def run():
             configs.args.working_hours, configs.args.time_delta_session
         )
         if not inside_working_hours:
-            wait_for_next_session(time_left, session_state, sessions, device)
+            wait_for_next_session(
+                time_left, session_state, sessions, device, configs.args.screen_record
+            )
         session_state = SessionState(configs)
         session_state.set_limits_session(configs.args)
         sessions.append(session_state)
@@ -257,9 +260,9 @@ def run():
                 try:
                     sleep(time_left)
                 except KeyboardInterrupt:
-                    print_full_report(sessions)
-                    sessions.persist(directory=session_state.my_username)
-                    exit(0)
+                    stop_bot(
+                        device, sessions, session_state, configs.args.screen_record
+                    )
             else:
                 wait_for_next_session(time_left, session_state, sessions, device)
         else:
