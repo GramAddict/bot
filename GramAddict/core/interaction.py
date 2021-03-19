@@ -545,15 +545,14 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 random_sleep()
                 posted_text = device.find(
                     resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
-                    textMatches=f"{my_username} {comment}",
+                    text=f"{my_username} {comment}",
                 )
-                posted_text.wait(DeviceFacade.Timeout.MEDIUM)
-                when_posted = (
-                    posted_text.sibling(resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR)
-                    .child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
-                    .wait()
-                )
-                if posted_text.exists() and when_posted:
+                when_posted = posted_text.sibling(
+                    resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR
+                ).child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
+                if posted_text.exists(
+                    DeviceFacade.Timeout.MEDIUM
+                ) and when_posted.exists(DeviceFacade.Timeout.MEDIUM):
                     logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
                     session_state.totalComments += 1
                     comment_confirmed = True
