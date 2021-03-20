@@ -78,7 +78,7 @@ class DeviceFacade:
 
     def is_screen_locked(self):
         data = run(
-            "adb shell shell dumpsys window", encoding="utf-8", capture_output=True
+            f"adb -s {self.deviceV2.serial} shell shell dumpsys window", encoding="utf-8", capture_output=True
         )
         if data != "":
             flag = search("mDreamingLockscreen=(true|false)", data.stdout)
@@ -91,7 +91,7 @@ class DeviceFacade:
 
     def is_keyboard_show(serial):
         data = run(
-            "adb shell dumpsys input_method", encoding="utf-8", capture_output=True
+            f"adb -s {serial} shell dumpsys input_method", encoding="utf-8", capture_output=True
         )
         if data != "":
             flag = search("mInputShown=(true|false)", data.stdout)
