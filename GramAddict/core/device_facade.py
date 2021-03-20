@@ -93,7 +93,7 @@ class DeviceFacade:
                 flag = search("mInputShown=(true|false)", data)
                 return True if flag.group(1) == "true" else False
             else:
-                print(
+                logger.debug(
                     f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys input_method returns nothing!"
                 )
                 return None
