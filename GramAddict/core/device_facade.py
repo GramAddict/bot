@@ -41,7 +41,7 @@ class DeviceFacade:
         return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
 
     def back(self):
-        logger.debug("Press back button")
+        logger.debug("Press back button.")
         self.deviceV2.press("back")
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=10):
@@ -76,17 +76,22 @@ class DeviceFacade:
         self.deviceV2.press("power")
 
     def is_screen_locked(self):
-        status = popen(
-            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys window"
-        )
-        data = status.read()
-        flag = search("mDreamingLockscreen=(true|false)", data)
-        return True if flag is not None and flag.group(1) == "true" else False
+        status = popen(f"adb -s {self.deviceV2.serial} shell dumpsys window")
+        try:
+            data = status.read()
+            if data != "":
+                flag = search("mDreamingLockscreen=(true|false)", data)
+                return True if flag is not None and flag.group(1) == "true" else False
+            else:
+                logger.debug(
+                    f"'adb -s {self.deviceV2.serial} shell dumpsys window' returns nothing!"
+                )
+                return None
+        except:
+            return None
 
-    def is_keyboard_show(self):
-        status = popen(
-            f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys input_method"
-        )
+    def is_keyboard_show(serial):
+        status = popen(f"adb -s {serial} shell dumpsys input_method")
         try:
             data = status.read()
             if data != "":
@@ -94,7 +99,7 @@ class DeviceFacade:
                 return True if flag.group(1) == "true" else False
             else:
                 logger.debug(
-                    f"adb {'' if self.device_id is None else ('-s '+ self.device_id)} shell dumpsys input_method returns nothing!"
+                    f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
                 )
                 return None
         except:

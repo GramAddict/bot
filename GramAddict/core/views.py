@@ -498,7 +498,7 @@ class SearchView:
         return PlacesView(self.device)
 
     def _close_keyboard(self):
-        flag = DeviceFacade.is_keyboard_show(self.device)
+        flag = DeviceFacade.is_keyboard_show(self.device.deviceV2.serial)
         if flag:
             logger.debug("The keyboard is currently open. Press back to close.")
             self.device.back()
@@ -1140,6 +1140,10 @@ class ProfileView(ActionBarView):
             )
             return post, followers, following
         except:
+            logger.debug(
+                "Can't get post/followers/following text for check the language! Save a crash to understand the reason."
+            )
+            save_crash(self.device)
             return None, None, None
 
     def _click_on_avatar(self):

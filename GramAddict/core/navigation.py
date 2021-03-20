@@ -23,7 +23,7 @@ def check_if_english(device):
     random_sleep()
     logger.debug("Checking if English..")
     post, follower, following = ProfileView(device)._getSomeText()
-    if post is not None:
+    if None not in {post, follower, following}:
         if post == "Posts" and follower == "Followers" and following == "Following":
             logger.debug("Instagram in English..")
         else:
