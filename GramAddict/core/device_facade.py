@@ -92,18 +92,18 @@ class DeviceFacade:
 
     def is_keyboard_show(serial):
         status = popen(f"adb -s {serial} shell dumpsys input_method")
-        try:
-            data = status.read()
-            if data != "":
-                flag = search("mInputShown=(true|false)", data)
-                return True if flag.group(1) == "true" else False
-            else:
-                logger.debug(
-                    f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
-                )
-                return None
-        except:
+        
+        data = status.read()
+        logger.debug(data)
+        if data != "":
+            flag = search("mInputShown=(true|false)", data)
+            return True if flag.group(1) == "true" else False
+        else:
+            logger.debug(
+                f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
+            )
             return None
+
 
     def is_alive(self):
         return self.deviceV2._is_alive()
