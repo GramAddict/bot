@@ -3,6 +3,7 @@ from enum import Enum, auto
 from os import popen, listdir, getcwd
 from random import uniform
 from re import search
+from subprocess import run
 from time import sleep
 from GramAddict.core.utils import random_sleep
 import uiautomator2
@@ -76,34 +77,30 @@ class DeviceFacade:
         self.deviceV2.press("power")
 
     def is_screen_locked(self):
-        status = popen(f"adb -s {self.deviceV2.serial} shell dumpsys window")
-        try:
-            data = status.read()
-            if data != "":
-                flag = search("mDreamingLockscreen=(true|false)", data)
-                return True if flag is not None and flag.group(1) == "true" else False
-            else:
-                logger.debug(
-                    f"'adb -s {self.deviceV2.serial} shell dumpsys window' returns nothing!"
-                )
-                return None
-        except:
+        data = run(
+            "adb shell shell dumpsys window", encoding="utf-8", capture_output=True
+        )
+        if data != "":
+            flag = search("mDreamingLockscreen=(true|false)", data.stdout)
+            return True if flag is not None and flag.group(1) == "true" else False
+        else:
+            logger.debug(
+                f"'adb -s {self.deviceV2.serial} shell dumpsys window' returns nothing!"
+            )
             return None
 
     def is_keyboard_show(serial):
-        status = popen(f"adb -s {serial} shell dumpsys input_method")
-        
-        data = status.read()
-        logger.debug(data)
+        data = run(
+            "adb shell dumpsys input_method", encoding="utf-8", capture_output=True
+        )
         if data != "":
-            flag = search("mInputShown=(true|false)", data)
+            flag = search("mInputShown=(true|false)", data.stdout)
             return True if flag.group(1) == "true" else False
         else:
             logger.debug(
                 f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
             )
             return None
-
 
     def is_alive(self):
         return self.deviceV2._is_alive()
