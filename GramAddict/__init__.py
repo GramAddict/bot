@@ -96,6 +96,7 @@ def run():
     )
     if device is None:
         return
+    logger.debug(f"Device ID: {device.device_id}")
     session_state = None
     while True:
         set_time_delta(configs.args)
