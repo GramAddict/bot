@@ -19,7 +19,7 @@ setuptools.setup(
         "ConfigArgParse==1.2.3",
         "matplotlib==3.3.3",
         "numpy==1.19.3",
-        "PyYAML==5.3.1",
+        "PyYAML==5.4",
         "uiautomator==1.0.2",
         "uiautomator2==2.13.2",
         "urllib3==1.26.3",
