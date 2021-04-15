@@ -62,7 +62,7 @@ def check_adb_connection():
         message = "Cannot proceed."
     elif devices_count > 1 and not is_device_id_provided:
         is_ok = False
-        message = "Use --device to specify a device."
+        message = "Use --device devicename to specify a device."
 
     if is_ok:
         logger.debug(f"Connected devices via adb: {devices_count}. {message}")
@@ -104,8 +104,8 @@ def open_instagram_with_url(url):
     return True
 
 
-def open_instagram(device, screen_record):
-    logger.info("Open Instagram app")
+def open_instagram(device, screen_record, close_apps):
+    logger.info("Open Instagram app.")
     cmd = (
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
@@ -113,25 +113,34 @@ def open_instagram(device, screen_record):
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
-    if err:
-        logger.debug(err)
+    if "Error" in err:
+        logger.error(err.replace("\n", ". "))
+        return False
+    elif "more than one device/emulator" in err:
+        logger.error(f"{err[9:].capitalize()}, specify only one by using --device devicename")
+        return False
+    elif err == "":
+        logger.debug("Instagram app opened successfully.")
+    else:
+        logger.debug(err.replace("Warning: ", ""))
     random_sleep()
+    if close_apps:
+        logger.info("Close all the other apps, for avoid interfereces..")
+        device.deviceV2.app_stop_all(excludes=[app_id])
+        random_sleep()
     if screen_record:
         try:
             device.start_screenrecord()
         except:
             logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -r requirements_screen_record.txt'"
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
             )
+    return True
 
 
 def close_instagram(device, screen_record):
     logger.info("Close Instagram app.")
-    os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell am force-stop {app_id}"
-    ).close()
+    device.deviceV2.app_stop(app_id)
     if screen_record:
         try:
             device.stop_screenrecord()
@@ -150,22 +159,21 @@ def kill_atx_agent(device):
     ).close()
 
 
-def random_sleep(inf=1.0, sup=4.0, modulable=True):
+def random_sleep(inf=1.0, sup=4.0, modulable=True, logging=True):
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
-    logger.debug(f"{str(delay)[0:4]}s sleep")
+    if logging:
+        logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
 
 def save_crash(device):
-
     directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     try:
         os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
     except OSError:
         logger.error("Directory " + directory_name + " already exists.")
         return
-
     screenshot_format = ".png"
     try:
         device.screenshot(
@@ -211,7 +219,7 @@ def stop_bot(device, sessions, session_state, screen_record):
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     if session_state is not None:
-        print_full_report(sessions)
+        print_full_report(sessions, configs.args.scrape_to_file)
         sessions.persist(directory=session_state.my_username)
     sys.exit(0)
 
@@ -247,9 +255,6 @@ def get_value(count, name, default):
     else:
         value = default
         print_error()
-
-    if value == 69:
-        logger.info("69, Noice 😎 https://www.youtube.com/watch?v=VLNxvl3-CpA")
     return value
 
 
@@ -302,9 +307,6 @@ def init_on_things(source, args, sessions, session_state):
     from functools import partial
     from GramAddict.core.interaction import (
         _on_interaction,
-        _on_like,
-        _on_watch,
-        _on_comment,
     )
 
     on_interaction = partial(
@@ -319,12 +321,6 @@ def init_on_things(source, args, sessions, session_state):
         args=args,
     )
 
-    on_like = partial(_on_like, sessions=sessions, session_state=session_state)
-
-    on_watch = partial(_on_watch, sessions=sessions, session_state=session_state)
-
-    on_comment = partial(_on_comment, sessions=sessions, session_state=session_state)
-
     if args.stories_count != "0":
         stories_percentage = get_value(
             args.stories_percentage, "Chance of watching stories: {}%", 40
@@ -336,19 +332,19 @@ def init_on_things(source, args, sessions, session_state):
         args.follow_percentage, "Chance of following: {}%", 40
     )
     comment_percentage = get_value(
-        args.comment_percentage, "Chance of commenting: {}%", 40
+        args.comment_percentage, "Chance of commenting: {}%", 0
     )
     interact_percentage = get_value(
         args.interact_percentage, "Chance of interacting: {}%", 40
     )
+    pm_percentage = get_value(args.pm_percentage, "Chance of send PM: {}%", 0)
 
     return (
         on_interaction,
-        on_like,
-        on_watch,
         stories_percentage,
         follow_percentage,
         comment_percentage,
+        pm_percentage,
         interact_percentage,
     )
 

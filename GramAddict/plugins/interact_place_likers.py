@@ -82,11 +82,10 @@ class InteractPlaceLikers(Plugin):
             # Init common things
             (
                 on_interaction,
-                on_like,
-                on_watch,
                 stories_percentage,
                 follow_percentage,
                 comment_percentage,
+                pm_percentage,
                 interact_percentage,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
@@ -102,20 +101,15 @@ class InteractPlaceLikers(Plugin):
                 self.handle_place(
                     device,
                     source,
-                    self.args.likes_count,
-                    self.args.stories_count,
-                    stories_percentage,
-                    follow_percentage,
-                    int(self.args.follow_limit) if self.args.follow_limit else None,
-                    comment_percentage,
-                    interact_percentage,
-                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
-                    on_like,
-                    on_watch,
                     on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
+                    interact_percentage,
                 )
                 self.state.is_job_completed = True
 
@@ -123,7 +117,7 @@ class InteractPlaceLikers(Plugin):
                 job()
 
             if limit_reached:
-                logger.info("Likes and follows limit reached.")
+                logger.info("Ending session.")
                 self.session_state.check_limit(
                     self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )
@@ -133,43 +127,35 @@ class InteractPlaceLikers(Plugin):
         self,
         device,
         place,
-        likes_count,
-        stories_count,
-        stories_percentage,
-        follow_percentage,
-        follow_limit,
-        comment_percentage,
-        interact_percentage,
-        scraping_file,
         current_job,
         storage,
         profile_filter,
-        on_like,
-        on_watch,
         on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+        interact_percentage,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
-            likes_count=likes_count,
-            stories_count=stories_count,
+            likes_count=self.args.likes_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
-            on_like=on_like,
-            on_watch=on_watch,
+            pm_percentage=pm_percentage,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
+            scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
-
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
-            follow_limit=follow_limit,
-            source=place,
             session_state=self.session_state,
+            follow_limit=self.args.follow_limit,
+            source=place,
         )
 
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
@@ -185,7 +171,6 @@ class InteractPlaceLikers(Plugin):
             device,
             self.session_state,
             place,
-            follow_limit,
             current_job,
             storage,
             profile_filter,
@@ -193,5 +178,4 @@ class InteractPlaceLikers(Plugin):
             on_interaction,
             interaction,
             is_follow_limit_reached,
-            False,
         )

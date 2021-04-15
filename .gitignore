@@ -4,11 +4,10 @@
 /dist
 /gramaddict.egg-info
 /.idea
+/test
 /.vscode
 */*.yml
-history_filters_users.*
-interacted_users.*
-sessions.json
+*/*.json
 *.pyc
 .DS_Store
 screenshots
@@ -22,3 +21,5 @@ Pipfile.lock
 *.mp4
 *.log*
 !config-examples/*
+*.ini
+*.db

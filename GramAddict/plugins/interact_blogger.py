@@ -1,4 +1,4 @@
-from GramAddict.core.handle_sources import handle_likers
+from GramAddict.core.handle_sources import handle_blogger, handle_blogger_from_file
 import logging
 from functools import partial
 from random import seed
@@ -10,9 +10,7 @@ from GramAddict.core.interaction import (
     is_follow_limit_reached_for_source,
 )
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.utils import (
-    get_value,
     sample_sources,
     init_on_things,
 )
@@ -24,28 +22,35 @@ seed()
 
 
 class InteractBloggerPostLikers(Plugin):
-    """Handles the functionality of interacting with a blogger post likers"""
+    """Handles the functionality of interacting with a blogger"""
 
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Handles the functionality of interacting with a blogger post likers"
-        )
+        self.description = "Handles the functionality of interacting with a blogger"
         self.arguments = [
             {
-                "arg": "--blogger-post-likers",
+                "arg": "--blogger",
                 "nargs": "+",
-                "help": "interact with likers of post for a specified blogger",
+                "help": "interact a specified blogger",
                 "metavar": ("blogger1", "blogger2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--blogger-post-limits",
-                "nargs": None,
-                "help": "limit the posts you're looking for likers",
-                "metavar": "2",
-                "default": 0,
+                "arg": "--interact-from-file",
+                "nargs": "+",
+                "help": "filenames of the list of users [*.txt]",
+                "metavar": ("filename1", "filename2"),
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-from-file",
+                "nargs": "+",
+                "help": "filenames of the list of users [*.txt]",
+                "metavar": ("filename1", "filename2"),
+                "default": None,
+                "operation": True,
             },
         ]
 
@@ -64,7 +69,13 @@ class InteractBloggerPostLikers(Plugin):
         self.current_mode = plugin
 
         # Handle sources
-        sources = [source for source in self.args.blogger_post_likers]
+        if plugin == "interact-from-file":
+            sources = [file for file in self.args.interact_from_file]
+        elif plugin == "unfollow-from-file":
+            sources = [file for file in self.args.unfollow_from_file]
+        else:
+            sources = [source for source in self.args.blogger]
+
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.ALL
@@ -106,11 +117,29 @@ class InteractBloggerPostLikers(Plugin):
                 )
                 self.state.is_job_completed = True
 
+            def job_file():
+                self.handle_blogger_from_file(
+                    device,
+                    source,
+                    plugin,
+                    storage,
+                    profile_filter,
+                    on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
+                )
+                self.state.is_job_completed = True
+
             while not self.state.is_job_completed and not limit_reached:
-                job()
+                if plugin == "blogger":
+                    job()
+                else:
+                    job_file()
 
             if limit_reached:
-                logger.info("Likes and follows limit reached.")
+                logger.info("Ending session.")
                 self.session_state.check_limit(
                     self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )
@@ -129,7 +158,6 @@ class InteractBloggerPostLikers(Plugin):
         comment_percentage,
         pm_percentage,
     ):
-        # is_myself = username == self.session_state.my_username
 
         interaction = partial(
             interact_with_user,
@@ -152,23 +180,59 @@ class InteractBloggerPostLikers(Plugin):
             source=username,
         )
 
-        skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
-        skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
-
-        posts_end_detector = ScrollEndDetector(
-            repeats_to_end=2,
-            skipped_list_limit=skipped_list_limit,
-            skipped_fling_limit=skipped_fling_limit,
-        )
-
-        handle_likers(
+        handle_blogger(
             device,
             self.session_state,
             username,
             current_job,
             storage,
             profile_filter,
-            posts_end_detector,
+            on_interaction,
+            interaction,
+            is_follow_limit_reached,
+        )
+
+    def handle_blogger_from_file(
+        self,
+        device,
+        current_filename,
+        current_job,
+        storage,
+        profile_filter,
+        on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+    ):
+
+        interaction = partial(
+            interact_with_user,
+            my_username=self.session_state.my_username,
+            likes_count=self.args.likes_count,
+            stories_percentage=stories_percentage,
+            follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
+            pm_percentage=pm_percentage,
+            profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
+            scraping_file=self.args.scrape_to_file,
+            current_mode=self.current_mode,
+        )
+        is_follow_limit_reached = partial(
+            is_follow_limit_reached_for_source,
+            session_state=self.session_state,
+            follow_limit=self.args.follow_limit,
+            source=current_filename,
+        )
+
+        handle_blogger_from_file(
+            self,
+            device,
+            current_filename,
+            current_job,
+            storage,
             on_interaction,
             interaction,
             is_follow_limit_reached,

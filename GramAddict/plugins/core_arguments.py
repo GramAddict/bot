@@ -95,14 +95,9 @@ class CoreArguments(Plugin):
                 "default": "60-70",
             },
             {
-                "arg": "--watch-video",
-                "help": "if you open a video, you will watch it for (15 to 40 seconds)",
-                "action": "store_true",
-            },
-            {
                 "arg": "--watch-video-time",
                 "nargs": None,
-                "help": "amount of time (seconds) you want to watch a video, if --watch-video is enabled. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "help": "amount of time (seconds) you want to watch a video before interact with it, set to 0 to disable this feature. It can be a number (e.g. 20) or a range (e.g. 20-40)",
                 "metavar": "15-55",
                 "default": "20-40",
             },
@@ -178,6 +173,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--close-apps",
+                "help": "close all apps except IG, for avoid interferences",
+                "action": "store_true",
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
@@ -221,6 +221,20 @@ class CoreArguments(Plugin):
                 "arg": "--total-comments-limit",
                 "nargs": None,
                 "help": "limit on total comments per session, disabled by default",
+                "metavar": "5-10",
+                "default": "0",
+            },
+            {
+                "arg": "--pm-percentage",
+                "nargs": None,
+                "help": "private message given percentage of interacted users, 0 by default",
+                "metavar": "40-60",
+                "default": "0",
+            },
+            {
+                "arg": "--total-pm-limit",
+                "nargs": None,
+                "help": "limit on total private message per session, disabled by default",
                 "metavar": "5-10",
                 "default": "0",
             },

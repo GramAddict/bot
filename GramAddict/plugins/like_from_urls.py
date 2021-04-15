@@ -1,9 +1,8 @@
 import logging
-from functools import partial
 from random import shuffle
 from os import path
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.interaction import _on_like, do_like
+from GramAddict.core.interaction import do_like
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.views import OpenedPostView
 from GramAddict.core.utils import (
@@ -52,9 +51,6 @@ class LikeFromURLs(Plugin):
         file_list = [file for file in (self.args.interact_from_file)]
         shuffle(file_list)
 
-        on_like = partial(
-            _on_like, sessions=self.sessions, session_state=self.session_state
-        )
         for filename in file_list:
             self.state = State()
 
@@ -67,11 +63,11 @@ class LikeFromURLs(Plugin):
                 configs=configs,
             )
             def job():
-                self.process_file(filename, on_like, storage)
+                self.process_file(filename, storage)
 
             job()
 
-    def process_file(self, current_file, on_like, storage):
+    def process_file(self, current_file, storage):
         # TODO: We need to add interactions properly, honor session/source limits, honor filter,
         # etc. Not going to try to do this now, but adding a note to do it later
         if path.isfile(current_file):
@@ -82,9 +78,7 @@ class LikeFromURLs(Plugin):
                         if open_instagram_with_url(url) is True:
                             opened_post_view = OpenedPostView(self.device)
                             username = opened_post_view._getUserName
-                            like_succeed = do_like(
-                                opened_post_view, self.device, on_like
-                            )
+                            like_succeed = do_like(opened_post_view, self.device)
                             logger.info(
                                 "Like for: {}, status: {}".format(url, like_succeed)
                             )

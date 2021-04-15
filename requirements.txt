@@ -1,8 +1,8 @@
 colorama==0.4.3
-ConfigArgParse==1.2.3
-matplotlib==3.3.3
+ConfigArgParse==1.4
+matplotlib==3.4.1
 numpy==1.19.3
-PyYAML==5.3.1
-uiautomator2==2.13.2
+PyYAML==5.4
+uiautomator2==2.14.1
 urllib3==1.26.4
 emoji==1.2.0

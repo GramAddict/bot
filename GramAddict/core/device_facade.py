@@ -1,18 +1,19 @@
+from datetime import datetime
 import logging
+import uiautomator2
 from enum import Enum, auto
-from os import popen, listdir, getcwd
+from os import listdir, getcwd
 from random import uniform
 from re import search
 from subprocess import run
 from time import sleep
 from GramAddict.core.utils import random_sleep
-import uiautomator2
 
 logger = logging.getLogger(__name__)
 
 
 def create_device(device_id):
-    logger.info(f"Using uiautomator v2")
+    logger.info("Using uiautomator v2")
     try:
         return DeviceFacade(device_id)
     except ImportError as e:
@@ -20,17 +21,36 @@ def create_device(device_id):
         return None
 
 
+def get_device_info(device):
+    logger.debug(
+        f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
+    )
+    if int(device.get_info()["sdkInt"]) < 19:
+        logger.warning("Only Android 4.4+ (SDK 19+) devices are supported!")
+    logger.debug(
+        f"Screen dimension: {device.get_info()['displayWidth']}x{device.get_info()['displayHeight']}"
+    )
+    logger.debug(
+        f"Screen resolution: {device.get_info()['displaySizeDpX']}x{device.get_info()['displaySizeDpY']}"
+    )
+    logger.debug(f"Device ID: {device.deviceV2.serial}")
+
+
 class DeviceFacade:
     deviceV2 = None  # uiautomator2
 
     def __init__(self, device_id):
         self.device_id = device_id
+        device_ip = None
         try:
-            self.deviceV2 = (
-                uiautomator2.connect()
-                if device_id is None
-                else uiautomator2.connect(device_id)
-            )
+            if True:
+                self.deviceV2 = (
+                    uiautomator2.connect()
+                    if device_id is None
+                    else uiautomator2.connect(device_id)
+                )
+            else:
+                self.deviveV2 = uiautomator2.connect_adb_wifi(f"{device_ip}:5555")
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
@@ -39,7 +59,7 @@ class DeviceFacade:
             view = self.deviceV2(*args, **kwargs)
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
-        return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+        return DeviceFacade.View(view=view, device=self.deviceV2)
 
     def back(self):
         logger.debug("Press back button.")
@@ -62,7 +82,7 @@ class DeviceFacade:
             if mp4_files != []:
                 last_mp4 = mp4_files[-1]
                 logger.warning(
-                    f"Screen recorder has been stoped succesfully! File '{last_mp4}' available in '{getcwd()}'"
+                    f"Screen recorder has been stopped succesfully! File '{last_mp4}' available in '{getcwd()}'"
                 )
 
     def screenshot(self, path):
@@ -186,21 +206,15 @@ class DeviceFacade:
         deviceV2 = None  # uiautomator2
         viewV2 = None  # uiautomator2
 
-        def __init__(self, version, view, device):
-            if version == 1:
-                self.viewV1 = view
-                self.deviceV1 = device
-            else:
-                self.viewV2 = view
-                self.deviceV2 = device
+        def __init__(self, view, device):
+            self.viewV2 = view
+            self.deviceV2 = device
 
         def __iter__(self):
             children = []
             try:
                 for item in self.viewV2:
-                    children.append(
-                        DeviceFacade.View(version=2, view=item, device=self.deviceV2)
-                    )
+                    children.append(DeviceFacade.View(view=item, device=self.deviceV2))
                 return iter(children)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -216,42 +230,42 @@ class DeviceFacade:
                 view = self.viewV2.child(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def sibling(self, *args, **kwargs):
             try:
                 view = self.viewV2.sibling(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def left(self, *args, **kwargs):
             try:
                 view = self.viewV2.left(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def right(self, *args, **kwargs):
             try:
                 view = self.viewV2.right(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def up(self, *args, **kwargs):
             try:
                 view = self.viewV2.up(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def down(self, *args, **kwargs):
             try:
                 view = self.viewV2.down(*args, **kwargs)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-            return DeviceFacade.View(version=2, view=view, device=self.deviceV2)
+            return DeviceFacade.View(view=view, device=self.deviceV2)
 
         def click_gone(self, maxretry=3, interval=1.0):
             try:
@@ -338,7 +352,7 @@ class DeviceFacade:
             logger.debug(
                 f"Available surface for double click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
             )
-            time_between_clicks = uniform(0.050, 0.170)
+            time_between_clicks = uniform(0.050, 0.140)
 
             try:
                 logger.debug(
@@ -435,7 +449,16 @@ class DeviceFacade:
 
         def set_text(self, text):
             try:
-                self.viewV2.set_text(text)
+                self.deviceV2.set_fastinput_ime(True)
+                self.deviceV2.clear_text()
+                start = datetime.now()
+                for t in text:
+                    self.deviceV2.send_keys(t, clear=False)
+                    random_sleep(0.1, 0.5, modulable=False, logging=False)
+                logger.debug(
+                    f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
+                )
+                self.deviceV2.set_fastinput_ime(False)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

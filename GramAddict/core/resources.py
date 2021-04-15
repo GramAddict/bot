@@ -8,6 +8,10 @@ class ResourceID:
         self.ACTION_BAR_SEARCH_EDIT_TEXT = f"{APP_ID}:id/action_bar_search_edit_text"
         self.ACTION_BAR_TEXTVIEW_TITLE = f"{APP_ID}:id/action_bar_textview_title"
         self.ACTION_BAR_TITLE = f"{APP_ID}:id/action_bar_title"
+        self.ACTION_BAR_TITLE_AUTO_SIZE = (
+            f"{APP_ID}:id/action_bar_large_title_auto_size"
+        )
+        self.ACTION_ICON = f"{APP_ID}:id/action_icon"
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
@@ -17,6 +21,13 @@ class ResourceID:
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
         self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
+        self.DIRECT_TEXT_MESSAGE_TEXT_VIEW = (
+            f"{APP_ID}:id/direct_text_message_text_view"
+        )
+        self.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW = (
+            f"{APP_ID}:id/feed_inline_composer_button_textview"
+        )
+        self.FIND_PEOPLE_DISMISS_BUTTON = f"{APP_ID}:id/find_people_dismiss_button"
         self.FIXED_TABBAR_TABS_CONTAINER = f"{APP_ID}:id/fixed_tabbar_tabs_container"
         self.FOLLOW_LIST_CONTAINER = f"{APP_ID}:id/follow_list_container"
         self.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW = (
@@ -42,6 +53,7 @@ class ResourceID:
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
+        self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
         self.PRIVATE_PROFILE_EMPTY_STATE = f"{APP_ID}:id/private_profile_empty_state"
         self.PROFILE_HEADER_BIO_TEXT = f"{APP_ID}:id/profile_header_bio_text"
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (
@@ -99,10 +111,15 @@ class ResourceID:
         self.ROW_SEARCH_EDIT_TEXT = f"{APP_ID}:id/row_search_edit_text"
         self.ROW_SEARCH_USER_USERNAME = f"{APP_ID}:id/row_search_user_username"
         self.ROW_SIMPLE_TEXT_TEXTVIEW = f"{APP_ID}:id/row_simple_text_textview"
+        self.ROW_THREAD_COMPOSER_BUTTON_SEND = (
+            f"{APP_ID}:id/row_thread_composer_button_send"
+        )
+        self.ROW_THREAD_COMPOSER_EDITTEXT = f"{APP_ID}:id/row_thread_composer_edittext"
         self.ROW_USER_CONTAINER_BASE = f"{APP_ID}:id/row_user_container_base"
         self.ROW_USER_PRIMARY_NAME = f"{APP_ID}:id/row_user_primary_name"
         self.ROW_USER_TEXTVIEW = f"{APP_ID}:id/row_user_textview"
         self.SEARCH = f"{APP_ID}:id/search"
+        self.SECONDARY_LABEL = f"{APP_ID}:id/secondary_label"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
         self.TAB_AVATAR = f"{APP_ID}:id/tab_avatar"

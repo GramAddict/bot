@@ -2,7 +2,6 @@ import logging
 import emoji
 from functools import partial
 from random import seed
-
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
@@ -88,11 +87,10 @@ class InteractHashtagLikers(Plugin):
             # Init common things
             (
                 on_interaction,
-                on_like,
-                on_watch,
                 stories_percentage,
                 follow_percentage,
                 comment_percentage,
+                pm_percentage,
                 interact_percentage,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
@@ -108,20 +106,15 @@ class InteractHashtagLikers(Plugin):
                 self.handle_hashtag(
                     device,
                     source,
-                    self.args.likes_count,
-                    self.args.stories_count,
-                    stories_percentage,
-                    follow_percentage,
-                    int(self.args.follow_limit) if self.args.follow_limit else None,
-                    comment_percentage,
-                    interact_percentage,
-                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
-                    on_like,
-                    on_watch,
                     on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
+                    interact_percentage,
                 )
                 self.state.is_job_completed = True
 
@@ -139,42 +132,35 @@ class InteractHashtagLikers(Plugin):
         self,
         device,
         hashtag,
-        likes_count,
-        stories_count,
-        stories_percentage,
-        follow_percentage,
-        follow_limit,
-        comment_percentage,
-        interact_percentage,
-        scraping_file,
         current_job,
         storage,
         profile_filter,
-        on_like,
-        on_watch,
         on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+        interact_percentage,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
-            likes_count=likes_count,
-            stories_count=stories_count,
+            likes_count=self.args.likes_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
-            on_like=on_like,
-            on_watch=on_watch,
+            pm_percentage=pm_percentage,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
+            scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
-            follow_limit=follow_limit,
+            follow_limit=self.args.follow_limit,
             source=hashtag,
         )
 
@@ -191,7 +177,6 @@ class InteractHashtagLikers(Plugin):
             device,
             self.session_state,
             hashtag,
-            follow_limit,
             current_job,
             storage,
             profile_filter,
@@ -199,5 +184,4 @@ class InteractHashtagLikers(Plugin):
             on_interaction,
             interaction,
             is_follow_limit_reached,
-            False,
         )

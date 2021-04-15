@@ -8,7 +8,7 @@ import random
 from colorama import Fore, Style
 
 from GramAddict.core.config import Config
-from GramAddict.core.device_facade import create_device
+from GramAddict.core.device_facade import create_device, get_device_info
 from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
@@ -28,7 +28,6 @@ from GramAddict.core.utils import (
     kill_atx_agent,
     load_config as load_utils,
     open_instagram,
-    random_sleep,
     save_crash,
     set_time_delta,
     stop_bot,
@@ -82,21 +81,7 @@ def run():
             "You have to specify one of the actions: " + ", ".join(configs.actions)
         )
         return
-
-    logger.info("Instagram version: " + get_instagram_version())
     device = create_device(configs.device_id)
-    logger.debug(
-        f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
-    )
-    logger.debug(
-        f"Screen dimension: {device.get_info()['displayWidth']}x{device.get_info()['displayHeight']}"
-    )
-    logger.debug(
-        f"Screen resolution: {device.get_info()['displaySizeDpX']}x{device.get_info()['displaySizeDpY']}"
-    )
-    if device is None:
-        return
-    logger.debug(f"Device ID: {device.deviceV2.serial}")
     session_state = None
     while True:
         set_time_delta(configs.args)
@@ -107,6 +92,7 @@ def run():
             wait_for_next_session(
                 time_left, session_state, sessions, device, configs.args.screen_record
             )
+        get_device_info(device)
         session_state = SessionState(configs)
         session_state.set_limits_session(configs.args)
         sessions.append(session_state)
@@ -130,14 +116,12 @@ def run():
                 exit(0)
 
         logger.info("Device screen on and unlocked.")
-
-        open_instagram(device, configs.args.screen_record)
-
+        if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
+            logger.info("Instagram version: " + get_instagram_version())
+        else:
+            break
         try:
-            random_sleep()
-            check_if_english(device)
-            profileView = TabBarView(device).navigateToProfile()
-            random_sleep()
+            profileView = check_if_english(device)
             if configs.args.username is not None:
                 success = AccountView(device).changeToUsername(configs.args.username)
                 if not success:
@@ -200,7 +184,7 @@ def run():
             )
             if not inside_working_hours:
                 logger.info(
-                    f"Outside of working hours. Ending session.",
+                    "Outside of working hours. Ending session.",
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
@@ -247,7 +231,7 @@ def run():
         # print report now if asked
 
         if configs.args.repeat:
-            print_full_report(sessions)
+            print_full_report(sessions, configs.args.scrape_to_file)
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
             )
@@ -275,5 +259,5 @@ def run():
         else:
             break
 
-    print_full_report(sessions)
+    print_full_report(sessions, configs.args.scrape_to_file)
     sessions.persist(directory=session_state.my_username)

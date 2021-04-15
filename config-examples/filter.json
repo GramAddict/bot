@@ -27,6 +27,7 @@
     "comment_interact_usernames": true,
     "comment_blogger_post_likers": true,
     "comment_interact_from_file": true,
+    "comment_feed": false,
     "comment_photos": true,
     "comment_videos": true
 }

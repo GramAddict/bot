@@ -352,7 +352,6 @@ class SearchView:
 
             # Little trick for force-update the ui and placeholder text
             search_edit_text.click()
-            SearchView(self.device)._close_keyboard()
 
             if self.device.find(
                 className=ClassName.TEXT_VIEW,
@@ -369,7 +368,6 @@ class SearchView:
         search_edit_text.click()
         random_sleep(1, 2)
         if swipe_to_accounts:
-            SearchView(self.device)._close_keyboard()
             random_sleep(1, 2)
             DeviceFacade.swipe(self.device, DeviceFacade.Direction.LEFT, 0.8)
             random_sleep(1, 2)
@@ -381,12 +379,10 @@ class SearchView:
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
             search_edit_text.set_text(username)
-            SearchView(self.device)._close_keyboard()
         random_sleep()
         username_view = self._getUsernameRow(username)
-        if not username_view.exists():
+        if not username_view.exists(DeviceFacade.Timeout.SHORT):
             logger.error("Cannot find user @" + username + ".")
-            save_crash(self.device)
             return None
         username_view.click()
 
@@ -417,7 +413,6 @@ class SearchView:
         else:
             delta = 375
 
-        SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
         # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(
@@ -437,7 +432,6 @@ class SearchView:
         random_sleep()
 
         if not hashtag_view.exists():
-            SearchView(self.device)._close_keyboard()
             UniversalActions(self.device)._swipe_points(
                 direction=Direction.DOWN,
                 start_point_y=randint(delta + 10, delta + 150),
@@ -474,8 +468,6 @@ class SearchView:
                 save_crash(self.device)
                 return None
         place_tab.click()
-        random_sleep(1, 2)
-        SearchView(self.device)._close_keyboard()
         random_sleep(1, 2)
 
         search_edit_text.set_text(place)
@@ -530,12 +522,19 @@ class PostsViewList:
         displayWidth = self.device.get_info()["displayWidth"]
         containers_content = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
+        suggested_users = ResourceID.NETEGO_CAROUSEL_HEADER
 
         # move type: half photo
         if swipe == SwipeTo.HALF_PHOTO:
             zoomable_view_container = self.device.find(
                 resourceIdMatches=containers_content
             ).get_bounds()["bottom"]
+            ac_exists, _, ac_bottom = PostsViewList(
+                self.device
+            )._get_action_bar_position()
+            if ac_exists:
+                if zoomable_view_container < ac_bottom:
+                    zoomable_view_container += ac_bottom
             self.device.swipe_points(
                 displayWidth / 2,
                 zoomable_view_container - 5,
@@ -548,6 +547,7 @@ class PostsViewList:
                 "Scroll down to see next post.", extra={"color": f"{Fore.GREEN}"}
             )
             gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            obj1 = None
             for _ in range(2):
                 if not gap_view_obj.exists():
                     logger.debug("Can't find the gap obj, scroll down a little more.")
@@ -557,15 +557,39 @@ class PostsViewList:
                         continue
                     else:
                         break
-            gap_view = gap_view_obj.get_bounds()["top"]
-            zoomable_view_container = self.device.find(
-                resourceIdMatches=(containers_content)
-            ).get_bounds()["top"]
+                else:
+                    suggested = self.device.find(resourceIdMatches=suggested_users)
+                    if suggested.exists():
+                        for _ in range(2):
+                            PostsViewList(self.device).swipe_to_fit_posts(
+                                SwipeTo.HALF_PHOTO
+                            )
+                            footer_obj = self.device.find(
+                                resourceIdMatches=ResourceID.FOOTER_SPACE
+                            )
+                            if footer_obj.exists():
+                                obj1 = footer_obj.get_bounds()["bottom"]
+                                break
+                        break
+
+            if obj1 is None:
+                PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+                obj1 = gap_view_obj.get_bounds()["bottom"]
+            containers_content = self.device.find(resourceIdMatches=containers_content)
+            obj2 = (
+                (
+                    containers_content.get_bounds()["bottom"]
+                    + containers_content.get_bounds()["top"]
+                )
+                * 1
+                / 3
+            )
+
             self.device.swipe_points(
                 displayWidth / 2,
-                gap_view - 5,
+                obj1 - 5,
                 displayWidth / 2,
-                zoomable_view_container + 5,
+                obj2 + 5,
             )
             return True
 
@@ -636,20 +660,26 @@ class PostsViewList:
                 else:
                     return False, new_description
             else:
-                if n < 2:
-                    logger.debug(
-                        "Can't find the description, try to swipe a little bit down."
+                for _ in range(2):
+                    gap_view_obj = self.device.find(
+                        resourceIdMatches=ResourceID.GAP_VIEW
                     )
-                    UniversalActions(self.device)._swipe_points(
-                        direction=Direction.DOWN
+                    feed_composer = self.device.find(
+                        resourceIdMatches=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
                     )
-                    swiped_a_bit = True
-                    n += 1
-                else:
-                    logger.info(
-                        "Can't find the description of this post. Maybe it's blank.."
-                    )
-                    return False, ""
+                    if gap_view_obj.exists() or feed_composer.exists():
+                        logger.info(
+                            "Can't find the description of this post. Maybe it's blank.."
+                        )
+                        return False, ""
+                    else:
+                        logger.debug(
+                            "Can't find the description, try to swipe a little bit down."
+                        )
+                        UniversalActions(self.device)._swipe_points(
+                            direction=Direction.DOWN
+                        )
+                        swiped_a_bit = True
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
         """do a swipe of the amount of the action bar"""
@@ -665,7 +695,7 @@ class PostsViewList:
 
     def _get_action_bar_position(self):
         """action bar is overlayed, if you press on it you go back to the first post
-        knowing his position is important to avoid it"""
+        knowing his position is important to avoid it: exists, top, bottom"""
         action_bar = self.device.find(
             resourceIdMatches=(ResourceID.ACTION_BAR_CONTAINER)
         )
@@ -782,17 +812,38 @@ class PostsViewList:
                 logger.debug("Like btn not present.")
                 return False
 
+    def _check_if_ad(self, current_job):
+        if current_job == "feed":
+            STR = "Sponsored"
+            logger.debug("Checking if it's an AD.")
+            ad_like_obj = self.device.find(
+                resourceId=ResourceID.SECONDARY_LABEL,
+                className=ClassName.TEXT_VIEW,
+            )
+            if ad_like_obj.exists():
+                if ad_like_obj.get_text() == STR:
+                    logger.debug("Looks like an AD. Skip.")
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+
 
 class LanguageView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
     def setLanguage(self, language: str):
-        logger.debug(f"Set language to {language}")
+        logger.debug(f"Set language to {language}.")
         search_edit_text = self.device.find(
             resourceId=ResourceID.SEARCH,
             className=ClassName.EDIT_TEXT,
         )
+        search_edit_text.click()
+        random_sleep()
         search_edit_text.set_text(language)
 
         list_view = self.device.find(
@@ -818,17 +869,16 @@ class AccountView:
         return LanguageView(self.device)
 
     def changeToUsername(self, username):
-        action_bar = self.device.find(resourceId=ResourceID.ACTION_BAR_LARGE_TITLE)
+        action_bar = ProfileView._getActionBarTitleBtn(self)
         current_profile_name = action_bar.get_text()
-        current_profile_name_upper = current_profile_name.upper()
         # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
-        if current_profile_name_upper.replace(" ", "") == username.upper():
+        if current_profile_name.strip().upper() == username.upper():
             logger.info(
                 f"You are already logged as {username}!",
                 extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
             )
             return True
-        logger.debug(f"You're logged as {current_profile_name.replace(' ', '')}")
+        logger.debug(f"You're logged as {current_profile_name.strip()}")
         if action_bar.exists():
             action_bar.click()
             random_sleep()
@@ -836,18 +886,16 @@ class AccountView:
                 resourceId=ResourceID.ROW_USER_TEXTVIEW,
                 textMatches=case_insensitive_re(username),
             )
-            if found_obj.exists():
+            if found_obj.exists(DeviceFacade.Timeout.SHORT):
                 logger.info(
                     f"Switching to {username}...",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
                 found_obj.click()
                 random_sleep()
-                action_bar = self.device.find(
-                    resourceId=ResourceID.ACTION_BAR_LARGE_TITLE
-                )
-                current_profile_name = action_bar.get_text().upper()
-                if current_profile_name.replace(" ", "") == username.upper():
+                action_bar = ProfileView._getActionBarTitleBtn(self)
+                current_profile_name = action_bar.get_text()
+                if current_profile_name.strip().upper() == username.upper():
                     return True
         return False
 
@@ -859,8 +907,6 @@ class SettingsView:
     def navigateToAccount(self):
         logger.debug("Navigate to Account")
         button = self.device.find(
-            # textMatches=case_insensitive_re("Account"),
-            # resourceId=ResourceID.ROW_SIMPLE_TEXT_TEXTVIEW,
             className=ClassName.BUTTON,
             index=6,
         )
@@ -995,7 +1041,7 @@ class OpenedPostView:
         return self._isPostLiked()
 
     def _getListViewLikers(self):
-        self.device.find(resourceId=ResourceID.LIST).wait()
+        self.device.find(resourceId=ResourceID.LIST).wait(DeviceFacade.Timeout.MEDIUM)
         return self.device.find(resourceId=ResourceID.LIST)
 
     def _getUserCountainer(self):
@@ -1062,15 +1108,15 @@ class PostsGridView:
             media_type = MediaType.IGTV
         else:
             carousel_obj = re.match(
-                "(\d+ photo)|(\d+ video)", content_desc, re.IGNORECASE
+                r"(\d+ photo)|(\d+ video)", content_desc, re.IGNORECASE
             )
             n_photos = (
-                int(carousel_obj.group(1)[0])
+                [int(s) for s in carousel_obj.group(1).split() if s.isdigit()][0]
                 if (carousel_obj.group(1) is not None)
                 else 0
             )
             n_videos = (
-                int(carousel_obj.group(2)[0])
+                [int(s) for s in carousel_obj.group(2).split() if s.isdigit()][0]
                 if (carousel_obj.group(2) is not None)
                 else 0
             )
@@ -1098,24 +1144,24 @@ class ProfileView(ActionBarView):
         return OptionsView(self.device)
 
     def _getActionBarTitleBtn(self):
-        action_bar = case_insensitive_re(
+        bar = case_insensitive_re(
             [
                 ResourceID.TITLE_VIEW,
                 ResourceID.ACTION_BAR_TITLE,
                 ResourceID.ACTION_BAR_LARGE_TITLE,
                 ResourceID.ACTION_BAR_TEXTVIEW_TITLE,
+                ResourceID.ACTION_BAR_TITLE_AUTO_SIZE,
             ]
         )
-        bar = self.action_bar.child(
-            resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
+        action_bar = self.device.find(
+            resourceIdMatches=bar, className=ClassName.TEXT_VIEW
         )
-        if not bar.exists():
-            bar = self.device.find(
-                resourceIdMatches=action_bar, className=ClassName.TEXT_VIEW
-            )
-        return bar
+        return action_bar
 
     def _getSomeText(self):
+        self.device.find(
+            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
+        ).wait(DeviceFacade.Timeout.MEDIUM)
         try:
             post = (
                 self.device.find(
@@ -1147,44 +1193,38 @@ class ProfileView(ActionBarView):
             return None, None, None
 
     def _click_on_avatar(self):
-        self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR).wait()
-        self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR).click()
+        obj = self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR)
+        if obj.exists(DeviceFacade.Timeout.MEDIUM):
+            obj.click()
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-        following_regex_all = "^Following|^Requested|^Follow Back$"
+        following_regex_all = "^Following|^Requested|^Follow Back|^Follow"
         following_or_follow_back_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=following_regex_all,
         )
-        following_or_follow_back_button.wait(DeviceFacade.Timeout.SHORT)
-        if following_or_follow_back_button.exists():
-            following_regex = "^Following|^Requested"
-            following_button = self.device.find(
-                classNameMatches=button_regex,
-                clickable=True,
-                textMatches=following_regex,
+        if following_or_follow_back_button.exists(DeviceFacade.Timeout.MEDIUM):
+            button_text = following_or_follow_back_button.get_text()
+            if button_text in ["Following", "Requested"]:
+                button_status = FollowStatus.FOLLOWING
+            elif button_text == "Follow Back":
+                button_status = FollowStatus.FOLLOW_BACK
+            else:
+                button_status = FollowStatus.FOLLOW
+            return following_or_follow_back_button, button_status
+        else:
+            logger.error(
+                "The follow button doesn't exist! Maybe has changed his reasourceID!"
             )
-
-            if following_button.exists():
-                return following_button, FollowStatus.FOLLOWING
-
-            followback_regex = "^Follow Back$"
-            followback_button = self.device.find(
-                classNameMatches=button_regex,
-                clickable=True,
-                textMatches=followback_regex,
-            )
-            if followback_button.exists():
-                return followback_button, FollowStatus.FOLLOW_BACK
-
-        return None, FollowStatus.FOLLOW
+            save_crash(self.device)
+            return None, None
 
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
-            return title_view.get_text(error).replace(" ", "")
+            return title_view.get_text(error).strip()
         if error:
             logger.error("Cannot get username")
         return None
@@ -1291,7 +1331,7 @@ class ProfileView(ActionBarView):
 
     def getProfileInfo(self):
 
-        username = self.getUsername().replace(" ", "")
+        username = self.getUsername()
         followers = self.getFollowersCount()
         following = self.getFollowingCount()
 
@@ -1302,7 +1342,6 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(ResourceID.PROFILE_HEADER_BIO_TEXT),
             className=ClassName.TEXT_VIEW,
         )
-        biography.wait(DeviceFacade.Timeout.SHORT)
         if biography.exists():
             biography_text = biography.get_text()
             # If the biography is very long, blabla text and end with "...more" click the bottom of the text and get the new text
@@ -1312,18 +1351,17 @@ class ProfileView(ActionBarView):
             if is_long_bio is not None:
                 logger.debug('Found "… more" in bio - trying to expand')
                 username = self.getUsername()
-                for _ in range(2):
-                    # Clicking the biography is dangerous. Clicking "bottomright" is safest so we can try to avoid hashtags and tags
-                    biography.click(DeviceFacade.Location.BOTTOMRIGHT)
-                    random_sleep()
-                    if username == self.getUsername():
-                        return biography.get_text()
+                biography.click(DeviceFacade.Location.BOTTOMRIGHT)
+                random_sleep()
+                if username == self.getUsername():
+                    return biography.get_text()
+                else:
                     logger.debug(
                         "We're not in the same page - did we click a hashtag or a tag? Go back."
                     )
                     self.device.back()
-                logger.info("Failed to expand biography - checking short view.")
-                return biography.get_text()
+                    logger.info("Failed to expand biography - checking short view.")
+                    return biography.get_text()
             return biography_text
         return ""
 
@@ -1332,8 +1370,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=case_insensitive_re(ResourceID.PROFILE_HEADER_FULL_NAME),
             className=ClassName.TEXT_VIEW,
         )
-        full_name_view.wait(DeviceFacade.Timeout.SHORT)
-        if full_name_view.exists():
+        if full_name_view.exists(DeviceFacade.Timeout.SHORT):
             fullname_text = full_name_view.get_text()
             if fullname_text is not None:
                 return fullname_text
@@ -1364,13 +1401,30 @@ class ProfileView(ActionBarView):
         )
 
     def navigateToFollowers(self):
-        logger.debug("Navigate to Followers")
+        logger.info("Navigate to followers.")
         followers_button = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
-            )
+            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
         )
-        followers_button.click()
+        if followers_button.exists(DeviceFacade.Timeout.MEDIUM):
+            followers_button.click()
+            random_sleep()
+            return True
+        else:
+            logger.error("Can't find followers tab!")
+            return False
+
+    def navigateToFollowing(self):
+        logger.info("Navigate to following.")
+        followings_button = self.device.find(
+            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
+        )
+        if followings_button.exists(DeviceFacade.Timeout.MEDIUM):
+            followings_button.click()
+            random_sleep()
+            return True
+        else:
+            logger.error("Can't find following tab!")
+            return False
 
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""
@@ -1456,6 +1510,54 @@ class ProfileView(ActionBarView):
 
         return self.device.find(classNameMatches=views)
 
+class FollowingView:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
+
+    def do_unfollow_from_list(self) -> bool:
+        FOLLOWING_REGEX = "^Following$"
+        UNFOLLOW_REGEX = "^Following|^Requested"
+        following_button = self.device.find(classNameMatches=ClassName.BUTTON, clickable=True, textMatches=FOLLOWING_REGEX)
+        if following_button.exists(DeviceFacade.Timeout.SHORT):
+            following_button.click()
+
+            confirm_unfollow_button = None
+            attempts = 2
+            for _ in range(attempts):
+                confirm_unfollow_button = self.device.find(
+                    resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
+                )
+                if confirm_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
+                    break
+
+            if not confirm_unfollow_button or not confirm_unfollow_button.exists():
+                logger.error("Cannot confirm unfollow.")
+                save_crash(self.device)
+                self.device.back()
+                return False
+            logger.debug("Confirm unfollow.")
+            confirm_unfollow_button.click()
+
+            random_sleep(0, 1, modulable=False)
+
+            # Check if private account confirmation
+            private_unfollow_button = self.device.find(
+                classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
+                textMatches=UNFOLLOW_REGEX,
+            )
+            if private_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
+                logger.debug("Confirm unfollow private account.")
+                private_unfollow_button.click()
+
+            UniversalActions.detect_block(self.device)
+            return True
+        else:
+            logger.info("Can't find that user. Skip.")
+            return False
+
+class FollowersView:
+    def __init__(self, device: DeviceFacade):
+        self.device = device
 
 class CurrentStoryView:
     def __init__(self, device: DeviceFacade):
@@ -1560,6 +1662,8 @@ class UniversalActions:
 
     def detect_block(device):
         logger.debug("Checking for block...")
+        if "blocked" in device.deviceV2.toast.get_message(2.0, 5.0, default=""):
+            pass
         block_dialog = device.find(
             resourceIdMatches=ResourceID.BLOCK_POPUP,
         )
@@ -1593,7 +1697,15 @@ class UniversalActions:
             )
 
     def _check_if_no_posts(self):
-        # wait until it gest rendered
         obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)
-        obj.wait(DeviceFacade.Timeout.SHORT)
-        return obj.exists()
+        return obj.exists(DeviceFacade.Timeout.MEDIUM)
+
+    def search_text(self, username):
+        search_row = self.device.find(resourceId=ResourceID.ROW_SEARCH_EDIT_TEXT)
+        if search_row.exists(DeviceFacade.Timeout.MEDIUM):
+            search_row.click()
+            random_sleep()
+            search_row.set_text(username)
+            return True
+        else:
+            return False

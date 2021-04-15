@@ -1,5 +1,4 @@
 import logging
-import sys
 import traceback
 from colorama import Fore, Style
 from datetime import datetime
@@ -66,6 +65,9 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 UiObjectNotFoundErrorv2,
             ):
                 logger.error(traceback.format_exc())
+                logger.info(
+                    f"List of running apps: {', '.join(device.deviceV2.app_list_running())}."
+                )
                 save_crash(device)
                 session_state.totalCrashes += 1
                 if session_state.check_limit(
@@ -78,13 +80,16 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 logger.info("Something unexpected happened. Let's try again.")
                 close_instagram(device, screen_record)
                 random_sleep()
-                open_instagram(device, screen_record)
+                open_instagram(device, screen_record, configs.args.close_apps)
                 TabBarView(device).navigateToProfile()
             except Exception as e:
                 logger.error(traceback.format_exc())
+                logger.info(
+                    f"List of running apps: {', '.join(device.deviceV2.app_list_running())}"
+                )
                 save_crash(device)
                 close_instagram(device, screen_record)
-                print_full_report(sessions)
+                print_full_report(sessions, configs.args.scrape_to_file)
                 sessions.persist(directory=session_state.my_username)
                 raise e
 

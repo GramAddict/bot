@@ -23,7 +23,7 @@ seed()
 
 
 class InteractBloggerFollowers(Plugin):
-    """Handles the functionality of interacting with a bloggers followers"""
+    """Handles the functionality of interacting with a bloggers followers/following"""
 
     def __init__(self):
         super().__init__()
@@ -35,6 +35,14 @@ class InteractBloggerFollowers(Plugin):
                 "arg": "--blogger-followers",
                 "nargs": "+",
                 "help": "list of usernames with whose followers you want to interact",
+                "metavar": ("username1", "username2"),
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--blogger-following",
+                "nargs": "+",
+                "help": "list of usernames with whose following you want to interact",
                 "metavar": ("username1", "username2"),
                 "default": None,
                 "operation": True,
@@ -58,7 +66,10 @@ class InteractBloggerFollowers(Plugin):
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [source for source in self.args.blogger_followers]
+        if self.args.blogger_followers is not None:
+            sources = [source for source in self.args.blogger_followers]
+        else:
+            sources = [source for source in self.args.blogger_following]
 
         # Start
         for source in sample_sources(sources, self.args.truncate_sources):
@@ -76,11 +87,10 @@ class InteractBloggerFollowers(Plugin):
             # Init common things
             (
                 on_interaction,
-                on_like,
-                on_watch,
                 stories_percentage,
                 follow_percentage,
                 comment_percentage,
+                pm_percentage,
                 interact_percentage,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
@@ -95,21 +105,16 @@ class InteractBloggerFollowers(Plugin):
             def job():
                 self.handle_blogger(
                     device,
-                    source[1:] if "@" in source else source,
-                    self.args.likes_count,
-                    self.args.stories_count,
-                    stories_percentage,
-                    follow_percentage,
-                    int(self.args.follow_limit) if self.args.follow_limit else None,
-                    comment_percentage,
-                    interact_percentage,
-                    self.args.scrape_to_file,
+                    source,
                     plugin,
                     storage,
                     profile_filter,
-                    on_like,
-                    on_watch,
                     on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
+                    interact_percentage,
                 )
                 self.state.is_job_completed = True
 
@@ -117,7 +122,7 @@ class InteractBloggerFollowers(Plugin):
                 job()
 
             if limit_reached:
-                logger.info("Likes and follows limit reached.")
+                logger.info("Ending session.")
                 self.session_state.check_limit(
                     self.args, limit_type=self.session_state.Limit.ALL, output=True
                 )
@@ -126,44 +131,36 @@ class InteractBloggerFollowers(Plugin):
     def handle_blogger(
         self,
         device,
-        blogger,
-        likes_count,
-        stories_count,
-        stories_percentage,
-        follow_percentage,
-        follow_limit,
-        comment_percentage,
-        interact_percentage,
-        scraping_file,
+        username,
         current_job,
         storage,
         profile_filter,
-        on_like,
-        on_watch,
         on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+        interact_percentage,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
-            likes_count=likes_count,
-            stories_count=stories_count,
+            likes_count=self.args.likes_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
-            on_like=on_like,
-            on_watch=on_watch,
+            pm_percentage=pm_percentage,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
+            scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
-
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
-            follow_limit=follow_limit,
-            source=blogger,
             session_state=self.session_state,
+            follow_limit=self.args.follow_limit,
+            source=username,
         )
 
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
@@ -178,13 +175,11 @@ class InteractBloggerFollowers(Plugin):
             self,
             device,
             self.session_state,
-            blogger,
-            follow_limit,
+            username,
             current_job,
             storage,
-            profile_filter,
-            posts_end_detector,
             on_interaction,
             interaction,
             is_follow_limit_reached,
+            posts_end_detector,
         )

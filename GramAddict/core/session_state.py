@@ -1,5 +1,4 @@
 import logging
-from random import randint
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum, auto
@@ -39,6 +38,7 @@ class SessionState:
         self.totalFollowed = {}
         self.totalLikes = 0
         self.totalComments = 0
+        self.totalPm = 0
         self.totalWatched = 0
         self.totalUnfollowed = 0
         self.removedMassFollowers = []
@@ -78,6 +78,7 @@ class SessionState:
         args.current_likes_limit = get_value(args.total_likes_limit, None, 300)
         args.current_follow_limit = get_value(args.total_follows_limit, None, 50)
         args.current_comments_limit = get_value(args.total_comments_limit, None, 10)
+        args.current_pm_limit = get_value(args.total_pm_limit, None, 10)
         args.current_watch_limit = get_value(args.total_watches_limit, None, 50)
         args.current_success_limit = get_value(
             args.total_successful_interactions_limit, None, 100
@@ -95,6 +96,7 @@ class SessionState:
             args.current_follow_limit
         )
         total_comments = self.totalComments >= int(args.current_comments_limit)
+        total_pm = self.totalPm >= int(args.current_pm_limit)
         total_watched = self.totalWatched >= int(args.current_watch_limit)
         total_successful = sum(self.successfulInteractions.values()) >= int(
             args.current_success_limit
@@ -113,6 +115,7 @@ class SessionState:
             "Checking session limits:",
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
             f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{args.current_comments_limit})",
+            f"- Total PM:\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
             f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.current_follow_limit})",
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",
             f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.current_success_limit})",
@@ -151,46 +154,53 @@ class SessionState:
                 logger.debug(session_info[2])
             return total_comments
 
-        elif limit_type == SessionState.Limit.FOLLOWS:
+        elif limit_type == SessionState.Limit.PM:
             if output:
                 logger.info(session_info[3])
             else:
                 logger.debug(session_info[3])
-            return total_followed
+            return total_pm
 
-        elif limit_type == SessionState.Limit.WATCHES:
+        elif limit_type == SessionState.Limit.FOLLOWS:
             if output:
                 logger.info(session_info[4])
             else:
                 logger.debug(session_info[4])
-            return total_watched
+            return total_followed
 
-        elif limit_type == SessionState.Limit.SUCCESS:
+        elif limit_type == SessionState.Limit.WATCHES:
             if output:
                 logger.info(session_info[5])
             else:
                 logger.debug(session_info[5])
-            return total_successful
+            return total_watched
 
-        elif limit_type == SessionState.Limit.TOTAL:
+        elif limit_type == SessionState.Limit.SUCCESS:
             if output:
                 logger.info(session_info[6])
             else:
                 logger.debug(session_info[6])
-            return total_interactions
+            return total_successful
 
-        elif limit_type == SessionState.Limit.CRASHES:
+        elif limit_type == SessionState.Limit.TOTAL:
             if output:
                 logger.info(session_info[7])
             else:
                 logger.debug(session_info[7])
-            return total_crashes
+            return total_interactions
 
-        elif limit_type == SessionState.Limit.SCRAPED:
+        elif limit_type == SessionState.Limit.CRASHES:
             if output:
                 logger.info(session_info[8])
             else:
                 logger.debug(session_info[8])
+            return total_crashes
+
+        elif limit_type == SessionState.Limit.SCRAPED:
+            if output:
+                logger.info(session_info[9])
+            else:
+                logger.debug(session_info[9])
             return total_scraped
 
     @staticmethod
@@ -233,6 +243,7 @@ class SessionState:
         ALL = auto()
         LIKES = auto()
         COMMENTS = auto()
+        PM = auto()
         FOLLOWS = auto()
         UNFOLLOWS = auto()
         WATCHES = auto()
@@ -253,6 +264,7 @@ class SessionStateEncoder(JSONEncoder):
             "total_followed": sum(session_state.totalFollowed.values()),
             "total_likes": session_state.totalLikes,
             "total_comments": session_state.totalComments,
+            "total_pm": session_state.totalPm,
             "total_watched": session_state.totalWatched,
             "total_unfollowed": session_state.totalUnfollowed,
             "total_scraped": session_state.totalScraped,

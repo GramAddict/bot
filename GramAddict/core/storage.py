@@ -16,6 +16,7 @@ USER_FOLLOWING_STATUS = "following_status"
 FILENAME_WHITELIST = "whitelist.txt"
 FILENAME_BLACKLIST = "blacklist.txt"
 FILENAME_COMMENTS = "comments_list.txt"
+FILENAME_MESSAGES = "pm_list.txt"
 
 
 class Storage:
@@ -104,7 +105,6 @@ class Storage:
             return FollowingStatus[user[USER_FOLLOWING_STATUS].upper()]
 
     def add_filter_user(self, username, profile_data, skip_reason=None):
-        # user = self.history_filter_users.get(username, {})
         user = profile_data.__dict__
         user["follow_button_text"] = profile_data.follow_button_text.name
         user["skip_reason"] = None if skip_reason is None else skip_reason.name
@@ -124,6 +124,7 @@ class Storage:
         liked=0,
         watched=0,
         commented=0,
+        pm_sent=False,
         job_name=None,
         target=None,
     ):
@@ -171,7 +172,12 @@ class Storage:
             if "scraped" not in user or user["scraped"] != scraped
             else user["scraped"]
         )
-
+        # Save the boolean if we sent a PM
+        user["pm_sent"] = (
+            pm_sent
+            if "pm_sent" not in user or user["pm_sent"] != pm_sent
+            else user["pm_sent"]
+        )
         self.interacted_users[username] = user
         self._update_file()
 

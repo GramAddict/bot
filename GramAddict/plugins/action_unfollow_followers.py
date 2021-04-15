@@ -160,11 +160,12 @@ class ActionUnfollowFollowers(Plugin):
         self.session_state.totalUnfollowed += 1
 
     def open_my_followings(self, device):
-        logger.info("Open my followings")
+        logger.info("Open my followings.")
         followings_button = device.find(
             resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
-        followings_button.click()
+        if followings_button.exists(DeviceFacade.Timeout.MEDIUM):
+            followings_button.click()
 
     def sort_followings_by_date(self, device, newest_to_oldest=False):
 
@@ -212,7 +213,7 @@ class ActionUnfollowFollowers(Plugin):
         device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
-        ).wait()
+        ).wait(DeviceFacade.Timeout.SHORT)
         sort_container_obj = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
         )
@@ -361,11 +362,6 @@ class ActionUnfollowFollowers(Plugin):
                 scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
                 if scrollable.exists():
                     scrollable.scroll(DeviceFacade.Direction.TOP)
-                device.find(
-                    classNameMatches=ClassName.BUTTON,
-                    clickable=True,
-                    textMatches=FOLLOWING_REGEX,
-                ).wait()
                 unfollow_button = device.find(
                     classNameMatches=ClassName.BUTTON,
                     clickable=True,
@@ -392,8 +388,7 @@ class ActionUnfollowFollowers(Plugin):
                 confirm_unfollow_button = device.find(
                     resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
                 )
-                confirm_unfollow_button.wait()
-                if confirm_unfollow_button.exists():
+                if confirm_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
                     break
 
             if not confirm_unfollow_button or not confirm_unfollow_button.exists():
@@ -401,7 +396,7 @@ class ActionUnfollowFollowers(Plugin):
                 save_crash(device)
                 device.back()
                 return False
-            logger.debug("Confirm unfollow")
+            logger.debug("Confirm unfollow.")
             confirm_unfollow_button.click()
 
             random_sleep(0, 1, modulable=False)
@@ -411,9 +406,8 @@ class ActionUnfollowFollowers(Plugin):
                 classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                 textMatches=UNFOLLOW_REGEX,
             )
-            private_unfollow_button.wait(DeviceFacade.Timeout.SHORT)
-            if private_unfollow_button.exists():
-                logger.debug("Confirm unfollow private account")
+            if private_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
+                logger.debug("Confirm unfollow private account.")
                 private_unfollow_button.click()
 
             UniversalActions.detect_block(device)
@@ -439,8 +433,7 @@ class ActionUnfollowFollowers(Plugin):
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
             className=ClassName.TEXT_VIEW,
         )
-        rows.wait(DeviceFacade.Timeout.LONG)
-        if rows.exists():
+        if rows.exists(DeviceFacade.Timeout.LONG):
             random_sleep()
             my_username_view = device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,

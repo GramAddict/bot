@@ -1,8 +1,7 @@
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
 import logging
 from functools import partial
 from random import seed
-
-from colorama import Style
 from colorama.ansi import Fore
 import emoji
 from GramAddict.core.decorators import run_safely
@@ -13,7 +12,7 @@ from GramAddict.core.interaction import (
 )
 from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import init_on_things, sample_sources
+from GramAddict.core.utils import get_value, init_on_things, sample_sources
 
 logger = logging.getLogger(__name__)
 
@@ -89,11 +88,10 @@ class InteractHashtagPosts(Plugin):
             # Init common things
             (
                 on_interaction,
-                on_like,
-                on_watch,
                 stories_percentage,
                 follow_percentage,
                 comment_percentage,
+                pm_percentage,
                 interact_percentage,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
@@ -109,20 +107,15 @@ class InteractHashtagPosts(Plugin):
                 self.handle_hashtag(
                     device,
                     source,
-                    self.args.likes_count,
-                    self.args.stories_count,
-                    stories_percentage,
-                    follow_percentage,
-                    int(self.args.follow_limit) if self.args.follow_limit else None,
-                    comment_percentage,
-                    interact_percentage,
-                    self.args.scrape_to_file,
                     plugin,
                     storage,
                     profile_filter,
-                    on_like,
-                    on_watch,
                     on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
+                    interact_percentage,
                 )
                 self.state.is_job_completed = True
 
@@ -140,56 +133,48 @@ class InteractHashtagPosts(Plugin):
         self,
         device,
         hashtag,
-        likes_count,
-        stories_count,
-        stories_percentage,
-        follow_percentage,
-        follow_limit,
-        comment_percentage,
-        interact_percentage,
-        scraping_file,
         current_job,
         storage,
         profile_filter,
-        on_like,
-        on_watch,
         on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+        interact_percentage,
     ):
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
-            likes_count=likes_count,
-            stories_count=stories_count,
+            likes_count=self.args.likes_count,
+            # stories_count=self.args.stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
-            on_like=on_like,
-            on_watch=on_watch,
+            pm_percentage=pm_percentage,
             profile_filter=profile_filter,
             args=self.args,
             session_state=self.session_state,
-            scraping_file=scraping_file,
+            scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
 
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
-            follow_limit=follow_limit,
-            source=hashtag,
             session_state=self.session_state,
+            follow_limit=self.args.follow_limit,
+            source=hashtag,
         )
 
         handle_posts(
             device,
             self.session_state,
             hashtag,
-            follow_limit,
             current_job,
             storage,
-            scraping_file,
-            profile_filter,
             on_interaction,
             interaction,
             is_follow_limit_reached,
             interact_percentage,
+            self.args.scrape_to_file,
         )

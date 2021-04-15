@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_if_english(device):
+    logger.debug("Navigate to PROFILE.")
     ProfileView(device)._click_on_avatar()
     random_sleep()
     logger.debug("Checking if English..")
@@ -40,18 +41,22 @@ def check_if_english(device):
             random_sleep()
     else:
         logger.warning(
-            "Failed to check your Instagram language. Be sure to set it to English."
+            "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
         )
+    return ProfileView(device, is_own_profile=True)
 
 
 def nav_to_blogger(device, username, current_job):
     """navigate to blogger (followers list or posts)"""
     _to_followers = True if current_job.endswith("followers") else False
+    _to_followwing = True if current_job.endswith("following") else False
     if username is None:
         logger.info("Open your followers")
         profile_view = TabBarView(device).navigateToProfile()
         if _to_followers:
             profile_view.navigateToFollowers()
+        elif _to_followwing:
+            profile_view.navigateToFollowing()
     else:
         search_view = TabBarView(device).navigateToSearch()
         profile_view = search_view.navigateToUsername(username)
@@ -62,11 +67,13 @@ def nav_to_blogger(device, username, current_job):
         logger.info(f"Open @{username} followers")
         if _to_followers:
             profile_view.navigateToFollowers()
+        elif _to_followwing:
+            profile_view.navigateToFollowing()
     return True
 
 
 def nav_to_hashtag_or_place(device, target, current_job):
-    """navigate to hashtag/place list"""
+    """navigate to hashtag/place/feed list"""
     search_view = TabBarView(device).navigateToSearch()
     if (
         not search_view.navigateToHashtag(target)
@@ -83,7 +90,7 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
         random_sleep()
         if UniversalActions(device)._check_if_no_posts():
-            UniversalActions._reload_page()
+            UniversalActions(device)._reload_page()
             random_sleep()
             if UniversalActions(device)._check_if_no_posts():
                 return False
@@ -120,5 +127,5 @@ def nav_to_post_likers(device, username, my_username):
     return True
 
 
-def nav_to_usernames(device):
-    pass
+def nav_to_feed(device):
+    TabBarView(device).navigateToHome()
