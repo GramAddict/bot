@@ -1,3 +1,4 @@
+from GramAddict.core.device_facade import DeviceFacade
 import logging
 
 from colorama import Fore
@@ -86,7 +87,11 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
     if current_job.endswith("recent"):
         logger.info("Switching to Recent tab.")
-        TargetView(device)._getRecentTab().click()
+        recent_tab = TargetView(device)._getRecentTab()
+        if recent_tab.exists(DeviceFacade.Timeout.MEDIUM):
+            recent_tab.click()
+        else:
+            return False
 
         random_sleep()
         if UniversalActions(device)._check_if_no_posts():

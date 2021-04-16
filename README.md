@@ -3,7 +3,7 @@
   <br />
   <h1 align="center">GramAddict</h1>
   <br />
-  <p align="center">The best 100% free forever instagram bot. Grow your following and engagement by liking and following automatically with your Android phone/tablet/emulator. No root required.<p>
+  <p align="center">The best 100% free forever instagram bot. Grow your following and engagement by liking, following and commenting automatically with your Android phone/tablet/emulator. No root required.<p>
   <p align="center">
     <a href="https://github.com/gramaddict/bot/blob/master/LICENSE">
       <img src="https://img.shields.io/github/license/gramaddict/bot?style=flat" />

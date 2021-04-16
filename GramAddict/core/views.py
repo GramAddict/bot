@@ -125,13 +125,13 @@ class TabBarView:
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.HOME_CONTENT_DESC),
             )
-            button.wait()
+
         elif tab == TabBarTabs.SEARCH:
             button = self.device.find(
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.SEARCH_CONTENT_DESC),
             )
-            button.wait()
+
             if not button.exists():
                 # Some accounts display the search btn only in Home -> action bar
                 logger.debug("Didn't find search in the tab bar...")
@@ -143,13 +143,12 @@ class TabBarView:
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.REELS_CONTENT_DESC),
             )
-            button.wait()
+
         elif tab == TabBarTabs.ORDERS:
             button = self.device.find(
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.ORDERS_CONTENT_DESC),
             )
-            button.wait()
 
         elif tab == TabBarTabs.ACTIVITY:
             button = self.device.find(
@@ -158,15 +157,14 @@ class TabBarView:
                     TabBarText.ACTIVITY_CONTENT_DESC
                 ),
             )
-            button.wait()
+
         elif tab == TabBarTabs.PROFILE:
             button = self.device.find(
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
-            button.wait()
 
-        if button.exists():
+        if button.exists(DeviceFacade.Timeout.MEDIUM):
             # Two clicks to reset tab content
             random_sleep(1, 2)
             button.click()
@@ -178,7 +176,8 @@ class TabBarView:
             return
 
         logger.error(f"Didn't find tab {tab_name} in the tab bar...")
-
+        logger.info("Let's check connection..")
+        
 
 class ActionBarView:
     def __init__(self, device: DeviceFacade):
