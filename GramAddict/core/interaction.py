@@ -171,8 +171,8 @@ def interact_with_user(
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
     (
-        can_comment_photos,
-        can_comment_videos,
+        _,
+        _,
         can_comment_job,
     ) = profile_filter.can_comment(current_mode)
     if can_comment_job and comment_percentage != 0:
@@ -485,9 +485,6 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
         tab_bar = device.find(
             resourceId=ResourceID.TAB_BAR,
         )
-        # group_buttons = device.find(
-        #     resourceId=ResourceID.ROW_FEED_VIEW_GROUP_BUTTONS,
-        # )
         media = device.find(
             resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER,
         )
