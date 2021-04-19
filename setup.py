@@ -20,7 +20,7 @@ setuptools.setup(
         "matplotlib==3.4.1",
         "numpy==1.19.3",
         "PyYAML==5.4",
-        "uiautomator2==2.14.1",
+        "uiautomator2==2.15.0",
         "urllib3==1.26.4",
         "emoji==1.2.0",
     ],

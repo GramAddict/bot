@@ -10,7 +10,7 @@ from GramAddict.core.interaction import (
 )
 from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import sample_sources, init_on_things
+from GramAddict.core.utils import get_value, sample_sources, init_on_things
 
 logger = logging.getLogger(__name__)
 
@@ -150,10 +150,11 @@ class InteractPlacePosts(Plugin):
             current_mode=self.current_mode,
         )
 
+        source_follow_limit = get_value(self.args.follow_limit, None, 15) if self.args.follow_limit is not None else None
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
-            follow_limit=self.args.follow_limit,
+            follow_limit=source_follow_limit,
             source=place,
         )
 

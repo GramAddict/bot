@@ -132,14 +132,14 @@ class CoreArguments(Plugin):
             {
                 "arg": "--follow-limit",
                 "nargs": None,
-                "help": "limit on amount of follows during interaction with each one user's followers, disabled by default",
+                "help": "limit on amount of follows per source in each action, disabled by default",
                 "metavar": "0",
                 "default": None,
             },
             {
                 "arg": "--skipped-list-limit",
                 "nargs": None,
-                "help": "limit how many scrolls tried, with already interacted users, until we move to next source. Does not apply for unfollows.",
+                "help": "limit how many scrolls tried, with already interacted users, until we move to next source. Does not apply for unfollows",
                 "metavar": "10-15",
                 "default": "10-15",
             },
@@ -153,7 +153,7 @@ class CoreArguments(Plugin):
             {
                 "arg": "--speed-multiplier",
                 "nargs": None,
-                "help": "modifier for random sleep values - slows down (<1) or speeds up (>1) depending on multiplier passed.",
+                "help": "modifier for random sleep values - slows down (<1) or speeds up (>1) depending on multiplier passed",
                 "metavar": 1,
                 "default": 1,
             },

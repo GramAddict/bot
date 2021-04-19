@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractBloggerPostLikers(Plugin):
+class InteractOwnFeed(Plugin):
     """Handles the functionality of interacting with your own feed"""
 
     def __init__(self):

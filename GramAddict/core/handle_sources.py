@@ -16,6 +16,7 @@ from GramAddict.core.utils import (
     random_sleep,
 )
 from GramAddict.core.views import (
+    Direction,
     FollowingView,
     PostsViewList,
     OpenedPostView,
@@ -231,7 +232,7 @@ def handle_likers(
         likers_container_exists = PostsViewList(device)._find_likers_container()
         has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
 
-        flag, post_description = PostsViewList(device)._check_if_last_post(
+        flag, post_description, _, = PostsViewList(device)._check_if_last_post(
             post_description
         )
         if flag:
@@ -390,27 +391,21 @@ def handle_posts(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description = PostsViewList(device)._check_if_last_post(
+        flag, post_description, username, ad = PostsViewList(device)._check_if_last_post(
             post_description
         )
-        if flag:
-            nr_same_post += 1
-            logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
-            if nr_same_post == nr_same_posts_max:
-                logger.info(
-                    f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
-                )
-                break
-        else:
-            nr_same_post = 0
-        if random_choice(interact_percentage):
-            if not PostsViewList(device)._check_if_ad(current_job):
-                username = (
-                    PostsViewList(device)
-                    ._post_owner(Owner.GET_NAME)
-                    .replace("•", "")
-                    .strip()
-                )
+        if not ad:
+            if flag:
+                nr_same_post += 1
+                logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
+                if nr_same_post == nr_same_posts_max:
+                    logger.info(
+                        f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
+                    )
+                    break
+            else:
+                nr_same_post = 0
+            if random_choice(interact_percentage):
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
                 elif storage.check_user_was_interacted_recently(username):
@@ -433,7 +428,7 @@ def handle_posts(
                             UniversalActions.detect_block(device)
                         session_state.totalLikes += 1
                         random_sleep(1, 2)
-                    if PostsViewList(device)._post_owner(Owner.OPEN):
+                    if PostsViewList(device)._post_owner(Owner.OPEN, username):
                         if not interact(
                             storage,
                             is_follow_limit_reached,

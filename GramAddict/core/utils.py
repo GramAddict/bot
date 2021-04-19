@@ -128,6 +128,8 @@ def open_instagram(device, screen_record, close_apps):
         logger.info("Close all the other apps, for avoid interfereces..")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
+
+    device.deviceV2.set_fastinput_ime(True)
     if screen_record:
         try:
             device.start_screenrecord()
@@ -157,6 +159,8 @@ def kill_atx_agent(device):
         + ("" if configs.device_id is None else " -s " + configs.device_id)
         + " shell pkill atx-agent"
     ).close()
+    logger.debug("Back to default keyboard!")
+    device.deviceV2.set_fastinput_ime(False)
 
 
 def random_sleep(inf=1.0, sup=4.0, modulable=True, logging=True):
@@ -231,7 +235,6 @@ def get_value(count, name, default):
             + f'. Using default value instead of "{count}", because it must be '
             "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
-
     parts = count.split("-")
     if len(parts) <= 0:
         value = default

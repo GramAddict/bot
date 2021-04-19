@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractBloggerFollowers(Plugin):
+class InteractBloggerFollowers_Following(Plugin):
     """Handles the functionality of interacting with a bloggers followers/following"""
 
     def __init__(self):
@@ -156,10 +156,11 @@ class InteractBloggerFollowers(Plugin):
             scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
+        source_follow_limit = get_value(self.args.follow_limit, None, 15) if self.args.follow_limit is not None else None
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
-            follow_limit=self.args.follow_limit,
+            follow_limit=source_follow_limit,
             source=username,
         )
 

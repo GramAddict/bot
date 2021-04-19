@@ -189,7 +189,7 @@ class DeviceFacade:
         if random_y:
             ey = ey * uniform(0.98, 1.02)
         try:
-            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.4, 0.6))
+            self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.5))
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
@@ -300,6 +300,9 @@ class DeviceFacade:
             elif mode == DeviceFacade.Location.BOTTOMRIGHT:
                 x_offset = uniform(0.8, 0.9)
                 y_offset = uniform(0.8, 0.9)
+            elif mode == DeviceFacade.Location.TOPLEFT:
+                x_offset = uniform(0.05, 0.15)
+                y_offset = uniform(0.05, 0.25)
 
             else:
                 x_offset = 0.5
@@ -390,7 +393,14 @@ class DeviceFacade:
                 # We will open a ticket to uiautomator2 to fix this incosistency.
                 if self.viewV2 is None:
                     return False
-                return self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                return True if self.viewV2.count >= 1 else exists
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def count_items(self):
+            try:
+                return self.viewV2.count
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -449,16 +459,15 @@ class DeviceFacade:
 
         def set_text(self, text):
             try:
-                self.deviceV2.set_fastinput_ime(True)
                 self.deviceV2.clear_text()
                 start = datetime.now()
+                random_sleep(0.3, 1, modulable=False)
                 for t in text:
                     self.deviceV2.send_keys(t, clear=False)
-                    random_sleep(0.1, 0.5, modulable=False, logging=False)
+                    random_sleep(0.05, 0.1, modulable=False, logging=False)
                 logger.debug(
                     f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
                 )
-                self.deviceV2.set_fastinput_ime(False)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -470,6 +479,7 @@ class DeviceFacade:
         LEFT = auto()
         BOTTOMRIGHT = auto()
         RIGHTEDGE = auto()
+        TOPLEFT = auto()
 
     class Timeout(Enum):
         ZERO = auto()

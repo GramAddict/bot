@@ -82,6 +82,7 @@ class MediaType(Enum):
 class Owner(Enum):
     OPEN = auto()
     GET_NAME = auto()
+    GET_POSITION = auto()
 
 
 class TabBarView:
@@ -640,45 +641,44 @@ class PostsViewList:
 
     def _check_if_last_post(self, last_description):
         """check if that post has been just interacted"""
+        username, is_ad = PostsViewList(self.device)._post_owner(Owner.GET_NAME)
         swiped_a_bit = False
-        n = 1
-        while n < 3:
+
+        for _ in range(2):
             post_description = self.device.find(
-                resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
-            )
+                resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                textStartsWith=username)
             if post_description.exists():
                 new_description = post_description.get_text().upper()
-                if swiped_a_bit:
-                    logger.debug("Revert the last swipe.")
-                    UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 if new_description == last_description:
                     logger.info(
                         "This post has the same description and author as the last one."
                     )
-                    return True, new_description
+                    return True, new_description, username, is_ad
                 else:
-                    return False, new_description
+                    return False, new_description, username, is_ad
             else:
-                for _ in range(2):
-                    gap_view_obj = self.device.find(
-                        resourceIdMatches=ResourceID.GAP_VIEW
-                    )
-                    feed_composer = self.device.find(
-                        resourceIdMatches=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
-                    )
-                    if gap_view_obj.exists() or feed_composer.exists():
+                gap_view_obj = self.device.find(
+                    resourceIdMatches=ResourceID.GAP_VIEW
+                )
+                feed_composer = self.device.find(
+                    resourceIdMatches=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
+                )
+
+                if gap_view_obj.exists() or feed_composer.exists():
+                    if gap_view_obj.count_items() > 1 or feed_composer.count_items() > 1 or swiped_a_bit:
                         logger.info(
                             "Can't find the description of this post. Maybe it's blank.."
                         )
-                        return False, ""
-                    else:
-                        logger.debug(
-                            "Can't find the description, try to swipe a little bit down."
-                        )
-                        UniversalActions(self.device)._swipe_points(
-                            direction=Direction.DOWN
-                        )
-                        swiped_a_bit = True
+                        return False, "", username, is_ad
+
+                logger.debug(
+                    "Can't find the description, try to swipe a little bit down."
+                )
+                UniversalActions(self.device)._swipe_points(
+                    direction=Direction.DOWN
+                )
+                swiped_a_bit = True
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
         """do a swipe of the amount of the action bar"""
@@ -707,16 +707,31 @@ class PostsViewList:
         else:
             return False, 0, 0
 
-    def _post_owner(self, mode: Owner):
-        post_owner_obj = self.device.find(
-            resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
-        )
+    def _post_owner(self, mode: Owner, username=None):
+        ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+        if username is None:
+            post_owner_obj = self.device.find(
+                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+            )
+        else:
+            post_owner_obj = self.device.find(
+                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
+                textStartsWith=username
+            )
         post_owner_clickable = False
         for _ in range(2):
             if not post_owner_obj.exists():
+                if mode == Owner.OPEN:
+                    comment_description = self.device.find(
+                        resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                        textStartsWith=username)
+                    if comment_description.exists():
+                        comment_description.click(DeviceFacade.Location.TOPLEFT)
+                        return True
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
-                    resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+                    resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
+                    textStartsWith=username
                 )
             else:
                 post_owner_clickable = True
@@ -724,16 +739,20 @@ class PostsViewList:
 
         if not post_owner_clickable:
             logger.info("Can't find the owner name.")
-            return False
+            return False, False
         if mode == Owner.OPEN:
             logger.info("Open post owner.")
             PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(post_owner_obj)
             post_owner_obj.click()
             return True
         elif mode == Owner.GET_NAME:
-            return post_owner_obj.get_text()
+            is_ad = PostsViewList(self.device)._check_if_ad()
+            return post_owner_obj.get_text().replace("•", "").strip(), is_ad
+
+        elif mode == Owner.GET_POSITION:
+            return post_owner_obj.get_bounds()
         else:
-            return False
+            return False, False
 
     def _open_likers(self):
         while True:
@@ -788,7 +807,7 @@ class PostsViewList:
         logger.info("Open comments of post.")
         self.device.find(resourceIdMatches=(ResourceID.ROW_FEED_BUTTON_COMMENT)).click()
 
-    def _check_if_liked(self, first_attemp=True):
+    def _check_if_liked(self):
         STR = "Liked"
         logger.debug("Check if like succeded in post view.")
         bnt_like_obj = self.device.find(
@@ -796,7 +815,6 @@ class PostsViewList:
         )
         if bnt_like_obj.exists():
             if self.device.find(descriptionMatches=case_insensitive_re(STR)).exists(
-                True
             ):
                 logger.debug("Like is present.")
                 return True
@@ -805,30 +823,26 @@ class PostsViewList:
                 return False
         else:
             UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
-            if first_attemp:
-                return PostsViewList(self.device)._check_if_liked(False)
-            else:
-                logger.debug("Like btn not present.")
-                return False
+            return PostsViewList(self.device)._check_if_liked()
 
-    def _check_if_ad(self, current_job):
-        if current_job == "feed":
-            STR = "Sponsored"
-            logger.debug("Checking if it's an AD.")
-            ad_like_obj = self.device.find(
-                resourceId=ResourceID.SECONDARY_LABEL,
-                className=ClassName.TEXT_VIEW,
-            )
-            if ad_like_obj.exists():
-                if ad_like_obj.get_text() == STR:
-                    logger.debug("Looks like an AD. Skip.")
-                    return True
-                else:
-                    return False
+
+    def _check_if_ad(self):
+        STR = "Sponsored"
+        logger.debug("Checking if it's an AD.")
+        ad_like_obj = self.device.find(
+            resourceId=ResourceID.SECONDARY_LABEL,
+            className=ClassName.TEXT_VIEW,
+        )
+        if ad_like_obj.exists():
+            if ad_like_obj.get_text() == STR:
+                logger.debug("Looks like an AD. Skip.")
+                return True
             else:
                 return False
         else:
             return False
+
+
 
 
 class LanguageView:
@@ -1661,7 +1675,7 @@ class UniversalActions:
 
     def detect_block(device):
         logger.debug("Checking for block...")
-        if "blocked" in device.deviceV2.toast.get_message(2.0, 5.0, default=""):
+        if "blocked" in device.deviceV2.toast.get_message(1.0, 3.0, default=""):
             pass
         block_dialog = device.find(
             resourceIdMatches=ResourceID.BLOCK_POPUP,
