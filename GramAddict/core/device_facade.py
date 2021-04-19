@@ -1,9 +1,10 @@
 from datetime import datetime
 import logging
+import string
 import uiautomator2
 from enum import Enum, auto
 from os import listdir, getcwd
-from random import uniform
+from random import randint, uniform
 from re import search
 from subprocess import run
 from time import sleep
@@ -458,13 +459,38 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         def set_text(self, text):
+            punct_list = string.punctuation
             try:
                 self.deviceV2.clear_text()
                 start = datetime.now()
                 random_sleep(0.3, 1, modulable=False)
-                for t in text:
-                    self.deviceV2.send_keys(t, clear=False)
-                    random_sleep(0.05, 0.1, modulable=False, logging=False)
+                word_list = text.split()
+                n_words = len(word_list)
+                i = 0
+                n = 1
+                for word in word_list:
+                    n_single_letters = randint(1, 3)
+                    for char in word:
+                        if i < n_single_letters:
+                            self.deviceV2.send_keys(char, clear=False)
+                            random_sleep(0.01, 0.1, modulable=False, logging=False)
+                            i += 1
+                        else:
+                            if word[-1] in punct_list:
+                                self.deviceV2.send_keys(word[i:-1], clear=False)
+                                random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                self.deviceV2.send_keys(word[-1], clear=False)
+                                random_sleep(0.01, 0.1, modulable=False, logging=False)
+                            else:
+                                self.deviceV2.send_keys(word[i:], clear=False)
+                                random_sleep(0.01, 0.1, modulable=False, logging=False)
+                            break
+                    if n < n_words:
+                        self.deviceV2.send_keys(" ", clear=False)
+                        random_sleep(0.01, 0.1, modulable=False, logging=False)
+                    i = 0
+                    n += 1
+
                 logger.debug(
                     f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
                 )

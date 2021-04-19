@@ -232,9 +232,9 @@ def handle_likers(
         likers_container_exists = PostsViewList(device)._find_likers_container()
         has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
 
-        flag, post_description, _, = PostsViewList(device)._check_if_last_post(
-            post_description
-        )
+        flag, post_description, _, = PostsViewList(
+            device
+        )._check_if_last_post(post_description, current_job)
         if flag:
             nr_same_post += 1
             logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
@@ -391,13 +391,15 @@ def handle_posts(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description, username, ad = PostsViewList(device)._check_if_last_post(
-            post_description
-        )
+        flag, post_description, username, ad = PostsViewList(
+            device
+        )._check_if_last_post(post_description, current_job)
         if not ad:
             if flag:
                 nr_same_post += 1
-                logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
+                logger.info(
+                    f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
+                )
                 if nr_same_post == nr_same_posts_max:
                     logger.info(
                         f"Scrolled through {nr_same_posts_max} posts with same description and author. Finish."
@@ -428,7 +430,9 @@ def handle_posts(
                             UniversalActions.detect_block(device)
                         session_state.totalLikes += 1
                         random_sleep(1, 2)
-                    if PostsViewList(device)._post_owner(Owner.OPEN, username):
+                    if PostsViewList(device)._post_owner(
+                        current_job, Owner.OPEN, username
+                    ):
                         if not interact(
                             storage,
                             is_follow_limit_reached,

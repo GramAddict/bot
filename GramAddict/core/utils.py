@@ -117,7 +117,9 @@ def open_instagram(device, screen_record, close_apps):
         logger.error(err.replace("\n", ". "))
         return False
     elif "more than one device/emulator" in err:
-        logger.error(f"{err[9:].capitalize()}, specify only one by using --device devicename")
+        logger.error(
+            f"{err[9:].capitalize()}, specify only one by using --device devicename"
+        )
         return False
     elif err == "":
         logger.debug("Instagram app opened successfully.")
@@ -163,7 +165,7 @@ def kill_atx_agent(device):
     device.deviceV2.set_fastinput_ime(False)
 
 
-def random_sleep(inf=1.0, sup=4.0, modulable=True, logging=True):
+def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
     if logging:
@@ -235,6 +237,7 @@ def get_value(count, name, default):
             + f'. Using default value instead of "{count}", because it must be '
             "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
+
     parts = count.split("-")
     if len(parts) <= 0:
         value = default

@@ -221,6 +221,12 @@ class SessionState:
             inf = datetime.strptime(inf_value, "%H.%M %Y-%m-%d") + delta
             sup_value = f"{n.split('-')[1]} {today}"
             sup = datetime.strptime(sup_value, "%H.%M %Y-%m-%d") + delta
+            print(sup - inf + timedelta(minutes=1))
+            if sup - inf + timedelta(minutes=1) == timedelta(
+                days=1
+            ) or sup - inf + timedelta(minutes=1) == timedelta(days=0):
+                logger.debug("Whole day mode.")
+                return in_range, 0
             if time_in_range(inf.time(), sup.time(), current_time.time()):
                 in_range = True
                 return in_range, 0

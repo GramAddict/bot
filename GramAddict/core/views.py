@@ -178,7 +178,7 @@ class TabBarView:
 
         logger.error(f"Didn't find tab {tab_name} in the tab bar...")
         logger.info("Let's check connection..")
-        
+
 
 class ActionBarView:
     def __init__(self, device: DeviceFacade):
@@ -639,15 +639,18 @@ class PostsViewList:
         random_sleep()
         likes_view.click(DeviceFacade.Location.RIGHT)
 
-    def _check_if_last_post(self, last_description):
+    def _check_if_last_post(self, last_description, current_job):
         """check if that post has been just interacted"""
-        username, is_ad = PostsViewList(self.device)._post_owner(Owner.GET_NAME)
+        username, is_ad = PostsViewList(self.device)._post_owner(
+            current_job, Owner.GET_NAME
+        )
         swiped_a_bit = False
 
         for _ in range(2):
             post_description = self.device.find(
                 resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
-                textStartsWith=username)
+                textStartsWith=username,
+            )
             if post_description.exists():
                 new_description = post_description.get_text().upper()
                 if new_description == last_description:
@@ -658,15 +661,17 @@ class PostsViewList:
                 else:
                     return False, new_description, username, is_ad
             else:
-                gap_view_obj = self.device.find(
-                    resourceIdMatches=ResourceID.GAP_VIEW
-                )
+                gap_view_obj = self.device.find(resourceIdMatches=ResourceID.GAP_VIEW)
                 feed_composer = self.device.find(
                     resourceIdMatches=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
                 )
 
                 if gap_view_obj.exists() or feed_composer.exists():
-                    if gap_view_obj.count_items() > 1 or feed_composer.count_items() > 1 or swiped_a_bit:
+                    if (
+                        gap_view_obj.count_items() > 1
+                        or feed_composer.count_items() > 1
+                        or swiped_a_bit
+                    ):
                         logger.info(
                             "Can't find the description of this post. Maybe it's blank.."
                         )
@@ -675,9 +680,7 @@ class PostsViewList:
                 logger.debug(
                     "Can't find the description, try to swipe a little bit down."
                 )
-                UniversalActions(self.device)._swipe_points(
-                    direction=Direction.DOWN
-                )
+                UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
                 swiped_a_bit = True
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
@@ -707,8 +710,8 @@ class PostsViewList:
         else:
             return False, 0, 0
 
-    def _post_owner(self, mode: Owner, username=None):
-        ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+    def _post_owner(self, current_job, mode: Owner, username=None):
+        is_ad = False
         if username is None:
             post_owner_obj = self.device.find(
                 resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
@@ -716,7 +719,7 @@ class PostsViewList:
         else:
             post_owner_obj = self.device.find(
                 resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
-                textStartsWith=username
+                textStartsWith=username,
             )
         post_owner_clickable = False
         for _ in range(2):
@@ -724,14 +727,15 @@ class PostsViewList:
                 if mode == Owner.OPEN:
                     comment_description = self.device.find(
                         resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
-                        textStartsWith=username)
+                        textStartsWith=username,
+                    )
                     if comment_description.exists():
                         comment_description.click(DeviceFacade.Location.TOPLEFT)
                         return True
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
                     resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
-                    textStartsWith=username
+                    textStartsWith=username,
                 )
             else:
                 post_owner_clickable = True
@@ -746,7 +750,8 @@ class PostsViewList:
             post_owner_obj.click()
             return True
         elif mode == Owner.GET_NAME:
-            is_ad = PostsViewList(self.device)._check_if_ad()
+            if current_job == "feed":
+                is_ad = PostsViewList(self.device)._check_if_ad()
             return post_owner_obj.get_text().replace("•", "").strip(), is_ad
 
         elif mode == Owner.GET_POSITION:
@@ -814,8 +819,7 @@ class PostsViewList:
             resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
         )
         if bnt_like_obj.exists():
-            if self.device.find(descriptionMatches=case_insensitive_re(STR)).exists(
-            ):
+            if self.device.find(descriptionMatches=case_insensitive_re(STR)).exists():
                 logger.debug("Like is present.")
                 return True
             else:
@@ -824,7 +828,6 @@ class PostsViewList:
         else:
             UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
             return PostsViewList(self.device)._check_if_liked()
-
 
     def _check_if_ad(self):
         STR = "Sponsored"
@@ -841,8 +844,6 @@ class PostsViewList:
                 return False
         else:
             return False
-
-
 
 
 class LanguageView:
@@ -1523,6 +1524,7 @@ class ProfileView(ActionBarView):
 
         return self.device.find(classNameMatches=views)
 
+
 class FollowingView:
     def __init__(self, device: DeviceFacade):
         self.device = device
@@ -1530,7 +1532,11 @@ class FollowingView:
     def do_unfollow_from_list(self) -> bool:
         FOLLOWING_REGEX = "^Following$"
         UNFOLLOW_REGEX = "^Following|^Requested"
-        following_button = self.device.find(classNameMatches=ClassName.BUTTON, clickable=True, textMatches=FOLLOWING_REGEX)
+        following_button = self.device.find(
+            classNameMatches=ClassName.BUTTON,
+            clickable=True,
+            textMatches=FOLLOWING_REGEX,
+        )
         if following_button.exists(DeviceFacade.Timeout.SHORT):
             following_button.click()
 
@@ -1568,9 +1574,11 @@ class FollowingView:
             logger.info("Can't find that user. Skip.")
             return False
 
+
 class FollowersView:
     def __init__(self, device: DeviceFacade):
         self.device = device
+
 
 class CurrentStoryView:
     def __init__(self, device: DeviceFacade):

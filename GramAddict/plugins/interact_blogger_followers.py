@@ -46,7 +46,7 @@ class InteractBloggerFollowers_Following(Plugin):
                 "metavar": ("username1", "username2"),
                 "default": None,
                 "operation": True,
-            }
+            },
         ]
 
     def run(self, device, configs, storage, sessions, plugin):
@@ -156,7 +156,11 @@ class InteractBloggerFollowers_Following(Plugin):
             scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
-        source_follow_limit = get_value(self.args.follow_limit, None, 15) if self.args.follow_limit is not None else None
+        source_follow_limit = (
+            get_value(self.args.follow_limit, None, 15)
+            if self.args.follow_limit is not None
+            else None
+        )
         is_follow_limit_reached = partial(
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
