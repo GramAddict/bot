@@ -1,4 +1,3 @@
-from GramAddict.core.utils import random_sleep
 from GramAddict.core.device_facade import DeviceFacade
 import json
 import logging

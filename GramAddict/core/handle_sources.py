@@ -227,12 +227,12 @@ def handle_likers(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        likers_container_exists = PostsViewList(device)._find_likers_container()
-        has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
-
         flag, post_description, _, _ = PostsViewList(device)._check_if_last_post(
             post_description, current_job
         )
+        likers_container_exists = PostsViewList(device)._find_likers_container()
+        has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
+
         if flag:
             nr_same_post += 1
             logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
