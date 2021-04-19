@@ -1,4 +1,3 @@
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
 import logging
 from functools import partial
 from random import seed

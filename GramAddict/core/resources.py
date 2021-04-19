@@ -60,6 +60,9 @@ class ResourceID:
             f"{APP_ID}:id/profile_header_business_category"
         )
         self.PROFILE_HEADER_FULL_NAME = f"{APP_ID}:id/profile_header_full_name"
+        self.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB = (
+            f"{APP_ID}:id/profile_header_avatar_container_top_left_stub"
+        )
         self.PROFILE_TAB_LAYOUT = f"{APP_ID}:id/profile_tab_layout"
         self.PROFILE_TAB_ICON_VIEW = f"{APP_ID}:id/profile_tab_icon_view"
         self.PROFILE_TABS_CONTAINER = f"{APP_ID}:id/profile_tabs_container"
@@ -122,6 +125,9 @@ class ResourceID:
         self.SECONDARY_LABEL = f"{APP_ID}:id/secondary_label"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
+        self.SWIPE_REFRESH_ANIMATED_PROGRESSBAR_CONTAINER = (
+            f"{APP_ID}:id/swipe_refresh_animated_progressbar_container"
+        )
         self.TAB_AVATAR = f"{APP_ID}:id/tab_avatar"
         self.TAB_BAR = f"{APP_ID}:id/tab_bar"
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"

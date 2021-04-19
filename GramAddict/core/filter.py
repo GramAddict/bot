@@ -1,3 +1,5 @@
+from GramAddict.core.utils import random_sleep
+from GramAddict.core.device_facade import DeviceFacade
 import json
 import logging
 import os
@@ -423,6 +425,17 @@ class Filter:
             return False, False, False
 
     def get_all_data(self, device):
+        profile_picture = device.find(
+            resourceIdMatches=ResourceID.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB
+        )
+        if not profile_picture.exists(DeviceFacade.Timeout.LONG):
+            logger.info("Looks like this profile hasn't loaded yet!")
+            if profile_picture.exists(DeviceFacade.Timeout.LONG):
+                logger.info("Profile loaded!")
+            else:
+                logger.warning(
+                    "Profile not fully loaded, maybe you will get a crash soon.. Is your connection ok?"
+                )
         profileView = ProfileView(device)
         profile = Profile(
             follow_button_text=self._get_follow_button_text(device, profileView),
@@ -530,5 +543,5 @@ class Filter:
     @staticmethod
     def _get_follow_button_text(device, profileView=None):
         profileView = ProfileView(device) if profileView is None else profileView
-        button, text = profileView.getFollowButton()
+        _, text = profileView.getFollowButton()
         return text

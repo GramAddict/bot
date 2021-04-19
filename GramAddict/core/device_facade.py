@@ -396,7 +396,9 @@ class DeviceFacade:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
                 if not exists and self.viewV2.count >= 1:
-                    logger.debug(f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!")
+                    logger.debug(
+                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                    )
                     return None
                 return exists
             except uiautomator2.JSONRPCError as e:
@@ -411,6 +413,12 @@ class DeviceFacade:
         def wait(self, ui_timeout=None):
             try:
                 return self.viewV2.wait(timeout=self.get_ui_timeout(ui_timeout))
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def wait_gone(self, ui_timeout=None):
+            try:
+                return self.viewV2.wait_gone(timeout=self.get_ui_timeout(ui_timeout))
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

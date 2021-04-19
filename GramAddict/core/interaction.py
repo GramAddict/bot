@@ -508,6 +508,8 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 if comment_box.exists():
                     comment = load_random_comment(my_username, media_type)
                     if comment is None:
+                        SearchView(device)._close_keyboard()
+                        device.back()
                         return False
                     logger.info(
                         f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
@@ -573,7 +575,7 @@ def _send_PM(device, session_state, my_username, swipe_amount):
     message_button = device.find(
         classNameMatches=ClassName.BUTTON, clickable=True, textMatches="Message"
     )
-    if message_button.exists():
+    if message_button.exists(DeviceFacade.Timeout.SHORT):
         message_button.click()
         random_sleep()
         message_box = device.find(
@@ -584,6 +586,8 @@ def _send_PM(device, session_state, my_username, swipe_amount):
         if message_box.exists():
             message = load_random_message(my_username)
             if message is None:
+                logger.warning("You forgot to populate your PM list!")
+                device.back()
                 return False
             logger.info(
                 f"Write private message: {message}", extra={"color": f"{Fore.CYAN}"}
