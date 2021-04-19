@@ -310,7 +310,7 @@ class SearchView:
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
             className=ClassName.TEXT_VIEW,
         )
-        obj.wait()
+        obj.wait(DeviceFacade.Timeout.MEDIUM)
         return obj
 
     def _getTabTextView(self, tab: SearchTabs):
@@ -729,6 +729,14 @@ class PostsViewList:
                         resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                         textStartsWith=username,
                     )
+                    for _ in range(2):
+                        if comment_description.exists() is None:
+                            comment_description = self.device.find(
+                                resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                                textStartsWith=username,
+                            )
+                        else:
+                            break
                     if comment_description.exists():
                         comment_description.click(DeviceFacade.Location.TOPLEFT)
                         return True

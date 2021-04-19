@@ -395,7 +395,10 @@ class DeviceFacade:
                 if self.viewV2 is None:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                return True if self.viewV2.count >= 1 else exists
+                if not exists and self.viewV2.count >= 1:
+                    logger.debug(f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!")
+                    return None
+                return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

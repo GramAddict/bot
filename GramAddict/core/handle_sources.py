@@ -232,7 +232,7 @@ def handle_likers(
         likers_container_exists = PostsViewList(device)._find_likers_container()
         has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
 
-        flag, post_description, _, = PostsViewList(
+        flag, post_description, _, _ = PostsViewList(
             device
         )._check_if_last_post(post_description, current_job)
         if flag:
