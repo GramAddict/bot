@@ -146,7 +146,6 @@ class InteractHashtagPosts(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=self.args.likes_count,
-            # stories_count=self.args.stories_count,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
