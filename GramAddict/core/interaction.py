@@ -678,9 +678,9 @@ def load_random_comment(my_username, media_type):
                     f"You didn't follow the rules of sections for {file_name}! Look at config example."
                 )
                 return None
-            photo_comments = lines[photo_header + 1:video_header]
-            video_comments = lines[video_header + 1:carousel_header]
-            carousel_comments = lines[carousel_header + 1:]
+            photo_comments = lines[photo_header + 1 : video_header]
+            video_comments = lines[video_header + 1 : carousel_header]
+            carousel_comments = lines[carousel_header + 1 :]
             if media_type == MediaType.PHOTO:
                 random_comment = (
                     choice(photo_comments) if len(photo_comments) > 0 else ""

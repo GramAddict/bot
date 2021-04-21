@@ -636,8 +636,8 @@ class PostsViewList:
             className=ClassName.TEXT_VIEW,
         )
         logger.info("Opening post likers.")
-        random_sleep()
         likes_view.click(DeviceFacade.Location.RIGHT)
+        random_sleep()
 
     def _check_if_last_post(self, last_description, current_job):
         """check if that post has been just interacted"""
@@ -1321,12 +1321,11 @@ class ProfileView(ActionBarView):
                 ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_COUNT
             )
         )
-        post_count_view.wait()
-        if post_count_view.exists():
+        if post_count_view.exists(DeviceFacade.Timeout.MEDIUM):
             count = post_count_view.get_text()
             if count is not None:
                 return self._parseCounter(count)
-        logger.error("Cannot get posts count text")
+        logger.error("Cannot get posts count text.")
         return 0
 
     def count_photo_in_view(self):
@@ -1540,6 +1539,7 @@ class FollowingView:
     def do_unfollow_from_list(self) -> bool:
         FOLLOWING_REGEX = "^Following$"
         UNFOLLOW_REGEX = "^Following|^Requested"
+        FOLLOW_REGEX = "^Follow$"
         following_button = self.device.find(
             classNameMatches=ClassName.BUTTON,
             clickable=True,
@@ -1547,6 +1547,7 @@ class FollowingView:
         )
         if following_button.exists(DeviceFacade.Timeout.SHORT):
             following_button.click()
+            random_sleep()
 
             confirm_unfollow_button = None
             attempts = 2
@@ -1556,7 +1557,13 @@ class FollowingView:
                 )
                 if confirm_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
                     break
-
+            follow_button = self.device.find(
+                classNameMatches=ClassName.BUTTON,
+                clickable=True,
+                textMatches=FOLLOW_REGEX,
+            )
+            if follow_button.exists(DeviceFacade.Timeout.SHORT):
+                return True
             if not confirm_unfollow_button or not confirm_unfollow_button.exists():
                 logger.error("Cannot confirm unfollow.")
                 save_crash(self.device)
