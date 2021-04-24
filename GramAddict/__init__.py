@@ -37,6 +37,7 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import (
     AccountView,
     ProfileView,
+    SearchView,
     TabBarView,
     load_config as load_views,
 )
@@ -48,10 +49,13 @@ configs = Config(first_run=True)
 # Logging initialization
 configure_logger(configs.debug, configs.username)
 logger = logging.getLogger(__name__)
-if update_available():
+is_update, version = update_available()
+if is_update:
+    logger.warn("NEW VERSION FOUND!")
     logger.warn(
-        "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+        f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
     )
+    sleep(5)
 logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
@@ -118,6 +122,7 @@ def run():
         logger.info("Device screen on and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             logger.info("Instagram version: " + get_instagram_version())
+            SearchView(device)._close_keyboard()
         else:
             break
         try:
@@ -163,7 +168,7 @@ def run():
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-
+        AccountView(device).refresh_account()
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
 
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})

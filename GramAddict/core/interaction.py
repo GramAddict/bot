@@ -1,4 +1,4 @@
-from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.device_facade import Location, SleepTime, Timeout
 from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
@@ -79,7 +79,6 @@ def interact_with_user(
             number_of_commented,
         )
 
-    random_sleep()
     logger.debug("Checking profile..")
     start_time = time()
     profile_data, skipped = profile_filter.check_profile(device, username)
@@ -167,7 +166,6 @@ def interact_with_user(
             number_of_watched,
             number_of_commented,
         )
-    random_sleep()
 
     likes_value = get_value(likes_count, "Likes count: {}", 2)
     (
@@ -219,7 +217,6 @@ def interact_with_user(
         opened_post_view, media_type, obj_count = PostsGridView(device).navigateToPost(
             row, column
         )
-        random_sleep()
 
         like_succeed = False
         if opened_post_view:
@@ -280,8 +277,6 @@ def interact_with_user(
                 number_of_watched,
                 number_of_commented,
             )
-
-        random_sleep()
 
     if can_send_PM(session_state, pm_percentage):
         sent_pm = _send_PM(device, session_state, my_username, swipe_amount)
@@ -466,7 +461,6 @@ def _browse_carousel(device, media_type, obj_count):
                 UniversalActions(device)._swipe_points(
                     direction=Direction.LEFT,
                 )
-                random_sleep()
                 n += 1
 
 
@@ -499,7 +493,6 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
             if comment_button.exists():
                 logger.info("Open comments of post.")
                 comment_button.click()
-                random_sleep()
                 comment_box = device.find(
                     resourceId=ResourceID.LAYOUT_COMMENT_THREAD_EDITTEXT,
                     enabled="true",
@@ -514,7 +507,7 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                         f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
                     )
                     comment_box.set_text(comment)
-                    random_sleep()
+
                     post_button = device.find(
                         resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
                     )
@@ -522,14 +515,11 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 else:
                     logger.info("Comments on this post have been limited.")
                     SearchView(device)._close_keyboard()
-                    random_sleep()
                     device.back()
                     return False
 
-                random_sleep()
                 UniversalActions.detect_block(device)
                 SearchView(device)._close_keyboard()
-                random_sleep()
                 posted_text = device.find(
                     resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
                     text=f"{my_username} {comment}",
@@ -537,16 +527,16 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 when_posted = posted_text.sibling(
                     resourceId=ResourceID.ROW_COMMENT_SUB_ITEMS_BAR
                 ).child(resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_TIME_AGO)
-                if posted_text.exists(
-                    DeviceFacade.Timeout.MEDIUM
-                ) and when_posted.exists(DeviceFacade.Timeout.MEDIUM):
+                if posted_text.exists(Timeout.MEDIUM) and when_posted.exists(
+                    Timeout.MEDIUM
+                ):
                     logger.info("Comment succeed.", extra={"color": f"{Fore.GREEN}"})
                     session_state.totalComments += 1
                     comment_confirmed = True
                 else:
                     logger.warning("Failed to check if comment succeed.")
                     comment_confirmed = False
-                random_sleep()
+
                 logger.info("Go back to post view.")
                 device.back()
                 return comment_confirmed
@@ -570,13 +560,11 @@ def _send_PM(device, session_state, my_username, swipe_amount):
         UniversalActions(device)._swipe_points(
             direction=Direction.UP, delta_y=swipe_amount
         )
-    random_sleep()
     message_button = device.find(
         classNameMatches=ClassName.BUTTON, clickable=True, textMatches="Message"
     )
-    if message_button.exists(DeviceFacade.Timeout.SHORT):
+    if message_button.exists(Timeout.SHORT):
         message_button.click()
-        random_sleep()
         message_box = device.find(
             resourceId=ResourceID.ROW_THREAD_COMPOSER_EDITTEXT,
             className=ClassName.EDIT_TEXT,
@@ -591,9 +579,7 @@ def _send_PM(device, session_state, my_username, swipe_amount):
             logger.info(
                 f"Write private message: {message}", extra={"color": f"{Fore.CYAN}"}
             )
-            message_box.click()
             message_box.set_text(message)
-            random_sleep()
             send_button = device.find(
                 resourceId=ResourceID.ROW_THREAD_COMPOSER_BUTTON_SEND,
                 className=ClassName.TEXT_VIEW,
@@ -601,7 +587,6 @@ def _send_PM(device, session_state, my_username, swipe_amount):
             send_button.click()
             UniversalActions.detect_block(device)
             SearchView(device)._close_keyboard()
-            random_sleep()
             posted_text = device.find(
                 resourceId=ResourceID.DIRECT_TEXT_MESSAGE_TEXT_VIEW,
                 text=f"{message}",
@@ -611,24 +596,19 @@ def _send_PM(device, session_state, my_username, swipe_amount):
             )
             if message_sending_icon.exists():
                 random_sleep()
-            if (
-                posted_text.exists(DeviceFacade.Timeout.MEDIUM)
-                and not message_sending_icon.exists()
-            ):
+            if posted_text.exists(Timeout.MEDIUM) and not message_sending_icon.exists():
                 logger.info("PM send succeed.", extra={"color": f"{Fore.GREEN}"})
                 session_state.totalPm += 1
                 pm_confirmed = True
             else:
                 logger.warning("Failed to check if PM send succeed.")
                 pm_confirmed = False
-            random_sleep()
             logger.info("Go back to profile view.")
             device.back()
             return pm_confirmed
         else:
             logger.info("PM to this user have been limited.")
             SearchView(device)._close_keyboard()
-            random_sleep()
             device.back()
             return False
     else:
@@ -711,12 +691,10 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
             return False
 
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
-        if coordinator_layout.exists() and swipe_amount != 0:
+        if coordinator_layout.exists(Timeout.MEDIUM) and swipe_amount != 0:
             UniversalActions(device)._swipe_points(
                 direction=Direction.UP, delta_y=swipe_amount
             )
-
-        random_sleep()
 
         follow_button = device.find(
             clickable=True,
@@ -753,10 +731,9 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
         if device.find(
             clickable=True,
             textMatches=UNFOLLOW_REGEX,
-        ).exists(DeviceFacade.Timeout.SHORT):
+        ).exists(Timeout.SHORT):
             logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
             UniversalActions.detect_block(device)
-            random_sleep()
             return True
         else:
             logger.info(
@@ -764,7 +741,6 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
                 extra={"color": f"{Fore.RED}"},
             )
             UniversalActions.detect_block(device)
-            random_sleep()
             return False
     else:
         logger.info("Reached total follows limit, not following.")
@@ -798,10 +774,10 @@ def _watch_stories(
         if stories_ring.exists():
             stories_counter = 0
             logger.debug("Open the first story.")
-            stories_ring.click()
+            stories_ring.click(sleep=SleepTime.ZERO)
             story_view = CurrentStoryView(device)
             random_sleep(1, 2, modulable=False, logging=False)
-            story_view.getStoryFrame().wait(DeviceFacade.Timeout.SHORT)
+            story_view.getStoryFrame().wait(Timeout.SHORT)
 
             if profile_view.getUsername(error=False) != username:
                 start = datetime.now()
@@ -823,7 +799,10 @@ def _watch_stories(
                                     and _iter <= stories_to_watch - 1
                                 ):
                                     logger.debug("Going to the next story..")
-                                    story_frame.click(DeviceFacade.Location.RIGHTEDGE)
+                                    story_frame.click(
+                                        mode=Location.RIGHTEDGE,
+                                        sleep=SleepTime.ZERO,
+                                    )
                                     session_state.totalWatched += 1
                                     stories_counter += 1
                                     for _ in range(0, 7):
@@ -846,7 +825,6 @@ def _watch_stories(
                 for _ in range(0, 4):
                     if profile_view.getUsername(error=False) != username:
                         device.back()
-                        random_sleep()
                     else:
                         break
                 logger.info(

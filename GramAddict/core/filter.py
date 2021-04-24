@@ -1,4 +1,4 @@
-from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.device_facade import Timeout
 import json
 import logging
 import os
@@ -427,9 +427,9 @@ class Filter:
         profile_picture = device.find(
             resourceIdMatches=ResourceID.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB
         )
-        if not profile_picture.exists(DeviceFacade.Timeout.LONG):
+        if not profile_picture.exists(Timeout.LONG):
             logger.info("Looks like this profile hasn't loaded yet!")
-            if profile_picture.exists(DeviceFacade.Timeout.LONG):
+            if profile_picture.exists(Timeout.LONG):
                 logger.info("Profile loaded!")
             else:
                 logger.warning(

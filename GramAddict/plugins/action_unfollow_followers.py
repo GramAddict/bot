@@ -1,9 +1,10 @@
+from GramAddict.core.handle_sources import do_unfollow_from_list
 import logging
 from enum import Enum, unique
 
 from colorama import Fore
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.device_facade import DeviceFacade, Timeout
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
@@ -148,9 +149,7 @@ class ActionUnfollowFollowers(Plugin):
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
     ):
         self.open_my_followings(device)
-        random_sleep()
         self.sort_followings_by_date(device, self.args.sort_followers_newest_to_oldest)
-        random_sleep()
         self.iterate_over_followings(
             device, count, on_unfollow, storage, unfollow_restriction, my_username
         )
@@ -164,7 +163,7 @@ class ActionUnfollowFollowers(Plugin):
         followings_button = device.find(
             resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
-        if followings_button.exists(DeviceFacade.Timeout.MEDIUM):
+        if followings_button.exists(Timeout.LONG):
             followings_button.click()
 
     def sort_followings_by_date(self, device, newest_to_oldest=False):
@@ -177,19 +176,17 @@ class ActionUnfollowFollowers(Plugin):
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
             className=ClassName.IMAGE_VIEW,
         )
-        if not sort_button.exists():
+        if not sort_button.exists(Timeout.MEDIUM):
             logger.error(
                 "Cannot find button to sort followings. Continue without sorting."
             )
             return
         sort_button.click()
-        random_sleep()
 
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
-        sort_options_recycler_view.wait(DeviceFacade.Timeout.SHORT)
-        if not sort_options_recycler_view.exists():
+        if not sort_options_recycler_view.exists(Timeout.SHORT):
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
             )
@@ -204,7 +201,6 @@ class ActionUnfollowFollowers(Plugin):
             sort_options_recycler_view.child(
                 textMatches="Date Followed: Earliest"
             ).click()
-        random_sleep()
 
     def iterate_over_followings(
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
@@ -213,7 +209,7 @@ class ActionUnfollowFollowers(Plugin):
         device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
             className=ClassName.LINEAR_LAYOUT,
-        ).wait(DeviceFacade.Timeout.SHORT)
+        ).wait(Timeout.SHORT)
         sort_container_obj = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
         )
@@ -237,7 +233,6 @@ class ActionUnfollowFollowers(Plugin):
         unfollowed_count = 0
         while True:
             logger.info("Iterate over visible followings")
-            random_sleep()
             screen_iterated_followings = 0
             for item in device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
@@ -288,16 +283,20 @@ class ActionUnfollowFollowers(Plugin):
                                 f"Skip @{username}. Following status: {following_status.name}."
                             )
                             continue
+                    if True:
+                        # unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS:
+                        unfollowed = self.do_unfollow(
+                            device,
+                            username,
+                            my_username,
+                            unfollow_restriction
+                            == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
+                            or unfollow_restriction
+                            == UnfollowRestriction.ANY_NON_FOLLOWERS,
+                        )
+                    # elif unfollow_restriction == UnfollowRestriction.ANY:
+                    #     unfollowed = do_unfollow_from_list()
 
-                    unfollowed = self.do_unfollow(
-                        device,
-                        username,
-                        my_username,
-                        unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
-                        or unfollow_restriction
-                        == UnfollowRestriction.ANY_NON_FOLLOWERS,
-                    )
                     if unfollowed:
                         storage.add_interacted_user(
                             username, self.session_state.id, unfollowed=True
@@ -305,7 +304,6 @@ class ActionUnfollowFollowers(Plugin):
                         on_unfollow()
                         unfollowed_count += 1
 
-                    random_sleep()
                     if unfollowed_count >= count:
                         return
                 else:
@@ -316,7 +314,7 @@ class ActionUnfollowFollowers(Plugin):
                 list_view = device.find(
                     resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
-                list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                list_view.scroll(Direction.DOWN)
             else:
                 logger.info(
                     "No followings were iterated, finish.",
@@ -361,7 +359,7 @@ class ActionUnfollowFollowers(Plugin):
 
                 scrollable = device.find(classNameMatches=ClassName.VIEW_PAGER)
                 if scrollable.exists():
-                    scrollable.scroll(DeviceFacade.Direction.TOP)
+                    scrollable.scroll(Direction.UP)
                 unfollow_button = device.find(
                     classNameMatches=ClassName.BUTTON,
                     clickable=True,
@@ -371,7 +369,6 @@ class ActionUnfollowFollowers(Plugin):
             if not unfollow_button.exists():
                 logger.error("Cannot find Following button.")
                 save_crash(device)
-            random_sleep()
             logger.debug("Unfollow button click.")
             unfollow_button.click()
             logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
@@ -388,7 +385,7 @@ class ActionUnfollowFollowers(Plugin):
                 confirm_unfollow_button = device.find(
                     resourceId=self.ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
                 )
-                if confirm_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
+                if confirm_unfollow_button.exists(Timeout.SHORT):
                     break
 
             if not confirm_unfollow_button or not confirm_unfollow_button.exists():
@@ -406,7 +403,7 @@ class ActionUnfollowFollowers(Plugin):
                 classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                 textMatches=UNFOLLOW_REGEX,
             )
-            if private_unfollow_button.exists(DeviceFacade.Timeout.SHORT):
+            if private_unfollow_button.exists(Timeout.SHORT):
                 logger.debug("Confirm unfollow private account.")
                 private_unfollow_button.click()
 
@@ -420,7 +417,6 @@ class ActionUnfollowFollowers(Plugin):
         return True
 
     def check_is_follower(self, device, username, my_username):
-        random_sleep()
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
@@ -433,8 +429,7 @@ class ActionUnfollowFollowers(Plugin):
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
             className=ClassName.TEXT_VIEW,
         )
-        if rows.exists(DeviceFacade.Timeout.LONG):
-            random_sleep()
+        if rows.exists(Timeout.LONG):
             my_username_view = device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
                 className=ClassName.TEXT_VIEW,

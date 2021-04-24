@@ -6,7 +6,6 @@ from GramAddict.core.interaction import do_like
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.views import OpenedPostView
 from GramAddict.core.utils import (
-    random_sleep,
     open_instagram_with_url,
     validate_url,
 )
@@ -88,7 +87,6 @@ class LikeFromURLs(Plugin):
                                     username, self.session_state.id, liked=1
                                 )
                                 self.device.back()
-                                random_sleep()
                     else:
                         logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()

@@ -1,4 +1,4 @@
-from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.device_facade import Timeout
 import logging
 
 from colorama import Fore
@@ -14,7 +14,6 @@ from GramAddict.core.views import (
     TabBarView,
     UniversalActions,
 )
-from GramAddict.core.utils import random_sleep
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,6 @@ logger = logging.getLogger(__name__)
 def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
     ProfileView(device)._click_on_avatar()
-    random_sleep()
     logger.debug("Checking if English..")
     post, follower, following = ProfileView(device)._getSomeText()
     if None not in {post, follower, following}:
@@ -31,15 +29,10 @@ def check_if_english(device):
         else:
             logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
             ProfileView(device).navigateToOptions()
-            random_sleep()
             OptionsView(device).navigateToSettings()
-            random_sleep()
             SettingsView(device).navigateToAccount()
-            random_sleep()
             AccountView(device).navigateToLanguage()
-            random_sleep()
             LanguageView(device).setLanguage("english")
-            random_sleep()
     else:
         logger.warning(
             "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
@@ -61,7 +54,6 @@ def nav_to_blogger(device, username, current_job):
     else:
         search_view = TabBarView(device).navigateToSearch()
         profile_view = search_view.navigateToUsername(username)
-        random_sleep()
         if not profile_view:
             return False
 
@@ -88,15 +80,13 @@ def nav_to_hashtag_or_place(device, target, current_job):
     if current_job.endswith("recent"):
         logger.info("Switching to Recent tab.")
         recent_tab = TargetView(device)._getRecentTab()
-        if recent_tab.exists(DeviceFacade.Timeout.MEDIUM):
+        if recent_tab.exists(Timeout.MEDIUM):
             recent_tab.click()
         else:
             return False
 
-        random_sleep()
         if UniversalActions(device)._check_if_no_posts():
             UniversalActions(device)._reload_page()
-            random_sleep()
             if UniversalActions(device)._check_if_no_posts():
                 return False
 
@@ -104,7 +94,6 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
     result_view = TargetView(device)._getRecyclerView()
     TargetView(device)._getFistImageView(result_view).click()
-    random_sleep()
     return True
 
 
@@ -116,7 +105,6 @@ def nav_to_post_likers(device, username, my_username):
         search_view = TabBarView(device).navigateToSearch()
         if not search_view.navigateToUsername(username):
             return False
-    random_sleep()
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()
     posts_count = profile_view.getPostsCount()
@@ -128,7 +116,6 @@ def nav_to_post_likers(device, username, my_username):
     logger.info("Opening the first post")
     ProfileView(device).swipe_to_fit_posts()
     PostsGridView(device).navigateToPost(0, 0)
-    random_sleep()
     return True
 
 

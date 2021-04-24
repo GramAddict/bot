@@ -37,6 +37,39 @@ def get_device_info(device):
     logger.debug(f"Device ID: {device.deviceV2.serial}")
 
 
+class Timeout(Enum):
+    ZERO = auto()
+    SHORT = auto()
+    MEDIUM = auto()
+    LONG = auto()
+
+
+class SleepTime(Enum):
+    ZERO = auto()
+    TINY = auto()
+    SHORT = auto()
+    DEFAULT = auto()
+
+
+class Location(Enum):
+    CUSTOM = auto()
+    WHOLE = auto()
+    CENTER = auto()
+    BOTTOM = auto()
+    RIGHT = auto()
+    LEFT = auto()
+    BOTTOMRIGHT = auto()
+    RIGHTEDGE = auto()
+    TOPLEFT = auto()
+
+
+class Direction(Enum):
+    UP = auto()
+    DOWN = auto()
+    RIGHT = auto()
+    LEFT = auto()
+
+
 class DeviceFacade:
     deviceV2 = None  # uiautomator2
 
@@ -65,8 +98,9 @@ class DeviceFacade:
     def back(self):
         logger.debug("Press back button.")
         self.deviceV2.press("back")
+        random_sleep()
 
-    def start_screenrecord(self, output="debug_0000.mp4", fps=10):
+    def start_screenrecord(self, output="debug_0000.mp4", fps=20):
         mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
         if mp4_files != []:
             last_mp4 = mp4_files[-1]
@@ -74,7 +108,7 @@ class DeviceFacade:
             output = f"debug_{debug_number}.mp4"
         self.deviceV2.screenrecord(output, fps)
         logger.warning(
-            f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'"
+            f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'."
         )
 
     def stop_screenrecord(self):
@@ -83,7 +117,7 @@ class DeviceFacade:
             if mp4_files != []:
                 last_mp4 = mp4_files[-1]
                 logger.warning(
-                    f"Screen recorder has been stopped succesfully! File '{last_mp4}' available in '{getcwd()}'"
+                    f"Screen recorder has been stopped succesfully! File '{last_mp4}' available in '{getcwd()}'."
                 )
 
     def screenshot(self, path):
@@ -141,10 +175,10 @@ class DeviceFacade:
                 attempts += 1
 
     def unlock(self):
-        self.swipe(DeviceFacade.Direction.TOP, 0.8)
+        self.swipe(Direction.UP, 0.8)
         random_sleep(1, 1, False)
         if self.is_screen_locked():
-            self.swipe(DeviceFacade.Direction.RIGHT, 0.8)
+            self.swipe(Direction.RIGHT, 0.8)
 
     def screen_off(self):
         self.deviceV2.screen_off()
@@ -162,24 +196,25 @@ class DeviceFacade:
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
-    def swipe(self, direction: "DeviceFacade.Direction", scale=0.5):
+    def swipe(self, direction: "Direction", scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
         """
         swipe_dir = ""
-        if direction == DeviceFacade.Direction.TOP:
+        if direction == Direction.UP:
             swipe_dir = "up"
-        elif direction == DeviceFacade.Direction.RIGHT:
+        elif direction == Direction.RIGHT:
             swipe_dir = "right"
-        elif direction == DeviceFacade.Direction.LEFT:
+        elif direction == Direction.LEFT:
             swipe_dir = "left"
-        elif direction == DeviceFacade.Direction.BOTTOM:
+        elif direction == Direction.DOWN:
             swipe_dir = "down"
 
         logger.debug(f"Swipe {swipe_dir}, scale={scale}")
 
         try:
             self.deviceV2.swipe_ext(swipe_dir, scale=scale)
+            DeviceFacade.sleep_mode(SleepTime.TINY)
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
@@ -191,6 +226,7 @@ class DeviceFacade:
             ey = ey * uniform(0.98, 1.02)
         try:
             self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.5))
+            DeviceFacade.sleep_mode(SleepTime.TINY)
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
@@ -202,6 +238,18 @@ class DeviceFacade:
             return self.deviceV2.info
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
+
+    @staticmethod
+    def sleep_mode(mode):
+        mode = SleepTime.DEFAULT if mode is None else mode
+        if mode == SleepTime.DEFAULT:
+            random_sleep()
+        elif mode == SleepTime.TINY:
+            random_sleep(0, 1)
+        elif mode == SleepTime.SHORT:
+            random_sleep(1, 2)
+        elif mode == SleepTime.ZERO:
+            pass
 
     class View:
         deviceV2 = None  # uiautomator2
@@ -274,36 +322,45 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def click(self, mode=None):
-            mode = DeviceFacade.Location.WHOLE if mode is None else mode
+        def click(self, mode=None, sleep=None, coord=[]):
+            mode = Location.WHOLE if mode is None else mode
             x_abs = -1
             y_abs = -1
-            if mode == DeviceFacade.Location.WHOLE:
+            if mode == Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == DeviceFacade.Location.LEFT:
+            elif mode == Location.LEFT:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == DeviceFacade.Location.CENTER:
+            elif mode == Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == DeviceFacade.Location.RIGHT:
+            elif mode == Location.RIGHT:
                 x_offset = uniform(0.6, 0.85)
                 y_offset = uniform(0.15, 0.85)
 
-            elif mode == DeviceFacade.Location.RIGHTEDGE:
+            elif mode == Location.RIGHTEDGE:
                 x_offset = uniform(0.8, 0.9)
                 y_offset = uniform(0.30, 0.70)
 
-            elif mode == DeviceFacade.Location.BOTTOMRIGHT:
+            elif mode == Location.BOTTOMRIGHT:
                 x_offset = uniform(0.8, 0.9)
                 y_offset = uniform(0.8, 0.9)
-            elif mode == DeviceFacade.Location.TOPLEFT:
+
+            elif mode == Location.TOPLEFT:
                 x_offset = uniform(0.05, 0.15)
                 y_offset = uniform(0.05, 0.25)
+            elif mode == Location.CUSTOM:
+                try:
+                    logger.debug(f"Single click ({coord[0]},{coord[1]})")
+                    self.deviceV2.click(coord[0], coord[1])
+                    DeviceFacade.sleep_mode(sleep)
+                    return
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
 
             else:
                 x_offset = 0.5
@@ -321,9 +378,10 @@ class DeviceFacade:
                 )
                 logger.debug(f"Single click ({x_abs},{y_abs})")
                 self.viewV2.click(
-                    self.get_ui_timeout(DeviceFacade.Timeout.LONG),
+                    self.get_ui_timeout(Timeout.LONG),
                     offset=(x_offset, y_offset),
                 )
+                DeviceFacade.sleep_mode(sleep)
 
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -365,12 +423,13 @@ class DeviceFacade:
                 self.deviceV2.double_click(
                     random_x, random_y, duration=time_between_clicks
                 )
+                DeviceFacade.sleep_mode(SleepTime.DEFAULT)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
         def scroll(self, direction):
             try:
-                if direction == DeviceFacade.Direction.TOP:
+                if direction == Direction.UP:
                     self.viewV2.scroll.toBeginning(max_swipes=1)
                 else:
                     self.viewV2.scroll.toEnd(max_swipes=1)
@@ -379,7 +438,7 @@ class DeviceFacade:
 
         def fling(self, direction):
             try:
-                if direction == DeviceFacade.Direction.TOP:
+                if direction == Direction.UP:
                     self.viewV2.fling.toBeginning(max_swipes=5)
                 else:
                     self.viewV2.fling.toEnd(max_swipes=5)
@@ -430,14 +489,14 @@ class DeviceFacade:
 
         @staticmethod
         def get_ui_timeout(ui_timeout):
-            ui_timeout = DeviceFacade.Timeout.ZERO if ui_timeout is None else ui_timeout
-            if ui_timeout == DeviceFacade.Timeout.ZERO:
+            ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
+            if ui_timeout == Timeout.ZERO:
                 ui_timeout = 0
-            elif ui_timeout == DeviceFacade.Timeout.SHORT:
+            elif ui_timeout == Timeout.SHORT:
                 ui_timeout = 3
-            elif ui_timeout == DeviceFacade.Timeout.MEDIUM:
+            elif ui_timeout == Timeout.MEDIUM:
                 ui_timeout = 5
-            elif ui_timeout == DeviceFacade.Timeout.LONG:
+            elif ui_timeout == Timeout.LONG:
                 ui_timeout = 8
             return ui_timeout
 
@@ -472,6 +531,7 @@ class DeviceFacade:
         def set_text(self, text):
             punct_list = string.punctuation
             try:
+                self.click(sleep=SleepTime.SHORT)
                 self.deviceV2.clear_text()
                 start = datetime.now()
                 random_sleep(0.3, 1, modulable=False)
@@ -505,30 +565,9 @@ class DeviceFacade:
                 logger.debug(
                     f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
                 )
+                DeviceFacade.sleep_mode(SleepTime.SHORT)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
-
-    class Location(Enum):
-        WHOLE = auto()
-        CENTER = auto()
-        BOTTOM = auto()
-        RIGHT = auto()
-        LEFT = auto()
-        BOTTOMRIGHT = auto()
-        RIGHTEDGE = auto()
-        TOPLEFT = auto()
-
-    class Timeout(Enum):
-        ZERO = auto()
-        SHORT = auto()
-        MEDIUM = auto()
-        LONG = auto()
-
-    class Direction(Enum):
-        TOP = auto()
-        BOTTOM = auto()
-        RIGHT = auto()
-        LEFT = auto()
 
     class JsonRpcError(Exception):
         pass

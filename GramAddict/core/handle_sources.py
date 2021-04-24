@@ -2,7 +2,7 @@ import logging
 from functools import partial
 from os import path
 from colorama import Fore
-from GramAddict.core.device_facade import DeviceFacade
+from GramAddict.core.device_facade import Direction, Timeout
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.navigation import (
     nav_to_feed,
@@ -11,9 +11,6 @@ from GramAddict.core.navigation import (
     nav_to_post_likers,
 )
 from GramAddict.core.resources import ClassName
-from GramAddict.core.utils import (
-    random_sleep,
-)
 from GramAddict.core.views import (
     FollowingView,
     PostsViewList,
@@ -143,7 +140,9 @@ def handle_blogger_from_file(
                 username = line.strip()
                 if username != "":
                     if current_job == "unfollow-from-file":
-                        do_unfollow_from_list(device, username, on_following_list)
+                        unfollowed = do_unfollow_from_list(
+                            device, username, on_following_list
+                        )
                         on_following_list = True
                         continue
                     else:
@@ -155,14 +154,10 @@ def handle_blogger_from_file(
                             continue
                         if need_to_refresh:
                             search_view = TabBarView(device).navigateToSearch()
-                            random_sleep()
-                        profile_view = search_view.navigateToUsername(
-                            username, True, need_to_refresh
-                        )
+                        profile_view = search_view.navigateToUsername(username, True)
                         need_to_refresh = False
                         if not profile_view:
                             continue
-                        random_sleep()
 
                         if not interact(
                             storage,
@@ -252,20 +247,23 @@ def handle_likers(
             continue
 
         posts_end_detector.notify_new_page()
-        random_sleep()
 
         likes_list_view = OpenedPostView(device)._getListViewLikers()
+        if likes_list_view is None:
+            return
         prev_screen_iterated_likers = []
 
         while True:
             logger.info("Iterate over visible likers.")
             screen_iterated_likers = []
             opened = False
-
+            user_countainer = OpenedPostView(device)._getUserCountainer()
+            if user_countainer is None:
+                return
             try:
                 for item in OpenedPostView(device)._getUserCountainer():
                     username_view = OpenedPostView(device)._getUserName(item)
-                    if not username_view.exists(DeviceFacade.Timeout.MEDIUM):
+                    if not username_view.exists(Timeout.MEDIUM):
                         logger.info(
                             "Next item not found: probably reached end of the screen.",
                             extra={"color": f"{Fore.GREEN}"},
@@ -307,7 +305,6 @@ def handle_likers(
                     opened = True
                     logger.info("Back to likers list.")
                     device.back()
-                    random_sleep()
 
             except IndexError:
                 logger.info(
@@ -329,7 +326,6 @@ def handle_likers(
                     f"Back to {target}'s posts list.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                random_sleep()
                 device.back()
                 logger.info("Going to the next post.")
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
@@ -341,7 +337,7 @@ def handle_likers(
                     "Reached fling limit. Fling to see other likers.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                likes_list_view.fling(DeviceFacade.Direction.BOTTOM)
+                likes_list_view.fling(Direction.DOWN)
             else:
                 prev_screen_iterated_likers.clear()
                 prev_screen_iterated_likers += screen_iterated_likers
@@ -349,10 +345,9 @@ def handle_likers(
                     "Scroll to see other likers.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
-                likes_list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                likes_list_view.scroll(Direction.DOWN)
 
             if posts_end_detector.is_the_end():
-                random_sleep()
                 device.back()
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 break
@@ -427,7 +422,6 @@ def handle_posts(
                             )
                             UniversalActions.detect_block(device)
                         session_state.totalLikes += 1
-                        random_sleep(1, 2)
                     if PostsViewList(device)._post_owner(
                         current_job, Owner.OPEN, username
                     ):
@@ -445,9 +439,7 @@ def handle_posts(
                         device.back()
 
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
-        random_sleep(0, 1)
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
-        random_sleep()
 
 
 def handle_followers(
@@ -480,7 +472,7 @@ def handle_followers(
             resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
         )
         while not is_end_reached():
-            list_view.fling(DeviceFacade.Direction.BOTTOM)
+            list_view.fling(Direction.DOWN)
 
         logger.info("Scroll back to the first follower.")
 
@@ -492,7 +484,7 @@ def handle_followers(
             return follower.exists()
 
         while not is_at_least_one_follower():
-            list_view.scroll(DeviceFacade.Direction.TOP)
+            list_view.scroll(Direction.UP)
 
         if is_myself:
             scroll_to_bottom(device)
@@ -528,7 +520,7 @@ def iterate_over_followers(
     device.find(
         resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
         className=ClassName.LINEAR_LAYOUT,
-    ).wait()
+    ).wait(Timeout.LONG)
 
     def scrolled_to_top():
         row_search = device.find(
@@ -539,7 +531,6 @@ def iterate_over_followers(
 
     while True:
         logger.info("Iterate over visible followers.")
-        random_sleep()
         screen_iterated_followers = []
         screen_skipped_followers_count = 0
         scroll_end_detector.notify_new_page()
@@ -590,7 +581,6 @@ def iterate_over_followers(
 
                     logger.info("Back to followers list")
                     device.back()
-                    random_sleep()
 
         except IndexError:
             logger.info(
@@ -628,7 +618,7 @@ def iterate_over_followers(
 
             if is_myself:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
-                list_view.scroll(DeviceFacade.Direction.TOP)
+                list_view.scroll(Direction.UP)
             else:
                 pressed_retry = False
                 if load_more_button_exists:
@@ -638,7 +628,6 @@ def iterate_over_followers(
                     if retry_button.exists():
                         logger.info('Press "Load" button')
                         retry_button.click()
-                        random_sleep()
                         pressed_retry = True
 
                 if need_swipe and not pressed_retry:
@@ -650,16 +639,16 @@ def iterate_over_followers(
                             "Limit of all followers skipped reached, let's fling.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        list_view.fling(DeviceFacade.Direction.BOTTOM)
+                        list_view.fling(Direction.DOWN)
                     else:
                         logger.info(
                             "All followers skipped, let's scroll.",
                             extra={"color": f"{Fore.GREEN}"},
                         )
-                        list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                        list_view.scroll(Direction.DOWN)
                 else:
                     logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
-                    list_view.scroll(DeviceFacade.Direction.BOTTOM)
+                    list_view.scroll(Direction.DOWN)
         else:
             logger.info(
                 "No followers were iterated, finish.",

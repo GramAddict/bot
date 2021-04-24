@@ -1,5 +1,8 @@
+from math import nan
 import random
 import sys
+
+from numpy import NaN
 from GramAddict.core.report import print_full_report
 import logging
 import os
@@ -35,12 +38,20 @@ def load_config(config):
 
 
 def update_available():
+    if "b" not in __version__:
+        version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
+    else:
+        version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
     try:
         r = http.request(
             "GET",
-            "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
+            version_request,
         )
-        return r.data.decode("utf-8").split('"')[1] > __version__
+        version_number = r.data.decode("utf-8").split('"')[1]
+        return (
+            version_number.replace("b", "") > __version__.replace("b", ""),
+            version_number,
+        )
     except Exception as e:
         logger.error(
             f"There was an error retreiving the latest version of GramAddict: {e}"
@@ -132,6 +143,12 @@ def open_instagram(device, screen_record, close_apps):
         random_sleep()
 
     device.deviceV2.set_fastinput_ime(True)
+    ime = device.find(
+        classNameMatches="android.widget.TextView", textMatches="FastInputIME"
+    )
+    if ime.exists():
+        logger.debug("Keyboard switch dialog is open. Closing it.")
+        ime.click()
     if screen_record:
         try:
             device.start_screenrecord()
@@ -386,3 +403,18 @@ def wait_for_next_session(time_left, session_state, sessions, device, screen_rec
 
 class ActionBlockedError(Exception):
     pass
+
+
+class Square:
+    def __init__(self, x, y, span_x, span_y):
+        self.x = x + 10
+        self.y = y + 10
+        self.x1 = (x + span_x - 10) if span_x != 0 else 0
+        self.y1 = (y + span_y - 10) if span_y != 0 else 0
+
+    def point(self):
+        """return safe point to click"""
+        if self.x1 != 0 and self.y1 != 0:
+            return [randint(self.x, self.x1), randint(self.y, self.y1)]
+        else:
+            return NaN

@@ -10,7 +10,6 @@ from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.views import TabBarView
 from GramAddict.core.utils import (
     get_value,
-    random_sleep,
 )
 from GramAddict.core.interaction import (
     _on_interaction,
@@ -201,14 +200,12 @@ class InteractUsernames(Plugin):
                             continue
                         if need_to_refresh:
                             search_view = TabBarView(device).navigateToSearch()
-                            random_sleep()
                         profile_view = search_view.navigateToUsername(
                             username, True, need_to_refresh
                         )
                         need_to_refresh = False
                         if not profile_view:
                             continue
-                        random_sleep()
 
                         if not interact(
                             storage,

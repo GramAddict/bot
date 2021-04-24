@@ -80,7 +80,7 @@ class InteractBloggerPostLikers(Plugin):
                 follow_percentage,
                 comment_percentage,
                 pm_percentage,
-                interact_percentage,
+                _,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
             @run_safely(

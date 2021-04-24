@@ -81,6 +81,9 @@ class ResourceID:
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (
             f"{APP_ID}:id/row_feed_comment_textview_layout"
         )
+        self.ROW_FEED_LIKE_COUNT_FACEPILE_STUB = (
+            f"{APP_ID}:id/row_feed_like_count_facepile_stub"
+        )
         self.ROW_FEED_PHOTO_PROFILE_NAME = f"{APP_ID}:id/row_feed_photo_profile_name"
         self.ROW_FEED_TEXTVIEW_LIKES = f"{APP_ID}:id/row_feed_textview_likes"
         self.ROW_FEED_VIEW_GROUP_BUTTONS = f"{APP_ID}:id/row_feed_view_group_buttons"
