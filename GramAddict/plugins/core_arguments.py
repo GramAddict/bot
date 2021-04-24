@@ -283,4 +283,11 @@ class CoreArguments(Plugin):
                 "metavar": "5-10",
                 "default": "5",
             },
+            {
+                "arg": "--uia-version",
+                "nargs": None,
+                "help": "uiautomator version, deprecated.",
+                "metavar": 2,
+                "default": 2,
+            },
         ]

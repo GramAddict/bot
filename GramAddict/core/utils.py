@@ -56,7 +56,7 @@ def update_available():
         logger.error(
             f"There was an error retreiving the latest version of GramAddict: {e}"
         )
-        return False
+        return False, False
 
 
 def check_adb_connection():

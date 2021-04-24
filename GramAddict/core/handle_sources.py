@@ -48,10 +48,10 @@ def interact(
         interaction_succeed,
         followed,
         scraped,
+        pm_sent,
         number_of_liked,
         number_of_watched,
         number_of_comments,
-        pm_sent,
     ) = interaction(device, username=username, can_follow=can_follow)
 
     add_interacted_user = partial(
