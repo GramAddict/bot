@@ -6,7 +6,6 @@ from colorama import Fore, Style
 from random import choice, randint, uniform
 
 import emoji
-from numpy import NaN
 
 from GramAddict.core.device_facade import (
     DeviceFacade,

@@ -2,7 +2,6 @@ from math import nan
 import random
 import sys
 
-from numpy import NaN
 from GramAddict.core.report import print_full_report
 import logging
 import os
@@ -417,4 +416,4 @@ class Square:
         if self.x1 != 0 and self.y1 != 0:
             return [randint(self.x, self.x1), randint(self.y, self.y1)]
         else:
-            return NaN
+            return nan
