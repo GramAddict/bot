@@ -1,4 +1,3 @@
-from GramAddict.core.handle_sources import do_unfollow_from_list
 import logging
 from enum import Enum, unique
 
@@ -10,6 +9,7 @@ from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import random_sleep, save_crash, get_value
 from GramAddict.core.views import (
+    FollowingView,
     UniversalActions,
     Direction,
 )
@@ -149,7 +149,6 @@ class ActionUnfollowFollowers(Plugin):
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
     ):
         self.open_my_followings(device)
-        self.sort_followings_by_date(device, self.args.sort_followers_newest_to_oldest)
         self.iterate_over_followings(
             device, count, on_unfollow, storage, unfollow_restriction, my_username
         )
@@ -167,10 +166,6 @@ class ActionUnfollowFollowers(Plugin):
             followings_button.click()
 
     def sort_followings_by_date(self, device, newest_to_oldest=False):
-
-        UniversalActions(device)._swipe_points(
-            direction=Direction.DOWN,
-        )
 
         sort_button = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
@@ -206,33 +201,42 @@ class ActionUnfollowFollowers(Plugin):
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
     ):
         # Wait until list is rendered
-        device.find(
-            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
-            className=ClassName.LINEAR_LAYOUT,
-        ).wait(Timeout.SHORT)
-        sort_container_obj = device.find(
-            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
-        )
-        top_tab_obj = device.find(
-            resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
-        )
-        if sort_container_obj.exists() and top_tab_obj.exists():
-            sort_container_bounds = sort_container_obj.get_bounds()["top"]
-            list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
-            delta = sort_container_bounds - list_tab_bounds
-            UniversalActions(device)._swipe_points(
-                direction=Direction.DOWN,
-                start_point_y=sort_container_bounds,
-                delta_y=delta - 50,
+        sorted = False
+        for _ in range(2):
+            device.find(
+                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+                className=ClassName.LINEAR_LAYOUT,
+            ).wait(Timeout.LONG)
+            sort_container_obj = device.find(
+                resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
             )
-        else:
-            UniversalActions(device)._swipe_points(
-                direction=Direction.DOWN,
+            top_tab_obj = device.find(
+                resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             )
+            if sort_container_obj.exists(Timeout.SHORT) and top_tab_obj.exists(
+                Timeout.SHORT
+            ):
+                sort_container_bounds = sort_container_obj.get_bounds()["top"]
+                list_tab_bounds = top_tab_obj.get_bounds()["bottom"]
+                delta = sort_container_bounds - list_tab_bounds
+                UniversalActions(device)._swipe_points(
+                    direction=Direction.DOWN,
+                    start_point_y=sort_container_bounds,
+                    delta_y=delta - 50,
+                )
+            else:
+                UniversalActions(device)._swipe_points(
+                    direction=Direction.DOWN,
+                )
+            if not sorted:
+                self.sort_followings_by_date(
+                    device, self.args.sort_followers_newest_to_oldest
+                )
+                sorted = True
         checked = {}
         unfollowed_count = 0
         while True:
-            logger.info("Iterate over visible followings")
+            logger.info("Iterate over visible followings.")
             screen_iterated_followings = 0
             for item in device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
@@ -283,8 +287,15 @@ class ActionUnfollowFollowers(Plugin):
                                 f"Skip @{username}. Following status: {following_status.name}."
                             )
                             continue
-                    if True:
-                        # unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS:
+                    if (
+                        unfollow_restriction == UnfollowRestriction.ANY
+                        or unfollow_restriction
+                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT
+                    ):
+                        unfollowed = FollowingView(device).do_unfollow_from_list(
+                            user_row=item, username=username
+                        )
+                    else:
                         unfollowed = self.do_unfollow(
                             device,
                             username,
@@ -294,8 +305,6 @@ class ActionUnfollowFollowers(Plugin):
                             or unfollow_restriction
                             == UnfollowRestriction.ANY_NON_FOLLOWERS,
                         )
-                    # elif unfollow_restriction == UnfollowRestriction.ANY:
-                    #     unfollowed = do_unfollow_from_list()
 
                     if unfollowed:
                         storage.add_interacted_user(
@@ -303,11 +312,13 @@ class ActionUnfollowFollowers(Plugin):
                         )
                         on_unfollow()
                         unfollowed_count += 1
-
-                    if unfollowed_count >= count:
+                        limit_reached = self.session_state.check_limit(
+                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+                        )
+                    if unfollowed_count >= count or limit_reached:
                         return
                 else:
-                    logger.debug(f"Already checked {username}")
+                    logger.debug(f"Already checked {username}.")
 
             if screen_iterated_followings > 0:
                 logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})

@@ -767,14 +767,16 @@ class PostsViewList:
                     )
                     for _ in range(2):
                         if comment_description.exists() is None:
+                            random_sleep()
                             comment_description = self.device.find(
                                 resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
-                                textStartsWith=username,
+                                textContains=username,
                             )
                         else:
                             break
                     if comment_description.exists():
-                        comment_description.click(Location.TOPLEFT)
+                        logger.info("Open post owner from description.")
+                        comment_description.child().click()
                         return True
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
@@ -1558,57 +1560,39 @@ class FollowingView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def do_unfollow_from_list(self) -> bool:
-        FOLLOWING_REGEX = "^Following$"
-        UNFOLLOW_REGEX = "^Following|^Requested"
+    def do_unfollow_from_list(self, username, user_row=None) -> bool:
+        UNFOLLOW_REGEX = "^Unfollow$"
         FOLLOW_REGEX = "^Follow$"
-        following_button = self.device.find(
-            classNameMatches=ClassName.BUTTON,
-            clickable=True,
-            textMatches=FOLLOWING_REGEX,
-        )
+        if user_row is None:
+            user_row = self.device.find(
+                resourceId=ResourceID.FOLLOW_LIST_CONTAINER,
+                className=ClassName.LINEAR_LAYOUT,
+            )
+        if not user_row.exists(Timeout.MEDIUM):
+            logger.error(f"Cannot find {username} in following list.")
+            return False
+        following_button = user_row.child(index=2)
+
         if following_button.exists(Timeout.SHORT):
             following_button.click()
-
-            confirm_unfollow_button = None
-            attempts = 2
-            for _ in range(attempts):
-                confirm_unfollow_button = self.device.find(
-                    resourceId=ResourceID.FOLLOW_SHEET_UNFOLLOW_ROW
-                )
-                if confirm_unfollow_button.exists(Timeout.SHORT):
-                    break
-            follow_button = self.device.find(
-                classNameMatches=ClassName.BUTTON,
-                clickable=True,
-                textMatches=FOLLOW_REGEX,
-            )
-            if follow_button.exists(Timeout.SHORT):
-                return True
-            if not confirm_unfollow_button or not confirm_unfollow_button.exists():
-                logger.error("Cannot confirm unfollow.")
-                save_crash(self.device)
-                self.device.back()
-                return False
-            logger.debug("Confirm unfollow.")
-            confirm_unfollow_button.click()
-
-            random_sleep(0, 1, modulable=False)
-
-            # Check if private account confirmation
-            private_unfollow_button = self.device.find(
-                classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
-                textMatches=UNFOLLOW_REGEX,
-            )
-            if private_unfollow_button.exists(Timeout.SHORT):
-                logger.debug("Confirm unfollow private account.")
-                private_unfollow_button.click()
-
             UniversalActions.detect_block(self.device)
-            return True
-        else:
-            logger.info("Can't find that user. Skip.")
-            return False
+            confirm_unfollow_button = self.device.find(
+                resourceId=ResourceID.PRIMARY_BUTTON, textMatches=UNFOLLOW_REGEX
+            )
+            if confirm_unfollow_button.exists():
+                confirm_unfollow_button.click()
+
+            follow_button = user_row.child(index=2, textMatches=FOLLOW_REGEX)
+            if follow_button.exists(Timeout.SHORT):
+                logger.info(
+                    f"{username} unfollowed.",
+                    extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
+                )
+                return True
+            if not confirm_unfollow_button.exists():
+                logger.error(f"Cannot confirm unfollow for {username}.")
+                save_crash(self.device)
+                return False
 
 
 class FollowersView:

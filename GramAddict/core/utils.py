@@ -191,7 +191,7 @@ def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
 
 
 def save_crash(device):
-    directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     try:
         os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
     except OSError:

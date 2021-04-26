@@ -46,6 +46,13 @@ class CoreArguments(Plugin):
                 "default": "50",
             },
             {
+                "arg": "--total-unfollows-limit",
+                "nargs": None,
+                "help": "limit on total unfollows per session, 50 by default",
+                "metavar": "50",
+                "default": "50",
+            },
+            {
                 "arg": "--total-watches-limit",
                 "nargs": None,
                 "help": "limit on total watched stories per session, 50 by default",

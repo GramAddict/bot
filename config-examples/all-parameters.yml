@@ -83,6 +83,7 @@ min-following: 100
 
 total-likes-limit: 300
 total-follows-limit: 50
+total-unfollows-limit: 50
 total-watches-limit: 500
 total-successful-interactions-limit: 100
 total-interactions-limit: 500

@@ -134,6 +134,7 @@ def handle_blogger_from_file(
 ):
     need_to_refresh = True
     on_following_list = False
+    limit_reached = False
     if path.isfile(current_filename):
         with open(current_filename, "r") as f:
             for line in f:
@@ -144,7 +145,17 @@ def handle_blogger_from_file(
                             device, username, on_following_list
                         )
                         on_following_list = True
-                        continue
+                        if unfollowed:
+                            storage.add_interacted_user(
+                                username, self.session_state.id, unfollowed=True
+                            )
+                            self.session_state.totalUnfollowed += 1
+                            limit_reached = self.session_state.check_limit(
+                                self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+                            )
+                        if limit_reached:
+                            logger.info("Unfollows limit reached.")
+                            break
                     else:
                         if storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
@@ -181,7 +192,7 @@ def handle_blogger_from_file(
         logger.warning(f"File {current_filename} not found.")
         return
 
-    logger.info(f"Interact with users in {current_filename} complete.")
+    logger.info(f"Interact with users in {current_filename} completed.")
     device.back()
 
 
@@ -190,13 +201,11 @@ def do_unfollow_from_list(device, username, on_following_list):
         ProfileView(device)._click_on_avatar()
         if ProfileView(device).navigateToFollowing():
             if UniversalActions(device).search_text(username):
-                return FollowingView(device).do_unfollow_from_list()
-            # dismiss_connect_contacts = device.find(resourceId=ResourceID.FIND_PEOPLE_DISMISS_BUTTON)
-            # if dismiss_connect_contacts.exists():
-            #     dismiss_connect_contacts.click()
+                return FollowingView(device).do_unfollow_from_list(username)
     else:
-        UniversalActions(device).search_text(username)
-        return FollowingView(device).do_unfollow_from_list()
+        if username is not None:
+            UniversalActions(device).search_text(username)
+        return FollowingView(device).do_unfollow_from_list(username)
 
 
 def handle_likers(
@@ -403,12 +412,13 @@ def handle_posts(
             if random_choice(interact_percentage):
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
+                elif storage.check_user_was_interacted(username):
+                    logger.info(f"@{username}: already interacted. Skip.")
                 elif storage.check_user_was_interacted_recently(username):
                     logger.info(
                         f"@{username}: already interacted in the last week. Skip."
                     )
-                elif storage.check_user_was_interacted(username):
-                    logger.info(f"@{username}: already interacted. Skip.")
+                # for now i put it back wrong as it was (and how it's in the other plugins..) will change that with the database
                 else:
                     logger.info(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}

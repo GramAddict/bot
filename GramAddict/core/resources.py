@@ -54,6 +54,7 @@ class ResourceID:
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
         self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
+        self.PRIMARY_BUTTON = f"{APP_ID}:id/primary_button"
         self.PRIVATE_PROFILE_EMPTY_STATE = f"{APP_ID}:id/private_profile_empty_state"
         self.PROFILE_HEADER_BIO_TEXT = f"{APP_ID}:id/profile_header_bio_text"
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (
