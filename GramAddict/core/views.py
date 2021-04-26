@@ -1574,13 +1574,12 @@ class FollowingView:
 
         if following_button.exists(Timeout.SHORT):
             following_button.click()
-            UniversalActions.detect_block(self.device)
             confirm_unfollow_button = self.device.find(
                 resourceId=ResourceID.PRIMARY_BUTTON, textMatches=UNFOLLOW_REGEX
             )
-            if confirm_unfollow_button.exists():
+            if confirm_unfollow_button.exists(Timeout.SHORT):
                 confirm_unfollow_button.click()
-
+            UniversalActions.detect_block(self.device)
             follow_button = user_row.child(index=2, textMatches=FOLLOW_REGEX)
             if follow_button.exists(Timeout.SHORT):
                 logger.info(
