@@ -167,7 +167,7 @@ class DeviceFacade:
         return self.deviceV2._is_alive()
 
     def wake_up(self):
-        """ Make sure agent is alive or bring it back up before starting. """
+        """Make sure agent is alive or bring it back up before starting."""
         if self.deviceV2 is not None:
             attempts = 0
             while not self.is_alive() and attempts < 5:
@@ -190,7 +190,7 @@ class DeviceFacade:
             raise DeviceFacade.JsonRpcError(e)
 
     def window_size(self):
-        """ return (width, height) """
+        """return (width, height)"""
         try:
             self.deviceV2.window_size()
         except uiautomator2.JSONRPCError as e:
