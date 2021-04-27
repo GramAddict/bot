@@ -76,6 +76,7 @@ class DeviceFacade:
     def __init__(self, device_id):
         self.device_id = device_id
         device_ip = None
+        # self.deviceV2.debug = True
         try:
             if True:
                 self.deviceV2 = (
@@ -458,7 +459,8 @@ class DeviceFacade:
                     logger.debug(
                         f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
                     )
-                    return None
+                    self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                    return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -529,50 +531,59 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         def set_text(self, text):
-            punct_list = string.punctuation
-            try:
-                self.click(sleep=SleepTime.SHORT)
-                self.deviceV2.clear_text()
-                start = datetime.now()
-                random_sleep(0.3, 1, modulable=False)
-                word_list = text.split()
-                n_words = len(word_list)
-                i = 0
-                n = 1
-                for word in word_list:
-                    n_single_letters = randint(1, 3)
-                    for char in word:
-                        if i < n_single_letters:
-                            self.deviceV2.send_keys(char, clear=False)
-                            random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            i += 1
-                        else:
-                            if word[-1] in punct_list:
-                                self.deviceV2.send_keys(word[i:-1], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                                self.deviceV2.send_keys(word[-1], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            else:
-                                self.deviceV2.send_keys(word[i:], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            break
-                    if n < n_words:
-                        self.deviceV2.send_keys(" ", clear=False)
-                        random_sleep(0.01, 0.1, modulable=False, logging=False)
+            if True:
+                punct_list = string.punctuation
+                try:
+                    self.click(sleep=SleepTime.SHORT)
+                    self.deviceV2.clear_text()
+                    start = datetime.now()
+                    random_sleep(0.3, 1, modulable=False)
+                    word_list = text.split()
+                    n_words = len(word_list)
                     i = 0
-                    n += 1
-                if self.viewV2.get_text() is None:
-                    logger.debug(
-                        "Failed to write in text field, let's try in the old way.."
-                    )
+                    n = 1
+                    for word in word_list:
+                        n_single_letters = randint(1, 3)
+                        for char in word:
+                            if i < n_single_letters:
+                                self.deviceV2.send_keys(char, clear=False)
+                                random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                i += 1
+                            else:
+                                if word[-1] in punct_list:
+                                    self.deviceV2.send_keys(word[i:-1], clear=False)
+                                    random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                    self.deviceV2.send_keys(word[-1], clear=False)
+                                    random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                else:
+                                    self.deviceV2.send_keys(word[i:], clear=False)
+                                    random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                break
+                        if n < n_words:
+                            self.deviceV2.send_keys(" ", clear=False)
+                            random_sleep(0.01, 0.1, modulable=False, logging=False)
+                            self.deviceV2.send_action("search")
+                        i = 0
+                        n += 1
+                    if self.viewV2.get_text() is None:
+                        logger.debug(
+                            "Failed to write in text field, let's try in the old way.."
+                        )
+                        self.viewV2.set_text(text)
+                    else:
+                        logger.debug(
+                            f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
+                        )
+                    DeviceFacade.sleep_mode(SleepTime.SHORT)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
+            else:
+                try:
+                    # print(self.args.human_typing)
                     self.viewV2.set_text(text)
-                else:
-                    logger.debug(
-                        f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
-                    )
-                DeviceFacade.sleep_mode(SleepTime.SHORT)
-            except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+                    DeviceFacade.sleep_mode(SleepTime.SHORT)
+                except uiautomator2.JSONRPCError as e:
+                    raise DeviceFacade.JsonRpcError(e)
 
     class JsonRpcError(Exception):
         pass

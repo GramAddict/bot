@@ -400,6 +400,7 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
+        alread_typed = False
         logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
@@ -407,9 +408,13 @@ class SearchView:
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
             logger.debug(
-                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs."
+                "Cannot find tab: TAGS. Will type first and change after."
             )
             hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
+            alread_typed = True
+
         if hashtag_tab is None:
             logger.error("Cannot find tab: TAGS.")
             save_crash(self.device)
@@ -422,21 +427,21 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
+        if not alread_typed:
+            hashtag_view_recent = self._getHashtagRow(
+                emoji.demojize(hashtag, use_aliases=True)[1:]
+            )
 
-        hashtag_view_recent = self._getHashtagRow(
-            emoji.demojize(hashtag, use_aliases=True)[1:]
-        )
+            if hashtag_view_recent.exists(Timeout.MEDIUM):
+                hashtag_view_recent.click()
+                return HashTagView(self.device)
 
-        if hashtag_view_recent.exists(Timeout.MEDIUM):
-            hashtag_view_recent.click()
-            return HashTagView(self.device)
-
-        logger.info(
-            f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
-        )
-        if not search_edit_text.exists():
-            search_edit_text = self._getSearchEditText()
-        search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            logger.info(
+                f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
+            )
+            if not search_edit_text.exists():
+                search_edit_text = self._getSearchEditText()
+            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
         hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
 
         if not hashtag_view.exists(Timeout.MEDIUM):
@@ -604,7 +609,6 @@ class PostsViewList:
             resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
             className=ClassName.TEXT_VIEW,
         )
-        PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         for _ in range(2):
             if not likes_view.exists():
                 if not gap_view_obj.exists():
@@ -612,6 +616,7 @@ class PostsViewList:
                 else:
                     return True
             else:
+                logger.debug("Likers container exists!")
                 return True
         return False
 
@@ -691,6 +696,15 @@ class PostsViewList:
                 resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                 textStartsWith=username,
             )
+            post_description_v2 = self.device.find(
+                resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+            )
+            if post_description_v2.exists():
+                print(post_description_v2.get_text())
+            if not post_description.exists() and post_description.count_items() == 1:
+                post_description = self.device.find(
+                    resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+                )
             if post_description.exists():
                 new_description = post_description.get_text().upper()
                 if new_description == last_description:

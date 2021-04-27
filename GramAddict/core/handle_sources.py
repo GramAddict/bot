@@ -385,7 +385,6 @@ def handle_posts(
     interact_percentage,
     scraping_file,
 ):
-    # device = self.device
     if current_job == "feed":
         nav_to_feed(device)
         count_feed_limit = get_value(
