@@ -95,7 +95,7 @@ class DataAnalytics(Plugin):
                     sys.exit(0)
             return json_array
         else:
-            print("No sessions.json file found for @" + self.username)
+            logger.warning("No sessions.json file found for @" + self.username)
             return None
 
     def plot_followers_growth(self, sessions, pdf, username, period):

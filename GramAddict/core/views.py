@@ -369,27 +369,39 @@ class SearchView:
         return None
 
     def navigateToUsername(self, username, interact_usernames=False):
+        alread_typed = False
         logger.debug(f"Search for @{username}.")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
             search_edit_text.click(sleep=SleepTime.SHORT)
         accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
         if accounts_tab is None:
-            logger.error("Cannot find tab: ACCOUNTS.")
-            save_crash(self.device)
-            return None
-        if interact_usernames:
+            logger.error("Cannot find tab: ACCOUNTS. Will type first and change after.")
             search_edit_text.set_text(username)
-        else:
-            searched_user_recent = self._getUsernameRow(username)
-            if searched_user_recent.exists(Timeout.MEDIUM):
-                searched_user_recent.click()
-                return ProfileView(self.device, is_own_profile=False)
-            logger.debug(f"{username} not in recent searching history.")
-            if search_edit_text.exists():
+            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
+            if echo_text.exists(Timeout.SHORT):
+                logger.debug("Search by pressing on echo text.")
+                echo_text.click()
+            alread_typed = True
+            accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
+            if accounts_tab is None:
+                logger.error("Cannot find tab: ACCOUNTS.")
+                save_crash(self.device)
+                return None
+
+        if not alread_typed:
+            if interact_usernames:
                 search_edit_text.set_text(username)
             else:
-                return None
+                searched_user_recent = self._getUsernameRow(username)
+                if searched_user_recent.exists(Timeout.MEDIUM):
+                    searched_user_recent.click()
+                    return ProfileView(self.device, is_own_profile=False)
+                logger.debug(f"{username} not in recent searching history.")
+                if search_edit_text.exists():
+                    search_edit_text.set_text(username)
+                else:
+                    return None
         username_view = self._getUsernameRow(username)
         if not username_view.exists(Timeout.MEDIUM):
             logger.error(f"Cannot find user @{username}.")
@@ -400,20 +412,27 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
+        alread_typed = False
         logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
             search_edit_text.click(sleep=SleepTime.SHORT)
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
-        if not hashtag_tab.exists():
-            logger.debug(
-                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs."
-            )
-            hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
         if hashtag_tab is None:
-            logger.error("Cannot find tab: TAGS.")
-            save_crash(self.device)
-            return None
+            logger.debug("Cannot find tab: TAGS. Will type first and change after.")
+            # hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
+            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
+            if echo_text.exists(Timeout.SHORT):
+                logger.debug("Search by pressing on echo text.")
+                echo_text.click()
+            alread_typed = True
+            hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
+            if hashtag_tab is None:
+                logger.error("Cannot find tab: TAGS.")
+                save_crash(self.device)
+                return None
         hashtag_tab.click(sleep=SleepTime.SHORT)
         tabbar_container = self.device.find(
             resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
@@ -422,21 +441,21 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
+        if not alread_typed:
+            hashtag_view_recent = self._getHashtagRow(
+                emoji.demojize(hashtag, use_aliases=True)[1:]
+            )
 
-        hashtag_view_recent = self._getHashtagRow(
-            emoji.demojize(hashtag, use_aliases=True)[1:]
-        )
+            if hashtag_view_recent.exists(Timeout.MEDIUM):
+                hashtag_view_recent.click()
+                return HashTagView(self.device)
 
-        if hashtag_view_recent.exists(Timeout.MEDIUM):
-            hashtag_view_recent.click()
-            return HashTagView(self.device)
-
-        logger.info(
-            f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
-        )
-        if not search_edit_text.exists():
-            search_edit_text = self._getSearchEditText()
-        search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            logger.info(
+                f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
+            )
+            if not search_edit_text.exists():
+                search_edit_text = self._getSearchEditText()
+            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
         hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
 
         if not hashtag_view.exists(Timeout.MEDIUM):
@@ -460,23 +479,29 @@ class SearchView:
         return HashTagView(self.device)
 
     def navigateToPlaces(self, place):
+        already_typed = False
         logger.info(f"Navigate to place {place}.")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
             search_edit_text.click(sleep=SleepTime.SHORT)
         place_tab = self._getTabTextView(SearchTabs.PLACES)
-        if not place_tab.exists(Timeout.SHORT):
-            logger.debug(
-                "Cannot find tab: Places. Going to attempt to search for placeholder in all tabs."
-            )
-            place_tab = self._searchTabWithTextPlaceholder(SearchTabs.PLACES)
+        if place_tab is None:
+            logger.debug("Cannot find tab: PLACE. Will type first and change after.")
+            search_edit_text.set_text(place)
+            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
+            if echo_text.exists(Timeout.SHORT):
+                logger.debug("Search by pressing on echo text.")
+                echo_text.click()
+            already_typed = True
+            place_tab = self._getTabTextView(SearchTabs.PLACES)
+            # place_tab = self._searchTabWithTextPlaceholder(SearchTabs.PLACES)
             if place_tab is None:
                 logger.error("Cannot find tab: Places.")
                 save_crash(self.device)
                 return None
         place_tab.click(sleep=SleepTime.SHORT)
-
-        search_edit_text.set_text(place)
+        if not already_typed:
+            search_edit_text.set_text(place)
 
         # After set_text we assume that the the first occurency It's correct
         # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
@@ -604,7 +629,6 @@ class PostsViewList:
             resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
             className=ClassName.TEXT_VIEW,
         )
-        PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         for _ in range(2):
             if not likes_view.exists():
                 if not gap_view_obj.exists():
@@ -612,6 +636,7 @@ class PostsViewList:
                 else:
                     return True
             else:
+                logger.debug("Likers container exists!")
                 return True
         return False
 
@@ -691,6 +716,16 @@ class PostsViewList:
                 resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                 textStartsWith=username,
             )
+            # post_description_v2 = self.device.find(
+            #     resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+            # )
+            # if post_description_v2.exists():
+            #     logger.debug(post_description_v2.get_text())
+            # need that to fix the uia2 bug :S
+            if not post_description.exists() and post_description.count_items() == 1:
+                post_description = self.device.find(
+                    resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+                )
             if post_description.exists():
                 new_description = post_description.get_text().upper()
                 if new_description == last_description:
@@ -1583,6 +1618,7 @@ class FollowingView:
                 resourceId=ResourceID.PRIMARY_BUTTON, textMatches=UNFOLLOW_REGEX
             )
             if confirm_unfollow_button.exists(Timeout.SHORT):
+                random_sleep(1, 2)
                 confirm_unfollow_button.click()
             UniversalActions.detect_block(self.device)
             follow_button = user_row.child(index=2, textMatches=FOLLOW_REGEX)

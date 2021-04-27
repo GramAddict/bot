@@ -76,6 +76,7 @@ class DeviceFacade:
     def __init__(self, device_id):
         self.device_id = device_id
         device_ip = None
+        # self.deviceV2.debug = True
         try:
             if True:
                 self.deviceV2 = (
@@ -458,7 +459,8 @@ class DeviceFacade:
                     logger.debug(
                         f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
                     )
-                    return None
+                    self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                    return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -559,8 +561,10 @@ class DeviceFacade:
                     if n < n_words:
                         self.deviceV2.send_keys(" ", clear=False)
                         random_sleep(0.01, 0.1, modulable=False, logging=False)
+
                     i = 0
                     n += 1
+                self.deviceV2.send_action("search")
                 if self.viewV2.get_text() is None:
                     logger.debug(
                         "Failed to write in text field, let's try in the old way.."

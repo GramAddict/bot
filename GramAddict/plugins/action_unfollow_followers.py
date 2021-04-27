@@ -235,6 +235,7 @@ class ActionUnfollowFollowers(Plugin):
                 sorted = True
         checked = {}
         unfollowed_count = 0
+        limit_reached = False
         while True:
             logger.info("Iterate over visible followings.")
             screen_iterated_followings = 0

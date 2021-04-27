@@ -24,6 +24,7 @@ class ResourceID:
         self.DIRECT_TEXT_MESSAGE_TEXT_VIEW = (
             f"{APP_ID}:id/direct_text_message_text_view"
         )
+        self.ECHO_TEXT = f"{APP_ID}:id/echo_text"
         self.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW = (
             f"{APP_ID}:id/feed_inline_composer_button_textview"
         )
