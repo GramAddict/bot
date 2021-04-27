@@ -410,9 +410,13 @@ class SearchView:
             logger.debug(
                 "Cannot find tab: TAGS. Will type first and change after."
             )
-            hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
+            # hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
             search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
             hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
+            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
+            if echo_text.exists(Timeout.SHORT):
+                logger.debug("Search by pressing on echo text.")
+                echo_text.click()
             alread_typed = True
 
         if hashtag_tab is None:
