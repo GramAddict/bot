@@ -382,16 +382,20 @@ class SearchView:
             search_edit_text.set_text(username)
         else:
             searched_user_recent = self._getUsernameRow(username)
-            if searched_user_recent.exists(Timeout.SHORT):
+            if searched_user_recent.exists(Timeout.MEDIUM):
                 searched_user_recent.click()
                 return ProfileView(self.device, is_own_profile=False)
-            logger.debug(f"{username} not in recent searches.")
-            search_edit_text.set_text(username)
+            logger.debug(f"{username} not in recent searching history.")
+            if search_edit_text.exists():
+                search_edit_text.set_text(username)
+            else:
+                return None
         username_view = self._getUsernameRow(username)
-        if not username_view.exists(Timeout.SHORT):
-            logger.error("Cannot find user @" + username + ".")
+        if not username_view.exists(Timeout.MEDIUM):
+            logger.error(f"Cannot find user @{username}.")
             return None
-        username_view.click()
+        else:
+            username_view.click()
 
         return ProfileView(self.device, is_own_profile=False)
 
@@ -403,34 +407,35 @@ class SearchView:
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if not hashtag_tab.exists():
             logger.debug(
-                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs"
+                "Cannot find tab: Tags. Going to attempt to search for placeholder in all tabs."
             )
             hashtag_tab = self._searchTabWithTextPlaceholder(SearchTabs.TAGS)
-            if hashtag_tab is None:
-                logger.error("Cannot find tab: Tags.")
-                save_crash(self.device)
-                return None
+        if hashtag_tab is None:
+            logger.error("Cannot find tab: TAGS.")
+            save_crash(self.device)
+            return None
         hashtag_tab.click(sleep=SleepTime.SHORT)
         tabbar_container = self.device.find(
             resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
         )
-        if tabbar_container.exists():
+        if tabbar_container.exists(Timeout.SHORT):
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
 
-        # check if that hashtag already exists in the recent search list -> act as human
         hashtag_view_recent = self._getHashtagRow(
             emoji.demojize(hashtag, use_aliases=True)[1:]
         )
 
-        if hashtag_view_recent.exists(Timeout.SHORT):
+        if hashtag_view_recent.exists(Timeout.MEDIUM):
             hashtag_view_recent.click()
             return HashTagView(self.device)
 
         logger.info(
             f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
         )
+        if not search_edit_text.exists():
+            search_edit_text = self._getSearchEditText()
         search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
         hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
 
@@ -444,7 +449,7 @@ class SearchView:
             hashtag_view = self._getHashtagRow(
                 emoji.emojize(hashtag, use_aliases=True)[1:]
             )
-            if not hashtag_view.exists():
+            if not hashtag_view.exists(Timeout.SHORT):
                 logger.error(
                     f"Cannot find hashtag {emoji.emojize(hashtag, use_aliases=True)}."
                 )

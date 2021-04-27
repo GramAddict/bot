@@ -561,10 +561,15 @@ class DeviceFacade:
                         random_sleep(0.01, 0.1, modulable=False, logging=False)
                     i = 0
                     n += 1
-
-                logger.debug(
-                    f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
-                )
+                if self.viewV2.get_text() is None:
+                    logger.debug(
+                        "Failed to write in text field, let's try in the old way.."
+                    )
+                    self.viewV2.set_text(text)
+                else:
+                    logger.debug(
+                        f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
+                    )
                 DeviceFacade.sleep_mode(SleepTime.SHORT)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)

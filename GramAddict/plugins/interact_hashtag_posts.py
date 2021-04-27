@@ -170,6 +170,7 @@ class InteractHashtagPosts(Plugin):
         )
 
         handle_posts(
+            self,
             device,
             self.session_state,
             hashtag,

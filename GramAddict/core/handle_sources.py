@@ -1,3 +1,4 @@
+from GramAddict.core.utils import get_value
 import logging
 from functools import partial
 from os import path
@@ -372,6 +373,7 @@ def handle_likers(
 
 
 def handle_posts(
+    self,
     device,
     session_state,
     target,
@@ -383,8 +385,15 @@ def handle_posts(
     interact_percentage,
     scraping_file,
 ):
+    # device = self.device
     if current_job == "feed":
         nav_to_feed(device)
+        count_feed_limit = get_value(
+            self.args.feed,
+            "Feed interact count: {}",
+            10,
+        )
+        count = 0
     else:
         if not nav_to_hashtag_or_place(device, target, current_job):
             return
@@ -432,21 +441,29 @@ def handle_posts(
                             )
                             UniversalActions.detect_block(device)
                         session_state.totalLikes += 1
-                    if PostsViewList(device)._post_owner(
-                        current_job, Owner.OPEN, username
-                    ):
-                        if not interact(
-                            storage,
-                            is_follow_limit_reached,
-                            username,
-                            interaction,
-                            device,
-                            session_state,
-                            current_job,
-                            on_interaction,
+                        if current_job == "feed":
+                            count += 1
+                            if count >= count_feed_limit:
+                                logger.info(
+                                    f"Interacted {count} bloggers in feed, finish."
+                                )
+                                return
+                    if current_job != "feed":
+                        if PostsViewList(device)._post_owner(
+                            current_job, Owner.OPEN, username
                         ):
-                            return
-                        device.back()
+                            if not interact(
+                                storage,
+                                is_follow_limit_reached,
+                                username,
+                                interaction,
+                                device,
+                                session_state,
+                                current_job,
+                                on_interaction,
+                            ):
+                                return
+                            device.back()
 
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)

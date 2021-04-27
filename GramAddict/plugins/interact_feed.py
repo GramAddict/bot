@@ -130,6 +130,7 @@ class InteractOwnFeed(Plugin):
         )
 
         handle_posts(
+            self,
             device,
             self.session_state,
             "Own Feed",

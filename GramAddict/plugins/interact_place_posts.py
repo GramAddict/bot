@@ -163,6 +163,7 @@ class InteractPlacePosts(Plugin):
         )
 
         handle_posts(
+            self,
             device,
             self.session_state,
             place,
