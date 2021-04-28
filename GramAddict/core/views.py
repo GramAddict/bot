@@ -757,6 +757,7 @@ class PostsViewList:
                 )
                 UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
                 swiped_a_bit = True
+        return False, "", username, is_ad
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
         """do a swipe of the amount of the action bar"""
