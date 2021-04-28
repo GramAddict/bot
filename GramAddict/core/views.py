@@ -674,35 +674,38 @@ class PostsViewList:
                 resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
                 className=ClassName.TEXT_VIEW,
             )
-            foil = likes_view.get_bounds()
-            hole = likes_view.child().get_bounds()
-            sq1 = Square(
-                foil["left"],
-                foil["top"],
-                hole["left"] - foil["left"],
-                foil["bottom"] - foil["top"],
-            ).point()
-            sq2 = Square(
-                hole["left"],
-                foil["top"],
-                hole["right"] - hole["left"],
-                hole["top"] - foil["top"],
-            ).point()
-            sq3 = Square(
-                hole["left"],
-                hole["bottom"],
-                hole["right"] - hole["left"],
-                foil["bottom"] - hole["top"],
-            ).point()
-            sq4 = Square(
-                hole["right"],
-                foil["top"],
-                foil["right"] - hole["right"],
-                foil["bottom"] - foil["top"],
-            ).point()
-            sq_list = [sq1, sq2, sq3, sq4]
-            available_sq_list = [x for x in sq_list if x == x]
-            likes_view.click(Location.CUSTOM, coord=choice(available_sq_list))
+            if likes_view.child().exists():
+                foil = likes_view.get_bounds()
+                hole = likes_view.child().get_bounds()
+                sq1 = Square(
+                    foil["left"],
+                    foil["top"],
+                    hole["left"] - foil["left"],
+                    foil["bottom"] - foil["top"],
+                ).point()
+                sq2 = Square(
+                    hole["left"],
+                    foil["top"],
+                    hole["right"] - hole["left"],
+                    hole["top"] - foil["top"],
+                ).point()
+                sq3 = Square(
+                    hole["left"],
+                    hole["bottom"],
+                    hole["right"] - hole["left"],
+                    foil["bottom"] - hole["top"],
+                ).point()
+                sq4 = Square(
+                    hole["right"],
+                    foil["top"],
+                    foil["right"] - hole["right"],
+                    foil["bottom"] - foil["top"],
+                ).point()
+                sq_list = [sq1, sq2, sq3, sq4]
+                available_sq_list = [x for x in sq_list if x == x]
+                likes_view.click(Location.CUSTOM, coord=choice(available_sq_list))
+            else:
+                likes_view.click(Location.RIGHT)
 
     def _check_if_last_post(self, last_description, current_job):
         """check if that post has been just interacted"""
