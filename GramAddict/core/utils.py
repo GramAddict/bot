@@ -48,7 +48,8 @@ def update_available():
         )
         version_number = r.data.decode("utf-8").split('"')[1]
         return (
-            version_number.replace("b", "") > __version__.replace("b", ""),
+            int(version_number.replace("b", "").replace(".", ""))
+            > int(__version__.replace("b", "").replace(".", "")),
             version_number,
         )
     except Exception as e:

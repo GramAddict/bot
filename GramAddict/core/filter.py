@@ -64,6 +64,7 @@ class SkipReason(Enum):
     MISSING_MANDATORY_WORDS = auto()
     ALPHABET_NOT_MATCH = auto()
     ALPHABET_NAME_NOT_MATCH = auto()
+    NOT_LOADED = auto()
 
 
 class Profile(object):
@@ -169,7 +170,13 @@ class Filter:
         profile_data = self.get_all_data(device)
         if self.conditions is None:
             return profile_data, False
-
+        if profile_data.follow_button_text == FollowStatus.NONE:
+            logger.info(
+                "Profile was not fully loaded or the user uses a bug for having super huge profile description. SKIP."
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.NOT_LOADED
+            )
         if field_skip_following or field_skip_follower:
             if field_skip_following:
                 if profile_data.follow_button_text == FollowStatus.FOLLOWING:
@@ -432,9 +439,7 @@ class Filter:
             if profile_picture.exists(Timeout.LONG):
                 logger.info("Profile loaded!")
             else:
-                logger.warning(
-                    "Profile not fully loaded, maybe you will get a crash soon.. Is your connection ok?"
-                )
+                logger.warning("Profile not fully loaded. Is your connection ok?")
         profileView = ProfileView(device)
         profile = Profile(
             follow_button_text=self._get_follow_button_text(device, profileView),

@@ -376,7 +376,10 @@ class DeviceFacade:
                     visible_bounds["top"]
                     + (visible_bounds["bottom"] - visible_bounds["top"]) * y_offset
                 )
-                logger.debug(f"Single click ({x_abs},{y_abs})")
+
+                logger.debug(
+                    f"Single click in ({x_abs},{y_abs}). Surface: ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
+                )
                 self.viewV2.click(
                     self.get_ui_timeout(Timeout.LONG),
                     offset=(x_offset, y_offset),
@@ -385,6 +388,21 @@ class DeviceFacade:
 
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
+
+        def click_retry(self, mode=None, sleep=None, coord=[], maxretry=2):
+            """return True if successfully open the element, else False"""
+            self.click(mode, sleep, coord)
+            while maxretry > 0:
+                if not self.exists():
+                    return True
+                logger.debug("UI element didn't open! Try again..")
+                self.click(mode, sleep, coord)
+                maxretry -= 1
+            if not self.exists():
+                return True
+            else:
+                logger.warning("Failed to open the UI element!")
+                return False
 
         def double_click(self, padding=0.3, obj_over=0):
             """Double click randomly in the selected view using padding
@@ -411,14 +429,11 @@ class DeviceFacade:
                 )
             )
 
-            logger.debug(
-                f"Available surface for double click ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})"
-            )
             time_between_clicks = uniform(0.050, 0.140)
 
             try:
                 logger.debug(
-                    f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms"
+                    f"Double click in ({random_x},{random_y}) with t={int(time_between_clicks*1000)}ms. Surface: ({visible_bounds['left']}-{visible_bounds['right']},{visible_bounds['top']}-{visible_bounds['bottom']})."
                 )
                 self.deviceV2.double_click(
                     random_x, random_y, duration=time_between_clicks

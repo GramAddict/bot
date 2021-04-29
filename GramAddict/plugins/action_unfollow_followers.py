@@ -314,7 +314,9 @@ class ActionUnfollowFollowers(Plugin):
                         on_unfollow()
                         unfollowed_count += 1
                         total_unfollows_limit_reached = self.session_state.check_limit(
-                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS, output=True
+                            self.args,
+                            limit_type=self.session_state.Limit.UNFOLLOWS,
+                            output=True,
                         )
                     if unfollowed_count >= count or total_unfollows_limit_reached:
                         return

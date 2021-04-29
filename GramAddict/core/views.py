@@ -59,6 +59,7 @@ class FollowStatus(Enum):
     FOLLOWING = auto()
     FOLLOW_BACK = auto()
     REQUESTED = auto()
+    NONE = auto()
 
 
 class SwipeTo(Enum):
@@ -1318,18 +1319,16 @@ class ProfileView(ActionBarView):
                 button_status = FollowStatus.FOLLOW
             return following_or_follow_back_button, button_status
         else:
-            logger.error(
-                "The follow button doesn't exist! Maybe has changed his reasourceID!"
-            )
+            logger.error("The follow button doesn't exist!")
             save_crash(self.device)
-            return None, None
+            return None, FollowStatus.NONE
 
     def getUsername(self, error=True):
         title_view = self._getActionBarTitleBtn()
         if title_view.exists():
             return title_view.get_text(error).strip()
         if error:
-            logger.error("Cannot get username")
+            logger.error("Cannot get username.")
         return None
 
     def _parseCounter(self, text):

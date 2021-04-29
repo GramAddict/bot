@@ -272,6 +272,7 @@ def handle_likers(
                 return
             try:
                 for item in OpenedPostView(device)._getUserCountainer():
+                    element_opened = False
                     username_view = OpenedPostView(device)._getUserName(item)
                     if not username_view.exists(Timeout.MEDIUM):
                         logger.info(
@@ -299,22 +300,24 @@ def handle_likers(
                             f"@{username}: interact",
                             extra={"color": f"{Fore.YELLOW}"},
                         )
-                        username_view.click()
-                        if not interact(
-                            storage,
-                            is_follow_limit_reached,
-                            username,
-                            interaction,
-                            device,
-                            session_state,
-                            current_job,
-                            on_interaction,
-                        ):
-                            return
+                        element_opened = username_view.click_retry()
 
-                    opened = True
-                    logger.info("Back to likers list.")
-                    device.back()
+                        if element_opened:
+                            if not interact(
+                                storage,
+                                is_follow_limit_reached,
+                                username,
+                                interaction,
+                                device,
+                                session_state,
+                                current_job,
+                                on_interaction,
+                            ):
+                                return
+                    if element_opened:
+                        opened = True
+                        logger.info("Back to likers list.")
+                        device.back()
 
             except IndexError:
                 logger.info(
@@ -566,6 +569,7 @@ def iterate_over_followers(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
             ):
+                element_opened = False
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 if not user_name_view.exists():
@@ -590,23 +594,26 @@ def iterate_over_followers(
                     )
                     screen_skipped_followers_count += 1
                 else:
-                    logger.info(f"@{username}: interact")
-                    user_name_view.click()
+                    logger.info(
+                        f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
+                    )
+                    element_opened = user_name_view.click_retry()
 
-                    if not interact(
-                        storage,
-                        is_follow_limit_reached,
-                        username,
-                        interaction,
-                        device,
-                        session_state,
-                        current_job,
-                        on_interaction,
-                    ):
-                        return
-
-                    logger.info("Back to followers list")
-                    device.back()
+                    if element_opened:
+                        if not interact(
+                            storage,
+                            is_follow_limit_reached,
+                            username,
+                            interaction,
+                            device,
+                            session_state,
+                            current_job,
+                            on_interaction,
+                        ):
+                            return
+                    if element_opened:
+                        logger.info("Back to followers list")
+                        device.back()
 
         except IndexError:
             logger.info(
