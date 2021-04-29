@@ -235,7 +235,7 @@ class ActionUnfollowFollowers(Plugin):
                 sorted = True
         checked = {}
         unfollowed_count = 0
-        limit_reached = False
+        total_unfollows_limit_reached = False
         while True:
             logger.info("Iterate over visible followings.")
             screen_iterated_followings = 0
@@ -313,10 +313,10 @@ class ActionUnfollowFollowers(Plugin):
                         )
                         on_unfollow()
                         unfollowed_count += 1
-                        limit_reached = self.session_state.check_limit(
-                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+                        total_unfollows_limit_reached = self.session_state.check_limit(
+                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS, output=True
                         )
-                    if unfollowed_count >= count or limit_reached:
+                    if unfollowed_count >= count or total_unfollows_limit_reached:
                         return
                 else:
                     logger.debug(f"Already checked {username}.")
@@ -384,9 +384,6 @@ class ActionUnfollowFollowers(Plugin):
             logger.debug("Unfollow button click.")
             unfollow_button.click()
             logger.info(f"Unfollow @{username}.", extra={"color": f"{Fore.YELLOW}"})
-            self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.UNFOLLOWS
-            )
 
             # Weirdly enough, this is a fix for after you unfollow someone that follows
             # you back - the next person you unfollow the button is missing on first find

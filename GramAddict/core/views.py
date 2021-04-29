@@ -985,6 +985,14 @@ class AccountView:
                 delta_y=280,
             )
             random_sleep(modulable=False)
+        obj = self.device.find(
+            resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
+        )
+        if not obj.exists(Timeout.MEDIUM):
+            logger.debug(
+                "Can't see Posts, Followers and Following after the refresh, maybe we moved a little bit bottom.. Swipe down."
+            )
+            UniversalActions(self.device)._swipe_points(Direction.UP)
 
 
 class SettingsView:
@@ -1252,9 +1260,11 @@ class ProfileView(ActionBarView):
         return action_bar
 
     def _getSomeText(self):
-        self.device.find(
+        obj = self.device.find(
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
-        ).wait(Timeout.MEDIUM)
+        )
+        if not obj.exists(Timeout.MEDIUM):
+            UniversalActions(self.device)._swipe_points(Direction.UP)
         try:
             post = (
                 self.device.find(

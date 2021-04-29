@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 def create_device(device_id):
-    logger.info("Using uiautomator v2")
     try:
         return DeviceFacade(device_id)
     except ImportError as e:
