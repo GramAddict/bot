@@ -83,7 +83,7 @@ class DataAnalytics(Plugin):
         )
 
     def load_sessions(self):
-        path = self.username + "/sessions.json"
+        path = f"accounts/{self.username}/sessions.json"
         if os.path.exists(path):
             with open(path) as json_file:
                 try:

@@ -29,7 +29,9 @@ class Config:
                     # pre-load config for debug and username
                     self.config = yaml.safe_load(fin)
             except IndexError:
-                print("Please provide a filename with your --config argument.")
+                logger.warning(
+                    "Please provide a filename with your --config argument. Example: '-- config accounts/yourusername/config.yml'"
+                )
                 exit(0)
 
             self.username = self.config.get("username", False)
@@ -41,7 +43,9 @@ class Config:
             try:
                 self.username = self.args[self.args.index("--username") + 1]
             except IndexError:
-                print("Please provide a username with your --username argument.")
+                logger.warning(
+                    "Please provide a username with your --username argument. Example: '--username yourusername'"
+                )
                 exit(0)
 
         # Configure ArgParse

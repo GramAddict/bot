@@ -1,3 +1,4 @@
+from GramAddict.core.storage import ACCOUNTS
 import json
 import os
 import logging
@@ -19,10 +20,10 @@ class PersistentList(list):
         if directory is None:
             return
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        if not os.path.exists(f"{ACCOUNTS}/{directory}"):
+            os.makedirs(f"{ACCOUNTS}/{directory}")
 
-        path = directory + "/" + self.filename + ".json"
+        path = f"{ACCOUNTS}/{directory}/{self.filename}.json"
 
         if os.path.exists(path):
             with open(path) as json_file:

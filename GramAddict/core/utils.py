@@ -1,3 +1,4 @@
+from GramAddict.core.storage import ACCOUNTS
 from math import nan
 import random
 import sys
@@ -10,6 +11,9 @@ import re
 import shutil
 import urllib3
 import emoji
+from os import walk, rename
+from pathlib import Path
+import shutil
 from datetime import datetime
 from random import randint, shuffle, uniform
 from subprocess import PIPE
@@ -59,6 +63,45 @@ def update_available():
         return False, False
 
 
+def move_usernames_to_accounts():
+    Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
+    ls = next(walk("."))[1]
+    ignored_dir = [
+        "accounts",
+        "GramAddict",
+        "config-examples",
+        ".git",
+        ".venv",
+        "dist",
+        ".vscode",
+        ".github",
+        "crashes",
+        "gramaddict.egg-info",
+        "logs",
+        "res",
+    ]
+    for n in ignored_dir:
+        try:
+            ls.remove(n)
+        except ValueError:
+            pass
+
+    for dir in ls:
+        try:
+            if dir != dir.strip():
+                rename(f"{dir}", dir.strip())
+            shutil.move(dir.strip(), ACCOUNTS)
+        except:
+            logger.error(
+                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other!"
+            )
+            sleep(3)
+    if len(ls) > 0:
+        logger.warning(
+            f"Username folders {', '.join(ls)} have been moved to main folder 'accounts'. Remember that your config file must point there! Example: '--config accounts/yourusername/config.yml'"
+        )
+
+
 def check_adb_connection():
     is_device_id_provided = configs.device_id is not None
     stream = os.popen("adb devices")
@@ -73,7 +116,7 @@ def check_adb_connection():
         message = "Cannot proceed."
     elif devices_count > 1 and not is_device_id_provided:
         is_ok = False
-        message = "Use --device devicename to specify a device."
+        message = "Use '--device devicename' to specify a device."
 
     if is_ok:
         logger.debug(f"Connected devices via adb: {devices_count}. {message}")
@@ -172,14 +215,14 @@ def close_instagram(device, screen_record):
 
 
 def kill_atx_agent(device):
+    logger.debug("Back to default keyboard!")
+    device.deviceV2.set_fastinput_ime(False)
     logger.info("Kill atx agent.")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
         + " shell pkill atx-agent"
     ).close()
-    logger.debug("Back to default keyboard!")
-    device.deviceV2.set_fastinput_ime(False)
 
 
 def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
@@ -234,7 +277,7 @@ def save_crash(device):
     logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
 
 
-def stop_bot(device, sessions, session_state, screen_record):
+def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
     close_instagram(device, screen_record)
     kill_atx_agent(device)
     logger.info(
@@ -243,7 +286,8 @@ def stop_bot(device, sessions, session_state, screen_record):
     )
     if session_state is not None:
         print_full_report(sessions, configs.args.scrape_to_file)
-        sessions.persist(directory=session_state.my_username)
+        if not was_sleeping:
+            sessions.persist(directory=session_state.my_username)
     sys.exit(0)
 
 
@@ -398,7 +442,7 @@ def wait_for_next_session(time_left, session_state, sessions, device, screen_rec
     try:
         sleep(time_left.total_seconds())
     except KeyboardInterrupt:
-        stop_bot(device, sessions, session_state, screen_record)
+        stop_bot(device, sessions, session_state, screen_record, was_sleeping=True)
 
 
 class ActionBlockedError(Exception):

@@ -1,3 +1,4 @@
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
 import logging
 from enum import Enum, unique
 
@@ -148,9 +149,22 @@ class ActionUnfollowFollowers(Plugin):
     def unfollow(
         self, device, count, on_unfollow, storage, unfollow_restriction, my_username
     ):
+        skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
+        skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
+        posts_end_detector = ScrollEndDetector(
+            repeats_to_end=2,
+            skipped_list_limit=skipped_list_limit,
+            skipped_fling_limit=skipped_fling_limit,
+        )
         self.open_my_followings(device)
         self.iterate_over_followings(
-            device, count, on_unfollow, storage, unfollow_restriction, my_username
+            device,
+            count,
+            on_unfollow,
+            storage,
+            unfollow_restriction,
+            my_username,
+            posts_end_detector,
         )
 
     def on_unfollow(self):
@@ -198,7 +212,14 @@ class ActionUnfollowFollowers(Plugin):
             ).click()
 
     def iterate_over_followings(
-        self, device, count, on_unfollow, storage, unfollow_restriction, my_username
+        self,
+        device,
+        count,
+        on_unfollow,
+        storage,
+        unfollow_restriction,
+        my_username,
+        posts_end_detector,
     ):
         # Wait until list is rendered
         sorted = False
@@ -236,9 +257,11 @@ class ActionUnfollowFollowers(Plugin):
         checked = {}
         unfollowed_count = 0
         total_unfollows_limit_reached = False
+        posts_end_detector.notify_new_page()
+        prev_screen_iterated_followings = []
         while True:
+            screen_iterated_followings = []
             logger.info("Iterate over visible followings.")
-            screen_iterated_followings = 0
             for item in device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
@@ -253,9 +276,9 @@ class ActionUnfollowFollowers(Plugin):
                     break
 
                 username = user_name_view.get_text()
+                screen_iterated_followings.append(username)
                 if username not in checked:
                     checked[username] = None
-                    screen_iterated_followings += 1
 
                     if storage.is_user_in_whitelist(username):
                         logger.info(f"@{username} is in whitelist. Skip.")
@@ -323,15 +346,16 @@ class ActionUnfollowFollowers(Plugin):
                 else:
                     logger.debug(f"Already checked {username}.")
 
-            if screen_iterated_followings > 0:
-                logger.info("Need to scroll now", extra={"color": f"{Fore.GREEN}"})
+            if screen_iterated_followings != prev_screen_iterated_followings:
+                prev_screen_iterated_followings = screen_iterated_followings
+                logger.info("Need to scroll now.", extra={"color": f"{Fore.GREEN}"})
                 list_view = device.find(
                     resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
                 )
                 list_view.scroll(Direction.DOWN)
             else:
                 logger.info(
-                    "No followings were iterated, finish.",
+                    "Reached the following list end, finish.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 return
@@ -348,9 +372,9 @@ class ActionUnfollowFollowers(Plugin):
             text=username,
         )
         if not username_view.exists():
-            logger.error("Cannot find @" + username + ", skip.")
+            logger.error(f"Cannot find @{username}, skip.")
             return False
-        username_view.click()
+        username_view.click_retry()
 
         is_following_you = self.check_is_follower(device, username, my_username)
         if is_following_you is not None:

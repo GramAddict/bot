@@ -27,6 +27,7 @@ from GramAddict.core.utils import (
     get_value,
     kill_atx_agent,
     load_config as load_utils,
+    move_usernames_to_accounts,
     open_instagram,
     save_crash,
     set_time_delta,
@@ -55,10 +56,16 @@ if is_update:
     logger.warn(
         f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
     )
+    logger.warn("HOW TO UPDATE:")
+    logger.warn("If you installed with pip: pip3 install GramAddict -U")
+    logger.warn("If you installed with git: git pull")
     sleep(5)
 logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+
+# Move username folders to a main directory -> accounts
+move_usernames_to_accounts()
 
 # Global Variables
 sessions = PersistentList("sessions", SessionStateEncoder)
@@ -248,10 +255,15 @@ def run():
                     f'Will start again at {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}'
                 )
                 try:
+                    sessions.persist(directory=session_state.my_username)
                     sleep(time_left)
                 except KeyboardInterrupt:
                     stop_bot(
-                        device, sessions, session_state, configs.args.screen_record
+                        device,
+                        sessions,
+                        session_state,
+                        configs.args.screen_record,
+                        was_sleeping=True,
                     )
             else:
                 wait_for_next_session(

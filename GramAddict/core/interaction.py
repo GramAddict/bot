@@ -379,7 +379,7 @@ def _on_interaction(
 
     can_continue = True
 
-    inside_working_hours, time_left = SessionState.inside_working_hours(
+    inside_working_hours, _ = SessionState.inside_working_hours(
         args.working_hours, args.time_delta_session
     )
     if not inside_working_hours:
@@ -624,7 +624,7 @@ def load_random_message(my_username):
                 yield line
 
     lines = []
-    file_name = my_username + "/" + storage.FILENAME_MESSAGES
+    file_name = f"{storage.ACCOUNTS}/{my_username}/{storage.FILENAME_MESSAGES}"
     if path.isfile(file_name):
         with open(file_name, "r", encoding="utf-8") as f:
             for line in nonblank_lines(f):
@@ -644,7 +644,7 @@ def load_random_comment(my_username, media_type):
                 yield line
 
     lines = []
-    file_name = my_username + "/" + storage.FILENAME_COMMENTS
+    file_name = f"{storage.ACCOUNTS}/{my_username}/{storage.FILENAME_COMMENTS}"
     if path.isfile(file_name):
         with open(file_name, "r", encoding="utf-8") as f:
             for line in nonblank_lines(f):
