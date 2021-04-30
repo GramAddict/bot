@@ -2,7 +2,6 @@ import setuptools
 
 with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
-
 setuptools.setup(
     name="gramaddict",
     version="2.0.0",
@@ -12,10 +11,10 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GramAddict/bot/",
-    packages=setuptools.find_namespace_packages(),
+    packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=[
-        "colorama==0.4.3",
+        "colorama==0.4.4",
         "ConfigArgParse==1.4",
         "matplotlib==3.3.3",
         "numpy==1.19.3",

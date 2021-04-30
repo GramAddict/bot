@@ -23,6 +23,7 @@ from GramAddict.core.storage import Storage
 from GramAddict.core.utils import (
     check_adb_connection,
     close_instagram,
+    config_examples,
     get_instagram_version,
     get_value,
     kill_atx_agent,
@@ -66,6 +67,9 @@ logger.info(
 
 # Move username folders to a main directory -> accounts
 move_usernames_to_accounts()
+
+# Config-example hint
+config_examples()
 
 # Global Variables
 sessions = PersistentList("sessions", SessionStateEncoder)
@@ -128,7 +132,21 @@ def run():
 
         logger.info("Device screen on and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
-            logger.info("Instagram version: " + get_instagram_version())
+            try:
+                tested_ig_version = "185.0.0.38.116"
+                running_ig_version = get_instagram_version()
+                running_ig_version_splitted = running_ig_version.split(".")
+                last_ig_version_tested = tested_ig_version.split(".")
+                logger.info(f"Instagram version: {running_ig_version}")
+                for n in range(len(running_ig_version_splitted)):
+                    if running_ig_version_splitted[n] > last_ig_version_tested[n]:
+                        logger.warning(
+                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})"
+                        )
+                        break
+            except:
+                logger.error("Error retriving the IG version.")
+
             SearchView(device)._close_keyboard()
         else:
             break

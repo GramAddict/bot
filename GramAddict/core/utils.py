@@ -1,3 +1,4 @@
+from GramAddict import __file__
 from GramAddict.core.storage import ACCOUNTS
 from math import nan
 import random
@@ -11,9 +12,8 @@ import re
 import shutil
 import urllib3
 import emoji
-from os import walk, rename
+from os import getcwd, walk, rename
 from pathlib import Path
-import shutil
 from datetime import datetime
 from random import randint, shuffle, uniform
 from subprocess import PIPE
@@ -50,17 +50,29 @@ def update_available():
             "GET",
             version_request,
         )
-        version_number = r.data.decode("utf-8").split('"')[1]
-        return (
-            int(version_number.replace("b", "").replace(".", ""))
-            > int(__version__.replace("b", "").replace(".", "")),
-            version_number,
-        )
+        online_version_raw = r.data.decode("utf-8").split('"')[1]
+
     except Exception as e:
         logger.error(
             f"There was an error retreiving the latest version of GramAddict: {e}"
         )
         return False, False
+    if "b" not in __version__:
+        local_version = __version__.split(".")
+        online_version = online_version_raw.split(".")
+    else:
+        local_version = __version__.split(".")[:-1] + __version__.split(".")[-1].split(
+            "b"
+        )
+        online_version = online_version_raw.split(".")[:-1] + online_version_raw.split(
+            "."
+        )[-1].split("b")
+    for n in range(len(online_version)):
+        if int(online_version[n]) > int(local_version[n]):
+            return True, online_version_raw
+        else:
+            pass
+    return False, online_version_raw
 
 
 def move_usernames_to_accounts():
@@ -100,6 +112,17 @@ def move_usernames_to_accounts():
         logger.warning(
             f"Username folders {', '.join(ls)} have been moved to main folder 'accounts'. Remember that your config file must point there! Example: '--config accounts/yourusername/config.yml'"
         )
+
+
+def config_examples():
+    if getcwd() == __file__[:-23]:
+        logger.debug("Installed via git, config-examples is in the local folder.")
+    else:
+        logger.info(
+            "Don't know how to set your config.yml? Look there: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
+            extra={"color": f"{Fore.GREEN}"},
+        )
+        sleep(5)
 
 
 def check_adb_connection():
@@ -172,7 +195,7 @@ def open_instagram(device, screen_record, close_apps):
         return False
     elif "more than one device/emulator" in err:
         logger.error(
-            f"{err[9:].capitalize()}, specify only one by using --device devicename"
+            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
         )
         return False
     elif err == "":

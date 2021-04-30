@@ -1,4 +1,4 @@
-colorama==0.4.3
+colorama==0.4.4
 ConfigArgParse==1.4
 matplotlib==3.3.3
 numpy==1.19.3
