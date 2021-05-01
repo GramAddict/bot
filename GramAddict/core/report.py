@@ -96,6 +96,9 @@ def print_full_report(sessions, scrape_mode):
     total_interactions = {}
     successful_interactions = {}
     total_followed = {}
+    total_followed_num = 0
+    total_successful_interactions_num = 0
+    total_interactions_num = 0
     total_scraped = {}
     for session in sessions:
         for source, count in session.totalInteractions.items():
@@ -103,18 +106,20 @@ def print_full_report(sessions, scrape_mode):
                 total_interactions[source] = count
             else:
                 total_interactions[source] += count
-
+            total_interactions_num += count
         for source, count in session.successfulInteractions.items():
             if successful_interactions.get(source) is None:
                 successful_interactions[source] = count
             else:
                 successful_interactions[source] += count
+            total_successful_interactions_num += count
 
         for source, count in session.totalFollowed.items():
             if total_followed.get(source) is None:
                 total_followed[source] = count
             else:
                 total_followed[source] += count
+            total_followed_num += count
 
         for source, count in session.totalScraped.items():
             if total_scraped.get(source) is None:
@@ -123,16 +128,16 @@ def print_full_report(sessions, scrape_mode):
                 total_scraped[source] += count
 
     logger.info(
-        f"Total interactions: {_stringify_interactions(total_interactions)}",
+        f"Total interactions: ({total_interactions_num}) {_stringify_interactions(total_interactions)}",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     if scrape_mode is None:
         logger.info(
-            f"Successful interactions: {_stringify_interactions(successful_interactions)}",
+            f"Successful interactions: ({total_successful_interactions_num}) {_stringify_interactions(successful_interactions)}",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
         logger.info(
-            f"Total followed : {_stringify_interactions(total_followed)}",
+            f"Total followed: ({total_followed_num}) {_stringify_interactions(total_followed)}",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
         total_likes = sum(session.totalLikes for session in sessions)

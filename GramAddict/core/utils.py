@@ -127,6 +127,9 @@ def config_examples():
 
 def check_adb_connection():
     is_device_id_provided = configs.device_id is not None
+    # sometimes it needs two requests to wake up..
+    stream = os.popen("adb devices")
+    stream.close()
     stream = os.popen("adb devices")
     output = stream.read()
     devices_count = len(re.findall("device\n", output))
@@ -473,15 +476,21 @@ class ActionBlockedError(Exception):
 
 
 class Square:
-    def __init__(self, x, y, span_x, span_y):
-        self.x = x + 10
-        self.y = y + 10
-        self.x1 = (x + span_x - 10) if span_x != 0 else 0
-        self.y1 = (y + span_y - 10) if span_y != 0 else 0
+    def __init__(self, x0, y0, x1, y1):
+        self.delta = 7
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
 
     def point(self):
         """return safe point to click"""
-        if self.x1 != 0 and self.y1 != 0:
-            return [randint(self.x, self.x1), randint(self.y, self.y1)]
-        else:
+        if (self.x1 - self.x0) <= (2 * self.delta) or (self.y1 - self.y0) <= (
+            2 * self.delta
+        ):
             return nan
+        else:
+            return [
+                randint(self.x0 + self.delta, self.x1 - self.delta),
+                randint(self.y0 + self.delta, self.y1 - self.delta),
+            ]
