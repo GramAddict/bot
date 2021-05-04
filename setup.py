@@ -4,7 +4,7 @@ with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
 setuptools.setup(
     name="gramaddict",
-    version="2.0.1",
+    version="2.0.2",
     author="GramAddict Team",
     author_email="maintainers@gramaddict.org",
     description="Completely free and open source human-like Instagram bot. Powered by UIAutomator2 and compatible with basically any android device that can run instagram - real or emulated.",

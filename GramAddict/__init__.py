@@ -61,9 +61,13 @@ if is_update:
     logger.warn("If you installed with pip: pip3 install GramAddict -U")
     logger.warn("If you installed with git: git pull")
     sleep(5)
+else:
+    logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+logger.info("", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"})
 logger.info(
-    f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+    f"GramAddict v.{__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+logger.info("", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"})
 
 # Move username folders to a main directory -> accounts
 move_usernames_to_accounts()
@@ -139,10 +143,18 @@ def run():
                 last_ig_version_tested = tested_ig_version.split(".")
                 logger.info(f"Instagram version: {running_ig_version}")
                 for n in range(len(running_ig_version_splitted)):
-                    if running_ig_version_splitted[n] > last_ig_version_tested[n]:
-                        logger.warning(
-                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})"
+                    if int(running_ig_version_splitted[n]) > int(
+                        last_ig_version_tested[n]
+                    ):
+                        print(
+                            f"You have a newer version of IG then the one we tested! (Tested version: {running_ig_version})"
                         )
+                        break
+                    else:
+                        if int(running_ig_version_splitted[n]) == int(
+                            last_ig_version_tested[n]
+                        ):
+                            continue
                         break
             except:
                 logger.error("Error retriving the IG version.")

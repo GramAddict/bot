@@ -41,6 +41,7 @@ def load_config(config):
 
 
 def update_available():
+    logger.info("Checking for updates...")
     if "b" not in __version__:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
     else:
@@ -71,7 +72,9 @@ def update_available():
         if int(online_version[n]) > int(local_version[n]):
             return True, online_version_raw
         else:
-            pass
+            if int(online_version[n]) == int(local_version[n]):
+                continue
+            break
     return False, online_version_raw
 
 

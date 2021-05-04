@@ -937,6 +937,7 @@ class LanguageView:
         )
         first_item = list_view.child(index=0)
         first_item.click()
+        random_sleep()
 
 
 class AccountView:
@@ -1207,10 +1208,10 @@ class PostsGridView:
         if not post_view.exists():
             return None, None, None
         content_desc = post_view.ui_info()["contentDescription"]
-        if re.match("^Photo", content_desc, re.IGNORECASE):
+        if re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
             logger.info("It's a photo.")
             media_type = MediaType.PHOTO
-        elif re.match("^Video", content_desc, re.IGNORECASE):
+        elif re.match("^Video|^Hidden Video", content_desc, re.IGNORECASE):
             logger.info("It's a video.")
             media_type = MediaType.VIDEO
         elif re.match("^IGTV", content_desc, re.IGNORECASE):

@@ -33,6 +33,10 @@ def check_if_english(device):
             SettingsView(device).navigateToAccount()
             AccountView(device).navigateToLanguage()
             LanguageView(device).setLanguage("english")
+            logger.debug(
+                "After changing language, IG goes to feed. Let's go to profile view again."
+            )
+            ProfileView(device)._click_on_avatar()
     else:
         logger.warning(
             "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
