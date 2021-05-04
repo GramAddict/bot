@@ -1,5 +1,10 @@
+from GramAddict.core.storage import ACCOUNTS
 import json
 import os
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
 
 
 class PersistentList(list):
@@ -15,14 +20,20 @@ class PersistentList(list):
         if directory is None:
             return
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        if not os.path.exists(f"{ACCOUNTS}/{directory}"):
+            os.makedirs(f"{ACCOUNTS}/{directory}")
 
-        path = directory + "/" + self.filename + ".json"
+        path = f"{ACCOUNTS}/{directory}/{self.filename}.json"
 
         if os.path.exists(path):
             with open(path) as json_file:
-                json_array = json.load(json_file)
+                try:
+                    json_array = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
             os.remove(path)
         else:
             json_array = []

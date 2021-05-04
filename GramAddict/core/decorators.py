@@ -1,5 +1,4 @@
 import logging
-import sys
 import traceback
 from colorama import Fore, Style
 from datetime import datetime
@@ -15,13 +14,14 @@ from GramAddict.core.utils import (
     open_instagram,
     random_sleep,
     save_crash,
+    stop_bot,
 )
-from GramAddict.core.views import LanguageNotEnglishException, TabBarView
+from GramAddict.core.views import TabBarView
 
 logger = logging.getLogger(__name__)
 
 
-def run_safely(device, device_id, sessions, session_state, screen_record):
+def run_safely(device, device_id, sessions, session_state, screen_record, configs):
     def actual_decorator(func):
         def wrapper(*args, **kwargs):
             session_state = sessions[-1]
@@ -35,7 +35,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     logger.info(
-                        f"-------- PAUSED: {datetime.now().time()} --------",
+                        f"-------- PAUSED: {datetime.now().strftime('%H:%M:%S')} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     logger.info(
@@ -50,19 +50,12 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                     input("")
 
                     logger.info(
-                        f"-------- RESUMING: {datetime.now().time()} --------",
+                        f"-------- RESUMING: {datetime.now().strftime('%H:%M:%S')} --------",
                         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
                     )
                     TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
-                    close_instagram(device, screen_record)
-                    logger.info(
-                        f"-------- FINISH: {datetime.now().time()} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    print_full_report(sessions)
-                    sessions.persist(directory=session_state.my_username)
-                    sys.exit(0)
+                    stop_bot(device, sessions, session_state, screen_record)
 
             except (
                 DeviceFacade.JsonRpcError,
@@ -72,23 +65,31 @@ def run_safely(device, device_id, sessions, session_state, screen_record):
                 UiObjectNotFoundErrorv2,
             ):
                 logger.error(traceback.format_exc())
+                logger.info(
+                    f"List of running apps: {', '.join(device.deviceV2.app_list_running())}."
+                )
                 save_crash(device)
-                logger.info("No idea what it was. Let's try again.")
-                # Hack for the case when IGTV was accidentally opened
+                session_state.totalCrashes += 1
+                if session_state.check_limit(
+                    configs.args, limit_type=session_state.Limit.CRASHES, output=True
+                ):
+                    logger.error(
+                        "Reached crashes limit. Bot has crashed too much! Please check what's going on."
+                    )
+                    stop_bot(device, sessions, session_state, screen_record)
+                logger.info("Something unexpected happened. Let's try again.")
                 close_instagram(device, screen_record)
                 random_sleep()
-                open_instagram(device, screen_record)
-                TabBarView(device).navigateToProfile()
-            except LanguageNotEnglishException:
-                logger.info(
-                    "Language was changed. We'll have to start from the beginning."
-                )
+                open_instagram(device, screen_record, configs.args.close_apps)
                 TabBarView(device).navigateToProfile()
             except Exception as e:
                 logger.error(traceback.format_exc())
+                logger.info(
+                    f"List of running apps: {', '.join(device.deviceV2.app_list_running())}"
+                )
                 save_crash(device)
                 close_instagram(device, screen_record)
-                print_full_report(sessions)
+                print_full_report(sessions, configs.args.scrape_to_file)
                 sessions.persist(directory=session_state.my_username)
                 raise e
 

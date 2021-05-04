@@ -1,12 +1,14 @@
+from GramAddict.core.navigation import check_if_english
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from sys import exit
 from time import sleep
+import random
 
 from colorama import Fore, Style
 
 from GramAddict.core.config import Config
-from GramAddict.core.device_facade import create_device
+from GramAddict.core.device_facade import create_device, get_device_info
 from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
@@ -14,7 +16,6 @@ from GramAddict.core.log import (
     update_log_file_name,
     is_log_file_updated,
 )
-from GramAddict.core.navigation import switch_to_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.report import print_full_report
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
@@ -22,17 +23,23 @@ from GramAddict.core.storage import Storage
 from GramAddict.core.utils import (
     check_adb_connection,
     close_instagram,
+    config_examples,
     get_instagram_version,
     get_value,
+    kill_atx_agent,
     load_config as load_utils,
+    move_usernames_to_accounts,
     open_instagram,
-    random_sleep,
     save_crash,
+    set_time_delta,
+    stop_bot,
     update_available,
+    wait_for_next_session,
 )
 from GramAddict.core.views import (
     AccountView,
     ProfileView,
+    SearchView,
     TabBarView,
     load_config as load_views,
 )
@@ -44,13 +51,25 @@ configs = Config(first_run=True)
 # Logging initialization
 configure_logger(configs.debug, configs.username)
 logger = logging.getLogger(__name__)
-if update_available():
+is_update, version = update_available()
+if is_update:
+    logger.warn("NEW VERSION FOUND!")
     logger.warn(
-        "NOTICE: There is an update available. Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+        f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
     )
+    logger.warn("HOW TO UPDATE:")
+    logger.warn("If you installed with pip: pip3 install GramAddict -U")
+    logger.warn("If you installed with git: git pull")
+    sleep(5)
 logger.info(
     f"GramAddict {__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
 )
+
+# Move username folders to a main directory -> accounts
+move_usernames_to_accounts()
+
+# Config-example hint
+config_examples()
 
 # Global Variables
 sessions = PersistentList("sessions", SessionStateEncoder)
@@ -77,21 +96,27 @@ def run():
             "You have to specify one of the actions: " + ", ".join(configs.actions)
         )
         return
-
-    logger.info("Instagram version: " + get_instagram_version())
-    device = create_device(configs.device_id, configs.args.uia_version)
-
-    if device is None:
-        return
-
+    device = create_device(configs.device_id)
+    session_state = None
     while True:
+        set_time_delta(configs.args)
+        inside_working_hours, time_left = SessionState.inside_working_hours(
+            configs.args.working_hours, configs.args.time_delta_session
+        )
+        if not inside_working_hours:
+            wait_for_next_session(
+                time_left, session_state, sessions, device, configs.args.screen_record
+            )
+        get_device_info(device)
         session_state = SessionState(configs)
+        session_state.set_limits_session(configs.args)
         sessions.append(session_state)
-
         device.wake_up()
 
         logger.info(
-            "-------- START: " + str(session_state.startTime) + " --------",
+            "-------- START: "
+            + str(session_state.startTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
@@ -106,18 +131,34 @@ def run():
                 exit(0)
 
         logger.info("Device screen on and unlocked.")
+        if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
+            try:
+                tested_ig_version = "185.0.0.38.116"
+                running_ig_version = get_instagram_version()
+                running_ig_version_splitted = running_ig_version.split(".")
+                last_ig_version_tested = tested_ig_version.split(".")
+                logger.info(f"Instagram version: {running_ig_version}")
+                for n in range(len(running_ig_version_splitted)):
+                    if running_ig_version_splitted[n] > last_ig_version_tested[n]:
+                        logger.warning(
+                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})"
+                        )
+                        break
+            except:
+                logger.error("Error retriving the IG version.")
 
-        open_instagram(device, configs.args.screen_record)
-
+            SearchView(device)._close_keyboard()
+        else:
+            break
         try:
-            profileView = TabBarView(device).navigateToProfile()
-            random_sleep()
+            profileView = check_if_english(device)
             if configs.args.username is not None:
                 success = AccountView(device).changeToUsername(configs.args.username)
                 if not success:
                     logger.error(
                         f"Not able to change to {configs.args.username}, abort!"
                     )
+                    save_crash(device)
                     device.back()
                     break
 
@@ -129,15 +170,7 @@ def run():
         except Exception as e:
             logger.error(f"Exception: {e}")
             save_crash(device)
-            switch_to_english(device)
-            # Try again on the correct language
-            profileView = TabBarView(device).navigateToProfile()
-            random_sleep()
-            (
-                session_state.my_username,
-                session_state.my_followers_count,
-                session_state.my_following_count,
-            ) = profileView.getProfileInfo()
+            break
 
         if (
             session_state.my_username is None
@@ -160,18 +193,40 @@ def run():
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-                save_crash(device)
-
+        AccountView(device).refresh_account()
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
 
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
 
         storage = Storage(session_state.my_username)
-        for plugin in configs.enabled:
+        if configs.args.shuffle_jobs:
+            jobs_list = random.sample(configs.enabled, len(configs.enabled))
+        else:
+            jobs_list = configs.enabled
+        if "analytics" in jobs_list:
+            jobs_list.remove("analytics")
+            analytics_at_end = True
+        else:
+            analytics_at_end = False
+        for plugin in jobs_list:
+            inside_working_hours, time_left = SessionState.inside_working_hours(
+                configs.args.working_hours, configs.args.time_delta_session
+            )
+            if not inside_working_hours:
+                logger.info(
+                    "Outside of working hours. Ending session.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
+                break
             if not session_state.check_limit(
-                configs.args, limit_type=session_state.Limit.ALL, output=False
+                configs.args, limit_type=session_state.Limit.ALL, output=True
             ):
-                logger.info(f"Current job: {plugin}", extra={"color": f"{Fore.BLUE}"})
+                logger.info(
+                    f"Current job: {plugin}",
+                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+                )
+                if configs.args.scrape_to_file is not None:
+                    logger.warning("You're in scraping mode!")
                 if ProfileView(device).getUsername() != session_state.my_username:
                     logger.debug("Not in your main profile.")
                     TabBarView(device).navigateToProfile()
@@ -179,33 +234,65 @@ def run():
 
             else:
                 logger.info(
-                    "Successful or Total Interactions limit reached. Ending session."
+                    "At last one of these limits has been reached: interactions/succesful/follower/likes or scraped. Ending session.",
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 break
-
+        if analytics_at_end:
+            configs.actions["analytics"].run(
+                device, configs, storage, sessions, "analytics"
+            )
         close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 
         if configs.args.screen_sleep:
             device.screen_off()
-            logger.info("Screen turned off for sleeping time")
+            logger.info("Screen turned off for sleeping time.")
+
+        kill_atx_agent(device)
 
         logger.info(
-            "-------- FINISH: " + str(session_state.finishTime) + " --------",
+            "-------- FINISH: "
+            + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))
+            + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
+        # print report now if asked
+
         if configs.args.repeat:
-            print_full_report(sessions)
-            repeat = get_value(configs.args.repeat, "Sleep for {} minutes", 180)
-            try:
-                sleep(60 * repeat)
-            except KeyboardInterrupt:
-                print_full_report(sessions)
-                sessions.persist(directory=session_state.my_username)
-                exit(0)
+            print_full_report(sessions, configs.args.scrape_to_file)
+            inside_working_hours, time_left = SessionState.inside_working_hours(
+                configs.args.working_hours, configs.args.time_delta_session
+            )
+            if inside_working_hours:
+                time_left = (
+                    get_value(configs.args.repeat, "Sleep for {} minutes", 180) * 60
+                )
+                logger.info(
+                    f'Will start again at {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+                )
+                try:
+                    sessions.persist(directory=session_state.my_username)
+                    sleep(time_left)
+                except KeyboardInterrupt:
+                    stop_bot(
+                        device,
+                        sessions,
+                        session_state,
+                        configs.args.screen_record,
+                        was_sleeping=True,
+                    )
+            else:
+                wait_for_next_session(
+                    time_left,
+                    session_state,
+                    sessions,
+                    device,
+                    configs.args.screen_record,
+                )
         else:
             break
 
-    print_full_report(sessions)
+    print_full_report(sessions, configs.args.scrape_to_file)
     sessions.persist(directory=session_state.my_username)

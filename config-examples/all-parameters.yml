@@ -4,6 +4,7 @@
 # https://docs.gramaddict.org/#/configuration?id=configuration-file
 #
 # Note: be sure to comment out any parameters not used by adding a # in front
+# AGAIN: YOU DON'T HAVE TO DELETE THE LINE, BUT ONLY COMMENT IT WITH A #!
 ##############################################################################
 # General Configuration
 ##############################################################################
@@ -12,9 +13,13 @@ username: myusername
 device: abcdefg123456
 app-id: com.instagram.android
 screen-sleep: true
-uia-version: 2
+screen-record: false
 speed-multiplier: 1
 debug: false
+# scrape-to-file: scraped.txt
+close-apps: true
+disable-filters: false
+total-crashes-limit: 5
 
 ##############################################################################
 # Actions
@@ -22,49 +27,75 @@ debug: false
 
 ## Interaction
 blogger-followers: [ username1, username2 ]
+blogger-post-likers: [ username1, username2 ]
+blogger: [ username1, username2 ]
 hashtag-likers-top: [ hashtag1, hashtag2 ]
 hashtag-likers-recent: [ hashtag1, hashtag2 ]
 hashtag-posts-top: [ hashtag1, hashtag2 ]
 hashtag-posts-recent: [ hashtag1, hashtag2 ]
-interact-from-file: usernames.txt
+place-posts-top: [ place1, place2 ]
+place-posts-recent: [ place1, place2 ]
+place-likers-top: [ place1, place2 ]
+place-likers-recent: [ place1, place2 ]
+interact-from-file: [usernames1.txt, usernames2.txt]
 posts-from-file: posts.txt
+
+## Special modificators for jobs and sources
+shuffle-jobs: true
+truncate-sources: 2-5
+delete-interacted-users: true
+watch-video-time: 15-35
+# blogger-post-limits: 2 this feature is not implemented at this moment
 
 ## Unfollow
 unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
+unfollow-from-file: [usernames1.txt, usernames2.txt]
+sort-followers-newest-to-oldest: false
 
 ## Post Processing
-analytics: myusername
+analytics: report
 
 ##############################################################################
 # Source Limits
 ##############################################################################
 
+interactions-count: 30-40
 likes-count: 1-2
 stories-count: 1-2
 stories-percentage: 30-40
-interactions-count: 20-30
-follow-percentage: 30
+carousel-count: 2-3
+carousel-percentage: 60-70
+max-comments-pro-user: 1-2
+comment-percentage: 30-40
+pm-percentage: 30-40
+interact-percentage: 30-40
+follow-percentage: 30-40
 follow-limit: 50
 skipped-list-limit: 10-15
 fling-when-skipped: 0
-interact-percentage: 50
 min-following: 100
 
 ##############################################################################
-# Total Limits
+# Total Limits Per Session
 ##############################################################################
 
 total-likes-limit: 300
 total-follows-limit: 50
+total-unfollows-limit: 50
 total-watches-limit: 500
 total-successful-interactions-limit: 100
 total-interactions-limit: 500
+total-comments-limit: 5
+total-pm-limit: 5
+total-scraped-limit: 100
 
 ##############################################################################
 # Scheduling
 ##############################################################################
 
+working-hours: [10.15-16.40, 18.15-22.46]
+time-delta: 10-15
 repeat: 280-320

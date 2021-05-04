@@ -1,17 +1,20 @@
+from GramAddict.core.handle_sources import handle_blogger, handle_blogger_from_file
 import logging
 from functools import partial
 from random import seed
-from colorama.ansi import Fore
-import emoji
+from colorama import Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
-from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value, init_on_things, sample_sources
+from GramAddict.core.utils import (
+    get_value,
+    sample_sources,
+    init_on_things,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,28 +22,34 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagPosts(Plugin):
-    """Handles the functionality of interacting with a hashtags post owners"""
+class InteractBloggerPostLikers(Plugin):
+    """Handles the functionality of interacting with a blogger"""
 
     def __init__(self):
         super().__init__()
-        self.description = (
-            "Handles the functionality of interacting with a hashtags post owners"
-        )
+        self.description = "Handles the functionality of interacting with a blogger"
         self.arguments = [
             {
-                "arg": "--hashtag-posts-recent",
+                "arg": "--blogger",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in recent tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact a specified blogger",
+                "metavar": ("blogger1", "blogger2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-posts-top",
+                "arg": "--interact-from-file",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in top tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "filenames of the list of users [*.txt]",
+                "metavar": ("filename1", "filename2"),
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-from-file",
+                "nargs": "+",
+                "help": "filenames of the list of users [*.txt]",
+                "metavar": ("filename1", "filename2"),
                 "default": None,
                 "operation": True,
             },
@@ -60,29 +69,21 @@ class InteractHashtagPosts(Plugin):
         profile_filter = Filter(storage)
         self.current_mode = plugin
 
-        # IMPORTANT: in each job we assume being on the top of the Profile tab already
-        sources = [
-            source
-            for source in (
-                self.args.hashtag_posts_top
-                if self.current_mode == "hashtag-posts-top"
-                else self.args.hashtag_posts_recent
-            )
-        ]
+        # Handle sources
+        if plugin == "interact-from-file":
+            sources = [file for file in self.args.interact_from_file]
+        elif plugin == "unfollow-from-file":
+            sources = [file for file in self.args.unfollow_from_file]
+        else:
+            sources = [source for source in self.args.blogger]
 
-        # Start
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
-            logger.info(
-                f"Handle {emoji.emojize(source, use_aliases=True)}",
-                extra={"color": f"{Fore.BLUE}"},
-            )
+            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             # Init common things
             (
@@ -91,7 +92,7 @@ class InteractHashtagPosts(Plugin):
                 follow_percentage,
                 comment_percentage,
                 pm_percentage,
-                interact_percentage,
+                _,
             ) = init_on_things(source, self.args, self.sessions, self.session_state)
 
             @run_safely(
@@ -103,7 +104,7 @@ class InteractHashtagPosts(Plugin):
                 configs=configs,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_blogger(
                     device,
                     source,
                     plugin,
@@ -114,12 +115,29 @@ class InteractHashtagPosts(Plugin):
                     follow_percentage,
                     comment_percentage,
                     pm_percentage,
-                    interact_percentage,
+                )
+                self.state.is_job_completed = True
+
+            def job_file():
+                self.handle_blogger_from_file(
+                    device,
+                    source,
+                    plugin,
+                    storage,
+                    profile_filter,
+                    on_interaction,
+                    stories_percentage,
+                    follow_percentage,
+                    comment_percentage,
+                    pm_percentage,
                 )
                 self.state.is_job_completed = True
 
             while not self.state.is_job_completed and not limit_reached:
-                job()
+                if plugin == "blogger":
+                    job()
+                else:
+                    job_file()
 
             if limit_reached:
                 logger.info("Ending session.")
@@ -128,10 +146,10 @@ class InteractHashtagPosts(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_blogger(
         self,
         device,
-        hashtag,
+        username,
         current_job,
         storage,
         profile_filter,
@@ -140,8 +158,8 @@ class InteractHashtagPosts(Plugin):
         follow_percentage,
         comment_percentage,
         pm_percentage,
-        interact_percentage,
     ):
+
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
@@ -156,7 +174,6 @@ class InteractHashtagPosts(Plugin):
             scraping_file=self.args.scrape_to_file,
             current_mode=self.current_mode,
         )
-
         source_follow_limit = (
             get_value(self.args.follow_limit, None, 15)
             if self.args.follow_limit is not None
@@ -166,19 +183,68 @@ class InteractHashtagPosts(Plugin):
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
             follow_limit=source_follow_limit,
-            source=hashtag,
+            source=username,
         )
 
-        handle_posts(
-            self,
+        handle_blogger(
             device,
             self.session_state,
-            hashtag,
+            username,
+            current_job,
+            storage,
+            profile_filter,
+            on_interaction,
+            interaction,
+            is_follow_limit_reached,
+        )
+
+    def handle_blogger_from_file(
+        self,
+        device,
+        current_filename,
+        current_job,
+        storage,
+        profile_filter,
+        on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+    ):
+
+        interaction = partial(
+            interact_with_user,
+            my_username=self.session_state.my_username,
+            likes_count=self.args.likes_count,
+            stories_percentage=stories_percentage,
+            follow_percentage=follow_percentage,
+            comment_percentage=comment_percentage,
+            pm_percentage=pm_percentage,
+            profile_filter=profile_filter,
+            args=self.args,
+            session_state=self.session_state,
+            scraping_file=self.args.scrape_to_file,
+            current_mode=self.current_mode,
+        )
+        source_follow_limit = (
+            get_value(self.args.follow_limit, None, 15)
+            if self.args.follow_limit is not None
+            else None
+        )
+        is_follow_limit_reached = partial(
+            is_follow_limit_reached_for_source,
+            session_state=self.session_state,
+            follow_limit=source_follow_limit,
+            source=current_filename,
+        )
+
+        handle_blogger_from_file(
+            self,
+            device,
+            current_filename,
             current_job,
             storage,
             on_interaction,
             interaction,
             is_follow_limit_reached,
-            interact_percentage,
-            self.args.scrape_to_file,
         )

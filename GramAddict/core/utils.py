@@ -1,18 +1,28 @@
+from GramAddict import __file__
+from GramAddict.core.storage import ACCOUNTS
+from math import nan
+import random
+import sys
+
+from GramAddict.core.report import print_full_report
 import logging
 import os
 import subprocess
 import re
 import shutil
 import urllib3
+import emoji
+from os import getcwd, walk, rename
+from pathlib import Path
 from datetime import datetime
-from random import randint, uniform
+from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.resources import ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -31,21 +41,95 @@ def load_config(config):
 
 
 def update_available():
+    if "b" not in __version__:
+        version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
+    else:
+        version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
     try:
         r = http.request(
             "GET",
-            "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py",
+            version_request,
         )
-        return r.data.decode("utf-8").split('"')[1] > __version__
+        online_version_raw = r.data.decode("utf-8").split('"')[1]
+
     except Exception as e:
         logger.error(
             f"There was an error retreiving the latest version of GramAddict: {e}"
         )
-        return False
+        return False, False
+    if "b" not in __version__:
+        local_version = __version__.split(".")
+        online_version = online_version_raw.split(".")
+    else:
+        local_version = __version__.split(".")[:-1] + __version__.split(".")[-1].split(
+            "b"
+        )
+        online_version = online_version_raw.split(".")[:-1] + online_version_raw.split(
+            "."
+        )[-1].split("b")
+    for n in range(len(online_version)):
+        if int(online_version[n]) > int(local_version[n]):
+            return True, online_version_raw
+        else:
+            pass
+    return False, online_version_raw
+
+
+def move_usernames_to_accounts():
+    Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
+    ls = next(walk("."))[1]
+    ignored_dir = [
+        "accounts",
+        "GramAddict",
+        "config-examples",
+        ".git",
+        ".venv",
+        "dist",
+        ".vscode",
+        ".github",
+        "crashes",
+        "gramaddict.egg-info",
+        "logs",
+        "res",
+    ]
+    for n in ignored_dir:
+        try:
+            ls.remove(n)
+        except ValueError:
+            pass
+
+    for dir in ls:
+        try:
+            if dir != dir.strip():
+                rename(f"{dir}", dir.strip())
+            shutil.move(dir.strip(), ACCOUNTS)
+        except:
+            logger.error(
+                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other!"
+            )
+            sleep(3)
+    if len(ls) > 0:
+        logger.warning(
+            f"Username folders {', '.join(ls)} have been moved to main folder 'accounts'. Remember that your config file must point there! Example: '--config accounts/yourusername/config.yml'"
+        )
+
+
+def config_examples():
+    if getcwd() == __file__[:-23]:
+        logger.debug("Installed via git, config-examples is in the local folder.")
+    else:
+        logger.info(
+            "Don't know how to set your config.yml? Look there: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
+            extra={"color": f"{Fore.GREEN}"},
+        )
+        sleep(5)
 
 
 def check_adb_connection():
     is_device_id_provided = configs.device_id is not None
+    # sometimes it needs two requests to wake up..
+    stream = os.popen("adb devices")
+    stream.close()
     stream = os.popen("adb devices")
     output = stream.read()
     devices_count = len(re.findall("device\n", output))
@@ -58,7 +142,7 @@ def check_adb_connection():
         message = "Cannot proceed."
     elif devices_count > 1 and not is_device_id_provided:
         is_ok = False
-        message = "Use --device to specify a device."
+        message = "Use '--device devicename' to specify a device."
 
     if is_ok:
         logger.debug(f"Connected devices via adb: {devices_count}. {message}")
@@ -100,8 +184,8 @@ def open_instagram_with_url(url):
     return True
 
 
-def open_instagram(device, screen_record):
-    logger.info("Open Instagram app")
+def open_instagram(device, screen_record, close_apps):
+    logger.info("Open Instagram app.")
     cmd = (
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
@@ -109,23 +193,57 @@ def open_instagram(device, screen_record):
     )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
-    if err:
-        logger.debug(err)
+    if "Error" in err:
+        logger.error(err.replace("\n", ". "))
+        return False
+    elif "more than one device/emulator" in err:
+        logger.error(
+            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
+        )
+        return False
+    elif err == "":
+        logger.debug("Instagram app opened successfully.")
+    else:
+        logger.debug(err.replace("Warning: ", ""))
     random_sleep()
+    if close_apps:
+        logger.info("Close all the other apps, for avoid interfereces..")
+        device.deviceV2.app_stop_all(excludes=[app_id])
+        random_sleep()
+
+    device.deviceV2.set_fastinput_ime(True)
+    ime = device.find(
+        classNameMatches="android.widget.TextView", textMatches="FastInputIME"
+    )
+    if ime.exists():
+        logger.debug("Keyboard switch dialog is open. Closing it.")
+        ime.click()
     if screen_record:
-        device.start_screenrecord()
+        try:
+            device.start_screenrecord()
+        except:
+            logger.warning(
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+            )
+    return True
 
 
 def close_instagram(device, screen_record):
-    logger.info("Close Instagram app")
-    os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell am force-stop {app_id}"
-    ).close()
+    logger.info("Close Instagram app.")
+    device.deviceV2.app_stop(app_id)
     if screen_record:
-        device.stop_screenrecord()
-    # close out atx-agent
+        try:
+            device.stop_screenrecord()
+        except:
+            logger.warning(
+                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+            )
+
+
+def kill_atx_agent(device):
+    logger.debug("Back to default keyboard!")
+    device.deviceV2.set_fastinput_ime(False)
+    logger.info("Kill atx agent.")
     os.popen(
         "adb"
         + ("" if configs.device_id is None else " -s " + configs.device_id)
@@ -133,22 +251,21 @@ def close_instagram(device, screen_record):
     ).close()
 
 
-def random_sleep(inf=1.0, sup=4.0):
+def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
     multiplier = float(args.speed_multiplier)
-    delay = uniform(inf, sup) * multiplier
-    logger.debug(f"{str(delay)[0:4]}s sleep")
+    delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
+    if logging:
+        logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
 
 
 def save_crash(device):
-
-    directory_name = "Crash-" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     try:
         os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
     except OSError:
         logger.error("Directory " + directory_name + " already exists.")
         return
-
     screenshot_format = ".png"
     try:
         device.screenshot(
@@ -186,19 +303,18 @@ def save_crash(device):
     logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
 
 
-def detect_block(device):
-    logger.debug("Checking for block...")
-    block_dialog = device.find(
-        resourceId=ResourceID.DIALOG_ROOT_VIEW,
-        className=ClassName.FRAME_LAYOUT,
+def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
+    close_instagram(device, screen_record)
+    kill_atx_agent(device)
+    logger.info(
+        f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-    is_blocked = block_dialog.exists()
-    if is_blocked:
-        logger.error("Probably block dialog is shown.")
-        raise ActionBlockedError(
-            "Seems that action is blocked. Consider reinstalling Instagram app and be more careful"
-            " with limits!"
-        )
+    if session_state is not None:
+        print_full_report(sessions, configs.args.scrape_to_file)
+        if not was_sleeping:
+            sessions.persist(directory=session_state.my_username)
+    sys.exit(0)
 
 
 def get_value(count, name, default):
@@ -232,9 +348,6 @@ def get_value(count, name, default):
     else:
         value = default
         print_error()
-
-    if value == 69:
-        logger.info("69, Noice 😎 https://www.youtube.com/watch?v=VLNxvl3-CpA")
     return value
 
 
@@ -247,5 +360,137 @@ def validate_url(x):
         return False
 
 
+def append_to_file(filename, username):
+    try:
+        if not filename.lower().endswith(".txt"):
+            filename = filename + ".txt"
+        with open(filename, "a+", encoding="UTF-8") as file:
+            file.write(username + "\n")
+    except:
+        logger.error(f"Failed to append {username} to: {filename}")
+
+
+def sample_sources(sources, n_sources):
+    from random import sample
+
+    sources_limit_input = n_sources.split("-")
+    if len(sources_limit_input) > 1:
+        sources_limit = randint(
+            int(sources_limit_input[0]), int(sources_limit_input[1])
+        )
+    else:
+        sources_limit = int(sources_limit_input[0])
+    if len(sources) < sources_limit:
+        sources_limit = len(sources)
+    if sources_limit == 0:
+        truncaded = sources
+        shuffle(truncaded)
+    else:
+        truncaded = sample(sources, sources_limit)
+        logger.info(
+            f"Source list truncated at {len(truncaded)} {'item' if len(truncaded)<=1 else 'items'}."
+        )
+    logger.info(
+        f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(emoji.emojize(str(x), use_aliases=True) for x in truncaded)}"
+    )
+    return truncaded
+
+
+def init_on_things(source, args, sessions, session_state):
+    from functools import partial
+    from GramAddict.core.interaction import (
+        _on_interaction,
+    )
+
+    on_interaction = partial(
+        _on_interaction,
+        likes_limit=int(args.total_likes_limit),
+        source=source,
+        interactions_limit=get_value(
+            args.interactions_count, "Interactions count: {}", 70
+        ),
+        sessions=sessions,
+        session_state=session_state,
+        args=args,
+    )
+
+    if args.stories_count != "0":
+        stories_percentage = get_value(
+            args.stories_percentage, "Chance of watching stories: {}%", 40
+        )
+    else:
+        stories_percentage = 0
+
+    follow_percentage = get_value(
+        args.follow_percentage, "Chance of following: {}%", 40
+    )
+    comment_percentage = get_value(
+        args.comment_percentage, "Chance of commenting: {}%", 0
+    )
+    interact_percentage = get_value(
+        args.interact_percentage, "Chance of interacting: {}%", 40
+    )
+    pm_percentage = get_value(args.pm_percentage, "Chance of send PM: {}%", 0)
+
+    return (
+        on_interaction,
+        stories_percentage,
+        follow_percentage,
+        comment_percentage,
+        pm_percentage,
+        interact_percentage,
+    )
+
+
+def set_time_delta(args):
+    args.time_delta_session = (
+        get_value(args.time_delta, None, 0) * (1 if random.random() < 0.5 else -1) * 60
+    ) + random.randint(0, 59)
+    m, s = divmod(abs(args.time_delta_session), 60)
+    h, m = divmod(m, 60)
+    logger.info(
+        f"Time delta has setted to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
+    )
+
+
+def wait_for_next_session(time_left, session_state, sessions, device, screen_record):
+    hours, remainder = divmod(time_left.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    kill_atx_agent(device)
+    logger.info(
+        f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
+        extra={"color": f"{Fore.GREEN}"},
+    )
+    logger.info(
+        f"Time left: {hours:02d}:{minutes:02d}:{seconds:02d}.",
+        extra={"color": f"{Fore.GREEN}"},
+    )
+    try:
+        sleep(time_left.total_seconds())
+    except KeyboardInterrupt:
+        stop_bot(device, sessions, session_state, screen_record, was_sleeping=True)
+
+
 class ActionBlockedError(Exception):
     pass
+
+
+class Square:
+    def __init__(self, x0, y0, x1, y1):
+        self.delta = 7
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+
+    def point(self):
+        """return safe point to click"""
+        if (self.x1 - self.x0) <= (2 * self.delta) or (self.y1 - self.y0) <= (
+            2 * self.delta
+        ):
+            return nan
+        else:
+            return [
+                randint(self.x0 + self.delta, self.x1 - self.delta),
+                randint(self.y0 + self.delta, self.y1 - self.delta),
+            ]

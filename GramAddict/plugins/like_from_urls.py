@@ -1,19 +1,16 @@
 import logging
-from functools import partial
 from random import shuffle
 from os import path
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.interaction import _on_like, do_like
+from GramAddict.core.interaction import do_like
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.views import OpenedPostView
 from GramAddict.core.utils import (
-    random_sleep,
     open_instagram_with_url,
     validate_url,
 )
 
 logger = logging.getLogger(__name__)
-
-from GramAddict.core.views import OpenedPostView
 
 
 class LikeFromURLs(Plugin):
@@ -35,16 +32,16 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, config, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         class State:
             def __init__(self):
                 pass
 
             is_job_completed = False
 
-        self.args = config.args
+        self.args = configs.args
         self.device = device
-        self.device_id = config.args.device
+        self.device_id = configs.args.device
         self.state = None
         self.sessions = sessions
         self.session_state = sessions[-1]
@@ -53,9 +50,6 @@ class LikeFromURLs(Plugin):
         file_list = [file for file in (self.args.interact_from_file)]
         shuffle(file_list)
 
-        on_like = partial(
-            _on_like, sessions=self.sessions, session_state=self.session_state
-        )
         for filename in file_list:
             self.state = State()
 
@@ -65,13 +59,14 @@ class LikeFromURLs(Plugin):
                 sessions=self.sessions,
                 session_state=self.session_state,
                 screen_record=self.args.screen_record,
+                configs=configs,
             )
             def job():
-                self.process_file(filename, on_like, storage)
+                self.process_file(filename, storage)
 
             job()
 
-    def process_file(self, current_file, on_like, storage):
+    def process_file(self, current_file, storage):
         # TODO: We need to add interactions properly, honor session/source limits, honor filter,
         # etc. Not going to try to do this now, but adding a note to do it later
         if path.isfile(current_file):
@@ -82,22 +77,21 @@ class LikeFromURLs(Plugin):
                         if open_instagram_with_url(url) is True:
                             opened_post_view = OpenedPostView(self.device)
                             username = opened_post_view._getUserName
-                            like_succeed = do_like(
-                                opened_post_view, self.device, on_like
-                            )
+                            like_succeed = do_like(opened_post_view, self.device)
                             logger.info(
                                 "Like for: {}, status: {}".format(url, like_succeed)
                             )
                             if like_succeed:
                                 logger.info("Back to profile")
-                                storage.add_interacted_user(username)
+                                storage.add_interacted_user(
+                                    username, self.session_state.id, liked=1
+                                )
                                 self.device.back()
-                                random_sleep()
                     else:
                         logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
             if self.args.delete_interacted_users:
-                with open(current_file, "w") as f:
+                with open(current_file, "w", encoding="UTF-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")

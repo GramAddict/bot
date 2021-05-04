@@ -1,33 +1,37 @@
 import json
 import matplotlib.pyplot as plt
 import os
-
+import logging
+from colorama import Fore, Style
 from datetime import timedelta, datetime
 from enum import Enum, unique
 from matplotlib import ticker
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.dates import DateFormatter
+import sys
 
 from GramAddict.core.plugin_loader import Plugin
 
 A4_WIDTH_INCHES = 8.27
 A4_HEIGHT_INCHES = 11.69
 
+logger = logging.getLogger(__name__)
+
 
 class DataAnalytics(Plugin):
-    """Generates a PDF analytics report of specified username session data"""
+    """Generates a PDF analytics report of current username session data"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Generates a PDF analytics report of specified username session data"
+            "Generates a PDF analytics report of current username session data"
         )
         self.arguments = [
             {
                 "arg": "--analytics",
                 "nargs": None,
-                "help": "generates a PDF analytics report of specified username session data",
-                "metavar": "username1",
+                "help": "generates a PDF analytics report of current username session data",
+                "metavar": "report",
                 "default": None,
                 "operation": True,
             }
@@ -35,13 +39,19 @@ class DataAnalytics(Plugin):
 
     def run(self, device, configs, storage, sessions, plugin):
         self.args = configs.args
-        self.username = self.args.analytics
+        self.session_state = sessions[-1]
+        self.username = self.session_state.my_username
         sessions = self.load_sessions()
+        # will introduce new types of report
         if not sessions:
             return
 
+        if not os.path.exists(storage.report_path):
+            os.makedirs(storage.report_path)
+
         filename = (
-            "report_"
+            storage.report_path
+            + "report_"
             + self.username
             + "_"
             + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -67,16 +77,25 @@ class DataAnalytics(Plugin):
             )
             self.plot_duration_statistics(sessions, pdf, self.username, Period.ALL_TIME)
 
-        print("Report saved as " + filename)
+        logger.info(
+            "Report saved as " + filename,
+            extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+        )
 
     def load_sessions(self):
-        path = self.username + "/sessions.json"
+        path = f"accounts/{self.username}/sessions.json"
         if os.path.exists(path):
             with open(path) as json_file:
-                json_array = json.load(json_file)
+                try:
+                    json_array = json.load(json_file)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(0)
             return json_array
         else:
-            print("No sessions.json file found for @" + self.username)
+            logger.warning("No sessions.json file found for @" + self.username)
             return None
 
     def plot_followers_growth(self, sessions, pdf, username, period):

@@ -1,8 +1,7 @@
 import logging
 from functools import partial
 from random import seed
-from colorama.ansi import Fore
-import emoji
+from colorama import Style
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
 from GramAddict.core.interaction import (
@@ -11,7 +10,7 @@ from GramAddict.core.interaction import (
 )
 from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import get_value, init_on_things, sample_sources
+from GramAddict.core.utils import get_value, sample_sources, init_on_things
 
 logger = logging.getLogger(__name__)
 
@@ -19,28 +18,28 @@ logger = logging.getLogger(__name__)
 seed()
 
 
-class InteractHashtagPosts(Plugin):
-    """Handles the functionality of interacting with a hashtags post owners"""
+class InteractPlacePosts(Plugin):
+    """Handles the functionality of interacting with a places post owners"""
 
     def __init__(self):
         super().__init__()
         self.description = (
-            "Handles the functionality of interacting with a hashtags post owners"
+            "Handles the functionality of interacting with a places post owners"
         )
         self.arguments = [
             {
-                "arg": "--hashtag-posts-recent",
+                "arg": "--place-posts-recent",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in recent tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in recent tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
             {
-                "arg": "--hashtag-posts-top",
+                "arg": "--place-posts-top",
                 "nargs": "+",
-                "help": "interact to hashtag post owners in top tab",
-                "metavar": ("hashtag1", "hashtag2"),
+                "help": "interact to place post owners in top tab",
+                "metavar": ("place1", "place2"),
                 "default": None,
                 "operation": True,
             },
@@ -60,29 +59,23 @@ class InteractHashtagPosts(Plugin):
         profile_filter = Filter(storage)
         self.current_mode = plugin
 
-        # IMPORTANT: in each job we assume being on the top of the Profile tab already
+        # Handle sources
         sources = [
             source
             for source in (
-                self.args.hashtag_posts_top
-                if self.current_mode == "hashtag-posts-top"
-                else self.args.hashtag_posts_recent
+                self.args.place_posts_top
+                if self.current_mode == "place-posts-top"
+                else self.args.place_posts_recent
             )
         ]
 
-        # Start
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
                 self.args, limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()
-            if source[0] != "#":
-                source = "#" + source
-            logger.info(
-                f"Handle {emoji.emojize(source, use_aliases=True)}",
-                extra={"color": f"{Fore.BLUE}"},
-            )
+            logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
 
             # Init common things
             (
@@ -103,7 +96,7 @@ class InteractHashtagPosts(Plugin):
                 configs=configs,
             )
             def job():
-                self.handle_hashtag(
+                self.handle_place(
                     device,
                     source,
                     plugin,
@@ -128,10 +121,10 @@ class InteractHashtagPosts(Plugin):
                 )
                 break
 
-    def handle_hashtag(
+    def handle_place(
         self,
         device,
-        hashtag,
+        place,
         current_job,
         storage,
         profile_filter,
@@ -166,14 +159,14 @@ class InteractHashtagPosts(Plugin):
             is_follow_limit_reached_for_source,
             session_state=self.session_state,
             follow_limit=source_follow_limit,
-            source=hashtag,
+            source=place,
         )
 
         handle_posts(
             self,
             device,
             self.session_state,
-            hashtag,
+            place,
             current_job,
             storage,
             on_interaction,

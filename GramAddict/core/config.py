@@ -22,14 +22,16 @@ class Config:
         if "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
-                with open(file_name) as fin:
+                with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
                     fin.seek(0)
                     # pre-load config for debug and username
                     self.config = yaml.safe_load(fin)
             except IndexError:
-                print("Please provide a filename with your --config argument.")
+                logger.warning(
+                    "Please provide a filename with your --config argument. Example: '-- config accounts/yourusername/config.yml'"
+                )
                 exit(0)
 
             self.username = self.config.get("username", False)
@@ -41,12 +43,17 @@ class Config:
             try:
                 self.username = self.args[self.args.index("--username") + 1]
             except IndexError:
-                print("Please provide a username with your --username argument.")
+                logger.warning(
+                    "Please provide a username with your --username argument. Example: '--username yourusername'"
+                )
                 exit(0)
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
-            description="GramAddict Instagram Bot"
+            config_file_open_func=lambda filename: open(
+                filename, "r+", encoding="utf-8"
+            ),
+            description="GramAddict Instagram Bot",
         )
         self.parser.add(
             "-c",
@@ -127,7 +134,7 @@ class Config:
                 item = item.split(":")[0]
                 if (
                     item in self.actions
-                    and getattr(self.args, item.replace("-", "_")) != None
+                    and getattr(self.args, item.replace("-", "_")) is not None
                     and not _is_legacy_arg(item)
                 ):
                     self.enabled.append(item)
@@ -136,7 +143,7 @@ class Config:
                 nitem = item[2:]
                 if (
                     nitem in self.actions
-                    and getattr(self.args, nitem.replace("-", "_")) != None
+                    and getattr(self.args, nitem.replace("-", "_")) is not None
                     and not _is_legacy_arg(nitem)
                 ):
                     self.enabled.append(nitem)
