@@ -4,6 +4,7 @@
 # https://docs.gramaddict.org/#/configuration?id=configuration-file
 #
 # Note: be sure to comment out any parameters not used by adding a # in front
+# AGAIN: YOU DON'T HAVE TO DELETE THE LINE, BUT ONLY COMMENT IT WITH A #!
 ##############################################################################
 # General Configuration
 ##############################################################################
@@ -37,7 +38,6 @@ place-posts-recent: [ place1, place2 ]
 place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
 interact-from-file: [usernames1.txt, usernames2.txt]
-unfollow-from-file: [usernames1.txt, usernames2.txt]
 posts-from-file: posts.txt
 
 ## Special modificators for jobs and sources
@@ -45,13 +45,14 @@ shuffle-jobs: true
 truncate-sources: 2-5
 delete-interacted-users: true
 watch-video-time: 15-35
-blogger-post-limits: 2
+# blogger-post-limits: 2 this feature is not implemented at this moment
 
 ## Unfollow
 unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
+unfollow-from-file: [usernames1.txt, usernames2.txt]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing

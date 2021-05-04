@@ -3,7 +3,7 @@
   <br />
   <h1 align="center">GramAddict</h1>
   <br />
-  <p align="center">The best 100% free forever instagram bot. Grow your following and engagement by liking, following and commenting automatically with your Android phone/tablet/emulator. No root required.<p>
+  <p align="center">The best 100% free forever Instagram bot. Grow your following and engagement by liking, following and commenting automatically with your Android phone/tablet/emulator. No root required.<p>
   <p align="center">
     <a href="https://github.com/gramaddict/bot/blob/master/LICENSE">
       <img src="https://img.shields.io/github/license/gramaddict/bot?style=flat" />
@@ -26,10 +26,13 @@
     <a href="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
 	    <img src="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
     </a>
+    <a href="https://pypi.org/project/gramaddict/">
+      <img src="https://img.shields.io/pypi/dm/gramaddict">
+    </a>
     <a href="https://github.com/GramAddict/bot#backers">
 	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat">
     </a>  
-    <a href="https://discord.gg/9MTjgs8g5R">
+    <a href="https://discord.gg/AfQG9cVhfJ">
 	    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
     </a>
   </p>
@@ -73,6 +76,10 @@ Thank you to everyone that supports us financially! 🙏 [[Become a backer](http
 <a href="https://opencollective.com/gramaddict#backers" target="_blank"><img src="https://opencollective.com/gramaddict/backers.svg?width=890"></a>
 
 <br />
+
+**From version 1.2.3 this bot is maintained and supported only by me, for free.
+If you like my work consider making a small donation..**
+<a  href="https://www.buymeacoffee.com/mastrolube"  target="_blank"><img  src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"  hspace="10" alt="Buy Me A Coffee"  style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;"  ></a>
 
 ## Talk botty with us
 

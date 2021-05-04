@@ -5,6 +5,7 @@ class ResourceID:
         self.ACTION_BAR_NEW_TITLE_CONTAINER = (
             f"{APP_ID}:id/action_bar_new_title_container"
         )
+        self.ACTION_BAR_OVERFLOW_ICON = f"{APP_ID}:id/action_bar_overflow_icon"
         self.ACTION_BAR_SEARCH_EDIT_TEXT = f"{APP_ID}:id/action_bar_search_edit_text"
         self.ACTION_BAR_TEXTVIEW_TITLE = f"{APP_ID}:id/action_bar_textview_title"
         self.ACTION_BAR_TITLE = f"{APP_ID}:id/action_bar_title"
@@ -55,6 +56,7 @@ class ResourceID:
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
         self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
+        self.NEW_FEED_PILL = f"{APP_ID}:id/new_feed_pill"
         self.PRIMARY_BUTTON = f"{APP_ID}:id/primary_button"
         self.PRIVATE_PROFILE_EMPTY_STATE = f"{APP_ID}:id/private_profile_empty_state"
         self.PROFILE_HEADER_BIO_TEXT = f"{APP_ID}:id/profile_header_bio_text"

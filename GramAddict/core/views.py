@@ -725,12 +725,6 @@ class PostsViewList:
                 resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                 textStartsWith=username,
             )
-            # post_description_v2 = self.device.find(
-            #     resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
-            # )
-            # if post_description_v2.exists():
-            #     logger.debug(post_description_v2.get_text())
-            # need that to fix the uia2 bug :S
             if not post_description.exists() and post_description.count_items() == 1:
                 post_description = self.device.find(
                     resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
@@ -794,6 +788,15 @@ class PostsViewList:
             )
         else:
             return False, 0, 0
+
+    def _refresh_feed(self):
+        logger.info("Refresh feed..")
+        refresh_pill = self.device.find(resourceIdMatches=(ResourceID.NEW_FEED_PILL))
+        if refresh_pill.exists(Timeout.SHORT):
+            refresh_pill.click()
+            random_sleep(modulable=False)
+        else:
+            UniversalActions(self.device)._reload_page()
 
     def _post_owner(self, current_job, mode: Owner, username=None):
         is_ad = False
@@ -984,7 +987,7 @@ class AccountView:
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
         )
         if textview.exists(Timeout.SHORT):
-            logger.debug("Refresh account...")
+            logger.info("Refresh account...")
             UniversalActions(self.device)._swipe_points(
                 direction=Direction.UP,
                 start_point_y=textview.get_bounds()["bottom"],
@@ -1757,6 +1760,7 @@ class UniversalActions:
     def _reload_page(self):
         logger.info("Reload page")
         UniversalActions(self.device)._swipe_points(direction=Direction.UP)
+        random_sleep(modulable=False)
 
     def detect_block(device):
         logger.debug("Checking for block...")

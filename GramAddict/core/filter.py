@@ -26,6 +26,7 @@ FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
+PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
 FIELD_COMMENT_PHOTOS = "comment_photos"
 FIELD_COMMENT_VIDEOS = "comment_videos"
 FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
@@ -417,6 +418,15 @@ class Filter:
         )
         return field_follow_private_or_empty is not None and bool(
             field_follow_private_or_empty
+        )
+
+    def can_pm_to_private_or_empty(self):
+        if self.conditions is None:
+            return False
+
+        field_pm_to_private_or_empty = self.conditions.get(PM_TO_PRIVATE_OR_EMPTY)
+        return field_pm_to_private_or_empty is not None and bool(
+            field_pm_to_private_or_empty
         )
 
     def can_comment(self, current_mode):

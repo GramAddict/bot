@@ -24,10 +24,12 @@
     "comment_place_posts_top": true,
     "comment_place_posts_recent": true,
     "comment_blogger_followers": true,
+    "comment_blogger_followings": true,
     "comment_interact_usernames": true,
     "comment_blogger_post_likers": true,
     "comment_interact_from_file": true,
     "comment_feed": false,
     "comment_photos": true,
-    "comment_videos": true
+    "comment_videos": true,
+    "pm_to_private_or_empty": true
 }

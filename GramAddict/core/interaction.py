@@ -25,6 +25,7 @@ from GramAddict.core.views import (
     SearchView,
     UniversalActions,
     Direction,
+    case_insensitive_re,
 )
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,11 @@ def interact_with_user(
     if profile_data.is_private or (profile_data.posts_count == 0):
         private_empty = "Private" if profile_data.is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
+        if (
+            can_send_PM(session_state, pm_percentage)
+            and profile_filter.can_pm_to_private_or_empty
+        ):
+            sent_pm = _send_PM(device, session_state, my_username, 0, True)
         if can_follow and profile_filter.can_follow_private_or_empty():
             if scraping_file is None:
                 followed = _follow(
@@ -554,65 +560,82 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
     return False
 
 
-def _send_PM(device, session_state, my_username, swipe_amount):
-    coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
-    if coordinator_layout.exists() and swipe_amount != 0:
-        UniversalActions(device)._swipe_points(
-            direction=Direction.UP, delta_y=swipe_amount
+def _send_PM(device, session_state, my_username, swipe_amount, private_or_empty=False):
+    if private_or_empty:
+        options = device.find(
+            classNameMatches=ClassName.FRAME_LAYOUT,
+            descriptionMatches=case_insensitive_re("^Options$"),
         )
-    message_button = device.find(
-        classNameMatches=ClassName.BUTTON, clickable=True, textMatches="Message"
-    )
-    if message_button.exists(Timeout.SHORT):
-        message_button.click()
-        message_box = device.find(
-            resourceId=ResourceID.ROW_THREAD_COMPOSER_EDITTEXT,
-            className=ClassName.EDIT_TEXT,
-            enabled="true",
-        )
-        if message_box.exists():
-            message = load_random_message(my_username)
-            if message is None:
-                logger.warning("You forgot to populate your PM list!")
-                device.back()
-                return False
-            logger.info(
-                f"Write private message: {message}", extra={"color": f"{Fore.CYAN}"}
-            )
-            message_box.set_text(message)
-            send_button = device.find(
-                resourceId=ResourceID.ROW_THREAD_COMPOSER_BUTTON_SEND,
-                className=ClassName.TEXT_VIEW,
-            )
-            send_button.click()
-            UniversalActions.detect_block(device)
-            SearchView(device)._close_keyboard()
-            posted_text = device.find(
-                resourceId=ResourceID.DIRECT_TEXT_MESSAGE_TEXT_VIEW,
-                text=f"{message}",
-            )
-            message_sending_icon = device.find(
-                resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
-            )
-            if message_sending_icon.exists():
-                random_sleep()
-            if posted_text.exists(Timeout.MEDIUM) and not message_sending_icon.exists():
-                logger.info("PM send succeed.", extra={"color": f"{Fore.GREEN}"})
-                session_state.totalPm += 1
-                pm_confirmed = True
-            else:
-                logger.warning("Failed to check if PM send succeed.")
-                pm_confirmed = False
-            logger.info("Go back to profile view.")
-            device.back()
-            return pm_confirmed
+        if options.exists(Timeout.SHORT):
+            options.click()
         else:
-            logger.info("PM to this user have been limited.")
-            SearchView(device)._close_keyboard()
-            device.back()
+            return False
+        send_pm = device.find(
+            classNameMatches=ClassName.BUTTON,
+            textMatches=case_insensitive_re("^Send Message$"),
+        )
+        if send_pm.exists(Timeout.SHORT):
+            send_pm.click()
+        else:
             return False
     else:
-        logger.info("You can't send a message to a private account.")
+        coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
+        if coordinator_layout.exists() and swipe_amount != 0:
+            UniversalActions(device)._swipe_points(
+                direction=Direction.UP, delta_y=swipe_amount
+            )
+        message_button = device.find(
+            classNameMatches=ClassName.BUTTON, clickable=True, textMatches="Message"
+        )
+        if message_button.exists(Timeout.SHORT):
+            message_button.click()
+        else:
+            return False
+    message_box = device.find(
+        resourceId=ResourceID.ROW_THREAD_COMPOSER_EDITTEXT,
+        className=ClassName.EDIT_TEXT,
+        enabled="true",
+    )
+    if message_box.exists():
+        message = load_random_message(my_username)
+        if message is None:
+            logger.warning("You forgot to populate your PM list!")
+            device.back()
+            return False
+        logger.info(
+            f"Write private message: {message}", extra={"color": f"{Fore.CYAN}"}
+        )
+        message_box.set_text(message)
+        send_button = device.find(
+            resourceId=ResourceID.ROW_THREAD_COMPOSER_BUTTON_SEND,
+            className=ClassName.TEXT_VIEW,
+        )
+        send_button.click()
+        UniversalActions.detect_block(device)
+        SearchView(device)._close_keyboard()
+        posted_text = device.find(
+            resourceId=ResourceID.DIRECT_TEXT_MESSAGE_TEXT_VIEW,
+            text=f"{message}",
+        )
+        message_sending_icon = device.find(
+            resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
+        )
+        if message_sending_icon.exists():
+            random_sleep()
+        if posted_text.exists(Timeout.MEDIUM) and not message_sending_icon.exists():
+            logger.info("PM send succeed.", extra={"color": f"{Fore.GREEN}"})
+            session_state.totalPm += 1
+            pm_confirmed = True
+        else:
+            logger.warning("Failed to check if PM send succeed.")
+            pm_confirmed = False
+        logger.info("Go back to profile view.")
+        device.back()
+        return pm_confirmed
+    else:
+        logger.info("PM to this user have been limited.")
+        SearchView(device)._close_keyboard()
+        device.back()
         return False
 
 

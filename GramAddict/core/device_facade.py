@@ -578,7 +578,6 @@ class DeviceFacade:
 
                     i = 0
                     n += 1
-                self.deviceV2.send_action("search")
                 if self.viewV2.get_text() is None:
                     logger.debug(
                         "Failed to write in text field, let's try in the old way.."

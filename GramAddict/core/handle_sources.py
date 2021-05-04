@@ -396,6 +396,7 @@ def handle_posts(
             10,
         )
         count = 0
+        PostsViewList(device)._refresh_feed()
     else:
         if not nav_to_hashtag_or_place(device, target, current_job):
             return
@@ -423,9 +424,15 @@ def handle_posts(
             if random_choice(interact_percentage):
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
-                elif storage.check_user_was_interacted(username):
+                elif (
+                    storage.check_user_was_interacted(username)
+                    and current_job != "feed"
+                ):
                     logger.info(f"@{username}: already interacted. Skip.")
-                elif storage.check_user_was_interacted_recently(username):
+                elif (
+                    storage.check_user_was_interacted_recently(username)
+                    and current_job != "feed"
+                ):
                     logger.info(
                         f"@{username}: already interacted in the last week. Skip."
                     )
@@ -445,10 +452,14 @@ def handle_posts(
                         session_state.totalLikes += 1
                         if current_job == "feed":
                             count += 1
+                            logger.info(
+                                f"Interacted feed bloggers: {count}/{count_feed_limit}"
+                            )
                             if count >= count_feed_limit:
                                 logger.info(
                                     f"Interacted {count} bloggers in feed, finish."
                                 )
+                                TabBarView(device).navigateToProfile()
                                 return
                     if current_job != "feed":
                         if PostsViewList(device)._post_owner(
