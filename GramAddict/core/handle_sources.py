@@ -670,7 +670,7 @@ def iterate_over_followers(
                         className=ClassName.IMAGE_VIEW
                     )
                     if retry_button.exists():
-                        logger.info('Press "Load" button')
+                        logger.info('Press "Load" button.')
                         retry_button.click()
                         pressed_retry = True
 

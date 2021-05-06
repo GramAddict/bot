@@ -39,6 +39,7 @@ place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
 interact-from-file: [usernames1.txt, usernames2.txt]
 posts-from-file: posts.txt
+feed: 2-5
 
 ## Special modificators for jobs and sources
 shuffle-jobs: true

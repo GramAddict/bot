@@ -290,6 +290,7 @@ class SearchView:
                 logger.error(
                     "Can't find the search bar! Refreshing it by pressing Home and Search again.."
                 )
+                SearchView(self.device)._close_keyboard()
                 TabBarView(self.device).navigateToHome()
                 TabBarView(self.device).navigateToSearch()
                 continue
@@ -328,13 +329,19 @@ class SearchView:
             ),
             className=ClassName.LINEAR_LAYOUT,
         )
-
-        tab_text_view = tab_layout.child(
-            resourceIdMatches=case_insensitive_re(ResourceID.TAB_BUTTON_NAME_TEXT),
-            className=ClassName.TEXT_VIEW,
-            textMatches=case_insensitive_re(tab.name),
-        )
-        return tab_text_view
+        if tab_layout.exists():
+            logger.debug("Tabs container exists!")
+            tab_text_view = tab_layout.child(
+                resourceIdMatches=case_insensitive_re(ResourceID.TAB_BUTTON_NAME_TEXT),
+                className=ClassName.TEXT_VIEW,
+                textMatches=case_insensitive_re(tab.name),
+            )
+            if not tab_text_view.exists():
+                logger.debug("Tabs container hasn't text! Let's try with index.")
+                tab_text_view = tab_layout.child(index=tab.value - 1)
+            if tab_text_view.exists():
+                return tab_text_view
+        return None
 
     def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
         tab_layout = self.device.find(
@@ -374,6 +381,7 @@ class SearchView:
         logger.debug(f"Search for @{username}.")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
+            logger.debug("Pressing on searchbar.")
             search_edit_text.click(sleep=SleepTime.SHORT)
         accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
         if accounts_tab is None:
@@ -389,6 +397,8 @@ class SearchView:
                 logger.error("Cannot find tab: ACCOUNTS.")
                 save_crash(self.device)
                 return None
+        logger.debug("Pressing on accounts tab.")
+        accounts_tab.click(sleep=SleepTime.SHORT)
 
         if not alread_typed:
             if interact_usernames:
@@ -417,6 +427,7 @@ class SearchView:
         logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
+            logger.debug("Pressing on searchbar.")
             search_edit_text.click(sleep=SleepTime.SHORT)
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if hashtag_tab is None:
@@ -434,6 +445,7 @@ class SearchView:
                 logger.error("Cannot find tab: TAGS.")
                 save_crash(self.device)
                 return None
+        logger.debug("Pressing on tags tab.")
         hashtag_tab.click(sleep=SleepTime.SHORT)
         tabbar_container = self.device.find(
             resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
@@ -484,6 +496,7 @@ class SearchView:
         logger.info(f"Navigate to place {place}.")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
+            logger.debug("Pressing on searchbar.")
             search_edit_text.click(sleep=SleepTime.SHORT)
         place_tab = self._getTabTextView(SearchTabs.PLACES)
         if place_tab is None:
@@ -500,6 +513,7 @@ class SearchView:
                 logger.error("Cannot find tab: Places.")
                 save_crash(self.device)
                 return None
+        logger.debug("Pressing on places tab.")
         place_tab.click(sleep=SleepTime.SHORT)
         if not already_typed:
             search_edit_text.set_text(place)

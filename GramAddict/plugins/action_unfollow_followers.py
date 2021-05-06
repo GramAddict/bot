@@ -354,11 +354,24 @@ class ActionUnfollowFollowers(Plugin):
                 )
                 list_view.scroll(Direction.DOWN)
             else:
-                logger.info(
-                    "Reached the following list end, finish.",
-                    extra={"color": f"{Fore.GREEN}"},
+                load_more_button = device.find(
+                    resourceId=self.ResourceID.ROW_LOAD_MORE_BUTTON
                 )
-                return
+                if load_more_button.exists():
+                    load_more_button.click()
+                    random_sleep()
+                    if load_more_button.exists():
+                        logger.warning(
+                            "Can't interate over the list anymore, you may be softbanned and cannot perform this action (refreshing follower list)."
+                        )
+                        return
+                    list_view.scroll(Direction.DOWN)
+                else:
+                    logger.info(
+                        "Reached the following list end, finish.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return
 
     def do_unfollow(
         self, device: DeviceFacade, username, my_username, check_if_is_follower
@@ -385,7 +398,7 @@ class ActionUnfollowFollowers(Plugin):
                 return False
 
             unfollow_button = device.find(
-                classNameMatches=ClassName.BUTTON,
+                classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                 clickable=True,
                 textMatches=FOLLOWING_REGEX,
             )
@@ -399,7 +412,7 @@ class ActionUnfollowFollowers(Plugin):
                 if scrollable.exists():
                     scrollable.scroll(Direction.UP)
                 unfollow_button = device.find(
-                    classNameMatches=ClassName.BUTTON,
+                    classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                     clickable=True,
                     textMatches=FOLLOWING_REGEX,
                 )

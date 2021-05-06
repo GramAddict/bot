@@ -28,7 +28,7 @@ We have a detailed FAQ and docs website where you can learn how to use GramAddic
 
 If you can't find the answer or want to chat with other people using GramAddict; you can join the official GramAddict discord server. Here there are many active members of the community - as well as the development team -  who chime in with helpful advice if you have questions.
 
-  - [Discord Server](https://discord.com/channels/771481743471017994) - If you've never joined before, use the [Invite Link](https://discord.com/invite/9MTjgs8g5R)
+  - [Discord Server](https://discord.com/channels/771481743471017994) - If you've never joined before, use the [Invite Link](https://discord.com/invite/NK8PNEFGFF)
     > **Note:** Even though Discord is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
     - Use the `#general` channel for general questions or discussion about GramAddict
     - Use the `#community-support` channel for help with issues or questions about running the bot
@@ -40,7 +40,7 @@ If you can't find the answer or want to chat with other people using GramAddict;
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [GramAddict Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior via the [Discord Server](https://discord.com/invite/9MTjgs8g5R). Please direct them to any of the project owners via DM.
+This project and everyone participating in it is governed by the [GramAddict Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior via the [Discord Server](https://discord.com/invite/NK8PNEFGFF). Please direct them to any of the project owners via DM.
 
 <br />
 

@@ -117,7 +117,7 @@ def nav_to_post_likers(device, username, my_username):
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         return False
-    logger.info("Opening the first post")
+    logger.info("Opening the first post.")
     ProfileView(device).swipe_to_fit_posts()
     PostsGridView(device).navigateToPost(0, 0)
     return True

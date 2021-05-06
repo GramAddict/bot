@@ -22,7 +22,7 @@ from urllib.parse import urlparse
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -215,9 +215,7 @@ def open_instagram(device, screen_record, close_apps):
         random_sleep()
 
     device.deviceV2.set_fastinput_ime(True)
-    ime = device.find(
-        classNameMatches="android.widget.TextView", textMatches="FastInputIME"
-    )
+    ime = device.find(classNameMatches=ClassName.TEXT_VIEW, textMatches="FastInputIME")
     if ime.exists():
         logger.debug("Keyboard switch dialog is open. Closing it.")
         ime.click()
@@ -303,7 +301,7 @@ def save_crash(device):
         "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
-    logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
+    logger.info("https://discord.gg/NK8PNEFGFF\n", extra={"color": Fore.GREEN})
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
