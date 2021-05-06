@@ -30,7 +30,7 @@ class Config:
                     self.config = yaml.safe_load(fin)
             except IndexError:
                 logger.warning(
-                    "Please provide a filename with your --config argument. Example: '-- config accounts/yourusername/config.yml'"
+                    "Please provide a filename with your --config argument. Example: '--config accounts/yourusername/config.yml'"
                 )
                 exit(0)
 

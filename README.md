@@ -84,7 +84,7 @@ If you like my work consider making a small donation..**
 ## Talk botty with us
 
 <p>
-  <a href="https://discord.gg/9MTjgs8g5R">
+  <a href="https://discord.gg/NK8PNEFGFF">
     <img hspace="3" alt="Join us on Discord" src="https://github.com/GramAddict/bot/raw/master/res/discord.png" height=84/>
   </a>
 </p>

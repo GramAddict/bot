@@ -315,7 +315,7 @@ def can_send_PM(session_state, pm_percentage):
     pm_chance = randint(1, 100)
     if not session_state.check_limit(
         args, limit_type=session_state.Limit.PM, output=True
-    ) and (pm_chance < pm_percentage):
+    ) and (pm_chance <= pm_percentage):
         return True
     else:
         return False

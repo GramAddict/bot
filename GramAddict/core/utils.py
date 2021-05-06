@@ -19,10 +19,11 @@ from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
+from requests import get
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.resources import ClassName, ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -41,16 +42,15 @@ def load_config(config):
 
 
 def update_available():
+    urllib3.disable_warnings()
+    logger.info("Checking for updates...")
     if "b" not in __version__:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
     else:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
     try:
-        r = http.request(
-            "GET",
-            version_request,
-        )
-        online_version_raw = r.data.decode("utf-8").split('"')[1]
+        r = get(version_request, verify=False)
+        online_version_raw = r.text.split('"')[1]
 
     except Exception as e:
         logger.error(
@@ -71,7 +71,9 @@ def update_available():
         if int(online_version[n]) > int(local_version[n]):
             return True, online_version_raw
         else:
-            pass
+            if int(online_version[n]) == int(local_version[n]):
+                continue
+            break
     return False, online_version_raw
 
 
@@ -118,11 +120,7 @@ def config_examples():
     if getcwd() == __file__[:-23]:
         logger.debug("Installed via git, config-examples is in the local folder.")
     else:
-        logger.info(
-            "Don't know how to set your config.yml? Look there: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
-            extra={"color": f"{Fore.GREEN}"},
-        )
-        sleep(5)
+        logger.debug("Intalled via pip.")
 
 
 def check_adb_connection():
@@ -212,9 +210,7 @@ def open_instagram(device, screen_record, close_apps):
         random_sleep()
 
     device.deviceV2.set_fastinput_ime(True)
-    ime = device.find(
-        classNameMatches="android.widget.TextView", textMatches="FastInputIME"
-    )
+    ime = device.find(classNameMatches=ClassName.TEXT_VIEW, textMatches="FastInputIME")
     if ime.exists():
         logger.debug("Keyboard switch dialog is open. Closing it.")
         ime.click()
@@ -300,7 +296,7 @@ def save_crash(device):
         "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
-    logger.info("https://discord.gg/9MTjgs8g5R\n", extra={"color": Fore.GREEN})
+    logger.info("https://discord.gg/NK8PNEFGFF\n", extra={"color": Fore.GREEN})
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
