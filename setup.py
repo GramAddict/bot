@@ -1,11 +1,12 @@
 import setuptools
-from GramAddict.version import __version__
 
+with open("GramAddict/version.py", "r") as f:
+    cur_version = f.read().split('"')[1]
 with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
 setuptools.setup(
     name="gramaddict",
-    version=__version__, 
+    version=cur_version,
     author="GramAddict Team",
     author_email="maintainers@gramaddict.org",
     description="Completely free and open source human-like Instagram bot. Powered by UIAutomator2 and compatible with basically any android device that can run instagram - real or emulated.",

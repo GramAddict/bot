@@ -19,6 +19,7 @@ from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
+from requests import get
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
@@ -41,17 +42,15 @@ def load_config(config):
 
 
 def update_available():
+    urllib3.disable_warnings()
     logger.info("Checking for updates...")
     if "b" not in __version__:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
     else:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
     try:
-        r = http.request(
-            "GET",
-            version_request,
-        )
-        online_version_raw = r.data.decode("utf-8").split('"')[1]
+        r = get(version_request, verify=False)
+        online_version_raw = r.text.split('"')[1]
 
     except Exception as e:
         logger.error(
@@ -121,11 +120,7 @@ def config_examples():
     if getcwd() == __file__[:-23]:
         logger.debug("Installed via git, config-examples is in the local folder.")
     else:
-        logger.info(
-            "Don't know how to set your config.yml? Look there: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
-            extra={"color": f"{Fore.GREEN}"},
-        )
-        sleep(5)
+        logger.debug("Intalled via pip.")
 
 
 def check_adb_connection():

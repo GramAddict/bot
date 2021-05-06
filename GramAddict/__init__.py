@@ -51,6 +51,12 @@ configs = Config(first_run=True)
 # Logging initialization
 configure_logger(configs.debug, configs.username)
 logger = logging.getLogger(__name__)
+if "--config" not in configs.args:
+    logger.info(
+        "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
+        extra={"color": f"{Fore.GREEN}"},
+    )
+    sleep(5)
 is_update, version = update_available()
 if is_update:
     logger.warn("NEW VERSION FOUND!")

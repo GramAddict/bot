@@ -723,7 +723,10 @@ class PostsViewList:
                     return
                 sq_list = [sq1, sq2, sq3, sq4]
                 available_sq_list = [x for x in sq_list if x == x]
-                likes_view.click(Location.CUSTOM, coord=choice(available_sq_list))
+                if len(available_sq_list) > 0:
+                    likes_view.click(Location.CUSTOM, coord=choice(available_sq_list))
+                else:
+                    likes_view.click(Location.RIGHT)
             else:
                 likes_view.click(Location.RIGHT)
 
