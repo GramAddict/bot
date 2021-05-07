@@ -527,7 +527,6 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
                 UniversalActions.detect_block(device)
                 SearchView(device)._close_keyboard()
                 posted_text = device.find(
-                    resourceId=ResourceID.ROW_COMMENT_TEXTVIEW_COMMENT,
                     text=f"{my_username} {comment}",
                 )
                 when_posted = posted_text.sibling(
@@ -585,11 +584,14 @@ def _send_PM(device, session_state, my_username, swipe_amount, private_or_empty=
                 direction=Direction.UP, delta_y=swipe_amount
             )
         message_button = device.find(
-            classNameMatches=ClassName.BUTTON, clickable=True, textMatches="Message"
+            classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
+            enabled=True,
+            textMatches="Message",
         )
         if message_button.exists(Timeout.SHORT):
             message_button.click()
         else:
+            logger.warning("Cannot find the button for sending PMs!")
             return False
     message_box = device.find(
         resourceId=ResourceID.ROW_THREAD_COMPOSER_EDITTEXT,
@@ -613,10 +615,7 @@ def _send_PM(device, session_state, my_username, swipe_amount, private_or_empty=
         send_button.click()
         UniversalActions.detect_block(device)
         SearchView(device)._close_keyboard()
-        posted_text = device.find(
-            resourceId=ResourceID.DIRECT_TEXT_MESSAGE_TEXT_VIEW,
-            text=f"{message}",
-        )
+        posted_text = device.find(text=f"{message}")
         message_sending_icon = device.find(
             resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
         )

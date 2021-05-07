@@ -55,6 +55,7 @@ class ResourceID:
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
+        self.MESSAGE_TEXT = f"{APP_ID}:id/message_text"
         self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
         self.NEW_FEED_PILL = f"{APP_ID}:id/new_feed_pill"
         self.PRIMARY_BUTTON = f"{APP_ID}:id/primary_button"
