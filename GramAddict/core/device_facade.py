@@ -6,7 +6,7 @@ from enum import Enum, auto
 from os import listdir, getcwd
 from random import randint, uniform
 from re import search
-from subprocess import run
+from subprocess import PIPE, run
 from time import sleep
 from GramAddict.core.utils import random_sleep
 
@@ -135,7 +135,8 @@ class DeviceFacade:
         data = run(
             f"adb -s {self.deviceV2.serial} shell dumpsys window",
             encoding="utf-8",
-            capture_output=True,
+            stdout=PIPE,
+            stderr=PIPE,
             shell=True,
         )
         if data != "":
@@ -151,7 +152,8 @@ class DeviceFacade:
         data = run(
             f"adb -s {serial} shell dumpsys input_method",
             encoding="utf-8",
-            capture_output=True,
+            stdout=PIPE,
+            stderr=PIPE,
             shell=True,
         )
         if data != "":

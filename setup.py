@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GramAddict/bot/",
-    packages=setuptools.find_namespace_packages(),
+    packages=setuptools.find_packages(),
     include_package_data=True,
     install_requires=[
         "colorama==0.4.4",
@@ -21,7 +21,7 @@ setuptools.setup(
         "matplotlib==3.3.3",
         "numpy==1.19.3",
         "PyYAML==5.4",
-        "uiautomator2==2.15.0",
+        "uiautomator2==2.15.2",
         "urllib3==1.26.4",
         "emoji==1.2.0",
     ],

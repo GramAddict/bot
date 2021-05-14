@@ -93,6 +93,7 @@ def move_usernames_to_accounts():
         "gramaddict.egg-info",
         "logs",
         "res",
+        "test",
     ]
     for n in ignored_dir:
         try:

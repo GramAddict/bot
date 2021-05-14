@@ -1380,7 +1380,7 @@ class ProfileView(ActionBarView):
             ),
             className=ClassName.TEXT_VIEW,
         )
-        followers_text_view.wait
+        followers_text_view.wait(Timeout.MEDIUM)
         return followers_text_view
 
     def getFollowersCount(self):
