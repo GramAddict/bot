@@ -19,7 +19,7 @@ setuptools.setup(
         "colorama==0.4.4",
         "ConfigArgParse==1.4",
         "matplotlib==3.4.2",
-        "numpy==1.19.3",
+        "numpy==1.20.3",
         "PyYAML==5.4",
         "uiautomator2==2.15.2",
         "urllib3==1.26.4",
