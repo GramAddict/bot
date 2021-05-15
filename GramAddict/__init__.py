@@ -57,6 +57,7 @@ if "--config" not in configs.args:
         extra={"color": f"{Fore.GREEN}"},
     )
     sleep(5)
+
 is_update, version = update_available()
 if is_update:
     logger.warn("NEW VERSION FOUND!")

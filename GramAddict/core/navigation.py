@@ -1,3 +1,4 @@
+from socket import timeout
 from GramAddict.core.device_facade import Timeout
 import logging
 
@@ -94,11 +95,17 @@ def nav_to_hashtag_or_place(device, target, current_job):
             if UniversalActions(device)._check_if_no_posts():
                 return False
 
-    logger.info("Opening the first result.")
-
     result_view = TargetView(device)._getRecyclerView()
-    TargetView(device)._getFistImageView(result_view).click()
-    return True
+    FistImageInView = TargetView(device)._getFistImageView(result_view)
+    if FistImageInView.exists():
+        logger.info(f"Opening the first result for {target}.")
+        FistImageInView.click()
+        return True
+    else:
+        logger.info(
+            f"There is any result for {target} (not exists or doesn't load). Skip."
+        )
+        return False
 
 
 def nav_to_post_likers(device, username, my_username):
@@ -117,7 +124,7 @@ def nav_to_post_likers(device, username, my_username):
         private_empty = "Private" if is_private else "Empty"
         logger.info(f"{private_empty} account.", extra={"color": f"{Fore.GREEN}"})
         return False
-    logger.info("Opening the first post.")
+    logger.info(f"Opening the first post of {username}.")
     ProfileView(device).swipe_to_fit_posts()
     PostsGridView(device).navigateToPost(0, 0)
     return True

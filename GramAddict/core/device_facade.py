@@ -471,12 +471,12 @@ class DeviceFacade:
                 if self.viewV2 is None:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                if not exists and self.viewV2.count >= 1:
-                    logger.debug(
-                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
-                    )
-                    self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                    return False
+                if hasattr(self.viewV2, "count"):
+                    if not exists and self.viewV2.count >= 1:
+                        logger.debug(
+                            f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                        )
+                        return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -535,6 +535,8 @@ class DeviceFacade:
                 except uiautomator2.JSONRPCError as e:
                     if error:
                         raise DeviceFacade.JsonRpcError(e)
+                    else:
+                        return ""
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )

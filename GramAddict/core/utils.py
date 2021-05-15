@@ -297,7 +297,7 @@ def save_crash(device):
         "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
-    logger.info("https://discord.gg/NK8PNEFGFF\n", extra={"color": Fore.GREEN})
+    logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):

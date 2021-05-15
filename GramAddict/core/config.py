@@ -123,6 +123,10 @@ class Config:
                 "Unknown arguments: " + ", ".join(str(arg) for arg in self.unknown_args)
             )
             self.parser.print_help()
+            if "analytics" in self.args:
+                logger.warning(
+                    "From version v2.0.7 analytics plugin doesn't accept any arguments! Just replace it in your accounts/yourusername/config.yml as 'analytics: true'"
+                )
             exit(0)
 
         self.device_id = self.args.device

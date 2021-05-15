@@ -117,7 +117,7 @@ class SessionState:
             "Checking session limits:",
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
             f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{args.current_comments_limit})",
-            f"- Total PM:\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
+            f"- Total PM:\t\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
             f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.current_follow_limit})",
             f"- Total Unfollowed:\t\t\t\t{'Limit Reached' if total_unfollowed else 'OK'} ({self.totalUnfollowed}/{args.current_unfollow_limit})",
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",

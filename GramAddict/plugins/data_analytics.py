@@ -7,7 +7,7 @@ from datetime import timedelta, datetime
 from enum import Enum, unique
 from matplotlib import ticker
 from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib.dates import DateFormatter
+import matplotlib.dates as mdates
 import sys
 
 from GramAddict.core.plugin_loader import Plugin
@@ -29,10 +29,8 @@ class DataAnalytics(Plugin):
         self.arguments = [
             {
                 "arg": "--analytics",
-                "nargs": None,
                 "help": "generates a PDF analytics report of current username session data",
-                "metavar": "report",
-                "default": None,
+                "action": "store_true",
                 "operation": True,
             }
         ]
@@ -95,7 +93,7 @@ class DataAnalytics(Plugin):
                     sys.exit(0)
             return json_array
         else:
-            logger.warning("No sessions.json file found for @" + self.username)
+            logger.warning(f"No sessions.json file found for @{self.username}")
             return None
 
     def plot_followers_growth(self, sessions, pdf, username, period):
@@ -119,7 +117,7 @@ class DataAnalytics(Plugin):
 
         fig.subplots_adjust(top=0.8, hspace=0.05)
 
-        formatter = DateFormatter("%B %dth")
+        formatter = mdates.DateFormatter("%B %dth")
         plt.gcf().autofmt_xdate()
         plt.gca().xaxis.set_major_formatter(formatter)
 

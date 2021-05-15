@@ -106,7 +106,9 @@ def interact_with_user(
             can_send_PM(session_state, pm_percentage)
             and profile_filter.can_pm_to_private_or_empty
         ):
-            sent_pm = _send_PM(device, session_state, my_username, 0, True)
+            sent_pm = _send_PM(
+                device, session_state, my_username, 0, profile_data.is_private
+            )
         if can_follow and profile_filter.can_follow_private_or_empty():
             if scraping_file is None:
                 followed = _follow(
@@ -559,8 +561,8 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
     return False
 
 
-def _send_PM(device, session_state, my_username, swipe_amount, private_or_empty=False):
-    if private_or_empty:
+def _send_PM(device, session_state, my_username, swipe_amount, private=False):
+    if private:
         options = device.find(
             classNameMatches=ClassName.FRAME_LAYOUT,
             descriptionMatches=case_insensitive_re("^Options$"),
@@ -801,13 +803,13 @@ def _watch_stories(
             random_sleep(1, 2, modulable=False, logging=False)
             story_view.getStoryFrame().wait(Timeout.SHORT)
 
-            if profile_view.getUsername(error=False) != username:
+            if profile_view.getUsername(watching_stories=True) != username:
                 start = datetime.now()
                 session_state.totalWatched += 1
                 stories_counter += 1
                 for _ in range(0, 7):
                     random_sleep(0.5, 1, modulable=False, logging=False)
-                    if profile_view.getUsername(error=False) == username:
+                    if profile_view.getUsername(watching_stories=True) == username:
                         break
 
                 if stories_to_watch > 1:
@@ -832,7 +834,9 @@ def _watch_stories(
                                             0.5, 1, modulable=False, logging=False
                                         )
                                         if (
-                                            profile_view.getUsername(error=False)
+                                            profile_view.getUsername(
+                                                watching_stories=True
+                                            )
                                             == username
                                         ):
                                             break
@@ -845,7 +849,7 @@ def _watch_stories(
                             break
 
                 for _ in range(0, 4):
-                    if profile_view.getUsername(error=False) != username:
+                    if profile_view.getUsername(watching_stories=True) != username:
                         device.back()
                     else:
                         break

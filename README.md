@@ -32,7 +32,7 @@
     <a href="https://github.com/GramAddict/bot#backers">
 	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat">
     </a>  
-    <a href="https://discord.gg/AfQG9cVhfJ">
+    <a href="https://discord.gg/NK8PNEFGFF">
 	    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
     </a>
   </p>

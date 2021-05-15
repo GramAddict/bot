@@ -57,7 +57,7 @@ unfollow-from-file: [usernames1.txt, usernames2.txt]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing
-analytics: report
+analytics: true
 
 ##############################################################################
 # Source Limits

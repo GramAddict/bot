@@ -174,7 +174,7 @@ class TabBarView:
             return
 
         logger.error(f"Didn't find tab {tab_name} in the tab bar...")
-        logger.info("Let's check connection..")
+        # logger.info("Let's check connection..")
 
 
 class ActionBarView:
@@ -973,16 +973,16 @@ class AccountView:
 
     def changeToUsername(self, username):
         action_bar = ProfileView._getActionBarTitleBtn(self)
-        current_profile_name = action_bar.get_text()
-        # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
-        if current_profile_name.strip().upper() == username.upper():
-            logger.info(
-                f"You are already logged as {username}!",
-                extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
-            )
-            return True
-        logger.debug(f"You're logged as {current_profile_name.strip()}")
-        if action_bar.exists(Timeout.SHORT):
+        if action_bar is not None:
+            current_profile_name = action_bar.get_text()
+            # in private accounts there is little lock which is codec as two spaces (should be \u1F512)
+            if current_profile_name.strip().upper() == username.upper():
+                logger.info(
+                    f"You are already logged as {username}!",
+                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+                )
+                return True
+            logger.debug(f"You're logged as {current_profile_name.strip()}")
             action_bar.click()
             found_obj = self.device.find(
                 resourceId=ResourceID.ROW_USER_TEXTVIEW,
@@ -994,10 +994,12 @@ class AccountView:
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
                 found_obj.click()
+                random_sleep()
                 action_bar = ProfileView._getActionBarTitleBtn(self)
-                current_profile_name = action_bar.get_text()
-                if current_profile_name.strip().upper() == username.upper():
-                    return True
+                if action_bar is not None:
+                    current_profile_name = action_bar.get_text()
+                    if current_profile_name.strip().upper() == username.upper():
+                        return True
         return False
 
     def refresh_account(self):
@@ -1066,7 +1068,7 @@ class OpenedPostView:
             resourceIdMatches=case_insensitive_re(ResourceID.LIST)
         )
         if not post_view_area.exists():
-            logger.debug("Cannot find post recycler view area")
+            logger.debug("Cannot find post recycler view area.")
             save_crash(self.device)
             self.device.back()
             return None
@@ -1078,7 +1080,7 @@ class OpenedPostView:
         )
 
         if not post_media_view.exists():
-            logger.debug("Cannot find post media view area")
+            logger.debug("Cannot find post media view area.")
             save_crash(self.device)
             self.device.back()
             return None
@@ -1271,7 +1273,7 @@ class ProfileView(ActionBarView):
 
         return OptionsView(self.device)
 
-    def _getActionBarTitleBtn(self):
+    def _getActionBarTitleBtn(self, watching_stories=False):
         bar = case_insensitive_re(
             [
                 ResourceID.TITLE_VIEW,
@@ -1284,7 +1286,14 @@ class ProfileView(ActionBarView):
         action_bar = self.device.find(
             resourceIdMatches=bar, className=ClassName.TEXT_VIEW
         )
-        return action_bar
+        if not watching_stories:
+            if action_bar.exists(Timeout.LONG):
+                return action_bar
+            else:
+                logger.error("Unable to find action bar!")
+                return None
+        else:
+            return action_bar
 
     def _getSomeText(self):
         obj = self.device.find(
@@ -1345,15 +1354,16 @@ class ProfileView(ActionBarView):
                 button_status = FollowStatus.FOLLOW
             return following_or_follow_back_button, button_status
         else:
-            logger.error("The follow button doesn't exist!")
-            save_crash(self.device)
+            logger.warning(
+                "The follow button doesn't exist! Maybe the profile is not loaded!"
+            )
             return None, FollowStatus.NONE
 
-    def getUsername(self, error=True):
-        title_view = self._getActionBarTitleBtn()
-        if title_view.exists():
-            return title_view.get_text(error).strip()
-        if error:
+    def getUsername(self, watching_stories=False):
+        action_bar = self._getActionBarTitleBtn(watching_stories)
+        if action_bar is not None:
+            return action_bar.get_text(error=not watching_stories).strip()
+        if not watching_stories:
             logger.error("Cannot get username.")
         return None
 
@@ -1391,9 +1401,9 @@ class ProfileView(ActionBarView):
             if followers_text:
                 followers = self._parseCounter(followers_text)
             else:
-                logger.error("Cannot get your followers count text")
+                logger.error("Cannot get followers count text.")
         else:
-            logger.error("Cannot find your followers count view")
+            logger.error("Cannot find followers count view.")
 
         return followers
 
@@ -1415,9 +1425,9 @@ class ProfileView(ActionBarView):
             if following_text:
                 following = self._parseCounter(following_text)
             else:
-                logger.error("Cannot get following count text")
+                logger.error("Cannot get following count text.")
         else:
-            logger.error("Cannot find following count view")
+            logger.error("Cannot find following count view.")
 
         return following
 
@@ -1582,8 +1592,9 @@ class ProfileView(ActionBarView):
             except:
                 logger.info("I'm not able to scroll down.")
                 return 0
-        logger.warning("Maybe a private or empty profile in which check failed.. Skip")
-        save_crash(self.device)
+        logger.warning(
+            "Maybe a private/empty profile in which check failed or after whatching stories the view moves down :S.. Skip"
+        )
         return -1
 
     def navigateToPostsTab(self):

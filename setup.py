@@ -18,7 +18,7 @@ setuptools.setup(
     install_requires=[
         "colorama==0.4.4",
         "ConfigArgParse==1.4",
-        "matplotlib==3.3.3",
+        "matplotlib==3.4.2",
         "numpy==1.19.3",
         "PyYAML==5.4",
         "uiautomator2==2.15.2",

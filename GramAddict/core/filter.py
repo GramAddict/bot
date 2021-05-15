@@ -1,3 +1,4 @@
+from GramAddict.core.utils import random_sleep
 from GramAddict.core.device_facade import Timeout
 import json
 import logging
@@ -113,7 +114,9 @@ class Filter:
                         )
                         sys.exit(0)
             else:
-                logger.warning(f"The filters file {filter_path} doesn't exists")
+                logger.warning(
+                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/7a1dfe3d07d69bfb8e6a87a6252916e3c3dc3cb7/config-examples/filter.json and place in your account folder!"
+                )
         else:
             logger.warning("Filters are disabled!")
         self.storage = storage
@@ -221,85 +224,72 @@ class Filter:
                     username, profile_data, SkipReason.UNKNOWN_PRIVACY
                 )
 
-        if None not in [
-            field_min_followers,
-            field_max_followers,
-            field_min_followings,
-            field_max_followings,
-            field_min_potency_ratio,
-            field_max_potency_ratio,
-        ]:
-            logger.debug(
-                "Checking if account is within follower/following parameters..."
-            )
-            if (
-                profile_data.followers is not None
-                and profile_data.followings is not None
+        logger.debug("Checking if account is within follower/following parameters...")
+        if profile_data.followers is not None and profile_data.followings is not None:
+            if field_min_followers is not None and profile_data.followers < int(
+                field_min_followers
             ):
-                if field_min_followers is not None and profile_data.followers < int(
-                    field_min_followers
-                ):
-                    logger.info(
-                        f"@{username} has less than {field_min_followers} followers, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.LT_FOLLOWERS
-                    )
-                if field_max_followers is not None and profile_data.followers > int(
-                    field_max_followers
-                ):
-                    logger.info(
-                        f"@{username} has more than {field_max_followers} followers, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.GT_FOLLOWERS
-                    )
-                if field_min_followings is not None and profile_data.followings < int(
-                    field_min_followings
-                ):
-                    logger.info(
-                        f"@{username} has less than {field_min_followings} followings, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.LT_FOLLOWINGS
-                    )
-                if field_max_followings is not None and profile_data.followings > int(
-                    field_max_followings
-                ):
-                    logger.info(
-                        f"@{username} has more than {field_max_followings} followings, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.GT_FOLLOWINGS
-                    )
-
-                if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
-                    if (
-                        int(profile_data.followings) == 0
-                        or profile_data.followers / profile_data.followings
-                        < float(field_min_potency_ratio)
-                        or profile_data.followers / profile_data.followings
-                        > float(field_max_potency_ratio)
-                    ):
-                        logger.info(
-                            f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        return profile_data, self.return_check_profile(
-                            username, profile_data, SkipReason.POTENCY_RATIO
-                        )
-
-            else:
-                logger.critical(
-                    "Either followers, followings, or possibly both are undefined. Cannot filter."
+                logger.info(
+                    f"@{username} has less than {field_min_followers} followers, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
+                    username, profile_data, SkipReason.LT_FOLLOWERS
                 )
+            if field_max_followers is not None and profile_data.followers > int(
+                field_max_followers
+            ):
+                logger.info(
+                    f"@{username} has more than {field_max_followers} followers, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return profile_data, self.return_check_profile(
+                    username, profile_data, SkipReason.GT_FOLLOWERS
+                )
+            if field_min_followings is not None and profile_data.followings < int(
+                field_min_followings
+            ):
+                logger.info(
+                    f"@{username} has less than {field_min_followings} followings, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return profile_data, self.return_check_profile(
+                    username, profile_data, SkipReason.LT_FOLLOWINGS
+                )
+            if field_max_followings is not None and profile_data.followings > int(
+                field_max_followings
+            ):
+                logger.info(
+                    f"@{username} has more than {field_max_followings} followings, skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+                return profile_data, self.return_check_profile(
+                    username, profile_data, SkipReason.GT_FOLLOWINGS
+                )
+
+            if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
+                if (
+                    int(profile_data.followings) == 0
+                    or profile_data.followers / profile_data.followings
+                    < float(field_min_potency_ratio)
+                    or profile_data.followers / profile_data.followings
+                    > float(field_max_potency_ratio)
+                ):
+                    logger.info(
+                        f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                        extra={"color": f"{Fore.GREEN}"},
+                    )
+                    return profile_data, self.return_check_profile(
+                        username, profile_data, SkipReason.POTENCY_RATIO
+                    )
+
+        else:
+            logger.critical(
+                "Either followers, followings, or possibly both are undefined. Cannot filter."
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
+            )
 
         if field_skip_business or field_skip_non_business:
             logger.debug("Checking if account is a business...")
@@ -437,7 +427,7 @@ class Filter:
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         except:
-            logger.warning("filter.json is not loaded!")
+            logger.debug("filter.json is not loaded!")
             return False, False, False
 
     def get_all_data(self, device):
@@ -445,11 +435,20 @@ class Filter:
             resourceIdMatches=ResourceID.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB
         )
         if not profile_picture.exists(Timeout.LONG):
-            logger.info("Looks like this profile hasn't loaded yet!")
+            logger.warning(
+                "Looks like this profile hasn't loaded yet! Wait a little bit more.."
+            )
             if profile_picture.exists(Timeout.LONG):
                 logger.info("Profile loaded!")
             else:
-                logger.warning("Profile not fully loaded. Is your connection ok?")
+                logger.warning(
+                    "Profile not fully loaded after 16s. Is your connection ok? Let's sleep for 1-2 minutes."
+                )
+                random_sleep(60, 120, modulable=False)
+                if profile_picture.exists():
+                    logger.warning(
+                        "Profile won't load! Maybe you're softbanned or you've lost your connection!"
+                    )
         profileView = ProfileView(device)
         profile = Profile(
             follow_button_text=self._get_follow_button_text(device, profileView),
@@ -470,14 +469,14 @@ class Filter:
         try:
             followers = profileView.getFollowersCount()
         except Exception as e:
-            logger.error(f"Cannot find followers count view, default is {followers}")
+            logger.error(f"Cannot find followers count view, default is {followers}.")
             logger.debug(f"Error: {e}")
 
         followings = 0
         try:
             followings = profileView.getFollowingCount()
         except Exception as e:
-            logger.error(f"Cannot find followings count view, default is {followings}")
+            logger.error(f"Cannot find followings count view, default is {followings}.")
             logger.debug(f"Error: {e}")
         if followers is not None and followings is not None:
             return followers, followings

@@ -30,7 +30,7 @@ class InteractOwnFeed(Plugin):
                 "arg": "--feed",
                 "nargs": None,
                 "help": "interact with your own feed",
-                "metavar": None,
+                "metavar": "5-10",
                 "default": None,
                 "operation": True,
             },
