@@ -1,4 +1,3 @@
-from socket import timeout
 from GramAddict.core.device_facade import Timeout
 import logging
 
