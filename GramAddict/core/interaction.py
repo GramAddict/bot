@@ -677,7 +677,8 @@ def load_random_comment(my_username, media_type):
                 photo_header = lines.index("%PHOTO")
                 video_header = lines.index("%VIDEO")
                 carousel_header = lines.index("%CAROUSEL")
-            except:
+            except Exception as e:
+                logger.error(f"Exception: {e}")
                 logger.warning(
                     f"You didn't follow the rules of sections for {file_name}! Look at config example."
                 )
@@ -826,6 +827,7 @@ def _watch_stories(
                                     story_frame.click(
                                         mode=Location.RIGHTEDGE,
                                         sleep=SleepTime.ZERO,
+                                        crash_report_if_fails=False,
                                     )
                                     session_state.totalWatched += 1
                                     stories_counter += 1
@@ -842,8 +844,10 @@ def _watch_stories(
                                             break
 
                             except Exception as e:
-                                logger.error(e)
-                                save_crash(device)
+                                logger.debug(f"Exception: {e}")
+                                logger.debug(
+                                    "Ignore this error! Stories ended while we were pressing on the next one."
+                                )
                                 break
                         else:
                             break

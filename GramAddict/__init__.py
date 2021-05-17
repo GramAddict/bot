@@ -153,8 +153,9 @@ def run():
                     if int(running_ig_version_splitted[n]) > int(
                         last_ig_version_tested[n]
                     ):
-                        print(
-                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})"
+                        logger.info(
+                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})",
+                            extra={"color": f"{Style.BRIGHT}"},
                         )
                         break
                     else:
@@ -163,8 +164,8 @@ def run():
                         ):
                             continue
                         break
-            except:
-                logger.error("Error retriving the IG version.")
+            except Exception as e:
+                logger.error(f"Error retriving the IG version. Exception: {e}")
 
             SearchView(device)._close_keyboard()
         else:

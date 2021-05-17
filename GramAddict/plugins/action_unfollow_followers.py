@@ -139,7 +139,10 @@ class ActionUnfollowFollowers(Plugin):
                 self.unfollow_type,
                 self.session_state.my_username,
             )
-            logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
+            logger.info(
+                f"Unfollowed {self.state.unfollowed_count}, finish.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
             self.state.is_job_completed = True
             device.back()
 

@@ -130,6 +130,7 @@ class DeviceFacade:
 
     def press_power(self):
         self.deviceV2.press("power")
+        sleep(2)
 
     def is_screen_locked(self):
         data = run(
@@ -178,9 +179,10 @@ class DeviceFacade:
 
     def unlock(self):
         self.swipe(Direction.UP, 0.8)
-        random_sleep(1, 1, False)
+        sleep(2)
         if self.is_screen_locked():
             self.swipe(Direction.RIGHT, 0.8)
+            sleep(2)
 
     def screen_off(self):
         self.deviceV2.screen_off()
@@ -324,7 +326,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def click(self, mode=None, sleep=None, coord=[]):
+        def click(self, mode=None, sleep=None, coord=[], crash_report_if_fails=True):
             mode = Location.WHOLE if mode is None else mode
             x_abs = -1
             y_abs = -1
@@ -362,7 +364,10 @@ class DeviceFacade:
                     DeviceFacade.sleep_mode(sleep)
                     return
                 except uiautomator2.JSONRPCError as e:
-                    raise DeviceFacade.JsonRpcError(e)
+                    if crash_report_if_fails:
+                        raise DeviceFacade.JsonRpcError(e)
+                    else:
+                        logger.debug("Trying to press on a obj which is gone.")
 
             else:
                 x_offset = 0.5
@@ -389,7 +394,10 @@ class DeviceFacade:
                 DeviceFacade.sleep_mode(sleep)
 
             except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+                if crash_report_if_fails:
+                    raise DeviceFacade.JsonRpcError(e)
+                else:
+                    logger.debug("Trying to press on a obj which is gone.")
 
         def click_retry(self, mode=None, sleep=None, coord=[], maxretry=2):
             """return True if successfully open the element, else False"""

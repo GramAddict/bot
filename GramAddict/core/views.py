@@ -1324,8 +1324,9 @@ class ProfileView(ActionBarView):
                 .get_text()
             )
             return post, followers, following
-        except:
-            logger.debug(
+        except Exception as e:
+            logger.debug(f"Exception: {e}")
+            logger.warning(
                 "Can't get post/followers/following text for check the language! Save a crash to understand the reason."
             )
             save_crash(self.device)
@@ -1589,7 +1590,8 @@ class ProfileView(ActionBarView):
                     bar_countainer,
                 )
                 return element_to_swipe_over - bar_countainer
-            except:
+            except Exception as e:
+                logger.debug(f"Exception: {e}")
                 logger.info("I'm not able to scroll down.")
                 return 0
         logger.warning(

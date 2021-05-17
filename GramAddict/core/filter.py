@@ -426,8 +426,8 @@ class Filter:
                 self.conditions.get(FIELD_COMMENT_VIDEOS, True),
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
-        except:
-            logger.debug("filter.json is not loaded!")
+        except Exception as e:
+            logger.debug(f"filter.json is not loaded! Exception: {e}")
             return False, False, False
 
     def get_all_data(self, device):

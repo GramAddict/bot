@@ -106,9 +106,9 @@ def move_usernames_to_accounts():
             if dir != dir.strip():
                 rename(f"{dir}", dir.strip())
             shutil.move(dir.strip(), ACCOUNTS)
-        except:
+        except Exception as e:
             logger.error(
-                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other!"
+                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other! Exception: {e}"
             )
             sleep(3)
     if len(ls) > 0:
@@ -218,9 +218,9 @@ def open_instagram(device, screen_record, close_apps):
     if screen_record:
         try:
             device.start_screenrecord()
-        except:
-            logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+        except Exception as e:
+            logger.error(
+                f"For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
             )
     return True
 
@@ -231,9 +231,9 @@ def close_instagram(device, screen_record):
     if screen_record:
         try:
             device.stop_screenrecord()
-        except:
-            logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+        except Exception as e:
+            logger.error(
+                f"For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
             )
 
 
@@ -363,8 +363,8 @@ def append_to_file(filename, username):
             filename = filename + ".txt"
         with open(filename, "a+", encoding="UTF-8") as file:
             file.write(username + "\n")
-    except:
-        logger.error(f"Failed to append {username} to: {filename}")
+    except Exception as e:
+        logger.error(f"Failed to append {username} to: {filename}. Exception: {e}")
 
 
 def sample_sources(sources, n_sources):
