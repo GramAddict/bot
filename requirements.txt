@@ -3,6 +3,6 @@ ConfigArgParse==1.4
 matplotlib==3.4.2
 numpy==1.20.3
 PyYAML==5.4
-uiautomator2==2.15.2
+uiautomator2==2.16.0
 urllib3==1.26.4
 emoji==1.2.0

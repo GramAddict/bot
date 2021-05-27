@@ -23,7 +23,7 @@ from requests import get
 
 from colorama import Fore, Style
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.resources import ResourceID as resources
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -184,6 +184,8 @@ def open_instagram_with_url(url):
 
 
 def open_instagram(device, screen_record, close_apps):
+    FastInputIME = "com.github.uiautomator/.FastInputIME"
+    nl = "\n"
     logger.info("Open Instagram app.")
     cmd = (
         "adb"
@@ -209,12 +211,34 @@ def open_instagram(device, screen_record, close_apps):
         logger.info("Close all the other apps, for avoid interfereces..")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
-
+    logger.debug("Setting FastInputIME as default keyboard.")
     device.deviceV2.set_fastinput_ime(True)
-    ime = device.find(classNameMatches=ClassName.TEXT_VIEW, textMatches="FastInputIME")
-    if ime.exists():
-        logger.debug("Keyboard switch dialog is open. Closing it.")
-        ime.click()
+    cmd = (
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + " shell settings get secure default_input_method"
+    )
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    if cmd_res.stdout.replace(nl, "") != FastInputIME:
+        logger.warning(
+            f"FastInputIME is not the default keyboard! Default is: {cmd_res.stdout.replace(nl, '')}. Changing it via adb.."
+        )
+        cmd = (
+            "adb"
+            + ("" if configs.device_id is None else " -s " + configs.device_id)
+            + f" shell ime set {FastInputIME}"
+        )
+        cmd_res = subprocess.run(
+            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
+        )
+        if cmd_res.stdout.startswith("Error:"):
+            logger.warning(
+                f"{cmd_res.stdout.replace(nl, '')}. It looks like you don't have FastInputIME installed :S"
+            )
+        else:
+            logger.info("FastInputIME is the default keyboard.")
+    else:
+        logger.info("FastInputIME is the default keyboard.")
     if screen_record:
         try:
             device.start_screenrecord()

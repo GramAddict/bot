@@ -369,7 +369,7 @@ class Filter:
                         "Checking primary character set of account biography..."
                     )
                     biography = profile_data.biography.replace("\n", "")
-                    alphabet = self._find_alphabet(biography, field_specific_alphabet)
+                    alphabet = self._find_alphabet(biography)
 
                     if alphabet not in field_specific_alphabet and alphabet != "":
                         logger.info(
@@ -382,9 +382,7 @@ class Filter:
                 else:
                     logger.debug("Checking primary character set of name...")
                     if profile_data.fullname != "":
-                        alphabet = self._find_alphabet(
-                            profile_data.fullname, field_specific_alphabet
-                        )
+                        alphabet = self._find_alphabet(profile_data.fullname)
                         if alphabet not in field_specific_alphabet and alphabet != "":
                             logger.info(
                                 f"@{username}'s name alphabet is not in {', '.join(field_specific_alphabet)}. ({alphabet}), skip.",
@@ -509,9 +507,9 @@ class Filter:
         return profileView.getProfileBiography()
 
     @staticmethod
-    def _find_alphabet(biography, alphabet):
+    def _find_alphabet(biography):
         a_dict = {}
-        max_alph = alphabet
+        max_alph = "UNKNOWN"
         try:
             for x in range(0, len(biography)):
                 if biography[x].isalpha():
@@ -524,8 +522,7 @@ class Filter:
             if bool(a_dict):
                 max_alph = max(a_dict, key=lambda k: a_dict[k])
         except Exception as e:
-            logger.error(f"Cannot determine primary alphabet. Default is {max_alph}")
-            logger.debug(f"Error: {e}")
+            logger.error(f"Cannot determine primary alphabet. Error: {e}")
 
         return max_alph
 

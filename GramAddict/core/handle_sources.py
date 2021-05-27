@@ -1,4 +1,4 @@
-from GramAddict.core.utils import get_value
+from GramAddict.core.utils import get_value, random_sleep
 import logging
 from functools import partial
 from os import path
@@ -22,6 +22,7 @@ from GramAddict.core.views import (
     LikeMode,
     TabBarView,
     UniversalActions,
+    case_insensitive_re,
 )
 
 logger = logging.getLogger(__name__)
@@ -667,11 +668,13 @@ def iterate_over_followers(
                 pressed_retry = False
                 if load_more_button_exists:
                     retry_button = load_more_button.child(
-                        className=ClassName.IMAGE_VIEW
+                        className=ClassName.IMAGE_VIEW,
+                        descriptionMatches=case_insensitive_re("Retry"),
                     )
                     if retry_button.exists():
-                        logger.info('Press "Load" button.')
-                        retry_button.click()
+                        logger.info('Press "Load" button and wait few seconds.')
+                        retry_button.click_retry()
+                        random_sleep(5, 10, modulable=False)
                         pressed_retry = True
 
                 if need_swipe and not pressed_retry:

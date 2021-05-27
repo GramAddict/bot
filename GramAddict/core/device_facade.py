@@ -590,8 +590,13 @@ class DeviceFacade:
 
                     i = 0
                     n += 1
-                if self.viewV2.get_text() is None:
-                    logger.debug(
+                typed_text = self.viewV2.get_text()
+                if (
+                    typed_text == "Add a comment…"
+                    or typed_text == "Message…"
+                    or typed_text.startswith("Comment as ")
+                ):
+                    logger.warning(
                         "Failed to write in text field, let's try in the old way.."
                     )
                     self.viewV2.set_text(text)

@@ -667,6 +667,8 @@ class PostsViewList:
                 or likes_view_text.upper()[-5:] == "LIKES"
             ):
                 return False
+            elif "likes" in likes_view_text:
+                return True
             else:
                 logger.info("This post has only 1 liker, skip.")
                 return True
@@ -1382,6 +1384,7 @@ class ProfileView(ActionBarView):
             count = int(float(text) * multiplier)
         except ValueError:
             logger.error(f"Cannot parse {text}.")
+            count = None
         return count
 
     def _getFollowersTextView(self):
@@ -1680,7 +1683,7 @@ class FollowingView:
                     extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
                 )
                 return True
-            if not confirm_unfollow_button.exists():
+            if not confirm_unfollow_button.exists(Timeout.SHORT):
                 logger.error(f"Cannot confirm unfollow for {username}.")
                 save_crash(self.device)
                 return False

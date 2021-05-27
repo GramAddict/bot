@@ -762,7 +762,7 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
             return True
         else:
             logger.info(
-                f"Looks like I was not able to follow @{username}",
+                f"Looks like I was not able to follow @{username}, maybe you got softbanned for this action!",
                 extra={"color": f"{Fore.RED}"},
             )
             UniversalActions.detect_block(device)

@@ -198,21 +198,17 @@ class ActionUnfollowFollowers(Plugin):
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
-        if not sort_options_recycler_view.exists(Timeout.SHORT):
+        if not sort_options_recycler_view.exists(Timeout.MEDIUM):
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
             )
             return
         if newest_to_oldest:
             logger.info("Sort followings by date: from newsest to oldest.")
-            sort_options_recycler_view.child(
-                textMatches="Date Followed: Latest"
-            ).click()
+            sort_options_recycler_view.child(textContains="Latest").click()
         else:
             logger.info("Sort followings by date: from oldest to newest.")
-            sort_options_recycler_view.child(
-                textMatches="Date Followed: Earliest"
-            ).click()
+            sort_options_recycler_view.child(textContains="Earliest").click()
 
     def iterate_over_followings(
         self,
