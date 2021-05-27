@@ -2,8 +2,6 @@ import setuptools
 
 with open("GramAddict/version.py", "r") as f:
     cur_version = f.read().split('"')[1]
-with open("requirements.txt", "r") as f:
-    requirements_list = [x.rstrip() for x in f]
 with open("README.md", "r", errors="ignore") as readme:
     long_description = readme.read()
 setuptools.setup(
@@ -17,7 +15,16 @@ setuptools.setup(
     url="https://github.com/GramAddict/bot/",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=requirements_list,
+    install_requires=[
+        "colorama==0.4.4",
+        "ConfigArgParse==1.4",
+        "matplotlib==3.4.2",
+        "numpy==1.20.3",
+        "PyYAML==5.4",
+        "uiautomator2==2.16.0",
+        "urllib3==1.26.4",
+        "emoji==1.2.0",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
