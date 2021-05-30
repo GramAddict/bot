@@ -592,8 +592,10 @@ class DeviceFacade:
                     n += 1
                 typed_text = self.viewV2.get_text()
                 if (
-                    typed_text == "Add a comment…"
+                    typed_text is None
+                    or typed_text == "Add a comment…"
                     or typed_text == "Message…"
+                    or typed_text == ""
                     or typed_text.startswith("Comment as ")
                 ):
                     logger.warning(
