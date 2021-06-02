@@ -22,7 +22,7 @@ setuptools.setup(
         "numpy==1.20.3",
         "PyYAML==5.4",
         "uiautomator2==2.16.0",
-        "urllib3==1.26.4",
+        "urllib3==1.26.5",
         "emoji==1.2.0",
     ],
     classifiers=[
