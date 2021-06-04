@@ -181,7 +181,7 @@ class CoreArguments(Plugin):
             },
             {
                 "arg": "--close-apps",
-                "help": "close all apps except IG, for avoid interferences",
+                "help": "close all apps except IG, for avoid interference",
                 "action": "store_true",
             },
             {

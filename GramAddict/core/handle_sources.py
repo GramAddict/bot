@@ -268,11 +268,11 @@ def handle_likers(
             logger.info("Iterate over visible likers.")
             screen_iterated_likers = []
             opened = False
-            user_countainer = OpenedPostView(device)._getUserCountainer()
-            if user_countainer is None:
+            user_container = OpenedPostView(device)._getUserContainer()
+            if user_container is None:
                 return
             try:
-                for item in OpenedPostView(device)._getUserCountainer():
+                for item in OpenedPostView(device)._getUserContainer():
                     element_opened = False
                     username_view = OpenedPostView(device)._getUserName(item)
                     if not username_view.exists(Timeout.MEDIUM):

@@ -54,7 +54,7 @@ def update_available():
 
     except Exception as e:
         logger.error(
-            f"There was an error retreiving the latest version of GramAddict: {e}"
+            f"There was an error retrieving the latest version of GramAddict: {e}"
         )
         return False, False
     if "b" not in __version__:
@@ -121,7 +121,12 @@ def config_examples():
     if getcwd() == __file__[:-23]:
         logger.debug("Installed via git, config-examples is in the local folder.")
     else:
-        logger.debug("Intalled via pip.")
+        logger.debug("Installed via pip.")
+        logger.info(
+            "Do you want to update/create your config-examples folder in local? Do the following: \n\t\t\t\tpip3 install --user gitdir (only the first time)\n\t\t\t\tpython3 -m gitdir https://github.com/GramAddict/bot/tree/master/config-examples (python on Windows)",
+            extra={"color": Fore.GREEN},
+        )
+        sleep(3)
 
 
 def check_adb_connection():
@@ -203,12 +208,26 @@ def open_instagram(device, screen_record, close_apps):
         )
         return False
     elif err == "":
-        logger.debug("Instagram app opened successfully.")
+        logger.debug("Instagram called succesfully.")
     else:
-        logger.debug(err.replace("Warning: ", ""))
+        logger.debug(f"{err.replace('Warning: ', '')}.")
+    success = False
+    for _ in range(3):
+        if device.deviceV2.info["currentPackageName"] == app_id:
+            success = True
+            break
+        logger.debug("Wait for Instagram to open.")
+        sleep(3)
+    if success:
+        logger.info(
+            "Ready for botting! :P", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
+        )
+    else:
+        logger.error("Unabled to open Instagram. Try again..")
+        return False
     random_sleep()
     if close_apps:
-        logger.info("Close all the other apps, for avoid interfereces..")
+        logger.info("Close all the other apps, for avoid interferece..")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
@@ -244,7 +263,7 @@ def open_instagram(device, screen_record, close_apps):
             device.start_screenrecord()
         except Exception as e:
             logger.error(
-                f"For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
+                f"For use the screen-record feature you have to install the requirements package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
             )
     return True
 
@@ -257,7 +276,7 @@ def close_instagram(device, screen_record):
             device.stop_screenrecord()
         except Exception as e:
             logger.error(
-                f"For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
+                f"For use the screen-record feature you have to install the requirements package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
             )
 
 
@@ -470,7 +489,7 @@ def set_time_delta(args):
     m, s = divmod(abs(args.time_delta_session), 60)
     h, m = divmod(m, 60)
     logger.info(
-        f"Time delta has setted to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
+        f"Time delta has set to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
     )
 
 

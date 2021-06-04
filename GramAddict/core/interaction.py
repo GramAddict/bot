@@ -441,7 +441,7 @@ def _on_interaction(
                 args, limit_type=session_state.Limit.SUCCESS, output=False
             ):
                 logger.info(
-                    "Reached total succesfully interaction limit, finish.",
+                    "Reached total successfully interaction limit, finish.",
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 can_continue = False
@@ -479,7 +479,7 @@ def _comment(device, my_username, comment_percentage, args, session_state, media
         comment_chance = randint(1, 100)
         if comment_chance > comment_percentage:
             return False
-        # we have to do a little swipe for preventing get the previus post comments button (which is covered by top bar, but present in hierarchy!!)
+        # we have to do a little swipe for preventing get the previous post comments button (which is covered by top bar, but present in hierarchy!!)
         UniversalActions(device)._swipe_points(
             direction=Direction.DOWN, delta_y=randint(150, 250)
         )

@@ -15,6 +15,7 @@
     "blacklist_words": [],
     "mandatory_words": [],
     "specific_alphabet": ["LATIN", "GREEK"],
+    "bio_language": ["it", "en"],
     "comment_hashtag_likers_top": true,
     "comment_hashtag_likers_recent": true,
     "comment_hashtag_posts_top": true,

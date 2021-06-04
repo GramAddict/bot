@@ -377,7 +377,7 @@ class SearchView:
         return None
 
     def navigateToUsername(self, username, interact_usernames=False):
-        alread_typed = False
+        already_typed = False
         logger.debug(f"Search for @{username}.")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
@@ -391,7 +391,7 @@ class SearchView:
             if echo_text.exists(Timeout.SHORT):
                 logger.debug("Search by pressing on echo text.")
                 echo_text.click()
-            alread_typed = True
+            already_typed = True
             accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
             if accounts_tab is None:
                 logger.error("Cannot find tab: ACCOUNTS.")
@@ -400,7 +400,7 @@ class SearchView:
         logger.debug("Pressing on accounts tab.")
         accounts_tab.click(sleep=SleepTime.SHORT)
 
-        if not alread_typed:
+        if not already_typed:
             if interact_usernames:
                 search_edit_text.set_text(username)
             else:
@@ -423,7 +423,7 @@ class SearchView:
         return ProfileView(self.device, is_own_profile=False)
 
     def navigateToHashtag(self, hashtag):
-        alread_typed = False
+        already_typed = False
         logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
@@ -439,7 +439,7 @@ class SearchView:
             if echo_text.exists(Timeout.SHORT):
                 logger.debug("Search by pressing on echo text.")
                 echo_text.click()
-            alread_typed = True
+            already_typed = True
             hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
             if hashtag_tab is None:
                 logger.error("Cannot find tab: TAGS.")
@@ -454,7 +454,7 @@ class SearchView:
             delta = tabbar_container.get_bounds()["bottom"]
         else:
             delta = 375
-        if not alread_typed:
+        if not already_typed:
             hashtag_view_recent = self._getHashtagRow(
                 emoji.demojize(hashtag, use_aliases=True)[1:]
             )
@@ -518,7 +518,7 @@ class SearchView:
         if not already_typed:
             search_edit_text.set_text(place)
 
-        # After set_text we assume that the the first occurency It's correct
+        # After set_text we assume that the the first occurrence It's correct
         # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
         # I mean, we can't search for text because 'Italia' != 'Italy', but It's also the correct item
 
@@ -720,7 +720,7 @@ class PostsViewList:
                         foil["bottom"],
                     ).point()
                 except ValueError:
-                    logger.debug(f"Point calcutation fails: F:{foil} H:{hole}")
+                    logger.debug(f"Point calculation fails: F:{foil} H:{hole}")
                     likes_view.click(Location.RIGHT)
                     return
                 sq_list = [sq1, sq2, sq3, sq4]
@@ -906,7 +906,7 @@ class PostsViewList:
 
     def _check_if_liked(self):
         STR = "Liked"
-        logger.debug("Check if like succeded in post view.")
+        logger.debug("Check if like succeeded in post view.")
         bnt_like_obj = self.device.find(
             resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
         )
@@ -1175,7 +1175,7 @@ class OpenedPostView:
         logger.error("Can't load likers list..")
         return None
 
-    def _getUserCountainer(self):
+    def _getUserContainer(self):
         obj = self.device.find(
             resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
         )
@@ -1184,14 +1184,14 @@ class OpenedPostView:
         else:
             return None
 
-    def _getUserName(self, countainer):
-        return countainer.child(
+    def _getUserName(self, container):
+        return container.child(
             resourceId=ResourceID.ROW_USER_PRIMARY_NAME,
             className=ClassName.TEXT_VIEW,
         )
 
-    def _isFollowing(self, countainer):
-        text = countainer.child(
+    def _isFollowing(self, container):
+        text = container.child(
             resourceId=ResourceID.BUTTON,
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
@@ -1581,7 +1581,7 @@ class ProfileView(ActionBarView):
 
             element_to_swipe_over = element_to_swipe_over_obj.get_bounds()["top"]
             try:
-                bar_countainer = self.device.find(
+                bar_container = self.device.find(
                     resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER
                 ).get_bounds()["bottom"]
 
@@ -1590,9 +1590,9 @@ class ProfileView(ActionBarView):
                     displayWidth / 2,
                     element_to_swipe_over,
                     displayWidth / 2,
-                    bar_countainer,
+                    bar_container,
                 )
-                return element_to_swipe_over - bar_countainer
+                return element_to_swipe_over - bar_container
             except Exception as e:
                 logger.debug(f"Exception: {e}")
                 logger.info("I'm not able to scroll down.")

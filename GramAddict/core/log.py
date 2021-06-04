@@ -126,10 +126,10 @@ def update_log_file_name(username: str):
         named_file_handler.doRollover()
 
     # copy existing runtime logs (uidd4.log) to named log file (username.log)
-    with open(old_full_filename, "r", encoding="utf-8") as unamed_file, open(
+    with open(old_full_filename, "r", encoding="utf-8") as unnamed_file, open(
         named_full_filename, "a", encoding="utf-8"
     ) as named_file:
-        for line in unamed_file:
+        for line in unnamed_file:
             named_file.write(line)
 
     root_logger = logging.getLogger()

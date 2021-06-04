@@ -101,7 +101,7 @@ class Config:
         def _is_legacy_arg(arg):
             if arg == "interact" or arg == "hashtag-likers":
                 if self.first_run:
-                    logger.warn(
+                    logger.warning(
                         f"You are using a legacy argument {arg} that is no longer supported. It will not be used. Please refer to https://docs.gramaddict.org/#/configuration?id=arguments."
                     )
                 return True

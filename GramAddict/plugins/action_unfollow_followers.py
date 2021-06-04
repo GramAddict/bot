@@ -470,7 +470,11 @@ class ActionUnfollowFollowers(Plugin):
         following_container = device.find(
             resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
-        following_container.click()
+        if following_container.exists(Timeout.LONG):
+            following_container.click()
+        else:
+            logger.info("Can't load profile in time. Skip.")
+            return None
 
         rows = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,

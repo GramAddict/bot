@@ -424,12 +424,12 @@ class DeviceFacade:
             vertical_len = visible_bounds["bottom"] - max(
                 visible_bounds["top"], obj_over
             )
-            horizintal_padding = int(padding * horizontal_len)
+            horizontal_padding = int(padding * horizontal_len)
             vertical_padding = int(padding * vertical_len)
             random_x = int(
                 uniform(
-                    visible_bounds["left"] + horizintal_padding,
-                    visible_bounds["right"] - horizintal_padding,
+                    visible_bounds["left"] + horizontal_padding,
+                    visible_bounds["right"] - horizontal_padding,
                 )
             )
             random_y = int(
@@ -472,10 +472,10 @@ class DeviceFacade:
 
         def exists(self, ui_timeout=None):
             try:
-                # Currently the methods left, rigth, up and down from
+                # Currently the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
                 # All other selectors return an UiObject with exists() == False.
-                # We will open a ticket to uiautomator2 to fix this incosistency.
+                # We will open a ticket to uiautomator2 to fix this inconsistency.
                 if self.viewV2 is None:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))

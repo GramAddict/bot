@@ -1,3 +1,4 @@
+import emoji
 from GramAddict.core.utils import random_sleep
 from GramAddict.core.device_facade import Timeout
 import json
@@ -8,6 +9,7 @@ import unicodedata
 import sys
 
 from colorama import Fore
+from langdetect import detect
 from enum import Enum, auto
 from datetime import datetime
 from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
@@ -34,6 +36,7 @@ FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
+FIELD_BIO_LANGUAGE = "biography_language"
 FIELD_MIN_POSTS = "min_posts"
 
 IGNORE_CHARSETS = ["MATHEMATICAL"]
@@ -66,6 +69,7 @@ class SkipReason(Enum):
     MISSING_MANDATORY_WORDS = auto()
     ALPHABET_NOT_MATCH = auto()
     ALPHABET_NAME_NOT_MATCH = auto()
+    BIOGRAPHY_LANGUAGE_NOT_MATCH = auto()
     NOT_LOADED = auto()
 
 
@@ -169,6 +173,7 @@ class Filter:
                 FIELD_INTERACT_ONLY_PRIVATE, False
             )
             field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
+            field_bio_language = self.conditions.get(FIELD_BIO_LANGUAGE)
             field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
 
         profile_data = self.get_all_data(device)
@@ -186,7 +191,7 @@ class Filter:
                 if profile_data.follow_button_text == FollowStatus.FOLLOWING:
                     logger.info(
                         f"You follow @{username}, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
+                        extra={"color": f"{Fore.CYAN}"},
                     )
                     return profile_data, self.return_check_profile(
                         username, profile_data, SkipReason.YOU_FOLLOW
@@ -196,7 +201,7 @@ class Filter:
                 if profile_data.follow_button_text == FollowStatus.FOLLOW_BACK:
                     logger.info(
                         f"@{username} follows you, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
+                        extra={"color": f"{Fore.CYAN}"},
                     )
                     return profile_data, self.return_check_profile(
                         username, profile_data, SkipReason.FOLLOW_YOU
@@ -209,7 +214,7 @@ class Filter:
 
                 logger.info(
                     f"@{username} has public account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.IS_PRIVATE
@@ -218,7 +223,7 @@ class Filter:
             elif field_interact_only_private and profile_data.is_private is None:
                 logger.info(
                     f"Could not determine if @{username} is public or private, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.UNKNOWN_PRIVACY
@@ -231,7 +236,7 @@ class Filter:
             ):
                 logger.info(
                     f"@{username} has less than {field_min_followers} followers, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.LT_FOLLOWERS
@@ -241,7 +246,7 @@ class Filter:
             ):
                 logger.info(
                     f"@{username} has more than {field_max_followers} followers, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.GT_FOLLOWERS
@@ -251,7 +256,7 @@ class Filter:
             ):
                 logger.info(
                     f"@{username} has less than {field_min_followings} followings, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.LT_FOLLOWINGS
@@ -261,7 +266,7 @@ class Filter:
             ):
                 logger.info(
                     f"@{username} has more than {field_max_followings} followings, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.GT_FOLLOWINGS
@@ -277,7 +282,7 @@ class Filter:
                 ):
                     logger.info(
                         f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
+                        extra={"color": f"{Fore.CYAN}"},
                     )
                     return profile_data, self.return_check_profile(
                         username, profile_data, SkipReason.POTENCY_RATIO
@@ -296,7 +301,7 @@ class Filter:
             if field_skip_business and profile_data.has_business_category is True:
                 logger.info(
                     f"@{username} has business account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.HAS_BUSINESS
@@ -304,7 +309,7 @@ class Filter:
             if field_skip_non_business and profile_data.has_business_category is False:
                 logger.info(
                     f"@{username} has non business account, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.HAS_NON_BUSINESS
@@ -314,17 +319,21 @@ class Filter:
             if field_min_posts > profile_data.posts_count:
                 logger.info(
                     f"@{username} doesn't have enough posts ({profile_data.posts_count}), skip.",
-                    extra={"color": f"{Fore.GREEN}"},
+                    extra={"color": f"{Fore.CYAN}"},
                 )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.NOT_ENOUGH_POSTS
                 )
 
+        cleaned_biography = emoji.get_emoji_regexp().sub(
+            "", profile_data.biography.replace("\n", "").lower()
+        )
         if (
             len(field_blacklist_words) > 0
             or len(field_mandatory_words) > 0
             or field_specific_alphabet is not None
-        ) and not profile_data.is_private:
+            or field_bio_language is not None
+        ) and cleaned_biography != "":
             logger.debug("Pulling biography...")
             if len(field_blacklist_words) > 0:
                 logger.debug(
@@ -334,11 +343,11 @@ class Filter:
                 for w in field_blacklist_words:
                     blacklist_words = re.compile(
                         r"\b({0})\b".format(w), flags=re.IGNORECASE
-                    ).search(profile_data.biography)
+                    ).search(cleaned_biography)
                     if blacklist_words is not None:
                         logger.info(
                             f"@{username} found a blacklisted word '{w}' in biography, skip.",
-                            extra={"color": f"{Fore.GREEN}"},
+                            extra={"color": f"{Fore.CYAN}"},
                         )
                         return profile_data, self.return_check_profile(
                             username, profile_data, SkipReason.BLACKLISTED_WORD
@@ -350,49 +359,59 @@ class Filter:
                     w
                     for w in field_mandatory_words
                     if re.compile(r"\b({0})\b".format(w), flags=re.IGNORECASE).search(
-                        profile_data.biography
+                        cleaned_biography
                     )
                     is not None
                 ]
                 if mandatory_words == []:
                     logger.info(
                         f"@{username} mandatory words not found in biography, skip.",
-                        extra={"color": f"{Fore.GREEN}"},
+                        extra={"color": f"{Fore.CYAN}"},
                     )
                     return profile_data, self.return_check_profile(
                         username, profile_data, SkipReason.MISSING_MANDATORY_WORDS
                     )
 
             if field_specific_alphabet is not None:
-                if profile_data.biography != "":
-                    logger.debug(
-                        "Checking primary character set of account biography..."
-                    )
-                    biography = profile_data.biography.replace("\n", "")
-                    alphabet = self._find_alphabet(biography)
+                logger.debug("Checking primary character set of account biography...")
+                alphabet = self._find_alphabet(cleaned_biography)
 
-                    if alphabet not in field_specific_alphabet and alphabet != "":
-                        logger.info(
-                            f"@{username}'s biography alphabet is not in {', '.join(field_specific_alphabet)}. ({alphabet}), skip.",
-                            extra={"color": f"{Fore.GREEN}"},
-                        )
-                        return profile_data, self.return_check_profile(
-                            username, profile_data, SkipReason.ALPHABET_NOT_MATCH
-                        )
-                else:
-                    logger.debug("Checking primary character set of name...")
-                    if profile_data.fullname != "":
-                        alphabet = self._find_alphabet(profile_data.fullname)
-                        if alphabet not in field_specific_alphabet and alphabet != "":
-                            logger.info(
-                                f"@{username}'s name alphabet is not in {', '.join(field_specific_alphabet)}. ({alphabet}), skip.",
-                                extra={"color": f"{Fore.GREEN}"},
-                            )
-                            return profile_data, self.return_check_profile(
-                                username,
-                                profile_data,
-                                SkipReason.ALPHABET_NAME_NOT_MATCH,
-                            )
+                if alphabet not in field_specific_alphabet and alphabet != "":
+                    logger.info(
+                        f"@{username}'s biography alphabet is not in {', '.join(field_specific_alphabet)}. ({alphabet}), skip.",
+                        extra={"color": f"{Fore.CYAN}"},
+                    )
+                    return profile_data, self.return_check_profile(
+                        username, profile_data, SkipReason.ALPHABET_NOT_MATCH
+                    )
+            if field_bio_language is not None:
+                logger.debug("Checking main language of account biography...")
+                language = self._find_language(cleaned_biography)
+                if language not in field_bio_language and language != "":
+                    logger.info(
+                        f"@{username}'s biography language is not in {', '.join(field_bio_language)}. ({language}), skip.",
+                        extra={"color": f"{Fore.CYAN}"},
+                    )
+                    return profile_data, self.return_check_profile(
+                        username,
+                        profile_data,
+                        SkipReason.BIOGRAPHY_LANGUAGE_NOT_MATCH,
+                    )
+
+        if field_specific_alphabet is not None:
+            logger.debug("Checking primary character set of name...")
+            if profile_data.fullname != "":
+                alphabet = self._find_alphabet(profile_data.fullname)
+                if alphabet not in field_specific_alphabet and alphabet != "":
+                    logger.info(
+                        f"@{username}'s name alphabet is not in {', '.join(field_specific_alphabet)}. ({alphabet}), skip.",
+                        extra={"color": f"{Fore.CYAN}"},
+                    )
+                    return profile_data, self.return_check_profile(
+                        username,
+                        profile_data,
+                        SkipReason.ALPHABET_NAME_NOT_MATCH,
+                    )
 
         # If no filters return false, we are good to proceed
         return profile_data, self.return_check_profile(username, profile_data, None)
@@ -525,6 +544,20 @@ class Filter:
             logger.error(f"Cannot determine primary alphabet. Error: {e}")
 
         return max_alph
+
+    @staticmethod
+    def _find_language(biography):
+        """Language detection algorithm is non-deterministic, which means that if you try to run it on a text which is either too short or too ambiguous, you might get different results everytime you run it."""
+        language = ""
+        results = []
+        try:
+            for _ in range(5):
+                # we do a BO5, that would mitigate the inconsistency a little bit
+                results.append(detect(biography))
+            language = max(results, key=results.count)
+        except Exception as e:
+            logger.error(f"Cannot determine primary language. Error: {e}")
+        return language
 
     @staticmethod
     def _get_fullname(device, profileView=None):

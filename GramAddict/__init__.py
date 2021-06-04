@@ -54,33 +54,32 @@ logger = logging.getLogger(__name__)
 if "--config" not in configs.args:
     logger.info(
         "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
-        extra={"color": f"{Fore.GREEN}"},
+        extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
     )
-    sleep(5)
-
-is_update, version = update_available()
-if is_update:
-    logger.warn("NEW VERSION FOUND!")
-    logger.warn(
-        f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
-    )
-    logger.warn("HOW TO UPDATE:")
-    logger.warn("If you installed with pip: pip3 install GramAddict -U")
-    logger.warn("If you installed with git: git pull")
-    sleep(5)
-else:
-    logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
-logger.info("", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"})
-logger.info(
-    f"GramAddict v.{__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
-)
-logger.info("", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"})
-
-# Move username folders to a main directory -> accounts
-move_usernames_to_accounts()
+    sleep(3)
 
 # Config-example hint
 config_examples()
+
+# Check for updates
+is_update, version = update_available()
+if is_update:
+    logger.warning("NEW VERSION FOUND!")
+    logger.warning(
+        f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. https://github.com/GramAddict/bot"
+    )
+    logger.warning("HOW TO UPDATE:")
+    logger.warning("If you installed with pip: pip3 install GramAddict -U")
+    logger.warning("If you installed with git: git pull")
+    sleep(5)
+else:
+    logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+logger.info(
+    f"GramAddict v.{__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
+)
+
+# Move username folders to a main directory -> accounts
+move_usernames_to_accounts()
 
 # Global Variables
 sessions = PersistentList("sessions", SessionStateEncoder)
@@ -165,7 +164,7 @@ def run():
                             continue
                         break
             except Exception as e:
-                logger.error(f"Error retriving the IG version. Exception: {e}")
+                logger.error(f"Error retrieving the IG version. Exception: {e}")
 
             SearchView(device)._close_keyboard()
         else:
@@ -254,7 +253,7 @@ def run():
 
             else:
                 logger.info(
-                    "At last one of these limits has been reached: interactions/succesful/follower/likes or scraped. Ending session.",
+                    "At last one of these limits has been reached: interactions/successful/follower/likes or scraped. Ending session.",
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break

@@ -47,13 +47,13 @@ def check_if_english(device):
 def nav_to_blogger(device, username, current_job):
     """navigate to blogger (followers list or posts)"""
     _to_followers = True if current_job.endswith("followers") else False
-    _to_followwing = True if current_job.endswith("following") else False
+    _to_following = True if current_job.endswith("following") else False
     if username is None:
         logger.info("Open your followers")
         profile_view = TabBarView(device).navigateToProfile()
         if _to_followers:
             profile_view.navigateToFollowers()
-        elif _to_followwing:
+        elif _to_following:
             profile_view.navigateToFollowing()
     else:
         search_view = TabBarView(device).navigateToSearch()
@@ -64,7 +64,7 @@ def nav_to_blogger(device, username, current_job):
         logger.info(f"Open @{username} followers")
         if _to_followers:
             profile_view.navigateToFollowers()
-        elif _to_followwing:
+        elif _to_following:
             profile_view.navigateToFollowing()
     return True
 

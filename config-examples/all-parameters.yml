@@ -10,7 +10,7 @@
 ##############################################################################
 
 username: myusername
-device: abcdefg123456
+device: put_your_device_id_there # 'adb devices' in console to know it
 app-id: com.instagram.android
 screen-sleep: true
 screen-record: false
