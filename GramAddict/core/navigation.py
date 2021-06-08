@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
     ProfileView(device)._click_on_avatar()
-    logger.debug("Checking if English..")
+    logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
     if None not in {post, follower, following}:
         if post == "Posts" and follower == "Followers" and following == "Following":
-            logger.debug("Instagram in English..")
+            logger.debug("Instagram in English.")
         else:
             logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
             ProfileView(device).navigateToOptions()
@@ -49,11 +49,12 @@ def nav_to_blogger(device, username, current_job):
     _to_followers = True if current_job.endswith("followers") else False
     _to_following = True if current_job.endswith("following") else False
     if username is None:
-        logger.info("Open your followers")
         profile_view = TabBarView(device).navigateToProfile()
         if _to_followers:
+            logger.info("Open your followers.")
             profile_view.navigateToFollowers()
         elif _to_following:
+            logger.info("Open your following.")
             profile_view.navigateToFollowing()
     else:
         search_view = TabBarView(device).navigateToSearch()
@@ -61,11 +62,13 @@ def nav_to_blogger(device, username, current_job):
         if not profile_view:
             return False
 
-        logger.info(f"Open @{username} followers")
         if _to_followers:
+            logger.info(f"Open @{username} followers.")
             profile_view.navigateToFollowers()
         elif _to_following:
+            logger.info(f"Open @{username} following.")
             profile_view.navigateToFollowing()
+
     return True
 
 

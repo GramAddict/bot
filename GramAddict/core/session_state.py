@@ -12,6 +12,7 @@ class SessionState:
     id = None
     args = {}
     my_username = None
+    my_posts_count = None
     my_followers_count = None
     my_following_count = None
     totalInteractions = {}
@@ -19,6 +20,7 @@ class SessionState:
     totalFollowed = {}
     totalLikes = 0
     totalComments = 0
+    totalPm = 0
     totalWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
@@ -31,6 +33,7 @@ class SessionState:
         self.id = str(uuid.uuid4())
         self.args = configs.args
         self.my_username = None
+        self.my_posts_count = None
         self.my_followers_count = None
         self.my_following_count = None
         self.totalInteractions = {}
@@ -286,5 +289,9 @@ class SessionStateEncoder(JSONEncoder):
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
             "args": session_state.args.__dict__,
-            "profile": {"followers": str(session_state.my_followers_count)},
+            "profile": {
+                "posts": session_state.my_posts_count,
+                "followers": session_state.my_followers_count,
+                "following": session_state.my_following_count,
+            },
         }

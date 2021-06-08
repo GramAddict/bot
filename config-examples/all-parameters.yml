@@ -39,7 +39,7 @@ place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
 interact-from-file: [usernames1.txt, usernames2.txt]
 posts-from-file: posts.txt
-feed: 2-5
+feed: 2-5 # is the number of likes you will give in feed
 
 ## Special modificators for jobs and sources
 shuffle-jobs: true
@@ -57,7 +57,8 @@ unfollow-from-file: [usernames1.txt, usernames2.txt]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing
-analytics: true
+analytics: false
+telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder
 
 ##############################################################################
 # Source Limits

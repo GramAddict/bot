@@ -220,7 +220,7 @@ def open_instagram(device, screen_record, close_apps):
         sleep(3)
     if success:
         logger.info(
-            "Ready for botting! :P", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
+            "Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
         )
     else:
         logger.error("Unabled to open Instagram. Try again..")
@@ -291,7 +291,7 @@ def kill_atx_agent(device):
     ).close()
 
 
-def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
+def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
     if logging:

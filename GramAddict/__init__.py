@@ -143,7 +143,7 @@ def run():
         logger.info("Device screen on and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "189.0.0.41.121"
+                tested_ig_version = "190.0.0.36.119"
                 running_ig_version = get_instagram_version()
                 running_ig_version_splitted = running_ig_version.split(".")
                 last_ig_version_tested = tested_ig_version.split(".")
@@ -183,6 +183,7 @@ def run():
 
             (
                 session_state.my_username,
+                session_state.my_posts_count,
                 session_state.my_followers_count,
                 session_state.my_following_count,
             ) = profileView.getProfileInfo()
@@ -193,14 +194,15 @@ def run():
 
         if (
             session_state.my_username is None
+            or session_state.my_posts_count is None
             or session_state.my_followers_count is None
             or session_state.my_following_count is None
         ):
             logger.critical(
-                "Could not get one of the following from your profile: username, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+                "Could not get one of the following from your profile: username, # of posts, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
             )
             logger.critical(
-                f"Username: {session_state.my_username}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
+                f"Username: {session_state.my_username}, Posts: {session_state.my_posts_count}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
             )
             save_crash(device)
             exit(1)
@@ -222,11 +224,15 @@ def run():
             jobs_list = random.sample(configs.enabled, len(configs.enabled))
         else:
             jobs_list = configs.enabled
-        if "analytics" in jobs_list:
-            jobs_list.remove("analytics")
-            analytics_at_end = True
-        else:
-            analytics_at_end = False
+        analytics_at_end = False
+        telegram_report_at_end = False
+        for job in jobs_list:
+            if job == "analytics":
+                jobs_list.remove(job)
+                analytics_at_end = True
+            if job == "telegram-reports":
+                jobs_list.remove(job)
+                telegram_report_at_end = True
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -257,10 +263,6 @@ def run():
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
-        if analytics_at_end:
-            configs.actions["analytics"].run(
-                device, configs, storage, sessions, "analytics"
-            )
         close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 
@@ -270,14 +272,25 @@ def run():
 
         kill_atx_agent(device)
 
+        # save the session in sessions.json
+        sessions.persist(directory=session_state.my_username)
+
+        # print reports
+        if analytics_at_end:
+            configs.actions["analytics"].run(
+                device, configs, storage, sessions, "analytics"
+            )
+        if telegram_report_at_end:
+            configs.actions["telegram-reports"].run(
+                device, configs, storage, sessions, "telegram-reports"
+            )
+
         logger.info(
             "-------- FINISH: "
             + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))
             + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
-
-        # print report now if asked
 
         if configs.args.repeat:
             print_full_report(sessions, configs.args.scrape_to_file)
@@ -292,7 +305,6 @@ def run():
                     f'Will start again at {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}'
                 )
                 try:
-                    sessions.persist(directory=session_state.my_username)
                     sleep(time_left)
                 except KeyboardInterrupt:
                     stop_bot(
@@ -314,4 +326,3 @@ def run():
             break
 
     print_full_report(sessions, configs.args.scrape_to_file)
-    sessions.persist(directory=session_state.my_username)

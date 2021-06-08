@@ -592,7 +592,7 @@ class PostsViewList:
             )
             gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
             obj1 = None
-            for _ in range(2):
+            for _ in range(3):
                 if not gap_view_obj.exists():
                     logger.debug("Can't find the gap obj, scroll down a little more.")
                     PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
@@ -615,6 +615,13 @@ class PostsViewList:
                                 obj1 = footer_obj.get_bounds()["bottom"]
                                 break
                         break
+                    else:
+                        logger.debug(
+                            "Can't find the gap obj, and there isn't any suggested.. scroll down."
+                        )
+                        UniversalActions(self.device)._swipe_points(
+                            direction=Direction.DOWN
+                        )
 
             if obj1 is None:
                 PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
@@ -1472,10 +1479,11 @@ class ProfileView(ActionBarView):
     def getProfileInfo(self):
 
         username = self.getUsername()
+        posts = self.getPostsCount()
         followers = self.getFollowersCount()
         following = self.getFollowingCount()
 
-        return username, followers, following
+        return username, posts, followers, following
 
     def getProfileBiography(self):
         biography = self.device.find(

@@ -162,8 +162,13 @@ def interact_with_user(
         args,
         session_state,
     )
-
-    swipe_amount = ProfileView(device).swipe_to_fit_posts()
+    if profile_data.posts_count > 3:
+        swipe_amount = ProfileView(device).swipe_to_fit_posts()
+    else:
+        logger.debug(
+            f"We don't need to scroll, there is/are only {profile_data.posts_count} post(s)."
+        )
+        swipe_amount = 0
     if swipe_amount == -1:
         return (
             interacted,
