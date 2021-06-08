@@ -11,7 +11,8 @@ ACCOUNTS = "accounts"
 REPORTS = "reports"
 FILENAME_HISTORY_FILTER_USERS = "history_filters_users.json"
 FILENAME_INTERACTED_USERS = "interacted_users.json"
-FILTER = "filter.json"
+OLD_FILTER = "filter.json"
+FILTER = "filters.yml"
 USER_LAST_INTERACTION = "last_interaction"
 USER_FOLLOWING_STATUS = "following_status"
 
@@ -75,6 +76,8 @@ class Storage:
                     sys.exit(0)
 
         self.filter_path = f"{ACCOUNTS}/{my_username}/{FILTER}"
+        if not os.path.exists(self.filter_path):
+            self.filter_path = f"{ACCOUNTS}/{my_username}/{OLD_FILTER}"
 
         whitelist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_WHITELIST}"
         if os.path.exists(whitelist_path):

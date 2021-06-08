@@ -24,9 +24,9 @@ class DataAnalytics(Plugin):
     def run(self, device, configs, storage, sessions, plugin):
         logger.warning(
             """Analytics have been removed due to a problem in some OS with loading matplotlib.
-                        I'll rewrite and improve the report using other libriries."
-                        In the meantime you can keep using analytics tool by replacing this file (Gramaddict/plugins/data_analytics.py)"
-                        with the one inside the release 2.0.8 https://github.com/GramAddict/bot/releases/tag/2.0.8"
-                        For see where this file is located in your machine, just write 'pip shown GramAddict' and you will get the path."
-                        """
+                            I'll rewrite and improve the report using other libriries.
+                            In the meantime you can keep using analytics tool by replacing this file (Gramaddict/plugins/data_analytics.py)
+                            with the one inside the release 2.0.8 https://github.com/GramAddict/bot/releases/tag/2.0.8
+                            For see where this file is located in your machine, just write 'pip shown GramAddict' and you will get the path.
+                            """
         )

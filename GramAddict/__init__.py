@@ -229,10 +229,12 @@ def run():
         for job in jobs_list:
             if job == "analytics":
                 jobs_list.remove(job)
-                analytics_at_end = True
+                if configs.args.analytics:
+                    analytics_at_end = True
             if job == "telegram-reports":
                 jobs_list.remove(job)
-                telegram_report_at_end = True
+                if configs.args.telegram_reports:
+                    telegram_report_at_end = True
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session

@@ -1,4 +1,6 @@
+from time import sleep
 import emoji
+import yaml
 from GramAddict.core.utils import random_sleep
 from GramAddict.core.device_facade import Timeout
 import json
@@ -17,7 +19,6 @@ from GramAddict.core.resources import ClassName, ResourceID as resources
 
 logger = logging.getLogger(__name__)
 
-FILENAME_CONDITIONS = "filter.json"
 FIELD_SKIP_BUSINESS = "skip_business"
 FIELD_SKIP_NON_BUSINESS = "skip_non_business"
 FIELD_SKIP_FOLLOWING = "skip_following"
@@ -108,10 +109,21 @@ class Filter:
     def __init__(self, storage=None):
         filter_path = storage.filter_path
         if not configs.args.disable_filters:
-            if os.path.exists(filter_path):
+            if os.path.exists(filter_path) and filter_path.endswith(".yml"):
+                with open(filter_path, "r", encoding="utf-8") as stream:
+                    try:
+                        self.conditions = yaml.safe_load(stream)
+                    except Exception as e:
+                        logger.error(f"Error: {e}")
+
+            elif os.path.exists(filter_path):
                 with open(filter_path) as json_file:
                     try:
                         self.conditions = json.load(json_file)
+                        logger.warning(
+                            "Using filter.json is deprecated from version 2.3.0 and will stop working very soon, use filters.yml instead!"
+                        )
+                        sleep(5)
                     except Exception as e:
                         logger.error(
                             f"Please check {json_file.name}, it contains this error: {e}"
@@ -119,7 +131,7 @@ class Filter:
                         sys.exit(0)
             else:
                 logger.warning(
-                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/7a1dfe3d07d69bfb8e6a87a6252916e3c3dc3cb7/config-examples/filter.json and place in your account folder!"
+                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/7a1dfe3d07d69bfb8e6a87a6252916e3c3dc3cb7/config-examples/filters.yml and place it in your account folder!"
                 )
         else:
             logger.warning("Filters are disabled!")
@@ -444,7 +456,9 @@ class Filter:
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         except Exception as e:
-            logger.debug(f"filter.json is not loaded! Exception: {e}")
+            logger.debug(
+                f"filters.yml (or legacy filter.json) is not loaded! Exception: {e}"
+            )
             return False, False, False
 
     def get_all_data(self, device):

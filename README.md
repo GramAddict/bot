@@ -46,6 +46,49 @@
 
 <br />
 
+## Features
+- Works without rooting
+- Works with both emulators and physical devices
+- Can be used stand-alone (without the use of a computer)
+- Includes realistic random human-like delays and actions
+- (Optionally) Watches stories while interacting
+- Comment post with emojis
+- Send PM
+- Type like a human (letter by letter)
+- Browse carousels
+- Watch videos for a specific amount of time
+- Scheduler
+- Telegram reports
+- Supports multiple actions in one session
+- Loads of customizable limits to keep your account safe from soft bans
+- Available interactions
+    - interact with a user's followers or following
+    - interact with a top or recent hashtag's post likers
+    - interact with a top or recent hashtag post
+    - interact with a top or recent place's post likers
+    - interact with a top or recent place post
+    - interact with user's post likers
+    - interact with a single blogger
+    - interact with your own feed
+    - interact with users from a list (*.txt)
+    - interact with posts from links inside a list (*.txt)
+    - unfollow any followers
+    - unfollow any followers, followed by bot
+    - unfollow any followers, followed by bot, who don't follow you back
+    - unfollow from a list (*.txt)
+    - scrape mode for collecting usernames instead of interacting with them (you will find more information about that in the doc)
+
+- Loads of available filters to customize who you interact with
+    - you can blacklist people in order to avoid interacting with them
+    - you can whitelist people in order to not remove them when you unfollow people
+    - biography main characters and language
+    - profile name main characters
+    - private / public / business / non business account
+    - number of posts / followers / following
+    ... and more!
+
+<br />
+
 ## Full documentation available on [docs.gramaddict.org](https://docs.gramaddict.org)
 **Table of contents**
 - [Introduction](https://docs.gramaddict.org/#/?id=introduction)

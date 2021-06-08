@@ -12,7 +12,7 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
-class TelegramReport(Plugin):
+class TelegramReports(Plugin):
     """Generate reports at the end of the session and send them using telegram"""
 
     def __init__(self):
@@ -145,9 +145,9 @@ class TelegramReport(Plugin):
                 • {str(dailySummary["watched"].iloc[-1])} stories watched
                 • {str(dailySummary["comments"].iloc[-1])} comments done
                 • {str(dailySummary["pm_sent"].iloc[-1])} PM sent
-                • {str(dailySummary["followers_gained"].iloc[-1])} new followers
 
                 *📈 Trends*
+                • {str(dailySummary["followers_gained"].iloc[-1])} new followers today
                 • {str(dailySummary["followers_gained"].tail(3).sum())} new followers past 3 days
                 • {str(dailySummary["followers_gained"].tail(7).sum())} new followers past week
                 {followString}

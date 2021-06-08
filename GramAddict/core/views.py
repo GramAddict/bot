@@ -1379,16 +1379,17 @@ class ProfileView(ActionBarView):
 
     def _parseCounter(self, text):
         multiplier = 1
-        text = text.replace(",", "")
-        text = text.replace(".", "")
+        text = text.replace(",", ".")
         if "K" in text:
-            text = text.replace("K", "")
+            value = float(text.replace("K", ""))
             multiplier = 1000
-        if "M" in text:
-            text = text.replace("M", "")
+        elif "M" in text:
+            value = float(text.replace("M", ""))
             multiplier = 1000000
+        else:
+            value = int(text.replace(".", ""))
         try:
-            count = int(float(text) * multiplier)
+            count = int(value * multiplier)
         except ValueError:
             logger.error(f"Cannot parse {text}.")
             count = None
@@ -1806,7 +1807,8 @@ class UniversalActions:
 
     def detect_block(device):
         logger.debug("Checking for block...")
-        if "blocked" in device.deviceV2.toast.get_message(1.0, 3.0, default=""):
+        if "blocked" in device.deviceV2.toast.get_message(1.0, 2.0, default=""):
+            logger.warning("Toast detected!")
             is_blocked = True
         block_dialog = device.find(
             resourceIdMatches=ResourceID.BLOCK_POPUP,
