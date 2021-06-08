@@ -131,7 +131,7 @@ class Filter:
                         sys.exit(0)
             else:
                 logger.warning(
-                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/7a1dfe3d07d69bfb8e6a87a6252916e3c3dc3cb7/config-examples/filters.yml and place it in your account folder!"
+                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
                 )
         else:
             logger.warning("Filters are disabled!")
