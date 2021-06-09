@@ -122,7 +122,6 @@ class TelegramReports(Plugin):
         dailySummary["followers_gained"] = dailySummary["followers_gained"].astype(int)
         dailySummary["duration"] = dailySummary["duration"].astype(int)
         numFollowers = int(dailySummary["followers"].iloc[-1])
-
         n = 1
         followString = ""
         for x in range(10):
@@ -136,10 +135,19 @@ class TelegramReports(Plugin):
 
         statString = f"""
                 *Starts for {username}*:
-                • {str(dailySummary["followers"].iloc[-1])} total followers
-                • {str(dailySummary["following"].iloc[-1])} total following
+                • {str(dailySummary["followers"].iloc[-1])} followers
+                • {str(dailySummary["following"].iloc[-1])} following
 
-                *📅 Last session lasted {str(dailySummary["duration"].iloc[-1])} minutes*
+                *🤖 Last session actions*
+                • {str(df["duration"].iloc[-1].astype(int))} minutes of botting
+                • {str(df["likes"].iloc[-1])} likes
+                • {str(df["followed"].iloc[-1])} follows
+                • {str(df["watched"].iloc[-1])} stories watched
+                • {str(df["comments"].iloc[-1])} comments done
+                • {str(df["pm_sent"].iloc[-1])} PM sent
+
+                *📅 Today total actions*
+                • {str(dailySummary["duration"].iloc[-1])} minutes of botting
                 • {str(dailySummary["likes"].iloc[-1])} likes
                 • {str(dailySummary["followed"].iloc[-1])} follows
                 • {str(dailySummary["watched"].iloc[-1])} stories watched
