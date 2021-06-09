@@ -115,9 +115,15 @@ class TelegramReports(Plugin):
                 "duration": "sum",
             }
         )
-        dailySummary["followers_gained"] = dailySummary["followers"].astype(
-            int
-        ) - dailySummary["followers"].astype(int).shift(1)
+        if len(dailySummary.index) > 1:
+            dailySummary["followers_gained"] = dailySummary["followers"].astype(
+                int
+            ) - dailySummary["followers"].astype(int).shift(1)
+        else:
+            logger.info(
+                "First day of botting eh? Stats for the first day are meh because we don't have enought data to track how many followers you earned today from the bot activity."
+            )
+            dailySummary["followers_gained"] = dailySummary["followers"].astype(int)
         dailySummary.dropna(inplace=True)
         dailySummary["followers_gained"] = dailySummary["followers_gained"].astype(int)
         dailySummary["duration"] = dailySummary["duration"].astype(int)
