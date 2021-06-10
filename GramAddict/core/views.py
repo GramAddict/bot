@@ -616,15 +616,9 @@ class PostsViewList:
                                 break
                         break
                     else:
-                        logger.debug(
-                            "Can't find the gap obj, and there isn't any suggested.. scroll down."
-                        )
-                        UniversalActions(self.device)._swipe_points(
-                            direction=Direction.DOWN
-                        )
+                        break
 
             if obj1 is None:
-                PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
                 obj1 = gap_view_obj.get_bounds()["bottom"]
             containers_content = self.device.find(resourceIdMatches=containers_content)
             obj2 = (

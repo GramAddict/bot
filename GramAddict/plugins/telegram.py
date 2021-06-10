@@ -140,7 +140,7 @@ class TelegramReports(Plugin):
             return dedent(string[1:])[:-1]
 
         statString = f"""
-                *Starts for {username}*:
+                *Starts for {username}* before last activity:
                 • {str(dailySummary["followers"].iloc[-1])} followers
                 • {str(dailySummary["following"].iloc[-1])} following
 

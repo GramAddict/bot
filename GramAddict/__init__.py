@@ -225,7 +225,7 @@ def run():
         else:
             jobs_list = configs.enabled
         analytics_at_end = False
-        telegram_report_at_end = False
+        telegram_reports_at_end = False
         for job in jobs_list:
             if job == "analytics":
                 jobs_list.remove(job)
@@ -234,7 +234,7 @@ def run():
             if job == "telegram-reports":
                 jobs_list.remove(job)
                 if configs.args.telegram_reports:
-                    telegram_report_at_end = True
+                    telegram_reports_at_end = True
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -282,7 +282,7 @@ def run():
             configs.actions["analytics"].run(
                 device, configs, storage, sessions, "analytics"
             )
-        if telegram_report_at_end:
+        if telegram_reports_at_end:
             configs.actions["telegram-reports"].run(
                 device, configs, storage, sessions, "telegram-reports"
             )
