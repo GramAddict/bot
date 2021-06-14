@@ -236,9 +236,7 @@ def handle_likers(
         flag, post_description, _, _ = PostsViewList(device)._check_if_last_post(
             post_description, current_job
         )
-        likers_container_exists = PostsViewList(device)._find_likers_container()
-        has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
-
+        has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
         if flag:
             nr_same_post += 1
             logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
@@ -251,7 +249,11 @@ def handle_likers(
         else:
             nr_same_post = 0
 
-        if likers_container_exists and not has_one_liker_or_none:
+        if (
+            has_likers
+            and profile_filter.is_num_likers_in_range(number_of_likers)
+            and number_of_likers != 1
+        ):
             PostsViewList(device).open_likers_container()
         else:
             PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)

@@ -76,6 +76,7 @@ class ResourceID:
         self.REEL_VIEWER_MEDIA_CONTAINER = f"{APP_ID}:id/reel_viewer_media_container"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
+        self.RESTRICTED_ACCOUNT_TITLE = f"{APP_ID}:id/restricted_account_title"
         self.ROW_COMMENT_SUB_ITEMS_BAR = f"{APP_ID}:id/row_comment_sub_items_bar"
         self.ROW_COMMENT_TEXTVIEW_COMMENT = f"{APP_ID}:id/row_comment_textview_comment"
         self.ROW_COMMENT_TEXTVIEW_TIME_AGO = (

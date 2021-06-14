@@ -360,6 +360,24 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
     sys.exit(0)
 
 
+def can_repeat(current_session, max_sessions):
+    if max_sessions != -1:
+        logger.info(
+            f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
+            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+        )
+        if current_session >= max_sessions:
+            logger.info(
+                "You reached the total-sessions limit! Finish.",
+                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+            )
+            return False
+        else:
+            return True
+    else:
+        return True
+
+
 def get_value(count, name, default):
     def print_error():
         logger.error(

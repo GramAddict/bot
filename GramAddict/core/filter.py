@@ -30,7 +30,7 @@ FIELD_MAX_FOLLOWINGS = "max_followings"
 FIELD_MIN_POTENCY_RATIO = "min_potency_ratio"
 FIELD_MAX_POTENCY_RATIO = "max_potency_ratio"
 FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
-PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
+FIELD_PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
 FIELD_COMMENT_PHOTOS = "comment_photos"
 FIELD_COMMENT_VIDEOS = "comment_videos"
 FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
@@ -39,6 +39,8 @@ FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
 FIELD_BIO_LANGUAGE = "biography_language"
 FIELD_MIN_POSTS = "min_posts"
+FIELD_MIN_LIKERS = "min_likers"
+FIELD_MAX_LIKERS = "max_likers"
 
 IGNORE_CHARSETS = ["MATHEMATICAL"]
 
@@ -72,12 +74,14 @@ class SkipReason(Enum):
     ALPHABET_NAME_NOT_MATCH = auto()
     BIOGRAPHY_LANGUAGE_NOT_MATCH = auto()
     NOT_LOADED = auto()
+    RESTRICTED = auto()
 
 
 class Profile(object):
     def __init__(
         self,
         follow_button_text,
+        is_restricted,
         is_private,
         has_business_category,
         posts_count,
@@ -89,6 +93,7 @@ class Profile(object):
         self.followings = 0
 
         self.follow_button_text = follow_button_text
+        self.is_restricted = is_restricted
         self.is_private = is_private
         self.has_business_category = has_business_category
         self.posts_count = posts_count
@@ -98,9 +103,12 @@ class Profile(object):
     def set_followers_and_following(self, followers: int, followings: int):
         self.followers = followers
         self.followings = followings
-        self.potency_ratio = (
-            0 if self.followings == 0 else self.followers / self.followings
-        )
+        if followers is not None or followings is not None:
+            self.potency_ratio = (
+                0 if self.followings == 0 else self.followers / self.followings
+            )
+        else:
+            self.potency_ratio = None
 
 
 class Filter:
@@ -156,6 +164,28 @@ class Filter:
 
         return True
 
+    def is_num_likers_in_range(self, likes_on_post):
+        if self.conditions is not None and likes_on_post is not None:
+            if likes_on_post == -1:
+                logger.debug("We don't know how many likers this post has.")
+                return True
+            else:
+                field_min_likers = self.conditions.get(FIELD_MIN_LIKERS, 1)
+                field_max_likers = self.conditions.get(FIELD_MAX_LIKERS, 1000000)
+                if likes_on_post in range(field_min_likers, field_max_likers):
+                    logger.info(
+                        f"Post has likes in range: {field_min_likers}-{field_max_likers}."
+                    )
+                    return True
+                else:
+                    logger.info(
+                        f"Post has not likes in range: {field_min_likers}-{field_max_likers}."
+                    )
+                    return False
+        else:
+            logger.debug("filters.yml not loaded!")
+            return True
+
     def return_check_profile(self, username, profile_data, skip_reason=None):
         if self.storage is not None:
             self.storage.add_filter_user(username, profile_data, skip_reason)
@@ -191,9 +221,18 @@ class Filter:
         profile_data = self.get_all_data(device)
         if self.conditions is None:
             return profile_data, False
+        if profile_data.is_restricted:
+            logger.info(
+                "This is a restricted profile, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.RESTRICTED
+            )
         if profile_data.follow_button_text == FollowStatus.NONE:
             logger.info(
-                "Profile was not fully loaded or the user uses a bug for having super huge profile description. SKIP."
+                "Profile was not fully loaded or the user uses a bug for having super huge profile description, skip.",
+                extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.NOT_LOADED
@@ -443,7 +482,7 @@ class Filter:
         if self.conditions is None:
             return False
 
-        field_pm_to_private_or_empty = self.conditions.get(PM_TO_PRIVATE_OR_EMPTY)
+        field_pm_to_private_or_empty = self.conditions.get(FIELD_PM_TO_PRIVATE_OR_EMPTY)
         return field_pm_to_private_or_empty is not None and bool(
             field_pm_to_private_or_empty
         )
@@ -465,32 +504,52 @@ class Filter:
         profile_picture = device.find(
             resourceIdMatches=ResourceID.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB
         )
+        restricted_profile = device.find(
+            resourceIdMatches=ResourceID.RESTRICTED_ACCOUNT_TITLE
+        )
+        is_restricted = False
         if not profile_picture.exists(Timeout.LONG):
-            logger.warning(
-                "Looks like this profile hasn't loaded yet! Wait a little bit more.."
-            )
-            if profile_picture.exists(Timeout.LONG):
-                logger.info("Profile loaded!")
+            if restricted_profile.exists():
+                is_restricted = True
             else:
                 logger.warning(
-                    "Profile not fully loaded after 16s. Is your connection ok? Let's sleep for 1-2 minutes."
+                    "Looks like this profile hasn't loaded yet! Wait a little bit more.."
                 )
-                random_sleep(60, 120, modulable=False)
-                if profile_picture.exists():
+                if profile_picture.exists(Timeout.LONG):
+                    logger.info("Profile loaded!")
+                else:
                     logger.warning(
-                        "Profile won't load! Maybe you're softbanned or you've lost your connection!"
+                        "Profile not fully loaded after 16s. Is your connection ok? Let's sleep for 1-2 minutes."
                     )
+                    random_sleep(60, 120, modulable=False)
+                    if profile_picture.exists():
+                        logger.warning(
+                            "Profile won't load! Maybe you're softbanned or you've lost your connection!"
+                        )
         profileView = ProfileView(device)
-        profile = Profile(
-            follow_button_text=self._get_follow_button_text(device, profileView),
-            is_private=self._is_private_account(device, profileView),
-            has_business_category=self._has_business_category(device, profileView),
-            posts_count=self._get_posts_count(device, profileView),
-            biography=self._get_profile_biography(device, profileView),
-            fullname=self._get_fullname(device, profileView),
-        )
-        followers, following = self._get_followers_and_followings(device)
-        profile.set_followers_and_following(followers, following)
+        if not is_restricted:
+            profile = Profile(
+                follow_button_text=self._get_follow_button_text(device, profileView),
+                is_restricted=is_restricted,
+                is_private=self._is_private_account(device, profileView),
+                has_business_category=self._has_business_category(device, profileView),
+                posts_count=self._get_posts_count(device, profileView),
+                biography=self._get_profile_biography(device, profileView),
+                fullname=self._get_fullname(device, profileView),
+            )
+            followers, following = self._get_followers_and_followings(device)
+            profile.set_followers_and_following(followers, following)
+        else:
+            profile = Profile(
+                follow_button_text=None,
+                is_restricted=is_restricted,
+                is_private=None,
+                has_business_category=None,
+                posts_count=None,
+                biography=None,
+                fullname=None,
+            )
+            profile.set_followers_and_following(None, None)
         return profile
 
     @staticmethod

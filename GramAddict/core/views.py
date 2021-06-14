@@ -6,6 +6,7 @@ from colorama import Fore, Style
 from random import choice, randint, uniform
 
 import emoji
+from numpy import NaN
 
 from GramAddict.core.device_facade import (
     DeviceFacade,
@@ -590,7 +591,7 @@ class PostsViewList:
             logger.info(
                 "Scroll down to see next post.", extra={"color": f"{Fore.GREEN}"}
             )
-            gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            gap_view_obj = self.device.find(index=-1, resourceIdMatches=containers_gap)
             obj1 = None
             for _ in range(3):
                 if not gap_view_obj.exists():
@@ -602,6 +603,15 @@ class PostsViewList:
                     else:
                         break
                 else:
+                    media = self.device.find(resourceIdMatches=containers_content)
+                    if (
+                        gap_view_obj.get_bounds()["bottom"]
+                        < media.get_bounds()["bottom"]
+                    ):
+                        PostsViewList(self.device).swipe_to_fit_posts(
+                            SwipeTo.HALF_PHOTO
+                        )
+                        continue
                     suggested = self.device.find(resourceIdMatches=suggested_users)
                     if suggested.exists():
                         for _ in range(2):
@@ -621,6 +631,7 @@ class PostsViewList:
             if obj1 is None:
                 obj1 = gap_view_obj.get_bounds()["bottom"]
             containers_content = self.device.find(resourceIdMatches=containers_content)
+
             obj2 = (
                 (
                     containers_content.get_bounds()["bottom"]
@@ -640,47 +651,85 @@ class PostsViewList:
 
     def _find_likers_container(self):
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
-        gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
-        likes_view = self.device.find(
-            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
-            className=ClassName.TEXT_VIEW,
-        )
-        for _ in range(2):
+        media_container = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        likes = None
+        for _ in range(3):
+            gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
+            likes_view = self.device.find(
+                index=-1,
+                resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
+                className=ClassName.TEXT_VIEW,
+            )
+            media = self.device.find(
+                resourceIdMatches=media_container,
+            )
+            media_count = media.count_items()
+            logger.debug(f"I can see {media_count} media(s) in this view..")
+
+            if media_count > 1:
+                if (
+                    media.get_bounds()["bottom"]
+                    < self.device.get_info()["displayHeight"] / 3
+                ):
+                    UniversalActions(self.device)._swipe_points(Direction.DOWN)
+                    continue
             if not likes_view.exists():
                 if not gap_view_obj.exists():
                     PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+                    continue
                 else:
-                    return True
+                    if (
+                        gap_view_obj.get_bounds()["bottom"]
+                        < self.device.get_info()["displayHeight"] / 3
+                    ):
+                        UniversalActions(self.device)._swipe_points(Direction.DOWN)
+                        continue
+                    return False, likes
             else:
-                logger.debug("Likers container exists!")
-                return True
-        return False
+                if likes_view.get_bounds()["bottom"] < media.get_bounds()["bottom"]:
+                    PostsViewList(self.device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+                    continue
+                else:
+                    if (
+                        media.get_bounds()["bottom"]
+                        < self.device.get_info()["displayHeight"] / 3
+                    ):
+                        UniversalActions(self.device)._swipe_points(Direction.DOWN)
+                        continue
+                    logger.debug("Likers container exists!")
+                    likes = self._get_number_of_likers(likes_view)
+                    return True, likes
+        return False, likes
 
-    def _check_if_only_one_liker_or_none(self):
-        likes_view = self.device.find(
-            resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
-            className=ClassName.TEXT_VIEW,
-        )
+    def _get_number_of_likers(self, likes_view):
+        likes = 0
         if likes_view.exists():
-            likes_view_text = likes_view.get_text()
-            if (
-                likes_view_text[-6:].upper() == "OTHERS"
-                or likes_view_text.upper()[-5:] == "LIKES"
-            ):
-                return False
-            elif "likes" in likes_view_text:
-                return True
+            likes_view_text = likes_view.get_text().replace(",", "")
+            matches = re.search(
+                r"(?P<likes>\d+) (?:others|likes)", likes_view_text, re.IGNORECASE
+            )
+            if hasattr(matches, "group"):
+                likes = int(matches.group("likes"))
+                logger.info(
+                    f"This post has {likes if 'likes' in likes_view_text else likes+1} like(s)."
+                )
+                return likes
             else:
-                logger.info("This post has only 1 liker, skip.")
-                return True
+                if likes_view_text.endswith("others"):
+                    logger.info("This post has more then 1 like.")
+                    return -1
+                else:
+                    logger.info("This post has only 1 like.")
+                    likes = 1
+                    return likes
         else:
-            logger.info("This post has no likers, skip.")
-            return True
+            logger.info("This post has no likes, skip.")
+            return likes
 
     def open_likers_container(self):
         logger.info("Opening post likers.")
         facepil_stub = self.device.find(
-            resourceId=ResourceID.ROW_FEED_LIKE_COUNT_FACEPILE_STUB
+            index=-1, resourceId=ResourceID.ROW_FEED_LIKE_COUNT_FACEPILE_STUB
         )
 
         if facepil_stub.exists():
@@ -689,6 +738,7 @@ class PostsViewList:
         else:
             random_sleep(1, 2, modulable=False)
             likes_view = self.device.find(
+                index=-1,
                 resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
                 className=ClassName.TEXT_VIEW,
             )
@@ -739,17 +789,29 @@ class PostsViewList:
             current_job, Owner.GET_NAME
         )
         swiped_a_bit = False
-
-        for _ in range(2):
+        old_description_position = NaN
+        for _ in range(3):
             post_description = self.device.find(
+                index=-1,
                 resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                 textStartsWith=username,
             )
-            if not post_description.exists() and post_description.count_items() == 1:
+            if not post_description.exists() and post_description.count_items() >= 1:
+                text = post_description.get_text()
                 post_description = self.device.find(
-                    resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT
+                    index=-1,
+                    resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                    text=text,
                 )
             if post_description.exists():
+                new_description_position = post_description.get_bounds()["bottom"]
+                if new_description_position < (
+                    self.device.get_info()["displayHeight"] / 3
+                ):
+                    if old_description_position != new_description_position:
+                        old_description_position = new_description_position
+                        UniversalActions(self.device)._swipe_points(Direction.DOWN)
+                        continue
                 new_description = post_description.get_text().upper()
                 if new_description == last_description:
                     logger.info(
@@ -869,7 +931,7 @@ class PostsViewList:
             return True
         elif mode == Owner.GET_NAME:
             if current_job == "feed":
-                is_ad = PostsViewList(self.device)._check_if_ad()
+                is_ad = PostsViewList(self.device)._check_if_ad(post_owner_obj)
             return post_owner_obj.get_text().replace("•", "").strip(), is_ad
 
         elif mode == Owner.GET_POSITION:
@@ -883,14 +945,14 @@ class PostsViewList:
         ).get_text()
 
     def _like_in_post_view(self, mode: LikeMode):
-        POST_CONTAINER = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        post_container = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
 
         if mode == LikeMode.DOUBLE_CLICK:
             logger.info("Double click photo.")
             _, _, action_bar_bottom = PostsViewList(
                 self.device
             )._get_action_bar_position()
-            self.device.find(resourceIdMatches=(POST_CONTAINER)).double_click(
+            self.device.find(resourceIdMatches=post_container).double_click(
                 obj_over=action_bar_bottom
             )
         elif mode == LikeMode.SINGLE_CLICK:
@@ -922,16 +984,15 @@ class PostsViewList:
             UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
             return PostsViewList(self.device)._check_if_liked()
 
-    def _check_if_ad(self):
-        STR = "Sponsored"
+    def _check_if_ad(self, post_owner_obj):
+        str = "Sponsored"
         logger.debug("Checking if it's an AD.")
-        ad_like_obj = self.device.find(
+        ad_like_obj = post_owner_obj.sibling(
             resourceId=ResourceID.SECONDARY_LABEL,
-            className=ClassName.TEXT_VIEW,
         )
         if ad_like_obj.exists():
-            if ad_like_obj.get_text() == STR:
-                logger.debug("Looks like an AD. Skip.")
+            if ad_like_obj.get_text() == str:
+                logger.debug("Looks like an AD, skip.")
                 return True
             else:
                 return False
@@ -1241,17 +1302,15 @@ class PostsGridView:
             media_type = MediaType.IGTV
         else:
             carousel_obj = re.match(
-                r"(\d+ photo)|(\d+ video)", content_desc, re.IGNORECASE
+                r"((?P<photo>\d+) photo)|((?P<video>\d+) video)",
+                content_desc,
+                re.IGNORECASE,
             )
             n_photos = (
-                [int(s) for s in carousel_obj.group(1).split() if s.isdigit()][0]
-                if (carousel_obj.group(1) is not None)
-                else 0
+                int(carousel_obj.group("photo")) if carousel_obj.group("photo") else 0
             )
             n_videos = (
-                [int(s) for s in carousel_obj.group(2).split() if s.isdigit()][0]
-                if (carousel_obj.group(2) is not None)
-                else 0
+                int(carousel_obj.group("video")) if carousel_obj.group("video") else 0
             )
             logger.info(
                 f"It's a carousel with {n_photos} photo(s) and {n_videos} video(s)."

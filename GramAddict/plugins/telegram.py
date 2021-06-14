@@ -1,3 +1,4 @@
+from GramAddict.core.views import AccountView, ProfileView
 from colorama import Fore, Style
 from GramAddict.core.plugin_loader import Plugin
 import datetime
@@ -5,11 +6,18 @@ import json
 import logging
 import os
 from textwrap import dedent
-import pandas as pd
 import requests
 import yaml
+import sys
 
 logger = logging.getLogger(__name__)
+
+try:
+    import pandas as pd
+except ImportError:
+    logger.error(
+        "If you want to use telegram_reports, please type in console: 'pip3 install gramaddict[telegram-reports]'"
+    )
 
 
 class TelegramReports(Plugin):
@@ -29,8 +37,14 @@ class TelegramReports(Plugin):
 
     def run(self, device, config, storage, sessions, plugin):
         username = config.args.username
+        modulename = "pandas"
+        if modulename not in sys.modules:
+            logger.error(
+                f"You can't use {plugin} withtout installing {modulename}. Type that in console: 'pip3 install gramaddict[telegram-reports]'"
+            )
+            return
 
-        def telegram_bot_sendtext(bot_message):
+        def telegram_bot_sendtext(text):
             with open(
                 f"accounts/{username}/telegram.yml", "r", encoding="utf-8"
             ) as stream:
@@ -41,8 +55,15 @@ class TelegramReports(Plugin):
                 except yaml.YAMLError as e:
                     logger.error(e)
             if bot_api_token is not None and bot_chat_ID is not None:
-                send_text = f"https://api.telegram.org/bot{bot_api_token}/sendMessage?chat_id={bot_chat_ID}&parse_mode=markdown&text={bot_message}"
-                response = requests.get(send_text)
+                method = "sendMessage"
+                parse_mode = "markdown"
+                params = {
+                    "text": text,
+                    "chat_id": bot_chat_ID,
+                    "parse_mode": parse_mode,
+                }
+                url = f"https://api.telegram.org/bot{bot_api_token}/{method}"
+                response = requests.get(url, params=params)
                 return response.json()
 
         if username is None:
@@ -129,20 +150,33 @@ class TelegramReports(Plugin):
         dailySummary["duration"] = dailySummary["duration"].astype(int)
         numFollowers = int(dailySummary["followers"].iloc[-1])
         n = 1
-        followString = ""
-        for x in range(10):
-            if numFollowers in range(x * 1000, n * 1000):
-                followString = f"• {str(int(((n * 1000 - numFollowers)/dailySummary['followers_gained'].tail(7).mean())))} days until {n}k!"
-                break
-            n += 1
+        milestone = ""
+        try:
+            for x in range(10):
+                if numFollowers in range(x * 1000, n * 1000):
+                    milestone = f"• {str(int(((n * 1000 - numFollowers)/dailySummary['followers_gained'].tail(7).mean())))} days until {n}k!"
+                    break
+                n += 1
+        except OverflowError:
+            logger.info("Not able to get milestone ETA..")
 
         def undentString(string):
             return dedent(string[1:])[:-1]
 
+        ProfileView(device)._click_on_avatar()
+        AccountView(device).refresh_account()
+        (
+            _,
+            _,
+            followers_now,
+            following_now,
+        ) = ProfileView(device).getProfileInfo()
+        followers_before = int(dailySummary["followers"].iloc[-1])
+        following_before = int(dailySummary["following"].iloc[-1])
         statString = f"""
-                *Starts for {username}* before last activity:
-                • {str(dailySummary["followers"].iloc[-1])} followers
-                • {str(dailySummary["following"].iloc[-1])} following
+                *Starts for {username}* after last activity:
+                • {followers_now} followers ({followers_now - followers_before:+})
+                • {following_now} following ({following_now - following_before:+})
 
                 *🤖 Last session actions*
                 • {str(df["duration"].iloc[-1].astype(int))} minutes of botting
@@ -164,7 +198,7 @@ class TelegramReports(Plugin):
                 • {str(dailySummary["followers_gained"].iloc[-1])} new followers today
                 • {str(dailySummary["followers_gained"].tail(3).sum())} new followers past 3 days
                 • {str(dailySummary["followers_gained"].tail(7).sum())} new followers past week
-                {followString}
+                {milestone if not "" else ""}
 
                 *🗓 7-Day Average*
                 • {str(round(dailySummary["followers_gained"].tail(7).mean(), 1))} followers / day
@@ -175,7 +209,6 @@ class TelegramReports(Plugin):
                 • {str(int(dailySummary["pm_sent"].tail(7).mean()))} PM sent
                 • {str(int(dailySummary["duration"].tail(7).mean()))} minutes of botting
             """
-
         try:
             r = telegram_bot_sendtext(f"{undentString(statString)}\n\n{dateString}")
             if r.get("ok"):

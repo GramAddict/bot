@@ -341,7 +341,7 @@ def can_comment(media_type, profile_filter, current_mode):
             return True
     else:
         logger.debug(
-            f"Can't comment because filter for {current_mode} in json is: {profile_filter.can_comment(current_mode)}"
+            f"Can't comment because filters are: (photo, video, {current_mode}):{profile_filter.can_comment(current_mode)}"
         )
         return False
 
@@ -655,14 +655,17 @@ def load_random_message(my_username):
     lines = []
     file_name = f"{storage.ACCOUNTS}/{my_username}/{storage.FILENAME_MESSAGES}"
     if path.isfile(file_name):
-        with open(file_name, "r", encoding="utf-8") as f:
-            for line in nonblank_lines(f):
-                lines.append(line)
-            random_message = choice(lines)
-            if random_message != "":
-                return emoji.emojize(random_message, use_aliases=True)
-            else:
-                return None
+        try:
+            with open(file_name, "r", encoding="utf-8") as f:
+                for line in nonblank_lines(f):
+                    lines.append(line)
+                random_message = choice(lines)
+                if random_message != "":
+                    return emoji.emojize(random_message, use_aliases=True)
+                else:
+                    return None
+        except Exception as e:
+            logger.error(f"Error: {e}.")
 
 
 def load_random_comment(my_username, media_type):

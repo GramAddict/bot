@@ -21,6 +21,7 @@ from GramAddict.core.report import print_full_report
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
 from GramAddict.core.storage import Storage
 from GramAddict.core.utils import (
+    can_repeat,
     check_adb_connection,
     close_instagram,
     config_examples,
@@ -108,6 +109,10 @@ def run():
         return
     device = create_device(configs.device_id)
     session_state = None
+    if str(configs.args.total_sessions) != "-1":
+        total_sessions = get_value(configs.args.total_sessions, None, -1)
+    else:
+        total_sessions = -1
     while True:
         set_time_delta(configs.args)
         inside_working_hours, time_left = SessionState.inside_working_hours(
@@ -143,7 +148,7 @@ def run():
         logger.info("Device screen on and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "190.0.0.36.119"
+                tested_ig_version = "191.1.0.41.124"
                 running_ig_version = get_instagram_version()
                 running_ig_version_splitted = running_ig_version.split(".")
                 last_ig_version_tested = tested_ig_version.split(".")
@@ -180,7 +185,7 @@ def run():
                     save_crash(device)
                     device.back()
                     break
-
+            AccountView(device).refresh_account()
             (
                 session_state.my_username,
                 session_state.my_posts_count,
@@ -214,11 +219,15 @@ def run():
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-        AccountView(device).refresh_account()
+
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
-
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
-
+        if configs.args.repeat:
+            logger.info(
+                f"You have {total_sessions+1-len(sessions) if total_sessions > 0 else 'infinite'} session(s) left. You can stop the bot by pressing CTRL+C in console.",
+                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+            )
+            sleep(3)
         storage = Storage(session_state.my_username)
         if configs.args.shuffle_jobs:
             jobs_list = random.sample(configs.enabled, len(configs.enabled))
@@ -265,6 +274,18 @@ def run():
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
+
+        # print reports
+        if analytics_at_end:
+            configs.actions["analytics"].run(
+                device, configs, storage, sessions, "analytics"
+            )
+        if telegram_reports_at_end:
+            configs.actions["telegram-reports"].run(
+                device, configs, storage, sessions, "telegram-reports"
+            )
+
+        # turn off bot
         close_instagram(device, configs.args.screen_record)
         session_state.finishTime = datetime.now()
 
@@ -277,16 +298,6 @@ def run():
         # save the session in sessions.json
         sessions.persist(directory=session_state.my_username)
 
-        # print reports
-        if analytics_at_end:
-            configs.actions["analytics"].run(
-                device, configs, storage, sessions, "analytics"
-            )
-        if telegram_reports_at_end:
-            configs.actions["telegram-reports"].run(
-                device, configs, storage, sessions, "telegram-reports"
-            )
-
         logger.info(
             "-------- FINISH: "
             + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))
@@ -294,7 +305,7 @@ def run():
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
-        if configs.args.repeat:
+        if configs.args.repeat and can_repeat(len(sessions), total_sessions):
             print_full_report(sessions, configs.args.scrape_to_file)
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -328,3 +339,7 @@ def run():
             break
 
     print_full_report(sessions, configs.args.scrape_to_file)
+    logger.info(
+        "This bot is backed with love by me for free. If you like using it, consider donating to help keep me motivated: https://paypal.me/mastrolube",
+        extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"},
+    )

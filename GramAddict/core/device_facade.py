@@ -88,9 +88,16 @@ class DeviceFacade:
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
-    def find(self, *args, **kwargs):
+    def find(
+        self,
+        index=None,
+        *args,
+        **kwargs,
+    ):
         try:
             view = self.deviceV2(*args, **kwargs)
+            if index is not None and view.count > 1:
+                view = self.deviceV2(*args, **kwargs)[index]
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
         return DeviceFacade.View(view=view, device=self.deviceV2)
@@ -484,6 +491,7 @@ class DeviceFacade:
                         logger.debug(
                             f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
                         )
+                        # More info about that: https://github.com/openatx/uiautomator2/issues/689"
                         return False
                 return exists
             except uiautomator2.JSONRPCError as e:
@@ -526,13 +534,17 @@ class DeviceFacade:
                 ui_timeout = 8
             return ui_timeout
 
-        def get_text(self, retry=True, error=True):
+        def get_text(self, retry=True, error=True, index=None):
             max_attempts = 1 if not retry else 3
             attempts = 0
             while attempts < max_attempts:
                 attempts += 1
                 try:
-                    text = self.viewV2.info["text"]
+                    text = (
+                        self.viewV2.info["text"]
+                        if index is None
+                        else self.viewV2[index].info["text"]
+                    )
                     if text is None:
                         logger.debug(
                             "Could not get text. Waiting 2 seconds and trying again..."

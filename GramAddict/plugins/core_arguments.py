@@ -297,4 +297,11 @@ class CoreArguments(Plugin):
                 "metavar": 2,
                 "default": 2,
             },
+            {
+                "arg": "--total-sessions",
+                "nargs": None,
+                "help": "specify how many sessions you want to do before stopping",
+                "metavar": 1,
+                "default": -1,
+            },
         ]

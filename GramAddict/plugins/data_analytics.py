@@ -1,4 +1,5 @@
 import logging
+import sys
 from GramAddict.core.plugin_loader import Plugin
 
 logger = logging.getLogger(__name__)
@@ -30,3 +31,9 @@ class DataAnalytics(Plugin):
                             For see where this file is located in your machine, just write 'pip shown GramAddict' and you will get the path.
                             """
         )
+        modulename = "matplotlib"
+        if modulename not in sys.modules:
+            logger.error(
+                f"You can't use {plugin} withtout installing {modulename}. Type that in console: 'pip3 install gramaddict[analytics]'"
+            )
+            return

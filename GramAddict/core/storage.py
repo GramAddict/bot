@@ -113,7 +113,11 @@ class Storage:
 
     def add_filter_user(self, username, profile_data, skip_reason=None):
         user = profile_data.__dict__
-        user["follow_button_text"] = profile_data.follow_button_text.name
+        user["follow_button_text"] = (
+            profile_data.follow_button_text.name
+            if not profile_data.is_restricted
+            else None
+        )
         user["skip_reason"] = None if skip_reason is None else skip_reason.name
         self.history_filter_users[username] = user
         if self.history_filter_users_path is not None:

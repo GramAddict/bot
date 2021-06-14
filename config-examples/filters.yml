@@ -51,3 +51,7 @@ comment_videos: true
 
 ## Filters for sending PM
 pm_to_private_or_empty: true
+
+## Filters on number of post likers
+min_likers: 1
+max_likers: 1000

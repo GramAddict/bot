@@ -101,3 +101,4 @@ total-scraped-limit: 100
 working-hours: [10.15-16.40, 18.15-22.46]
 time-delta: 10-15
 repeat: 280-320
+total-sessions: 1 # -1 or commented for infinite sessions
