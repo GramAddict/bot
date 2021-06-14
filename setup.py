@@ -25,7 +25,7 @@ setuptools.setup(
         "emoji==1.2.0",
         "langdetect==1.0.9",
     ],
-    extra_requires={
+    extras_require={
         "telegram-reports": ["pandas==1.2.4"],
         "analytics": ["matplotlib==3.4.2"],
     },
