@@ -1608,19 +1608,29 @@ class ProfileView(ActionBarView):
         )
         if followers_button.exists(Timeout.MEDIUM):
             followers_button.click()
-            return True
+            followers_tab = self.device.find(
+                resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
+            ).child(textContains="Followers")
+            if followers_tab.exists(Timeout.MEDIUM):
+                followers_tab.click()
+                return True
         else:
             logger.error("Can't find followers tab!")
             return False
 
     def navigateToFollowing(self):
         logger.info("Navigate to following.")
-        followings_button = self.device.find(
+        following_button = self.device.find(
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
-        if followings_button.exists(Timeout.MEDIUM):
-            followings_button.click()
-            return True
+        if following_button.exists(Timeout.MEDIUM):
+            following_button.click()
+            following_tab = self.device.find(
+                resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
+            ).child(textContains="Following")
+            if following_tab.exists(Timeout.MEDIUM):
+                following_tab.click()
+                return True
         else:
             logger.error("Can't find following tab!")
             return False

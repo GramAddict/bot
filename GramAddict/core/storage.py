@@ -154,8 +154,10 @@ class Storage:
         user["session_id"] = session_id
 
         # Save only the last job_name and target
-        user["job_name"] = job_name
-        user["target"] = target
+        if not user.get("job_name"):
+            user["job_name"] = job_name
+        if not user.get("target"):
+            user["target"] = target
 
         # Increase the value of liked, watched or commented if we have already a value
         user["liked"] = liked if "liked" not in user else (user["liked"] + liked)

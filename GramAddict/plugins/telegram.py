@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 try:
     import pandas as pd
 except ImportError:
-    logger.error(
+    logger.warning(
         "If you want to use telegram_reports, please type in console: 'pip3 install gramaddict[telegram-reports]'"
     )
 

@@ -18,7 +18,7 @@ setuptools.setup(
     install_requires=[
         "colorama==0.4.4",
         "ConfigArgParse==1.4",
-        "numpy==1.20.3",
+        "numpy>=1.19.5,<=1.20.3",
         "PyYAML==5.4",
         "uiautomator2==2.16.0",
         "urllib3==1.26.5",

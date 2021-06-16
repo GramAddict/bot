@@ -138,6 +138,7 @@ class ActionUnfollowFollowers(Plugin):
                 storage,
                 self.unfollow_type,
                 self.session_state.my_username,
+                plugin,
             )
             logger.info(
                 f"Unfollowed {self.state.unfollowed_count}, finish.",
@@ -150,7 +151,14 @@ class ActionUnfollowFollowers(Plugin):
             job()
 
     def unfollow(
-        self, device, count, on_unfollow, storage, unfollow_restriction, my_username
+        self,
+        device,
+        count,
+        on_unfollow,
+        storage,
+        unfollow_restriction,
+        my_username,
+        job_name,
     ):
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
         skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
@@ -168,6 +176,7 @@ class ActionUnfollowFollowers(Plugin):
             unfollow_restriction,
             my_username,
             posts_end_detector,
+            job_name,
         )
 
     def on_unfollow(self):
@@ -219,6 +228,7 @@ class ActionUnfollowFollowers(Plugin):
         unfollow_restriction,
         my_username,
         posts_end_detector,
+        job_name,
     ):
         # Wait until list is rendered
         sorted = False
@@ -331,7 +341,11 @@ class ActionUnfollowFollowers(Plugin):
 
                     if unfollowed:
                         storage.add_interacted_user(
-                            username, self.session_state.id, unfollowed=True
+                            username,
+                            self.session_state.id,
+                            unfollowed=True,
+                            job_name=job_name,
+                            target=username,
                         )
                         on_unfollow()
                         unfollowed_count += 1

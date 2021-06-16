@@ -27,6 +27,7 @@ total-crashes-limit: 5
 
 ## Interaction
 blogger-followers: [ username1, username2 ]
+blogger-following: [ username1, username2 ]
 blogger-post-likers: [ username1, username2 ]
 blogger: [ username1, username2 ]
 hashtag-likers-top: [ hashtag1, hashtag2 ]
@@ -71,8 +72,8 @@ stories-percentage: 30-40
 carousel-count: 2-3
 carousel-percentage: 60-70
 max-comments-pro-user: 1-2
-comment-percentage: 30-40
-pm-percentage: 30-40
+# comment-percentage: 30-40
+# pm-percentage: 30-40
 interact-percentage: 30-40
 follow-percentage: 30-40
 follow-limit: 50

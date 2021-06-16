@@ -109,6 +109,7 @@ def interact_with_user(
             sent_pm = _send_PM(
                 device, session_state, my_username, 0, profile_data.is_private
             )
+
         if can_follow and profile_filter.can_follow_private_or_empty():
             if scraping_file is None:
                 followed = _follow(
@@ -608,7 +609,9 @@ def _send_PM(device, session_state, my_username, swipe_amount, private=False):
     if message_box.exists():
         message = load_random_message(my_username)
         if message is None:
-            logger.warning("You forgot to populate your PM list!")
+            logger.warning(
+                "You forgot to populate your PM list! If you don't want to comment set 'pm-percentage: false'"
+            )
             device.back()
             return False
         logger.info(
