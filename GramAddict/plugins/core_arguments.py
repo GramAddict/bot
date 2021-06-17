@@ -32,6 +32,13 @@ class CoreArguments(Plugin):
                 "default": "1-2",
             },
             {
+                "arg": "--likes-percentage",
+                "nargs": None,
+                "help": "chance of liking posts on a particular profile, 100 by default. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "metavar": "50-70",
+                "default": "100",
+            },
+            {
                 "arg": "--total-likes-limit",
                 "nargs": None,
                 "help": "limit on total amount of likes per session, 300 by default",
@@ -105,8 +112,15 @@ class CoreArguments(Plugin):
                 "arg": "--watch-video-time",
                 "nargs": None,
                 "help": "amount of time (seconds) you want to watch a video before interact with it, set to 0 to disable this feature. It can be a number (e.g. 20) or a range (e.g. 20-40)",
-                "metavar": "15-55",
-                "default": "20-40",
+                "metavar": "15-30",
+                "default": "15-30",
+            },
+            {
+                "arg": "--watch-photo-time",
+                "nargs": None,
+                "help": "amount of time (seconds) you want to watch a photo before interact with it, set to 0 to disable this feature. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "metavar": "3-4",
+                "default": "3-4",
             },
             {
                 "arg": "--interactions-count",

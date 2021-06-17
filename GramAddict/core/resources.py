@@ -16,6 +16,8 @@ class ResourceID:
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
+        self.CAROUSEL_IMAGE_MEDIA_GROUP = f"{APP_ID}:id/carousel_image_media_group"
+        self.CAROUSEL_VIDEO_MEDIA_GROUP = f"{APP_ID}:id/carousel_video_media_group"
         self.CAROUSEL_INDEX_INDICATOR_TEXT_VIEW = (
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )

@@ -11,6 +11,7 @@ from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.utils import random_sleep, save_crash, get_value
 from GramAddict.core.views import (
     FollowingView,
+    ProfileView,
     UniversalActions,
     Direction,
 )
@@ -167,7 +168,7 @@ class ActionUnfollowFollowers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-        self.open_my_followings(device)
+        ProfileView(device).navigateToFollowing()
         self.iterate_over_followings(
             device,
             count,
@@ -182,14 +183,6 @@ class ActionUnfollowFollowers(Plugin):
     def on_unfollow(self):
         self.state.unfollowed_count += 1
         self.session_state.totalUnfollowed += 1
-
-    def open_my_followings(self, device):
-        logger.info("Open my followings.")
-        followings_button = device.find(
-            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
-        )
-        if followings_button.exists(Timeout.LONG):
-            followings_button.click()
 
     def sort_followings_by_date(self, device, newest_to_oldest=False):
 
@@ -481,12 +474,8 @@ class ActionUnfollowFollowers(Plugin):
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
-        following_container = device.find(
-            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
-        )
-        if following_container.exists(Timeout.LONG):
-            following_container.click()
-        else:
+
+        if not ProfileView(device).navigateToFollowing():
             logger.info("Can't load profile in time. Skip.")
             return None
 

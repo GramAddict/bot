@@ -77,6 +77,7 @@ class TelegramReports(Plugin):
             start = session["start_time"]
             finish = session["finish_time"]
             followed = session.get("total_followed", 0)
+            unfollowed = session.get("total_unfollowed", 0)
             likes = session.get("total_likes", 0)
             watched = session.get("total_watched", 0)
             comments = session.get("total_comments", 0)
@@ -90,6 +91,7 @@ class TelegramReports(Plugin):
                     likes,
                     watched,
                     followed,
+                    unfollowed,
                     comments,
                     pm_sent,
                     followers,
@@ -105,6 +107,7 @@ class TelegramReports(Plugin):
                 "likes",
                 "watched",
                 "followed",
+                "unfollowed",
                 "comments",
                 "pm_sent",
                 "followers",
@@ -129,6 +132,7 @@ class TelegramReports(Plugin):
                 "likes": "sum",
                 "watched": "sum",
                 "followed": "sum",
+                "unfollowed": "sum",
                 "comments": "sum",
                 "pm_sent": "sum",
                 "followers": "max",
@@ -163,6 +167,7 @@ class TelegramReports(Plugin):
         def undentString(string):
             return dedent(string[1:])[:-1]
 
+        logger.info("Going back to your profile..")
         ProfileView(device)._click_on_avatar()
         AccountView(device).refresh_account()
         (
@@ -171,8 +176,8 @@ class TelegramReports(Plugin):
             followers_now,
             following_now,
         ) = ProfileView(device).getProfileInfo()
-        followers_before = int(dailySummary["followers"].iloc[-1])
-        following_before = int(dailySummary["following"].iloc[-1])
+        followers_before = int(df["followers"].iloc[-1])
+        following_before = int(df["following"].iloc[-1])
         statString = f"""
                 *Starts for {username}* after last activity:
                 • {followers_now} followers ({followers_now - followers_before:+})
@@ -182,6 +187,7 @@ class TelegramReports(Plugin):
                 • {str(df["duration"].iloc[-1].astype(int))} minutes of botting
                 • {str(df["likes"].iloc[-1])} likes
                 • {str(df["followed"].iloc[-1])} follows
+                • {str(df["unfollowed"].iloc[-1])} unfollows
                 • {str(df["watched"].iloc[-1])} stories watched
                 • {str(df["comments"].iloc[-1])} comments done
                 • {str(df["pm_sent"].iloc[-1])} PM sent
@@ -190,6 +196,7 @@ class TelegramReports(Plugin):
                 • {str(dailySummary["duration"].iloc[-1])} minutes of botting
                 • {str(dailySummary["likes"].iloc[-1])} likes
                 • {str(dailySummary["followed"].iloc[-1])} follows
+                • {str(dailySummary["unfollowed"].iloc[-1])} unfollows
                 • {str(dailySummary["watched"].iloc[-1])} stories watched
                 • {str(dailySummary["comments"].iloc[-1])} comments done
                 • {str(dailySummary["pm_sent"].iloc[-1])} PM sent
@@ -204,6 +211,7 @@ class TelegramReports(Plugin):
                 • {str(round(dailySummary["followers_gained"].tail(7).mean(), 1))} followers / day
                 • {str(int(dailySummary["likes"].tail(7).mean()))} likes
                 • {str(int(dailySummary["followed"].tail(7).mean()))} follows
+                • {str(int(dailySummary["unfollowed"].tail(7).mean()))} unfollows
                 • {str(int(dailySummary["watched"].tail(7).mean()))} stories watched
                 • {str(int(dailySummary["comments"].tail(7).mean()))} comments done
                 • {str(int(dailySummary["pm_sent"].tail(7).mean()))} PM sent

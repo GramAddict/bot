@@ -409,7 +409,10 @@ class DeviceFacade:
         def click_retry(self, mode=None, sleep=None, coord=[], maxretry=2):
             """return True if successfully open the element, else False"""
             self.click(mode, sleep, coord)
+
             while maxretry > 0:
+                # we wait a little bit more before try again
+                random_sleep(2, 4, modulable=False)
                 if not self.exists():
                     return True
                 logger.debug("UI element didn't open! Try again..")

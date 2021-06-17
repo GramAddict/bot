@@ -4,7 +4,7 @@ from GramAddict.core import storage
 import logging
 import emoji
 from datetime import datetime
-from random import randint, shuffle, choice
+from random import randint, shuffle, choice, uniform
 from typing import Tuple
 from time import sleep, time
 from os import path
@@ -49,6 +49,7 @@ def interact_with_user(
     username,
     my_username,
     likes_count,
+    likes_percentage,
     stories_percentage,
     can_follow,
     follow_percentage,
@@ -163,125 +164,15 @@ def interact_with_user(
         args,
         session_state,
     )
-    if profile_data.posts_count > 3:
-        swipe_amount = ProfileView(device).swipe_to_fit_posts()
-    else:
-        logger.debug(
-            f"We don't need to scroll, there is/are only {profile_data.posts_count} post(s)."
-        )
-        swipe_amount = 0
-    if swipe_amount == -1:
-        return (
-            interacted,
-            followed,
-            scraped,
-            sent_pm,
-            number_of_liked,
-            number_of_watched,
-            number_of_commented,
-        )
-
-    likes_value = get_value(likes_count, "Likes count: {}", 2)
-    (
-        _,
-        _,
-        can_comment_job,
-    ) = profile_filter.can_comment(current_mode)
-    if can_comment_job and comment_percentage != 0:
-        max_comments_pro_user = get_value(
-            args.max_comments_pro_user, "Max comment count: {}", 1
-        )
-    if likes_value > 12:
-        logger.error("Max number of likes per user is 12.")
-        likes_value = 12
-
-    start_time = time()
-    full_rows, columns_last_row = profile_view.count_photo_in_view()
-    end_time = format(time() - start_time, ".2f")
-    photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
-
-    logger.info(
-        f"There {f'is {len(photos_indices)} post' if len(photos_indices)<=1 else f'are {len(photos_indices)} posts'} fully visible. Calculated in {end_time}s"
-    )
-    if current_mode in [
-        "hashtag-posts-recent",
-        "hashtag-posts-top",
-        "place-posts-recent",
-        "place-posts-top",
-        "feed",
-    ]:
-        # in these jobs we did a like already at the post
-        photos_indices = photos_indices[1:]
-        # sometimes we liked not the last picture, have to introduce the already liked thing..
-
-    if likes_value > len(photos_indices):
-        logger.info(
-            f"Only {len(photos_indices)} {'photo' if len(photos_indices)<=1 else 'photos'} available."
-        )
-    else:
-        shuffle(photos_indices)
-        photos_indices = photos_indices[:likes_value]
-        photos_indices = sorted(photos_indices)
-
-    for i in range(0, len(photos_indices)):
-        photo_index = photos_indices[i]
-        row = photo_index // 3
-        column = photo_index - row * 3
-        logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column).")
-        opened_post_view, media_type, obj_count = PostsGridView(device).navigateToPost(
-            row, column
-        )
-
-        like_succeed = False
-        if opened_post_view:
-            _browse_carousel(device, media_type, obj_count)
-            like_succeed = do_like(opened_post_view, device, session_state, media_type)
-            if like_succeed is True:
-                number_of_liked += 1
-            if comment_percentage != 0:
-                if can_comment(media_type, profile_filter, current_mode):
-                    if number_of_commented < max_comments_pro_user:
-                        comment_done = _comment(
-                            device,
-                            my_username,
-                            comment_percentage,
-                            args,
-                            session_state,
-                            media_type,
-                        )
-                        if comment_done:
-                            number_of_commented += 1
-                    else:
-                        logger.info(
-                            f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
-                        )
-            logger.info("Back to profile.")
-            device.back()
-        if like_succeed or comment_done:
-            interacted = True
+    swipe_amount = 0
+    if can_like(session_state, likes_percentage):
+        if profile_data.posts_count > 3:
+            swipe_amount = ProfileView(device).swipe_to_fit_posts()
         else:
-            interacted = False
-
-        if not opened_post_view or not like_succeed:
-            reason = "open" if not opened_post_view else "like"
-            logger.info(
-                f"Could not {reason} photo. Posts count: {profile_data.posts_count}"
+            logger.debug(
+                f"We don't need to scroll, there is/are only {profile_data.posts_count} post(s)."
             )
-
-            if can_follow and profile_filter.can_follow_private_or_empty():
-                followed = _follow(
-                    device,
-                    username,
-                    follow_percentage,
-                    args,
-                    session_state,
-                    swipe_amount,
-                )
-            else:
-                followed = False
-
-            if not followed:
-                logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
+        if swipe_amount == -1:
             return (
                 interacted,
                 followed,
@@ -291,6 +182,119 @@ def interact_with_user(
                 number_of_watched,
                 number_of_commented,
             )
+
+        likes_value = get_value(likes_count, "Likes count: {}", 2)
+        (
+            _,
+            _,
+            can_comment_job,
+        ) = profile_filter.can_comment(current_mode)
+        if can_comment_job and comment_percentage != 0:
+            max_comments_pro_user = get_value(
+                args.max_comments_pro_user, "Max comment count: {}", 1
+            )
+        if likes_value > 12:
+            logger.error("Max number of likes per user is 12.")
+            likes_value = 12
+
+        start_time = time()
+        full_rows, columns_last_row = profile_view.count_photo_in_view()
+        end_time = format(time() - start_time, ".2f")
+        photos_indices = list(range(0, full_rows * 3 + (columns_last_row)))
+
+        logger.info(
+            f"There {f'is {len(photos_indices)} post' if len(photos_indices)<=1 else f'are {len(photos_indices)} posts'} fully visible. Calculated in {end_time}s"
+        )
+        if current_mode in [
+            "hashtag-posts-recent",
+            "hashtag-posts-top",
+            "place-posts-recent",
+            "place-posts-top",
+            "feed",
+        ]:
+            # in these jobs we did a like already at the post
+            photos_indices = photos_indices[1:]
+            # sometimes we liked not the last picture, have to introduce the already liked thing..
+
+        if likes_value > len(photos_indices):
+            logger.info(
+                f"Only {len(photos_indices)} {'photo' if len(photos_indices)<=1 else 'photos'} available."
+            )
+        else:
+            shuffle(photos_indices)
+            photos_indices = photos_indices[:likes_value]
+            photos_indices = sorted(photos_indices)
+
+        for i in range(0, len(photos_indices)):
+            photo_index = photos_indices[i]
+            row = photo_index // 3
+            column = photo_index - row * 3
+            logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column).")
+            opened_post_view, media_type, obj_count = PostsGridView(
+                device
+            ).navigateToPost(row, column)
+
+            like_succeed = False
+            if opened_post_view:
+                _browse_carousel(device, media_type, obj_count)
+                like_succeed = do_like(
+                    opened_post_view, device, session_state, media_type
+                )
+                if like_succeed is True:
+                    number_of_liked += 1
+                if comment_percentage != 0:
+                    if can_comment(media_type, profile_filter, current_mode):
+                        if number_of_commented < max_comments_pro_user:
+                            comment_done = _comment(
+                                device,
+                                my_username,
+                                comment_percentage,
+                                args,
+                                session_state,
+                                media_type,
+                            )
+                            if comment_done:
+                                number_of_commented += 1
+                        else:
+                            logger.info(
+                                f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
+                            )
+                logger.info("Back to profile.")
+                device.back()
+            if like_succeed or comment_done:
+                interacted = True
+            else:
+                interacted = False
+
+            if not opened_post_view or not like_succeed:
+                reason = "open" if not opened_post_view else "like"
+                logger.info(
+                    f"Could not {reason} photo. Posts count: {profile_data.posts_count}"
+                )
+
+                if can_follow and profile_filter.can_follow_private_or_empty():
+                    followed = _follow(
+                        device,
+                        username,
+                        follow_percentage,
+                        args,
+                        session_state,
+                        swipe_amount,
+                    )
+                else:
+                    followed = False
+
+                if not followed:
+                    logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
+                return (
+                    interacted,
+                    followed,
+                    scraped,
+                    sent_pm,
+                    number_of_liked,
+                    number_of_watched,
+                    number_of_commented,
+                )
 
     if can_send_PM(session_state, pm_percentage):
         sent_pm = _send_PM(device, session_state, my_username, swipe_amount)
@@ -329,6 +333,16 @@ def can_send_PM(session_state, pm_percentage):
         return False
 
 
+def can_like(session_state, likes_percentage):
+    likes_chance = randint(1, 100)
+    if not session_state.check_limit(
+        args, limit_type=session_state.Limit.LIKES, output=True
+    ) and (likes_chance <= likes_percentage):
+        return True
+    else:
+        return False
+
+
 def can_comment(media_type, profile_filter, current_mode):
     (
         can_comment_photos,
@@ -352,6 +366,9 @@ def do_like(opened_post_view, device, session_state, media_type):
         media_type == MediaType.VIDEO or media_type == MediaType.IGTV
     ) and args.watch_video_time != "0":
         watching_time = get_value(args.watch_video_time, "Watching video for {}s.", 0)
+        sleep(watching_time)
+    if media_type == MediaType.PHOTO and args.watch_photo_time != "0":
+        watching_time = get_value(args.watch_photo_time, "Watching photo for {}s.", 0)
         sleep(watching_time)
     logger.info("Double click post.")
     like_succeed = opened_post_view.likePost()
@@ -466,16 +483,41 @@ def _browse_carousel(device, media_type, obj_count):
         carousel_percentage = get_value(configs.args.carousel_percentage, None, 0)
         carousel_count = get_value(configs.args.carousel_count, None, 1)
         if carousel_percentage > randint(0, 100) and carousel_count > 1:
+            media_obj = device.find(resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP)
             logger.info("Watching photos/videos in carousel.")
             if obj_count < carousel_count:
-                logger.info(f"There are only {obj_count} media in this carousel!")
+                logger.info(f"There are only {obj_count} media(s) in this carousel!")
                 carousel_count = obj_count
             n = 1
-            while n < carousel_count:
-                UniversalActions(device)._swipe_points(
-                    direction=Direction.LEFT,
-                )
-                n += 1
+            if media_obj.exists():
+                media_obj_bounds = media_obj.get_bounds()
+                while n < carousel_count:
+                    if media_obj.child(
+                        resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP
+                    ).exists():
+                        watch_photo_time = get_value(
+                            configs.args.watch_photo_time, "Watching photo for {}s.", 0
+                        )
+                        sleep(watch_photo_time)
+                    elif media_obj.child(
+                        resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP
+                    ).exists():
+                        watch_video_time = get_value(
+                            configs.args.watch_video_time, "Watching video for {}s.", 0
+                        )
+                        sleep(watch_video_time)
+                    UniversalActions(device)._swipe_points(
+                        start_point_y=(
+                            media_obj_bounds["bottom"] - media_obj_bounds["top"]
+                        )
+                        / 2
+                        * uniform(0.85, 1.15),
+                        start_point_x=uniform(0.85, 1.15)
+                        * (media_obj_bounds["right"] * 5 / 6),
+                        delta_x=media_obj_bounds["right"] * uniform(0.5, 0.7),
+                        direction=Direction.LEFT,
+                    )
+                    n += 1
 
 
 def _comment(device, my_username, comment_percentage, args, session_state, media_type):

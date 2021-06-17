@@ -482,6 +482,7 @@ def init_on_things(source, args, sessions, session_state):
     else:
         stories_percentage = 0
 
+    likes_percentage = get_value(args.likes_percentage, "Chance of liking: {}%", 100)
     follow_percentage = get_value(
         args.follow_percentage, "Chance of following: {}%", 40
     )
@@ -496,6 +497,7 @@ def init_on_things(source, args, sessions, session_state):
     return (
         on_interaction,
         stories_percentage,
+        likes_percentage,
         follow_percentage,
         comment_percentage,
         pm_percentage,

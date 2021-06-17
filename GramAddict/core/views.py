@@ -2,6 +2,7 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
+from time import sleep
 from colorama import Fore, Style
 from random import choice, randint, uniform
 
@@ -16,7 +17,13 @@ from GramAddict.core.device_facade import (
     Timeout,
 )
 from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
-from GramAddict.core.utils import ActionBlockedError, Square, random_sleep, save_crash
+from GramAddict.core.utils import (
+    ActionBlockedError,
+    Square,
+    get_value,
+    random_sleep,
+    save_crash,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -946,6 +953,17 @@ class PostsViewList:
 
     def _like_in_post_view(self, mode: LikeMode):
         post_container = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        media_obj = self.device.find(resourceIdMatches=post_container)
+        if media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP):
+            watch_photo_time = get_value(
+                configs.args.watch_photo_time, "Watching photo for {}s.", 0
+            )
+            sleep(watch_photo_time)
+        elif media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP):
+            watch_video_time = get_value(
+                configs.args.watch_video_time, "Watching video for {}s.", 0
+            )
+            sleep(watch_video_time)
 
         if mode == LikeMode.DOUBLE_CLICK:
             logger.info("Double click photo.")
@@ -1606,12 +1624,12 @@ class ProfileView(ActionBarView):
         followers_button = self.device.find(
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWERS_CONTAINER
         )
-        if followers_button.exists(Timeout.MEDIUM):
+        if followers_button.exists(Timeout.LONG):
             followers_button.click()
             followers_tab = self.device.find(
                 resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             ).child(textContains="Followers")
-            if followers_tab.exists(Timeout.MEDIUM):
+            if followers_tab.exists(Timeout.LONG):
                 followers_tab.click()
                 return True
         else:
@@ -1623,12 +1641,12 @@ class ProfileView(ActionBarView):
         following_button = self.device.find(
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
-        if following_button.exists(Timeout.MEDIUM):
+        if following_button.exists(Timeout.LONG):
             following_button.click()
             following_tab = self.device.find(
                 resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             ).child(textContains="Following")
-            if following_tab.exists(Timeout.MEDIUM):
+            if following_tab.exists(Timeout.LONG):
                 following_tab.click()
                 return True
         else:

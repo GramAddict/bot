@@ -47,6 +47,7 @@ shuffle-jobs: true
 truncate-sources: 2-5
 delete-interacted-users: true
 watch-video-time: 15-35
+watch-photo-time: 3-4
 # blogger-post-limits: 2 this feature is not implemented at this moment
 
 ## Unfollow
@@ -67,6 +68,7 @@ telegram-reports: false # for using telegram-reports you have also to configure 
 
 interactions-count: 30-40
 likes-count: 1-2
+likes-percentage: 100
 stories-count: 1-2
 stories-percentage: 30-40
 carousel-count: 2-3

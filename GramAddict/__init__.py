@@ -275,6 +275,10 @@ def run():
                 )
                 break
 
+        # save the session in sessions.json
+        session_state.finishTime = datetime.now()
+        sessions.persist(directory=session_state.my_username)
+
         # print reports
         if analytics_at_end:
             configs.actions["analytics"].run(
@@ -287,16 +291,12 @@ def run():
 
         # turn off bot
         close_instagram(device, configs.args.screen_record)
-        session_state.finishTime = datetime.now()
 
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time.")
 
         kill_atx_agent(device)
-
-        # save the session in sessions.json
-        sessions.persist(directory=session_state.my_username)
 
         logger.info(
             "-------- FINISH: "

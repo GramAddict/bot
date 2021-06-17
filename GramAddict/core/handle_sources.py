@@ -101,7 +101,8 @@ def handle_blogger(
     interaction,
     is_follow_limit_reached,
 ):
-    nav_to_blogger(device, blogger, session_state.my_username)
+    if not nav_to_blogger(device, blogger, session_state.my_username):
+        return
     if storage.is_user_in_blacklist(blogger):
         logger.info(f"@{blogger} is in blacklist. Skip.")
     elif storage.check_user_was_interacted(blogger):
@@ -674,10 +675,13 @@ def iterate_over_followers(
                         descriptionMatches=case_insensitive_re("Retry"),
                     )
                     if retry_button.exists():
-                        logger.info('Press "Load" button and wait few seconds.')
-                        retry_button.click_retry()
-                        random_sleep(5, 10, modulable=False)
-                        pressed_retry = True
+                        random_sleep()
+                        """It exist but can disappear without pressing on it"""
+                        if retry_button.exists():
+                            logger.info('Press "Load" button and wait few seconds.')
+                            retry_button.click_retry()
+                            random_sleep(5, 10, modulable=False)
+                            pressed_retry = True
 
                 if need_swipe and not pressed_retry:
                     scroll_end_detector.notify_skipped_all()
