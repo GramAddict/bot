@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from enum import Enum, unique
+from atomicwrites import atomic_write
 import sys
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class Storage:
             f"{ACCOUNTS}/{my_username}/{FILENAME_INTERACTED_USERS}"
         )
         if os.path.exists(self.interacted_users_path):
-            with open(self.interacted_users_path) as json_file:
+            with open(self.interacted_users_path, encoding="utf-8") as json_file:
                 try:
                     self.interacted_users = json.load(json_file)
                 except Exception as e:
@@ -66,7 +67,7 @@ class Storage:
         )
 
         if os.path.exists(self.history_filter_users_path):
-            with open(self.history_filter_users_path) as json_file:
+            with open(self.history_filter_users_path, encoding="utf-8") as json_file:
                 try:
                     self.history_filter_users = json.load(json_file)
                 except Exception as e:
@@ -81,12 +82,12 @@ class Storage:
 
         whitelist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_WHITELIST}"
         if os.path.exists(whitelist_path):
-            with open(whitelist_path) as file:
+            with open(whitelist_path, encoding="utf-8") as file:
                 self.whitelist = [line.rstrip() for line in file]
 
         blacklist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_BLACKLIST}"
         if os.path.exists(blacklist_path):
-            with open(blacklist_path) as file:
+            with open(blacklist_path, encoding="utf-8") as file:
                 self.blacklist = [line.rstrip() for line in file]
 
         self.report_path = f"{ACCOUNTS}/{my_username}/{REPORTS}/"
@@ -121,7 +122,9 @@ class Storage:
         user["skip_reason"] = None if skip_reason is None else skip_reason.name
         self.history_filter_users[username] = user
         if self.history_filter_users_path is not None:
-            with open(self.history_filter_users_path, "w") as outfile:
+            with atomic_write(
+                self.history_filter_users_path, overwrite=True, encoding="utf-8"
+            ) as outfile:
                 json.dump(self.history_filter_users, outfile, indent=4, sort_keys=False)
 
     def add_interacted_user(
@@ -213,7 +216,9 @@ class Storage:
 
     def _update_file(self):
         if self.interacted_users_path is not None:
-            with open(self.interacted_users_path, "w") as outfile:
+            with atomic_write(
+                self.interacted_users_path, overwrite=True, encoding="utf-8"
+            ) as outfile:
                 json.dump(self.interacted_users, outfile, indent=4, sort_keys=False)
 
 

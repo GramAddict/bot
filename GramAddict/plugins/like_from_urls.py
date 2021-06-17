@@ -1,6 +1,7 @@
 import logging
 from random import shuffle
 from os import path
+from atomicwrites import atomic_write
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import do_like
 from GramAddict.core.plugin_loader import Plugin
@@ -70,7 +71,7 @@ class LikeFromURLs(Plugin):
         # TODO: We need to add interactions properly, honor session/source limits, honor filter,
         # etc. Not going to try to do this now, but adding a note to do it later
         if path.isfile(current_file):
-            with open(current_file, "r") as f:
+            with open(current_file, "r", encoding="utf-8") as f:
                 for line in f:
                     url = line.strip()
                     if validate_url(url) and "instagram.com/p/" in url:
@@ -91,7 +92,7 @@ class LikeFromURLs(Plugin):
                         logger.info("Line in file is blank, skip.")
                 remaining = f.readlines()
             if self.args.delete_interacted_users:
-                with open(current_file, "w", encoding="UTF-8") as f:
+                with atomic_write(current_file, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")

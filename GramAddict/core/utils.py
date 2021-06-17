@@ -81,6 +81,7 @@ def move_usernames_to_accounts():
     Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
     ls = next(walk("."))[1]
     ignored_dir = [
+        "build",
         "accounts",
         "GramAddict",
         "config-examples",
@@ -378,7 +379,7 @@ def can_repeat(current_session, max_sessions):
         return True
 
 
-def get_value(count, name, default):
+def get_value(count, name, default, its_time=False):
     def print_error():
         logger.error(
             name.format(default)
@@ -400,7 +401,11 @@ def get_value(count, name, default):
             print_error()
     elif len(parts) == 2:
         try:
-            value = randint(int(parts[0]), int(parts[1]))
+            if not its_time:
+                value = randint(int(parts[0]), int(parts[1]))
+            else:
+                value = round(uniform(int(parts[0]), int(parts[1])), 2)
+
             if name is not None:
                 logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
@@ -425,7 +430,7 @@ def append_to_file(filename, username):
     try:
         if not filename.lower().endswith(".txt"):
             filename = filename + ".txt"
-        with open(filename, "a+", encoding="UTF-8") as file:
+        with open(filename, "a+", encoding="utf-8") as file:
             file.write(username + "\n")
     except Exception as e:
         logger.error(f"Failed to append {username} to: {filename}. Exception: {e}")

@@ -365,10 +365,14 @@ def do_like(opened_post_view, device, session_state, media_type):
     if (
         media_type == MediaType.VIDEO or media_type == MediaType.IGTV
     ) and args.watch_video_time != "0":
-        watching_time = get_value(args.watch_video_time, "Watching video for {}s.", 0)
+        watching_time = get_value(
+            args.watch_video_time, "Watching video for {}s.", 0, its_time=True
+        )
         sleep(watching_time)
     if media_type == MediaType.PHOTO and args.watch_photo_time != "0":
-        watching_time = get_value(args.watch_photo_time, "Watching photo for {}s.", 0)
+        watching_time = get_value(
+            args.watch_photo_time, "Watching photo for {}s.", 0, its_time=True
+        )
         sleep(watching_time)
     logger.info("Double click post.")
     like_succeed = opened_post_view.likePost()
@@ -496,14 +500,20 @@ def _browse_carousel(device, media_type, obj_count):
                         resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP
                     ).exists():
                         watch_photo_time = get_value(
-                            configs.args.watch_photo_time, "Watching photo for {}s.", 0
+                            configs.args.watch_photo_time,
+                            "Watching photo for {}s.",
+                            0,
+                            its_time=True,
                         )
                         sleep(watch_photo_time)
                     elif media_obj.child(
                         resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP
                     ).exists():
                         watch_video_time = get_value(
-                            configs.args.watch_video_time, "Watching video for {}s.", 0
+                            configs.args.watch_video_time,
+                            "Watching video for {}s.",
+                            0,
+                            its_time=True,
                         )
                         sleep(watch_video_time)
                     UniversalActions(device)._swipe_points(

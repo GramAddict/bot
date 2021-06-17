@@ -1,3 +1,4 @@
+import os
 import configargparse
 import logging
 import sys
@@ -31,6 +32,11 @@ class Config:
             except IndexError:
                 logger.warning(
                     "Please provide a filename with your --config argument. Example: '--config accounts/yourusername/config.yml'"
+                )
+                exit(0)
+            except FileNotFoundError:
+                logger.error(
+                    f"I can see the file {file_name}! Double check the spelling or if you're calling the bot from the right folder. (You're there: '{os.getcwd()}')"
                 )
                 exit(0)
 

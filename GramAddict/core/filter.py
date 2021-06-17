@@ -125,7 +125,7 @@ class Filter:
                         logger.error(f"Error: {e}")
 
             elif os.path.exists(filter_path):
-                with open(filter_path) as json_file:
+                with open(filter_path, "r", encoding="utf-8") as json_file:
                     try:
                         self.conditions = json.load(json_file)
                         logger.warning(
@@ -139,7 +139,7 @@ class Filter:
                         sys.exit(0)
             else:
                 logger.warning(
-                    f"The filters file {filter_path} doesn't exists. Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
+                    f"The legacy filters file {filter_path} doesn't exists. Download and use the filters.yml instead from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
                 )
         else:
             logger.warning("Filters are disabled!")

@@ -956,12 +956,18 @@ class PostsViewList:
         media_obj = self.device.find(resourceIdMatches=post_container)
         if media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP):
             watch_photo_time = get_value(
-                configs.args.watch_photo_time, "Watching photo for {}s.", 0
+                configs.args.watch_photo_time,
+                "Watching photo for {}s.",
+                0,
+                its_time=True,
             )
             sleep(watch_photo_time)
         elif media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP):
             watch_video_time = get_value(
-                configs.args.watch_video_time, "Watching video for {}s.", 0
+                configs.args.watch_video_time,
+                "Watching video for {}s.",
+                0,
+                its_time=True,
             )
             sleep(watch_video_time)
 

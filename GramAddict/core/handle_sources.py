@@ -1,3 +1,4 @@
+from atomicwrites import atomic_write
 from GramAddict.core.utils import get_value, random_sleep
 import logging
 from functools import partial
@@ -189,7 +190,7 @@ def handle_blogger_from_file(
                     logger.info("Line in file is blank, skip.")
             remaining = f.readlines()
         if self.args.delete_interacted_users:
-            with open(current_filename, "w", encoding="UTF-8") as f:
+            with atomic_write(current_filename, overwrite=True, encoding="utf-8") as f:
                 f.writelines(remaining)
     else:
         logger.warning(f"File {current_filename} not found.")

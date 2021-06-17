@@ -1,3 +1,4 @@
+from atomicwrites import atomic_write
 from GramAddict.core.storage import ACCOUNTS
 import json
 import os
@@ -49,5 +50,5 @@ class PersistentList(list):
             json_object[item_id] = item
         json_array = list(json_object.values())
 
-        with open(path, "w") as outfile:
+        with atomic_write(path, overwrite=True, encoding="utf-8") as outfile:
             json.dump(json_array, outfile, indent=4, sort_keys=False)
