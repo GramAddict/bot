@@ -81,6 +81,7 @@ def move_usernames_to_accounts():
     Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
     ls = next(walk("."))[1]
     ignored_dir = [
+        "__pycache__",
         "build",
         "accounts",
         "GramAddict",
