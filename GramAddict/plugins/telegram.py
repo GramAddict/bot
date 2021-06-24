@@ -179,7 +179,9 @@ class TelegramReports(Plugin):
         followers_before = int(df["followers"].iloc[-1])
         following_before = int(df["following"].iloc[-1])
         statString = f"""
-                *Starts for {username}* after last activity:
+                *Stats for {username}*:
+                
+                *✨Partial after last activity*
                 • {followers_now} followers ({followers_now - followers_before:+})
                 • {following_now} following ({following_now - following_before:+})
 
