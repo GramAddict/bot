@@ -36,7 +36,7 @@ class Config:
                 exit(0)
             except FileNotFoundError:
                 logger.error(
-                    f"I can see the file {file_name}! Double check the spelling or if you're calling the bot from the right folder. (You're there: '{os.getcwd()}')"
+                    f"I can't see the file '{file_name}'! Double check the spelling or if you're calling the bot from the right folder. (You're there: '{os.getcwd()}')"
                 )
                 exit(0)
 
@@ -123,7 +123,8 @@ class Config:
                 exit(0)
 
         self.args, self.unknown_args = self.parser.parse_known_args()
-
+        if "run" in self.unknown_args:
+            self.unknown_args.remove("run")
         if self.unknown_args and self.first_run:
             logger.error(
                 "Unknown arguments: " + ", ".join(str(arg) for arg in self.unknown_args)
