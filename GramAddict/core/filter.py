@@ -488,17 +488,15 @@ class Filter:
         )
 
     def can_comment(self, current_mode):
-        try:
+        if self.conditions is not None:
             return (
                 self.conditions.get(FIELD_COMMENT_PHOTOS, True),
                 self.conditions.get(FIELD_COMMENT_VIDEOS, True),
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
-        except Exception as e:
-            logger.debug(
-                f"filters.yml (or legacy filter.json) is not loaded! Exception: {e}"
-            )
-            return False, False, False
+        else:
+            logger.debug("filters.yml (or legacy filter.json) is not loaded!")
+        return False, False, False
 
     def get_all_data(self, device):
         profile_picture = device.find(
