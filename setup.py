@@ -30,6 +30,11 @@ setuptools.setup(
         "telegram-reports": ["pandas==1.2.4"],
         "analytics": ["matplotlib==3.4.2"],
     },
+    entry_points={
+        'console_scripts': [
+            'gramaddict = GramAddict.__main__:main'
+        ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
