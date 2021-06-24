@@ -516,15 +516,19 @@ def _browse_carousel(device, media_type, obj_count):
                             its_time=True,
                         )
                         sleep(watch_video_time)
-                    UniversalActions(device)._swipe_points(
-                        start_point_y=(
-                            media_obj_bounds["bottom"] - media_obj_bounds["top"]
-                        )
+                    start_point_y = (
+                        (media_obj_bounds["bottom"] - media_obj_bounds["top"])
                         / 2
-                        * uniform(0.85, 1.15),
-                        start_point_x=uniform(0.85, 1.15)
-                        * (media_obj_bounds["right"] * 5 / 6),
-                        delta_x=media_obj_bounds["right"] * uniform(0.5, 0.7),
+                        * uniform(0.85, 1.15)
+                    )
+                    start_point_x = uniform(0.85, 1.10) * (
+                        media_obj_bounds["right"] * 5 / 6
+                    )
+                    delta_x = media_obj_bounds["right"] * uniform(0.5, 0.7)
+                    UniversalActions(device)._swipe_points(
+                        start_point_y=start_point_y,
+                        start_point_x=start_point_x,
+                        delta_x=delta_x,
                         direction=Direction.LEFT,
                     )
                     n += 1

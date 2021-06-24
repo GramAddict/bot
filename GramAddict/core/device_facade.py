@@ -231,7 +231,7 @@ class DeviceFacade:
 
     def swipe_points(self, sx, sy, ex, ey, random_x=True, random_y=True):
         if random_x:
-            sx = sx * uniform(0.60, 1.40)
+            sx = sx * uniform(0.85, 1.15)
             ex = ex * uniform(0.85, 1.15)
         if random_y:
             ey = ey * uniform(0.98, 1.02)
