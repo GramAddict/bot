@@ -177,6 +177,7 @@ class InteractPlaceLikers(Plugin):
         )
 
         handle_likers(
+            self,
             device,
             self.session_state,
             place,

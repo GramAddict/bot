@@ -92,18 +92,27 @@ class Storage:
 
         self.report_path = f"{ACCOUNTS}/{my_username}/{REPORTS}/"
 
-    def check_user_was_interacted(self, username):
-        return not self.interacted_users.get(username) is None
+    def can_be_reinteract(self, last_interaction, hours_that_have_to_pass):
+        if hours_that_have_to_pass > timedelta(hours=0):
+            delta = datetime.now() - last_interaction
+            if delta < hours_that_have_to_pass:
+                return False
+            else:
+                return True
+        else:
+            return False
 
-    def check_user_was_interacted_recently(self, username):
+    def check_user_was_interacted(self, username):
+        """returns when an username has been interacted, False if not already interacted"""
         user = self.interacted_users.get(username)
         if user is None:
-            return False
+            return False, None
 
         last_interaction = datetime.strptime(
             user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
         )
-        return datetime.now() - last_interaction <= timedelta(days=3)
+        return True, last_interaction
+        # return datetime.now() - last_interaction <= timedelta(days=3)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)

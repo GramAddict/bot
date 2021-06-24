@@ -180,6 +180,7 @@ class InteractHashtagPosts(Plugin):
             hashtag,
             current_job,
             storage,
+            profile_filter,
             on_interaction,
             interaction,
             is_follow_limit_reached,

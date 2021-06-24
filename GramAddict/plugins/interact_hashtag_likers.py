@@ -183,6 +183,7 @@ class InteractHashtagLikers(Plugin):
         )
 
         handle_likers(
+            self,
             device,
             self.session_state,
             hashtag,

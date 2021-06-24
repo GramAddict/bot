@@ -137,6 +137,13 @@ class CoreArguments(Plugin):
                 "default": "50",
             },
             {
+                "arg": "--can-reinteract-after",
+                "nargs": None,
+                "help": "amount of hours that have to pass from the last interaction",
+                "metavar": "50",
+                "default": "-1",
+            },
+            {
                 "arg": "--repeat",
                 "nargs": None,
                 "help": "repeat the same session again after N minutes after completion, disabled by default. It can be a number of minutes (e.g. 180) or a range (e.g. 120-180)",

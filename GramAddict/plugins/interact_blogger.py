@@ -192,6 +192,7 @@ class InteractBloggerPostLikers(Plugin):
         )
 
         handle_blogger(
+            self,
             device,
             self.session_state,
             username,

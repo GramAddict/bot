@@ -140,6 +140,7 @@ class InteractOwnFeed(Plugin):
             "Own Feed",
             current_job,
             storage,
+            profile_filter,
             on_interaction,
             interaction,
             None,

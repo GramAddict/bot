@@ -49,6 +49,7 @@ delete-interacted-users: true
 watch-video-time: 15-35
 watch-photo-time: 3-4
 # blogger-post-limits: 2 this feature is not implemented at this moment
+can-reinteract-after: -1 # -1 or commented for disable this feature, otherwise the amount of hours that have to pass from the last interaction
 
 ## Unfollow
 unfollow: 10-20
