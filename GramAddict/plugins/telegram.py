@@ -181,7 +181,7 @@ class TelegramReports(Plugin):
         statString = f"""
                 *Stats for {username}*:
                 
-                *✨Partial after last activity*
+                *✨Overview after last activity*
                 • {followers_now} followers ({followers_now - followers_before:+})
                 • {following_now} following ({following_now - following_before:+})
 
