@@ -81,8 +81,8 @@ Yes, but you can also run it [directly on your phone](https://docs.gramaddict.or
 
 In any case you can decide to use a physical device or an emulator (if you're under Windows I suggest you to use [Memu](https://www.memuplay.com/)).
 For hosting the bot you can use:
-- your computer (with Windows, macOS and Linux)
-- a raspberry which is a cheap little pc Linux based
+- your computer (with Windows, macOS or Linux)
+- a Raspberry (which is a cheap little pc Linux based)
 
 ## Cool! What can I do with this bot? 
 There are a lot of __cool features__ you can use __for free__!
@@ -143,7 +143,7 @@ I'll try to help you accomplish that with a short tutorial. The full is availabl
 ## What do you need:
 - a computer (with Windows, macOS or Linux)
 - Python installed on your machine (with pip)
-- adb tools
+- Adb tools
 - a phisical device or an emulator (with Android 4.4+)
 ### Step 1: Install Python (>=3.6):
 
@@ -153,7 +153,7 @@ Failed? [Detailed tutorial here](https://docs.gramaddict.org/#/quickstart?id=ste
 >A little reminder: we refer to python with __python3__. You may have also have python2 installed if you're on Linux for example. If you're on Windows you can use __python__ instead of python3.
 >Check which python alias you have to use by typing `python -V` or `python3 -V` or `py -V` and use the right one for the rest of the tutorial.
 
->Check that pip3 is installed by typing `pip -V`
+>Check that pip3 is installed by typing `pip3 -V`
 >If that return an error you have to install it! How? [Google is your best friend!](https://www.google.com/search?q=how+to+install+pip) :P
 ### Step 2: Install GramAddict:
 You can install GramAddict in two ways: with __pip__ or with __git__
@@ -169,17 +169,17 @@ We create a virtual environment called `.venv` and activate it:
     - `source .venv/bin/activate` on Linux/macOS
     - `.venv\Scripts\activate.bat` on Windows cmd
     - `.venv\Scripts\activate.ps1` on Windows PowerShell
-    > If you activate the venv correctly, you will see a little (.venv) on the left side of the command line
+      > If you activate the venv correctly, you will see a little (.venv) on the left side of the command line!
 #### With pip (I suggest you this way):
 
-Install the package: `pip3 install GramAddict`
-Check if it's installed: `GramAddict --version`
-If everything is fine you will get the GramAddict version installed. 🥳
+- install the package: `pip3 install GramAddict`
+- check if it's installed: `gramaddict --version`
+- if everything is fine you will get the GramAddict version installed 🥳
 
 #### With git:
-Clone the project: `git clone https://github.com/GramAddict/bot.git gramaddict`
-Enter the gramaddict folder: `cd gramaddict`
-Install the requirements: `pip3 install -r requirements.txt`
+- clone the project: `git clone https://github.com/GramAddict/bot.git gramaddict`
+- enter the gramaddict folder: `cd gramaddict`
+- install the requirements: `pip3 install -r requirements.txt`
 
 ### Step 3: Install adb:
 Adb stands for [Android Debug Bridge](https://developer.android.com/studio/command-line/adb). It's needed for making this bot working properly. I think this one is the hardest part to accomplish but don't give up! You can do it, with my help. 💪
@@ -215,9 +215,8 @@ This bot works only if your Instagram is in [English](https://help.instagram.com
       > A0B1CD2345678901    device
 
    - this is your device ID, you have to use it only if you have more then one device connected at the same time
-5. initialize uiautomator2: `python3 -m uiautomator2 init`
-6. initialize gramaddict: `python3 -m GramAddict init your_ig_account_name_here`
-   > __Warning:__ it's <u>case sensitive</u>, you have to write <b>GramAddict</b> and not <s>gramaddict</s>!
+5. initialize uiautomator2: `uiautomator2 init`
+6. initialize GramAddict: `gramaddict init your_ig_account_name_here`
     - that script will crate all the files you need for configure and start this bot
     - you will find them inside the folder `accounts/youraccountname/`
       ```sh
@@ -234,7 +233,7 @@ This bot works only if your Instagram is in [English](https://help.instagram.com
               pm_list.txt
       ```
 7. now that you have all the requirements you have to configure the whole thing by [following this guide](https://docs.gramaddict.org/#/configuration)
-8. now you're done and you can finally start the bot: `python3 run.py --config accounts/yourusername/config.yml` or `python -m GramAddict run --config accounts/yourusername/config.yml`
+8. now you're done and you can finally start the bot: `python3 run.py --config accounts/yourusername/config.yml` or `gramaddict run --config accounts/yourusername/config.yml`
 
 Failed? [Check this out!](https://docs.gramaddict.org/#/quickstart?id=troubleshooting)
 
