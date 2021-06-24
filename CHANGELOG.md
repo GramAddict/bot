@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.6.1 (2021-06-24)
+
+#### Performance improvements
+
+* we can use an entry point from now
+#### Docs
+
+* correct a typo in telegram-reports
+* improved the README
+
+Full set of changes: [`2.6.0...2.6.1`](https://github.com/GramAddict/bot/compare/2.6.0...2.6.1)
+
 ## 2.6.0 (2021-06-24)
 
 #### New Features
