@@ -77,10 +77,12 @@ __DON'T F*CKING DO THAT__
 __Be gently and anonymous and nobody will notice that you're botting, trust me__.
 
 ## Do I need a computer for running the bot?
-If you want to use an emulator you can for sure! But there are few options for hosting if you plan to use a physical device:
-- you can use your computer (with Windows, macOS and Linux)
-- you can use a raspberry which is a cheap little pc Linux based
-- you can run the bot from your phone without using a computer at all (you will find information about that in docs site)
+Yes, but you can also run it [directly on your phone](https://docs.gramaddict.org/#/termux)!!
+
+In any case you can decide to use a physical device or an emulator (if you're under Windows I suggest you to use [Memu](https://www.memuplay.com/)).
+For hosting the bot you can use:
+- your computer (with Windows, macOS and Linux)
+- a raspberry which is a cheap little pc Linux based
 
 ## Cool! What can I do with this bot? 
 There are a lot of __cool features__ you can use __for free__!
