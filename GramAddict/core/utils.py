@@ -77,6 +77,13 @@ def update_available():
     return False, online_version_raw
 
 
+def ask_for_a_donation():
+    logger.info(
+        "This bot is backed with love by me for free. If you like using it, consider donating to help keep me motivated: https://www.buymeacoffee.com/mastrolube",
+        extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"},
+    )
+
+
 def move_usernames_to_accounts():
     Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
     ls = next(walk("."))[1]
@@ -359,6 +366,7 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
         print_full_report(sessions, configs.args.scrape_to_file)
         if not was_sleeping:
             sessions.persist(directory=session_state.my_username)
+    ask_for_a_donation()
     sys.exit(0)
 
 
