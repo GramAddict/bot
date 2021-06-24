@@ -712,15 +712,24 @@ class PostsViewList:
         likes = 0
         if likes_view.exists():
             likes_view_text = likes_view.get_text().replace(",", "")
-            matches = re.search(
+            matches_likes = re.search(
                 r"(?P<likes>\d+) (?:others|likes)", likes_view_text, re.IGNORECASE
             )
-            if hasattr(matches, "group"):
-                likes = int(matches.group("likes"))
+            matches_view = re.search(
+                r"(?P<views>\d+) views", likes_view_text, re.IGNORECASE
+            )
+            if hasattr(matches_likes, "group"):
+                likes = int(matches_likes.group("likes"))
                 logger.info(
                     f"This post has {likes if 'likes' in likes_view_text else likes+1} like(s)."
                 )
                 return likes
+            elif hasattr(matches_view, "group"):
+                views = int(matches_view.group("views"))
+                logger.info(
+                    f"I can see only that this post has {views} views(s). It may contains likes.."
+                )
+                return -1
             else:
                 if likes_view_text.endswith("others"):
                     logger.info("This post has more then 1 like.")
@@ -888,16 +897,27 @@ class PostsViewList:
             UniversalActions(self.device)._reload_page()
 
     def _post_owner(self, current_job, mode: Owner, username=None):
+        """returns a tuple[var, bool]"""
         is_ad = False
         if username is None:
             post_owner_obj = self.device.find(
-                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
+                resourceIdMatches=ResourceID.ROW_FEED_PHOTO_PROFILE_NAME
             )
         else:
-            post_owner_obj = self.device.find(
-                resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
-                textStartsWith=username,
-            )
+            for _ in range(2):
+                post_owner_obj = self.device.find(
+                    resourceIdMatches=ResourceID.ROW_FEED_PHOTO_PROFILE_NAME,
+                    textStartsWith=username,
+                )
+                notification = self.device.find(
+                    resourceIdMatches=ResourceID.NOTIFICATION_MESSAGE
+                )
+                if not post_owner_obj.exists and notification.exists():
+                    logger.warning(
+                        "There is a notification there! Please disable them in settings.. We will wait 10 seconds before continue.."
+                    )
+                    sleep(10)
+                    continue
         post_owner_clickable = False
         for _ in range(2):
             if not post_owner_obj.exists():
@@ -906,19 +926,19 @@ class PostsViewList:
                         resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
                         textStartsWith=username,
                     )
-                    for _ in range(2):
-                        if comment_description.exists() is None:
-                            random_sleep()
-                            comment_description = self.device.find(
-                                resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
-                                textContains=username,
-                            )
-                        else:
-                            break
+                    if (
+                        not comment_description.exists()
+                        and comment_description.count_items() >= 1
+                    ):
+                        comment_description = self.device.find(
+                            resourceIdMatches=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                            text=comment_description.get_text(),
+                        )
+
                     if comment_description.exists():
                         logger.info("Open post owner from description.")
                         comment_description.child().click()
-                        return True
+                        return True, is_ad
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
                     resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
@@ -929,22 +949,22 @@ class PostsViewList:
                 break
 
         if not post_owner_clickable:
-            logger.info("Can't find the owner name.")
-            return False, False
+            logger.info("Can't find the owner name, skip.")
+            return False, is_ad
         if mode == Owner.OPEN:
             logger.info("Open post owner.")
             PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(post_owner_obj)
             post_owner_obj.click()
-            return True
+            return True, is_ad
         elif mode == Owner.GET_NAME:
             if current_job == "feed":
                 is_ad = PostsViewList(self.device)._check_if_ad(post_owner_obj)
             return post_owner_obj.get_text().replace("•", "").strip(), is_ad
 
         elif mode == Owner.GET_POSITION:
-            return post_owner_obj.get_bounds()
+            return post_owner_obj.get_bounds(), is_ad
         else:
-            return False, False
+            return None, is_ad
 
     def _get_post_owner_name(self):
         return self.device.find(
