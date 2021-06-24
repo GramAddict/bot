@@ -129,7 +129,9 @@ Full documentation available on [docs.gramaddict.org](https://docs.gramaddict.or
 ## Telegram reports? What's that?
 You can get __reports__ through telegram from your bot activities!
 [Follow this guide to accomplish that](https://docs.gramaddict.org/#/configuration?id=telegram-reports).
-<img src="https://github.com/GramAddict/bot/raw/master/res/telegram-reports.png">
+
+<img src="https://github.com/GramAddict/bot/raw/master/res/telegram-reports.png" width="200">
+
 Cool, isn't it? 💦
 # Quick start
 Now that you're there you still don't know how to install that whole thing.
