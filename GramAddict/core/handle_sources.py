@@ -272,7 +272,7 @@ def handle_likers(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description, _, _ = PostsViewList(device)._check_if_last_post(
+        flag, post_description, _, _, _ = PostsViewList(device)._check_if_last_post(
             post_description, current_job
         )
         has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
@@ -324,58 +324,54 @@ def handle_likers(
                         break
 
                     username = username_view.get_text()
-                    profile_interact = profile_filter.check_profile_from_list(
-                        device, item, username
-                    )
                     screen_iterated_likers.append(username)
                     posts_end_detector.notify_username_iterated(username)
-                    if not profile_interact:
-                        can_interact = False
-                        if storage.is_user_in_blacklist(username):
-                            logger.info(f"@{username} is in blacklist. Skip.")
-                        else:
-                            (
-                                interacted,
-                                interacted_when,
-                            ) = storage.check_user_was_interacted(username)
-                            if interacted:
-                                interact_after = timedelta(
-                                    hours=float(self.args.can_reinteract_after)
-                                )
-                                can_reinteract = storage.can_be_reinteract(
-                                    interacted_when, interact_after
-                                )
-                                logger.info(
-                                    f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
-                                )
-                                if can_reinteract:
-                                    can_interact = True
-                            else:
-                                can_interact = True
-
-                        if can_interact:
-                            logger.info(
-                                f"@{username}: interact",
-                                extra={"color": f"{Fore.YELLOW}"},
+                    can_interact = False
+                    if storage.is_user_in_blacklist(username):
+                        logger.info(f"@{username} is in blacklist. Skip.")
+                    else:
+                        (
+                            interacted,
+                            interacted_when,
+                        ) = storage.check_user_was_interacted(username)
+                        if interacted:
+                            interact_after = timedelta(
+                                hours=float(self.args.can_reinteract_after)
                             )
-                            element_opened = username_view.click_retry()
+                            can_reinteract = storage.can_be_reinteract(
+                                interacted_when, interact_after
+                            )
+                            logger.info(
+                                f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                            )
+                            if can_reinteract:
+                                can_interact = True
+                        else:
+                            can_interact = True
 
-                            if element_opened:
-                                if not interact(
-                                    storage,
-                                    is_follow_limit_reached,
-                                    username,
-                                    interaction,
-                                    device,
-                                    session_state,
-                                    current_job,
-                                    on_interaction,
-                                ):
-                                    return
+                    if can_interact:
+                        logger.info(
+                            f"@{username}: interact",
+                            extra={"color": f"{Fore.YELLOW}"},
+                        )
+                        element_opened = username_view.click_retry()
+
                         if element_opened:
-                            opened = True
-                            logger.info("Back to likers list.")
-                            device.back()
+                            if not interact(
+                                storage,
+                                is_follow_limit_reached,
+                                username,
+                                interaction,
+                                device,
+                                session_state,
+                                current_job,
+                                on_interaction,
+                            ):
+                                return
+                    if element_opened:
+                        opened = True
+                        logger.info("Back to likers list.")
+                        device.back()
 
             except IndexError:
                 logger.info(
@@ -464,11 +460,11 @@ def handle_posts(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description, username, ad = PostsViewList(
+        flag, post_description, username, is_ad, is_hashtag = PostsViewList(
             device
         )._check_if_last_post(post_description, current_job)
         has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
-        if not ad:
+        if not (is_ad or is_hashtag):
             if flag:
                 nr_same_post += 1
                 logger.info(
@@ -535,7 +531,7 @@ def handle_posts(
                                 TabBarView(device).navigateToProfile()
                                 return
                     if current_job != "feed":
-                        opened, _ = PostsViewList(device)._post_owner(
+                        opened, _, _ = PostsViewList(device)._post_owner(
                             current_job, Owner.OPEN, username
                         )
                         if opened:

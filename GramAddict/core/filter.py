@@ -145,25 +145,6 @@ class Filter:
             logger.warning("Filters are disabled!")
         self.storage = storage
 
-    def check_profile_from_list(self, device, item, username):
-        """check profile from list without open it"""
-        if self.conditions is None:
-            return True
-
-        field_skip_following = self.conditions.get(FIELD_SKIP_FOLLOWING, False)
-
-        if field_skip_following:
-            following = OpenedPostView(device)._isFollowing(item)
-
-            if following:
-                logger.info(
-                    f"You follow @{username}, skip.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-
-        return True
-
     def is_num_likers_in_range(self, likes_on_post):
         if self.conditions is not None and likes_on_post is not None:
             if likes_on_post == -1:
