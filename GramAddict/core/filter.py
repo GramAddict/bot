@@ -14,7 +14,7 @@ from colorama import Fore
 from langdetect import detect
 from enum import Enum, auto
 from datetime import datetime
-from GramAddict.core.views import ProfileView, FollowStatus, OpenedPostView
+from GramAddict.core.views import ProfileView, FollowStatus
 from GramAddict.core.resources import ClassName, ResourceID as resources
 
 logger = logging.getLogger(__name__)
