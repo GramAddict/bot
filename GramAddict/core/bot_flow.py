@@ -32,6 +32,7 @@ from GramAddict.core.utils import (
     load_config as load_utils,
     move_usernames_to_accounts,
     open_instagram,
+    print_telegram_reports,
     save_crash,
     set_time_delta,
     stop_bot,
@@ -114,6 +115,13 @@ def start_bot():
         total_sessions = get_value(configs.args.total_sessions, None, -1)
     else:
         total_sessions = -1
+
+    # init
+    analytics_at_end = False
+    telegram_reports_at_end = False
+    followers_now = None
+    following_now = None
+
     while True:
         set_time_delta(configs.args)
         inside_working_hours, time_left = SessionState.inside_working_hours(
@@ -146,7 +154,7 @@ def start_bot():
                 )
                 exit(0)
 
-        logger.info("Device screen on and unlocked.")
+        logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
                 tested_ig_version = "192.0.0.35.123"
@@ -234,17 +242,16 @@ def start_bot():
             jobs_list = random.sample(configs.enabled, len(configs.enabled))
         else:
             jobs_list = configs.enabled
-        analytics_at_end = False
-        telegram_reports_at_end = False
-        for job in jobs_list:
-            if job == "analytics":
-                jobs_list.remove(job)
-                if configs.args.analytics:
-                    analytics_at_end = True
-            if job == "telegram-reports":
-                jobs_list.remove(job)
-                if configs.args.telegram_reports:
-                    telegram_reports_at_end = True
+
+        if "analytics" in jobs_list:
+            jobs_list.remove("analytics")
+            if configs.args.analytics:
+                analytics_at_end = True
+        if "telegram-reports" in jobs_list:
+            jobs_list.remove("telegram-reports")
+            if configs.args.telegram_reports:
+                telegram_reports_at_end = True
+
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -281,13 +288,20 @@ def start_bot():
         sessions.persist(directory=session_state.my_username)
 
         # print reports
+        if telegram_reports_at_end:
+            logger.info("Going back to your profile..")
+            ProfileView(device)._click_on_avatar()
+            AccountView(device).refresh_account()
+            (
+                _,
+                _,
+                followers_now,
+                following_now,
+            ) = ProfileView(device).getProfileInfo()
+
         if analytics_at_end:
             configs.actions["analytics"].run(
                 device, configs, storage, sessions, "analytics"
-            )
-        if telegram_reports_at_end:
-            configs.actions["telegram-reports"].run(
-                device, configs, storage, sessions, "telegram-reports"
             )
 
         # turn off bot
@@ -312,11 +326,18 @@ def start_bot():
                 configs.args.working_hours, configs.args.time_delta_session
             )
             if inside_working_hours:
+                print_telegram_reports(
+                    configs,
+                    telegram_reports_at_end,
+                    followers_now,
+                    following_now,
+                    time_left,
+                )
                 time_left = (
-                    get_value(configs.args.repeat, "Sleep for {} minutes", 180) * 60
+                    get_value(configs.args.repeat, "Sleep for {} minutes.", 180) * 60
                 )
                 logger.info(
-                    f'Will start again at {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}'
+                    f'Next session will start at: {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
                 )
                 try:
                     sleep(time_left)
@@ -329,6 +350,13 @@ def start_bot():
                         was_sleeping=True,
                     )
             else:
+                print_telegram_reports(
+                    configs,
+                    telegram_reports_at_end,
+                    followers_now,
+                    following_now,
+                    time_left,
+                )
                 wait_for_next_session(
                     time_left,
                     session_state,
@@ -338,6 +366,8 @@ def start_bot():
                 )
         else:
             break
-
+    print_telegram_reports(
+        configs, telegram_reports_at_end, followers_now, following_now, time_left
+    )
     print_full_report(sessions, configs.args.scrape_to_file)
     ask_for_a_donation()
