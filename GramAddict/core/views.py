@@ -801,7 +801,7 @@ class PostsViewList:
 
     def _check_if_last_post(self, last_description, current_job):
         """check if that post has been just interacted"""
-        username, is_ad = PostsViewList(self.device)._post_owner(
+        username, is_ad, is_hashtag = PostsViewList(self.device)._post_owner(
             current_job, Owner.GET_NAME
         )
         swiped_a_bit = False
@@ -833,9 +833,9 @@ class PostsViewList:
                     logger.info(
                         "This post has the same description and author as the last one."
                     )
-                    return True, new_description, username, is_ad
+                    return True, new_description, username, is_ad, is_hashtag
                 else:
-                    return False, new_description, username, is_ad
+                    return False, new_description, username, is_ad, is_hashtag
             else:
                 gap_view_obj = self.device.find(resourceIdMatches=ResourceID.GAP_VIEW)
                 feed_composer = self.device.find(
@@ -851,14 +851,14 @@ class PostsViewList:
                         logger.info(
                             "Can't find the description of this post. Maybe it's blank.."
                         )
-                        return False, "", username, is_ad
+                        return False, "", username, is_ad, is_hashtag
 
                 logger.debug(
                     "Can't find the description, try to swipe a little bit down."
                 )
                 UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
                 swiped_a_bit = True
-        return False, "", username, is_ad
+        return False, "", username, is_ad, is_hashtag
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
         """do a swipe of the amount of the action bar"""
@@ -897,8 +897,9 @@ class PostsViewList:
             UniversalActions(self.device)._reload_page()
 
     def _post_owner(self, current_job, mode: Owner, username=None):
-        """returns a tuple[var, bool]"""
+        """returns a tuple[var, bool, bool]"""
         is_ad = False
+        is_hashtag = False
         if username is None:
             post_owner_obj = self.device.find(
                 resourceIdMatches=ResourceID.ROW_FEED_PHOTO_PROFILE_NAME
@@ -919,6 +920,7 @@ class PostsViewList:
                     sleep(10)
                     continue
         post_owner_clickable = False
+
         for _ in range(2):
             if not post_owner_obj.exists():
                 if mode == Owner.OPEN:
@@ -938,7 +940,7 @@ class PostsViewList:
                     if comment_description.exists():
                         logger.info("Open post owner from description.")
                         comment_description.child().click()
-                        return True, is_ad
+                        return True, is_ad, is_hashtag
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
                     resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
@@ -950,21 +952,25 @@ class PostsViewList:
 
         if not post_owner_clickable:
             logger.info("Can't find the owner name, skip.")
-            return False, is_ad
+            return False, is_ad, is_hashtag
         if mode == Owner.OPEN:
             logger.info("Open post owner.")
             PostsViewList(self.device)._if_action_bar_is_over_obj_swipe(post_owner_obj)
             post_owner_obj.click()
-            return True, is_ad
+            return True, is_ad, is_hashtag
         elif mode == Owner.GET_NAME:
             if current_job == "feed":
-                is_ad = PostsViewList(self.device)._check_if_ad(post_owner_obj)
-            return post_owner_obj.get_text().replace("•", "").strip(), is_ad
+                is_ad, is_hashtag, username = PostsViewList(
+                    self.device
+                )._check_if_ad_or_hashtag(post_owner_obj)
+            if username is None:
+                username = post_owner_obj.get_text().replace("•", "").strip()
+            return username, is_ad, is_hashtag
 
         elif mode == Owner.GET_POSITION:
             return post_owner_obj.get_bounds(), is_ad
         else:
-            return None, is_ad
+            return None, is_ad, is_hashtag
 
     def _get_post_owner_name(self):
         return self.device.find(
@@ -1028,20 +1034,26 @@ class PostsViewList:
             UniversalActions(self.device)._swipe_points(direction=Direction.DOWN)
             return PostsViewList(self.device)._check_if_liked()
 
-    def _check_if_ad(self, post_owner_obj):
+    def _check_if_ad_or_hashtag(self, post_owner_obj):
         str = "Sponsored"
-        logger.debug("Checking if it's an AD.")
+        is_hashtag = False
+        is_ad = False
+        real_username = None
+        logger.debug("Checking if it's an AD or an hashtag..")
         ad_like_obj = post_owner_obj.sibling(
             resourceId=ResourceID.SECONDARY_LABEL,
         )
+        if post_owner_obj.get_text().startswith("#"):
+            is_hashtag = True
+            logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
             if ad_like_obj.get_text() == str:
                 logger.debug("Looks like an AD, skip.")
-                return True
-            else:
-                return False
-        else:
-            return False
+                is_ad = True
+            elif is_hashtag:
+                real_username = ad_like_obj.get_text().split("•")[0].strip()
+
+        return is_ad, is_hashtag, real_username
 
 
 class LanguageView:
