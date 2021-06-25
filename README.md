@@ -148,15 +148,16 @@ I'll try to help you accomplish that with a short tutorial. The full is availabl
 ### Step 1: Install Python (>=3.6):
 
 If you're on Linux or macOS you should have Python and Git installed, just check that your Python version is >= 3.6
-On windows you have to [install it](https://www.python.org/downloads/) for sure
-Failed? [Detailed tutorial here](https://docs.gramaddict.org/#/quickstart?id=step-1-install-python-if-not-installed)
+On windows you have to [install it](https://www.python.org/downloads/) for sure.
+
+Failed? [Detailed tutorial here](https://docs.gramaddict.org/#/quickstart?id=step-1-install-python-if-not-installed).
 >A little reminder: we refer to python with __python3__. You may have also have python2 installed if you're on Linux for example. If you're on Windows you can use __python__ instead of python3.
 >Check which python alias you have to use by typing `python -V` or `python3 -V` or `py -V` and use the right one for the rest of the tutorial.
 
 >Check that pip3 is installed by typing `pip3 -V`
 >If that return an error you have to install it! How? [Google is your best friend!](https://www.google.com/search?q=how+to+install+pip) :P
 ### Step 2: Install GramAddict:
-You can install GramAddict in two ways: with __pip__ or with __git__
+You can install GramAddict in two ways: with __pip__ or with __git__.
 Is good practice to create virtual environments when you install a new package. That will save you from lot of problems!
 
 #### Create a virtual evironment
