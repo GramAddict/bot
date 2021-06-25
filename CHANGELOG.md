@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.6.2 (2021-06-25)
+
+#### Fixes
+
+* there was a problem with likers list
+* there was a problem with the way I moved the reports at the end of sessions
+#### Performance improvements
+
+* the bot can recognize hashtag suggestions in feed
+* telegram-reports improved
+#### Docs
+
+* typo in readme
+
+Full set of changes: [`2.6.1...2.6.2`](https://github.com/GramAddict/bot/compare/2.6.1...2.6.2)
+
 ## 2.6.1 (2021-06-24)
 
 #### Performance improvements
