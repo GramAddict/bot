@@ -289,6 +289,16 @@ def close_instagram(device, screen_record):
             )
 
 
+def print_telegram_reports(
+    configs, telegram_reports_at_end, followers_now, following_now, time_left=None
+):
+    if followers_now is not None:
+        if telegram_reports_at_end:
+            configs.actions["telegram-reports"].run(
+                configs, "telegram-reports", followers_now, following_now, time_left
+            )
+
+
 def kill_atx_agent(device):
     logger.debug("Back to default keyboard!")
     device.deviceV2.set_fastinput_ime(False)

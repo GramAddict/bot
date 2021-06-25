@@ -1,10 +1,9 @@
-from GramAddict.core.views import AccountView, ProfileView
 from colorama import Fore, Style
 from GramAddict.core.plugin_loader import Plugin
-import datetime
+from datetime import datetime, timedelta
 import json
 import logging
-import os
+
 from textwrap import dedent
 import requests
 import yaml
@@ -35,7 +34,7 @@ class TelegramReports(Plugin):
             }
         ]
 
-    def run(self, device, config, storage, sessions, plugin):
+    def run(self, config, plugin, followers_now, following_now, time_left):
         username = config.args.username
         modulename = "pandas"
         if modulename not in sys.modules:
@@ -119,13 +118,11 @@ class TelegramReports(Plugin):
             df["start"], errors="coerce"
         )
         df["duration"] = df["duration"].dt.total_seconds() / 60
-        modTimesinceEpoc = os.path.getmtime(f"accounts/{username}/sessions.json")
-        maxDate = datetime.datetime.fromtimestamp(modTimesinceEpoc)
-        timeSince = datetime.datetime.now() - maxDate
-        if timeSince.seconds < 60:
-            dateString = "Last session about a minute ago."
+
+        if time_left is not None:
+            timeString = f'Next session will start at: {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
         else:
-            dateString = f"Last session {int(timeSince.seconds / 60)} minutes ago."
+            timeString = "There is any new session planned!"
 
         dailySummary = df.groupby(by="date").agg(
             {
@@ -167,20 +164,11 @@ class TelegramReports(Plugin):
         def undentString(string):
             return dedent(string[1:])[:-1]
 
-        logger.info("Going back to your profile..")
-        ProfileView(device)._click_on_avatar()
-        AccountView(device).refresh_account()
-        (
-            _,
-            _,
-            followers_now,
-            following_now,
-        ) = ProfileView(device).getProfileInfo()
         followers_before = int(df["followers"].iloc[-1])
         following_before = int(df["following"].iloc[-1])
         statString = f"""
                 *Stats for {username}*:
-                
+
                 *✨Overview after last activity*
                 • {followers_now} followers ({followers_now - followers_before:+})
                 • {following_now} following ({following_now - following_before:+})
@@ -220,7 +208,7 @@ class TelegramReports(Plugin):
                 • {str(int(dailySummary["duration"].tail(7).mean()))} minutes of botting
             """
         try:
-            r = telegram_bot_sendtext(f"{undentString(statString)}\n\n{dateString}")
+            r = telegram_bot_sendtext(f"{undentString(statString)}\n\n{timeString}")
             if r.get("ok"):
                 logger.info(
                     "Telegram message sent successfully.",
