@@ -135,6 +135,9 @@ You can get __reports__ through telegram from your bot activities!
 
 <img src="https://github.com/GramAddict/bot/raw/master/res/telegram-reports.png" width="200">
 
+> In this case trends are negative because I use this account only for tuning this bot and it's private..
+> I didn't accept anyone lately so the trends are meh :P
+
 Cool, isn't it? 💦
 # Quick start
 Now that you're there you still don't know how to install that whole thing.

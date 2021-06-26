@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.6.3 (2021-06-26)
+
+#### Fixes
+
+* time left in telegram-reports was wrong
+
+Full set of changes: [`2.6.2...2.6.3`](https://github.com/GramAddict/bot/compare/2.6.2...2.6.3)
+
 ## 2.6.2 (2021-06-25)
 
 #### Fixes
