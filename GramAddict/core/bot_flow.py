@@ -326,15 +326,15 @@ def start_bot():
                 configs.args.working_hours, configs.args.time_delta_session
             )
             if inside_working_hours:
+                time_left = (
+                    get_value(configs.args.repeat, "Sleep for {} minutes.", 180) * 60
+                )
                 print_telegram_reports(
                     configs,
                     telegram_reports_at_end,
                     followers_now,
                     following_now,
                     time_left,
-                )
-                time_left = (
-                    get_value(configs.args.repeat, "Sleep for {} minutes.", 180) * 60
                 )
                 logger.info(
                     f'Next session will start at: {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
