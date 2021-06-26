@@ -41,13 +41,13 @@
 <br />
 
 # Why should I automate my Instagram account?
-It's very hard nowadays to grow an account. Have you ever been in the explore page? IG will show your post only to close accounts & accounts you interact most with, you will never be in the explore page. Nobody will see your beautiful photos, your super funny memes or whatever you are posting. But now you can do something about that! With GramAddict you can __get noticed easily__, and if you really deserve it, your account will __grow super fast__!
+It's very hard nowadays to grow an account. Have you ever been on the explore page? IG will show your post only to close accounts & accounts you interact most with, you will never be on the explore page. Nobody will see your beautiful photos, your super funny memes, or whatever you are posting. But now you can do something about that! With GramAddict you can __get noticed easily__, and if you really deserve it, your account will __grow super fast__!
 
 ## So, do I need to publish good content to grow?
 Of course you have to! This bot will mainly help you to get the __visibility you deserve__ and which is Instagram not giving you.
 
-## Ok but I don't know how to start this journey..
-Don't worry about that now, it's not that hard to start botting with GramAddict! I tried to make it as noob friendly as possible. In any case, if you follow the docs with all the steps provided, you will make it! You are also invited to join our community and ask for any help!
+## Ok but I don't know how to start this journey...
+Don't worry about that now, it's not that hard to start botting with GramAddict! I tried to make it as noob-friendly as possible. In any case, if you follow the docs with all the steps provided, you will make it! You are also invited to join our community and ask for any help!
 
 ## There is a community around this project?
 Yes! We are on __discord__ and we count a lot of __active users__ you can ask us whatever you want!
@@ -58,19 +58,19 @@ Yes! We are on __discord__ and we count a lot of __active users__ you can ask us
 
 ## I saw there're a lot of similar projects on GitHub, why should I choose this one?
 You're right, there're plenty of other bot solutions. Most of them use API requests. However, you will get your account banned if you use API (1-30 days)!
-There's also very similar project to this one, yet it's not free and the dev doesn't care about the community much. They removed few lines from the core and ask you for subscription plan in order to use those features. Furthermore, you don't even know what's the real code during execution - it's crypted. And if they are stealing something else? Who knows? I don't.
+There's also a very similar project to this one, yet it's not free and the dev doesn't care about the community much. They removed few lines from the core and ask you for a subscription plan in order to use those features. Furthermore, you don't even know what's the real code during execution - it's crypted. And if they are stealing something else? Who knows? I don't.
 This bot is __free to use__ and __open source__, you won't get charged for few extra lines, __EVER__.
 I'm focused on the community and not on finding ways how to get money out of this project. __I really care about the community__ and every dev should too. 🤗
 
 ## So this bot does not use API?
-__No__ this bot is working through __adb__ and is powered by __uiautomator2__ which is a testing wrapper for Android devices. In fact, your device (or an emulator) is used for doing the botting sh*it. That's very secure compared to other botting systems around there. I also made it to look as much human as possible. You can think about the bot as a __stupid__ friend using your phone and doing things for you. The example bottom is quite old but will show you what we are talking about.
+__No__ this bot is working through __adb__ and is powered by __uiautomator2__ which is a testing wrapper for Android devices. In fact, your device (or an emulator) is used for doing the botting sh*it. That's very secure compared to other botting systems around there. I also made it look as much human as possible. You can think about the bot as a __stupid__ friend using your phone and doing things for you. The example bottom is quite old but will show you what we are talking about.
 <p align="center">
   <img src="https://github.com/GramAddict/bot/raw/master/res/demo.gif">
 </p>
 
 ## Urra! I'll never get banned anymore with this bot!
 No no no, wait! 🤦
-You have to configure the bot for doing things as an human would do. Do you really spend all the day scrolling on Instagram? If yes contact a medic :P
+You have to configure the bot for doing things as a human would do. Do you really spend all the day scrolling on Instagram? If yes contact a medic :P
 You don't have to do so many actions or Instagram will block you. That appends even if you do that by your hands.. Have you ever added a lot of people in a row and got blocked for that action? Or spamming people with a link in PM? 
 __DON'T F*CKING DO THAT__
 
@@ -79,13 +79,13 @@ __Be gently and anonymous and nobody will notice that you're botting, trust me__
 ## Do I need a computer for running the bot?
 Yes, but you can also run it [directly on your phone](https://docs.gramaddict.org/#/termux)!!
 
-In any case you can decide to use a physical device or an emulator (if you're under Windows I suggest you to use [Memu](https://www.memuplay.com/)).
+In any case, you can decide to use a physical device or an emulator (if you're under Windows I suggest you use [Memu](https://www.memuplay.com/)).
 For hosting the bot you can use:
-- your computer (with Windows, macOS or Linux)
+- your computer (with Windows, macOS, or Linux)
 - a Raspberry (which is a cheap little pc Linux based)
 
 ## Cool! What can I do with this bot? 
-There are a lot of __cool features__ you can use __for free__!
+There are lots of __cool features__ you can use __for free__!
 - Works without rooting
 - Works with both emulators and physical devices
 - Can be used stand-alone (without the use of a computer)
@@ -108,7 +108,7 @@ There are a lot of __cool features__ you can use __for free__!
     - interact with a top or recent place post
     - interact with user's post likers
     - interact with a single blogger
-    - interact with your own feed
+    - interact with your feed
     - interact with users from a list (*.txt)
     - interact with posts from links inside a list (*.txt)
     - unfollow any followers
@@ -118,8 +118,8 @@ There are a lot of __cool features__ you can use __for free__!
     - scrape mode for collecting usernames instead of interacting with them (you will find more information about that in the doc)
 
 - Lots of available filters to customize who you interact with
-    - you can blacklist people in order to avoid interacting with them
-    - you can whitelist people in order to not remove them when you unfollow people
+    - you can blacklist people to avoid interacting with them
+    - you can whitelist people to not remove them when you unfollow people
     - biography main characters and language
     - profile name main characters
     - private / public / business / non business account
@@ -135,7 +135,7 @@ You can get __reports__ through telegram from your bot activities!
 
 <img src="https://github.com/GramAddict/bot/raw/master/res/telegram-reports.png" width="200">
 
-> In this case trends are negative because I use this account only for tuning this bot and it's private..
+> In this case trends are negative because I use this account only for tuning this bot and it's private...
 > I didn't accept anyone lately so the trends are meh :P
 
 Cool, isn't it? 💦
@@ -147,7 +147,7 @@ I'll try to help you accomplish that with a short tutorial. The full is availabl
 - a computer (with Windows, macOS or Linux)
 - Python installed on your machine (with pip)
 - Adb tools
-- a phisical device or an emulator (with Android 4.4+)
+- a physical device or an emulator (with Android 4.4+)
 ### Step 1: Install Python (>=3.6):
 
 If you're on Linux or macOS you should have Python and Git installed, just check that your Python version is >= 3.6
@@ -158,12 +158,12 @@ Failed? [Detailed tutorial here](https://docs.gramaddict.org/#/quickstart?id=ste
 >Check which python alias you have to use by typing `python -V` or `python3 -V` or `py -V` and use the right one for the rest of the tutorial.
 
 >Check that pip3 is installed by typing `pip3 -V`
->If that return an error you have to install it! How? [Google is your best friend!](https://www.google.com/search?q=how+to+install+pip) :P
+>If that returns an error you have to install it! How? [Google is your best friend!](https://www.google.com/search?q=how+to+install+pip) :P
 ### Step 2: Install GramAddict:
 You can install GramAddict in two ways: with __pip__ or with __git__.
-Is good practice to create virtual environments when you install a new package. That will save you from lot of problems!
+Is good practice to create virtual environments when you install a new package. That will save you from a lot of problems!
 
-#### Create a virtual evironment
+#### Create a virtual environment
 We create a virtual environment called `.venv` and activate it:
 
 - create a directory where you will create the new environment
@@ -210,7 +210,7 @@ Adb stands for [Android Debug Bridge](https://developer.android.com/studio/comma
 
 ### Step 4: Start the bot:
 This bot works only if your Instagram is in [English](https://help.instagram.com/111923612310997).
-1. First thing you have to to is to [enable developer options and USB debugging](https://developer.android.com/studio/debug/dev-options#enable).
+1. First thing you have to do is to [enable developer options and USB debugging](https://developer.android.com/studio/debug/dev-options#enable).
 2. connect your phone to your computer with an USB cable
 3. device will ask you to allow connection. Press "Connect"
 4. type `adb devices` in terminal
@@ -245,13 +245,13 @@ Failed? [Check this out!](https://docs.gramaddict.org/#/quickstart?id=troublesho
 The script isn't perfect and may fail sometimes. If this is the case you can open a ticket on our [discord channel](https://discord.gg/NK8PNEFGFF). In that way you won't share with anyone your Instagram account name 😈. We'll be very happy to help you!
 
 # WOW! You dedicated so much time to this project! Why you did that for free??
-Well, we used to be in three long time ago but suddenly my two friends left. This has been an opportunity for me to improve my skills in Python and that's why I didn't left the project and keep maintaining it.
+Well, we used to be in three a long time ago but suddenly my two friends left. This has been an opportunity for me to improve my skills in Python and that's why I didn't leave the project and keep maintaining it.
 But of course donations are very welcome, so if you think I did a great job you can buy me a beer :)
 
 
 <a  href="https://www.buymeacoffee.com/mastrolube"  target="_blank"><img  src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png"  hspace="10" alt="Buy Me A Coffee"  style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;"  ></a>
 
-# Can I do something for make this project grown?
+# Can I do something to make this project grown?
 On Github there is a `star system` which indicates how good a project is. If you like this project it will be amazing if you can press the little star at the top! ⭐
 # Contributors
 
