@@ -46,7 +46,6 @@ from GramAddict.core.views import (
     TabBarView,
     load_config as load_views,
 )
-from GramAddict.version import __version__
 
 
 def start_bot():
