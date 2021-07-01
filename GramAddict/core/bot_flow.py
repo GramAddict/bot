@@ -24,6 +24,7 @@ from GramAddict.core.utils import (
     ask_for_a_donation,
     can_repeat,
     check_adb_connection,
+    check_if_updated,
     close_instagram,
     config_examples,
     get_instagram_version,
@@ -36,7 +37,6 @@ from GramAddict.core.utils import (
     save_crash,
     set_time_delta,
     stop_bot,
-    update_available,
     wait_for_next_session,
 )
 from GramAddict.core.views import (
@@ -67,21 +67,7 @@ def start_bot():
     config_examples()
 
     # Check for updates
-    is_update, version = update_available()
-    if is_update:
-        logger.warning("NEW VERSION FOUND!")
-        logger.warning(
-            f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
-        )
-        logger.warning("HOW TO UPDATE:")
-        logger.warning("If you installed with pip: pip3 install GramAddict -U")
-        logger.warning("If you installed with git: git pull")
-        sleep(5)
-    else:
-        logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
-    logger.info(
-        f"GramAddict v.{__version__}", extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"}
-    )
+    check_if_updated()
 
     # Move username folders to a main directory -> accounts
     move_usernames_to_accounts()
@@ -157,7 +143,7 @@ def start_bot():
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "192.0.0.35.123"
+                tested_ig_version = "193.0.0.45.120"
                 running_ig_version = get_instagram_version()
                 running_ig_version_splitted = running_ig_version.split(".")
                 last_ig_version_tested = tested_ig_version.split(".")
@@ -355,7 +341,7 @@ def start_bot():
                     telegram_reports_at_end,
                     followers_now,
                     following_now,
-                    time_left,
+                    time_left.total_seconds(),
                 )
                 wait_for_next_session(
                     time_left,
