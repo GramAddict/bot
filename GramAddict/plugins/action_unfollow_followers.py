@@ -113,13 +113,7 @@ class ActionUnfollowFollowers(Plugin):
 
         if count <= 0:
             logger.info(
-                "You want to unfollow "
-                + str(count)
-                + ", you have "
-                + str(self.session_state.my_following_count)
-                + " followings, min following is "
-                + str(self.args.min_following)
-                + ". Finish."
+                f"Now you're following {str(self.session_state.my_following_count)} accounts, {'less then' if count <0 else 'equal to'} min following allowed (you set min-following: {str(self.args.min_following)}). No further unfollows are required. Finish."
             )
             return
 

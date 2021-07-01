@@ -143,7 +143,7 @@ class TelegramReports(Plugin):
             ) - dailySummary["followers"].astype(int).shift(1)
         else:
             logger.info(
-                "First day of botting eh? Stats for the first day are meh because we don't have enought data to track how many followers you earned today from the bot activity."
+                "First day of botting eh? Stats for the first day are meh because we don't have enough data to track how many followers you earned today from the bot activity."
             )
             dailySummary["followers_gained"] = dailySummary["followers"].astype(int)
         dailySummary.dropna(inplace=True)
