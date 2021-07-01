@@ -43,7 +43,6 @@ def load_config(config):
 
 def update_available():
     urllib3.disable_warnings()
-    logger.info("Checking for updates...")
     if "b" not in __version__:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
     else:
@@ -75,6 +74,29 @@ def update_available():
                 continue
             break
     return False, online_version_raw
+
+
+def check_if_updated(crash=False):
+    if not crash:
+        logger.info("Checking for updates...")
+    new_update, version = update_available()
+    if new_update:
+        logger.warning("NEW VERSION FOUND!")
+        logger.warning(
+            f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
+        )
+        logger.warning("HOW TO UPDATE:")
+        logger.warning("If you installed with pip: pip3 install GramAddict -U")
+        logger.warning("If you installed with git: git pull")
+        sleep(5)
+    else:
+        if not crash:
+            logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+    if not crash:
+        logger.info(
+            f"GramAddict v.{__version__}",
+            extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"},
+        )
 
 
 def ask_for_a_donation():
@@ -363,6 +385,7 @@ def save_crash(device):
         extra={"color": Fore.GREEN},
     )
     logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
+    check_if_updated(crash=True)
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
