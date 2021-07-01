@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.6.4 (2021-07-01)
+
+#### Fixes
+
+* telegram-reports when out of working hours crashed
+#### Performance improvements
+
+* improve update checking
+#### Docs
+
+* text improvement and typo corrections
+
+Full set of changes: [`2.6.3...2.6.4`](https://github.com/GramAddict/bot/compare/2.6.3...2.6.4)
+
 ## 2.6.3 (2021-06-26)
 
 #### Fixes
