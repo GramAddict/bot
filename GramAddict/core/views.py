@@ -1357,17 +1357,18 @@ class PostsGridView:
             logger.info("It's a IGTV.")
             media_type = MediaType.IGTV
         else:
-            carousel_obj = re.match(
+            carousel_obj = re.finditer(
                 r"((?P<photo>\d+) photo)|((?P<video>\d+) video)",
                 content_desc,
                 re.IGNORECASE,
             )
-            n_photos = (
-                int(carousel_obj.group("photo")) if carousel_obj.group("photo") else 0
-            )
-            n_videos = (
-                int(carousel_obj.group("video")) if carousel_obj.group("video") else 0
-            )
+            n_photos = 0
+            n_videos = 0
+            for match in carousel_obj:
+                if match.group("photo"):
+                    n_photos = int(match.group("photo"))
+                if match.group("video"):
+                    n_videos = int(match.group("video"))
             logger.info(
                 f"It's a carousel with {n_photos} photo(s) and {n_videos} video(s)."
             )
