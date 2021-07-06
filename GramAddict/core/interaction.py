@@ -110,12 +110,16 @@ def interact_with_user(
             sent_pm = _send_PM(
                 device, session_state, my_username, 0, profile_data.is_private
             )
+            if sent_pm:
+                interacted = True
 
         if can_follow and profile_filter.can_follow_private_or_empty():
             if scraping_file is None:
                 followed = _follow(
                     device, username, follow_percentage, args, session_state, 0
                 )
+                if followed:
+                    interacted = True
                 return (
                     interacted,
                     followed,
@@ -165,6 +169,9 @@ def interact_with_user(
         session_state,
     )
     swipe_amount = 0
+
+    if number_of_watched >= 1:
+        interacted = True
     if can_like(session_state, likes_percentage):
         if profile_data.posts_count > 3:
             swipe_amount = ProfileView(device).swipe_to_fit_posts()
@@ -263,54 +270,29 @@ def interact_with_user(
                 device.back()
             if like_succeed or comment_done:
                 interacted = True
-            else:
-                interacted = False
 
             if not opened_post_view or not like_succeed:
                 reason = "open" if not opened_post_view else "like"
                 logger.info(
-                    f"Could not {reason} photo. Posts count: {profile_data.posts_count}"
-                )
-
-                if can_follow and profile_filter.can_follow_private_or_empty():
-                    followed = _follow(
-                        device,
-                        username,
-                        follow_percentage,
-                        args,
-                        session_state,
-                        swipe_amount,
-                    )
-                else:
-                    followed = False
-
-                if not followed:
-                    logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
-                return (
-                    interacted,
-                    followed,
-                    scraped,
-                    sent_pm,
-                    number_of_liked,
-                    number_of_watched,
-                    number_of_commented,
+                    f"Could not {reason} photo. Posts count: {profile_data.posts_count}."
                 )
 
     if can_send_PM(session_state, pm_percentage):
         sent_pm = _send_PM(device, session_state, my_username, swipe_amount)
         swipe_amount = 0
+        if sent_pm:
+            interacted = True
     if can_follow:
-        return (
-            interacted,
-            _follow(
-                device, username, follow_percentage, args, session_state, swipe_amount
-            ),
-            scraped,
-            sent_pm,
-            number_of_liked,
-            number_of_watched,
-            number_of_commented,
+        followed = _follow(
+            device,
+            username,
+            follow_percentage,
+            args,
+            session_state,
+            swipe_amount,
         )
+        if followed:
+            interacted = True
 
     return (
         interacted,
