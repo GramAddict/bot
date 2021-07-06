@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.6.5 (2021-07-06)
+
+#### Fixes
+
+* the count of items in the carousels stopped at the first match
+* from now on, every type of interaction is counted as successful and not just likes
+
+Full set of changes: [`2.6.4...2.6.5`](https://github.com/GramAddict/bot/compare/2.6.4...2.6.5)
+
 ## 2.6.4 (2021-07-01)
 
 #### Fixes
