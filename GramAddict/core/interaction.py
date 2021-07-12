@@ -3,6 +3,7 @@ from GramAddict.core.session_state import SessionState
 from GramAddict.core import storage
 import logging
 import emoji
+import spintax
 from datetime import datetime
 from random import randint, shuffle, choice, uniform
 from typing import Tuple
@@ -702,7 +703,7 @@ def load_random_message(my_username):
                     lines.append(line)
                 random_message = choice(lines)
                 if random_message != "":
-                    return emoji.emojize(random_message, use_aliases=True)
+                    return emoji.emojize(spintax.spin(random_message), use_aliases=True)
                 else:
                     return None
         except Exception as e:
@@ -748,7 +749,7 @@ def load_random_comment(my_username, media_type):
                     choice(carousel_comments) if len(carousel_comments) > 0 else ""
                 )
             if random_comment != "":
-                return emoji.emojize(random_comment, use_aliases=True)
+                return emoji.emojize(spintax.spin(random_comment), use_aliases=True)
             else:
                 return None
     else:
