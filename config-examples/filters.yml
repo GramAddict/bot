@@ -40,9 +40,10 @@ comment_place_likers_recent: true
 comment_place_posts_top: true
 comment_place_posts_recent: true
 comment_blogger_followers: true
-comment_blogger_followings: true
-comment_interact_usernames: true
+comment_blogger_following: true
 comment_blogger_post_likers: true
+comment_blogger: true
+comment_interact_usernames: true
 comment_interact_from_file: true
 comment_feed: false
 # Content specific
