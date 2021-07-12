@@ -25,6 +25,7 @@ setuptools.setup(
         "emoji==1.2.0",
         "langdetect==1.0.9",
         "atomicwrites==1.4.0",
+        "spintax==1.0.4",
     ],
     extras_require={
         "telegram-reports": ["pandas==1.2.4"],

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.7.0 (2021-07-12)
+
+#### New Features
+
+* you can use spintax for comments and PM from now
+#### Fixes
+
+* forgot to remove 'time_left' when calling print_telegram_reports at the end of all sessions
+* in config-examples forgot 'comment_blogger' and fix typo in 'comment_blogger_following'
+
+Full set of changes: [`2.6.5...2.7.0`](https://github.com/GramAddict/bot/compare/2.6.5...2.7.0)
+
 ## 2.6.5 (2021-07-06)
 
 #### Fixes
