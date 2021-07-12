@@ -91,7 +91,7 @@ There are lots of __cool features__ you can use __for free__!
 - Can be used stand-alone (without the use of a computer)
 - Includes realistic random human-like delays and actions
 - Can watch stories while interacting
-- Comment post with emojis
+- Comment post with emojis and [spintax logic](https://github.com/GramAddict/docs/blob/main/configuration.md#spintax-support)
 - Send PM
 - Type like a human (letter by letter by faking using suggestions. For example you won't type `H - e - l - l - o` letter by letter but something like `H - He - Hello`)
 - Browse carousels and watch their contents
