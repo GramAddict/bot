@@ -352,7 +352,10 @@ def start_bot():
         else:
             break
     print_telegram_reports(
-        configs, telegram_reports_at_end, followers_now, following_now, time_left
+        configs,
+        telegram_reports_at_end,
+        followers_now,
+        following_now,
     )
     print_full_report(sessions, configs.args.scrape_to_file)
     ask_for_a_donation()
