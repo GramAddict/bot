@@ -1669,7 +1669,8 @@ class ProfileView(ActionBarView):
                 resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             ).child(textContains="Followers")
             if followers_tab.exists(Timeout.LONG):
-                followers_tab.click()
+                if not followers_tab.get_property("selected"):
+                    followers_tab.click()
                 return True
         else:
             logger.error("Can't find followers tab!")
@@ -1686,7 +1687,8 @@ class ProfileView(ActionBarView):
                 resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             ).child(textContains="Following")
             if following_tab.exists(Timeout.LONG):
-                following_tab.click()
+                if not following_tab.get_property("selected"):
+                    following_tab.click()
                 return True
         else:
             logger.error("Can't find following tab!")

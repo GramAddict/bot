@@ -524,6 +524,12 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
+        def get_property(self, property):
+            try:
+                return self.viewV2.info[property]
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
         @staticmethod
         def get_ui_timeout(ui_timeout):
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
