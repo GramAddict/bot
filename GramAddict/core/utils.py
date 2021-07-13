@@ -125,6 +125,7 @@ def move_usernames_to_accounts():
         "logs",
         "res",
         "test",
+        "dump",
     ]
     for n in ignored_dir:
         try:

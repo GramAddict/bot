@@ -33,6 +33,39 @@ def cmd_run(args):
     start_bot()
 
 
+def cmd_dump(args):
+    import uiautomator2 as u2
+    import shutil
+    import os
+    import time
+    from colorama import Fore, Style
+
+    os.popen("adb shell pkill atx-agent").close()
+    d = u2.connect()
+
+    def dump_hierarchy(d, path):
+        xml_dump = d.dump_hierarchy()
+        with open(path, "w", encoding="utf-8") as outfile:
+            outfile.write(xml_dump)
+
+    def make_archive(name):
+        os.chdir("dump")
+        shutil.make_archive(base_name=f"screen_{name}", format="zip", root_dir="cur")
+        shutil.rmtree("cur")
+
+    os.makedirs("dump/cur", exist_ok=True)
+    d.screenshot("dump/cur/screenshot.png")
+    dump_hierarchy(d, "dump/cur/hierarchy.xml")
+    archive_name = int(time.time())
+    make_archive(archive_name)
+    print(
+        Fore.GREEN
+        + Style.BRIGHT
+        + "\nCurrent screen dump generated successfully! Please, send me this file:"
+    )
+    print(Fore.BLUE + Style.BRIGHT + f"{os.getcwd()}\\screen_{archive_name}.zip")
+
+
 _commands = [
     dict(
         action=cmd_init,
@@ -53,6 +86,11 @@ _commands = [
         flags=[
             dict(args=["--config"], nargs="?", help="provide the config.yml path"),
         ],
+    ),
+    dict(
+        action=cmd_dump,
+        command="dump",
+        help="dump current screen",
     ),
 ]
 
