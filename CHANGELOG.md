@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.7.1 (2021-07-13)
+
+#### New Features
+
+* you can dump your current screen with that command `gramaddict dump`
+#### Performance improvements
+
+* we don't need to click on a obj if we are already on it
+
+Full set of changes: [`2.7.0...2.7.1`](https://github.com/GramAddict/bot/compare/2.7.0...2.7.1)
+
 ## 2.7.0 (2021-07-12)
 
 #### New Features
