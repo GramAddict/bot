@@ -743,6 +743,8 @@ class PostsViewList:
             return likes
 
     def open_likers_container(self):
+        """Open likes container"""
+        post_liked_by_a_following = False
         logger.info("Opening post likers.")
         facepil_stub = self.device.find(
             index=-1, resourceId=ResourceID.ROW_FEED_LIKE_COUNT_FACEPILE_STUB
@@ -758,7 +760,15 @@ class PostsViewList:
                 resourceId=ResourceID.ROW_FEED_TEXTVIEW_LIKES,
                 className=ClassName.TEXT_VIEW,
             )
+            if " Liked by" in likes_view.get_text():
+                post_liked_by_a_following = True
+            elif likes_view.child().count_items() < 2:
+                likes_view.click()
+                return
             if likes_view.child().exists():
+                if post_liked_by_a_following:
+                    likes_view.child().click()
+                    return
                 foil = likes_view.get_bounds()
                 hole = likes_view.child().get_bounds()
                 try:
@@ -797,7 +807,10 @@ class PostsViewList:
                 else:
                     likes_view.click(Location.RIGHT)
             else:
-                likes_view.click(Location.RIGHT)
+                if not post_liked_by_a_following:
+                    likes_view.click(Location.RIGHT)
+                else:
+                    likes_view.click(Location.LEFT)
 
     def _check_if_last_post(self, last_description, current_job):
         """check if that post has been just interacted"""
