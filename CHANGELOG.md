@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.7.2 (2021-07-14)
+
+#### Fixes
+
+* bug in open post container when someone in your 'following list' has also liked the post
+#### Performance improvements
+
+* lowered a little bit the swipe up in sorting `Following accounts`
+
+Full set of changes: [`2.7.1...2.7.2`](https://github.com/GramAddict/bot/compare/2.7.1...2.7.2)
+
 ## 2.7.1 (2021-07-13)
 
 #### New Features
