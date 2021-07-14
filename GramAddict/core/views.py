@@ -129,6 +129,7 @@ class TabBarView:
         tab_name = tab.name
         logger.debug(f"Navigate to {tab_name}")
         button = None
+        SearchView(self.device)._close_keyboard()
         if tab == TabBarTabs.HOME:
             button = self.device.find(
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,

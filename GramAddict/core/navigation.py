@@ -10,6 +10,7 @@ from GramAddict.core.views import (
     PlacesView,
     PostsGridView,
     ProfileView,
+    SearchView,
     SettingsView,
     TabBarView,
     UniversalActions,
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
+    SearchView(device)._close_keyboard()
     ProfileView(device)._click_on_avatar()
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
