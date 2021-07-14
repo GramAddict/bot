@@ -243,7 +243,7 @@ class ActionUnfollowFollowers(Plugin):
                 )
             else:
                 UniversalActions(device)._swipe_points(
-                    direction=Direction.DOWN,
+                    direction=Direction.DOWN, delta_y=380
                 )
             if not sorted:
                 self.sort_followings_by_date(
