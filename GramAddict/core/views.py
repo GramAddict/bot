@@ -1100,9 +1100,12 @@ class AccountView:
             className=ClassName.BUTTON,
             index=5,
         )
-        button.click()
-
-        return LanguageView(self.device)
+        if button.exists():
+            button.click()
+            return LanguageView(self.device)
+        else:
+            logger.error("Not able to set your app in English! Do it by yourself!")
+            exit(0)
 
     def changeToUsername(self, username):
         action_bar = ProfileView._getActionBarTitleBtn(self)
@@ -1165,10 +1168,14 @@ class SettingsView:
         logger.debug("Navigate to Account")
         button = self.device.find(
             className=ClassName.BUTTON,
-            index=6,
+            index=5,
         )
-        button.click()
-        return AccountView(self.device)
+        if button.exists():
+            button.click()
+            return AccountView(self.device)
+        else:
+            logger.error("Not able to set your app in English! Do it by yourself!")
+            exit(0)
 
 
 class OptionsView:
@@ -1178,11 +1185,15 @@ class OptionsView:
     def navigateToSettings(self):
         logger.debug("Navigate to Settings")
         button = self.device.find(
-            resourceId=ResourceID.MENU_SETTINGS_ROW,
+            resourceId=ResourceID.MENU_OPTION_TEXT,
             className=ClassName.TEXT_VIEW,
         )
-        button.click()
-        return SettingsView(self.device)
+        if button.exists():
+            button.click()
+            return SettingsView(self.device)
+        else:
+            logger.error("Not able to set your app in English! Do it by yourself!")
+            exit(0)
 
 
 class OpenedPostView:
@@ -1468,6 +1479,10 @@ class ProfileView(ActionBarView):
         obj = self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR)
         if obj.exists(Timeout.MEDIUM):
             obj.click()
+        else:
+            self.device.back()
+            if obj.exists():
+                obj.click()
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"

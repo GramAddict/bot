@@ -56,6 +56,7 @@ class ResourceID:
         self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
+        self.MENU_OPTION_TEXT = f"{APP_ID}:id/menu_option_text"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
         self.MESSAGE_TEXT = f"{APP_ID}:id/message_text"
         self.NEW_FEED_PILL = f"{APP_ID}:id/new_feed_pill"
