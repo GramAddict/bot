@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.7.3 (2021-07-14)
+
+#### Fixes
+
+* sometimes the bot press on 'Switch IME' instead of open your profile
+* automatic change in English locale stopped working
+
+Full set of changes: [`2.7.2...2.7.3`](https://github.com/GramAddict/bot/compare/2.7.2...2.7.3)
+
 ## 2.7.2 (2021-07-14)
 
 #### Fixes
