@@ -142,7 +142,7 @@ def start_bot():
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "193.0.0.45.120"
+                tested_ig_version = "197.0.0.26.119"
                 running_ig_version = get_instagram_version()
                 running_ig_version_splitted = running_ig_version.split(".")
                 last_ig_version_tested = tested_ig_version.split(".")

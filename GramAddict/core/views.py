@@ -229,7 +229,6 @@ class HashTagView:
 
     def _getFistImageView(self, recycler):
         obj = recycler.child(
-            className=ClassName.IMAGE_VIEW,
             resourceIdMatches=ResourceID.IMAGE_BUTTON,
         )
         if obj.exists(Timeout.LONG):
