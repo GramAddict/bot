@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.4 (2021-07-25)
+
+#### Fixes
+
+* support for Ig v. 197.0.0.26.119
+
+Full set of changes: [`2.7.3...2.7.4`](https://github.com/GramAddict/bot/compare/2.7.3...2.7.4)
+
 ## 2.7.3 (2021-07-14)
 
 #### Fixes
