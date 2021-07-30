@@ -1,9 +1,8 @@
-from GramAddict.core.navigation import check_if_english
 import logging
+import random
 from datetime import datetime, timedelta
 from sys import exit
 from time import sleep
-import random
 
 from colorama import Fore, Style
 
@@ -13,9 +12,10 @@ from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
     configure_logger,
-    update_log_file_name,
     is_log_file_updated,
+    update_log_file_name,
 )
+from GramAddict.core.navigation import check_if_english
 from GramAddict.core.persistent_list import PersistentList
 from GramAddict.core.report import print_full_report
 from GramAddict.core.session_state import SessionState, SessionStateEncoder
@@ -30,7 +30,9 @@ from GramAddict.core.utils import (
     get_instagram_version,
     get_value,
     kill_atx_agent,
-    load_config as load_utils,
+)
+from GramAddict.core.utils import load_config as load_utils
+from GramAddict.core.utils import (
     move_usernames_to_accounts,
     open_instagram,
     print_telegram_reports,
@@ -39,13 +41,8 @@ from GramAddict.core.utils import (
     stop_bot,
     wait_for_next_session,
 )
-from GramAddict.core.views import (
-    AccountView,
-    ProfileView,
-    SearchView,
-    TabBarView,
-    load_config as load_views,
-)
+from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
+from GramAddict.core.views import load_config as load_views
 
 
 def start_bot():

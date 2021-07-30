@@ -1,13 +1,15 @@
-from datetime import datetime
 import logging
 import string
-import uiautomator2
+from datetime import datetime
 from enum import Enum, auto
-from os import listdir, getcwd
+from os import getcwd, listdir
 from random import randint, uniform
 from re import search
 from subprocess import PIPE, run
 from time import sleep
+
+import uiautomator2
+
 from GramAddict.core.utils import random_sleep
 
 logger = logging.getLogger(__name__)

@@ -1,10 +1,10 @@
 import logging
 import traceback
-from colorama import Fore, Style
 from datetime import datetime
 from http.client import HTTPException
 from socket import timeout
 
+from colorama import Fore, Style
 from uiautomator2.exceptions import UiObjectNotFoundError as UiObjectNotFoundErrorv2
 
 from GramAddict.core.device_facade import DeviceFacade

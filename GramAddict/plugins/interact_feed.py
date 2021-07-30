@@ -1,17 +1,15 @@
-from GramAddict.core.handle_sources import handle_posts
 import logging
 from functools import partial
 from random import seed
+
 from colorama import Style
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
-from GramAddict.core.interaction import (
-    interact_with_user,
-)
+from GramAddict.core.handle_sources import handle_posts
+from GramAddict.core.interaction import interact_with_user
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.utils import (
-    init_on_things,
-)
+from GramAddict.core.utils import init_on_things
 
 logger = logging.getLogger(__name__)
 

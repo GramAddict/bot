@@ -1,9 +1,11 @@
-from atomicwrites import atomic_write
-from GramAddict.core.storage import ACCOUNTS
 import json
-import os
 import logging
+import os
 import sys
+
+from atomicwrites import atomic_write
+
+from GramAddict.core.storage import ACCOUNTS
 
 logger = logging.getLogger(__name__)
 

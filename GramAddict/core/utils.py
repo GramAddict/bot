@@ -1,29 +1,29 @@
-from GramAddict import __file__
-from GramAddict.core.storage import ACCOUNTS
-from math import nan
-import random
-import sys
-
-from GramAddict.core.report import print_full_report
 import logging
 import os
-import subprocess
+import random
 import re
 import shutil
-import urllib3
-import emoji
-from os import getcwd, walk, rename
-from pathlib import Path
+import subprocess
+import sys
 from datetime import datetime
+from math import nan
+from os import getcwd, rename, walk
+from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
+
+import emoji
+import urllib3
+from colorama import Fore, Style
 from requests import get
 
-from colorama import Fore, Style
+from GramAddict import __file__
 from GramAddict.core.log import get_log_file_config
+from GramAddict.core.report import print_full_report
 from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.storage import ACCOUNTS
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -507,9 +507,8 @@ def sample_sources(sources, n_sources):
 
 def init_on_things(source, args, sessions, session_state):
     from functools import partial
-    from GramAddict.core.interaction import (
-        _on_interaction,
-    )
+
+    from GramAddict.core.interaction import _on_interaction
 
     on_interaction = partial(
         _on_interaction,

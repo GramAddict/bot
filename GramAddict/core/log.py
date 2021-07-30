@@ -1,10 +1,11 @@
 import logging
 import os
-from colorama import Fore, Style
-from colorama import init as init_colorama
 from logging import LogRecord
 from logging.handlers import RotatingFileHandler
 from uuid import uuid4
+
+from colorama import Fore, Style
+from colorama import init as init_colorama
 
 COLORS = {
     "DEBUG": Style.DIM,

@@ -1,15 +1,17 @@
 import logging
-import emoji
 from functools import partial
 from random import seed
+
+import emoji
 from colorama import Fore
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
+from GramAddict.core.handle_sources import handle_likers
 from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
-from GramAddict.core.handle_sources import handle_likers
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.utils import get_value, init_on_things, sample_sources

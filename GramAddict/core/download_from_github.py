@@ -2,15 +2,15 @@
 ### MIT License
 ### Copyright (c) 2019 Siddharth Dushantha
 
-import re
-import os
-import urllib.request
 import json
-import sys
+import os
 import random
-from colorama import Fore, Style
+import re
+import sys
+import urllib.request
 from pathlib import Path
 
+from colorama import Fore, Style
 
 # this ANSI code lets us erase the current line
 ERASE_LINE = "\x1b[2K"
@@ -122,7 +122,7 @@ def download_from_github(
         print_text("✘ Got interrupted", "red", in_place=True)
         sys.exit()
     except urllib.error.HTTPError as e:
-        if e.code == 403:  ## Api response 403 error
+        if e.code == 403:  # Api response 403 error
             print_text("API Rate limit exceeded!!!", "red", in_place=True)
             # download_from_github(repo_url, proxies, dir_out, flatten, exts=exts, file_count=file_count)
         else:

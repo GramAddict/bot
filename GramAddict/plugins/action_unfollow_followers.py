@@ -1,19 +1,21 @@
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
 import logging
 from enum import Enum, unique
 
 from colorama import Fore
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade, Timeout
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.resources import ClassName
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import random_sleep, save_crash, get_value
+from GramAddict.core.utils import get_value, random_sleep, save_crash
 from GramAddict.core.views import (
+    Direction,
     FollowingView,
     ProfileView,
     UniversalActions,
-    Direction,
 )
 
 logger = logging.getLogger(__name__)

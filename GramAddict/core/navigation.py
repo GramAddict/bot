@@ -1,7 +1,8 @@
-from GramAddict.core.device_facade import Timeout
 import logging
 
 from colorama import Fore
+
+from GramAddict.core.device_facade import Timeout
 from GramAddict.core.views import (
     AccountView,
     HashTagView,

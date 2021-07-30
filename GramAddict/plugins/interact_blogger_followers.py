@@ -1,11 +1,12 @@
-from GramAddict.core.handle_sources import handle_followers
 import logging
 from functools import partial
 from random import seed
 
 from colorama import Style
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
+from GramAddict.core.handle_sources import handle_followers
 from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,

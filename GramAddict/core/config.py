@@ -1,7 +1,8 @@
-import os
-import configargparse
 import logging
+import os
 import sys
+
+import configargparse
 import yaml
 
 from GramAddict.core.plugin_loader import PluginLoader

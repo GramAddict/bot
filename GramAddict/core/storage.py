@@ -1,10 +1,11 @@
 import json
 import logging
 import os
+import sys
 from datetime import datetime, timedelta
 from enum import Enum, unique
+
 from atomicwrites import atomic_write
-import sys
 
 logger = logging.getLogger(__name__)
 

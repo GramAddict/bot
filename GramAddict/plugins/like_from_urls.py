@@ -1,15 +1,14 @@
 import logging
-from random import shuffle
 from os import path
+from random import shuffle
+
 from atomicwrites import atomic_write
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import do_like
 from GramAddict.core.plugin_loader import Plugin
+from GramAddict.core.utils import open_instagram_with_url, validate_url
 from GramAddict.core.views import OpenedPostView
-from GramAddict.core.utils import (
-    open_instagram_with_url,
-    validate_url,
-)
 
 logger = logging.getLogger(__name__)
 

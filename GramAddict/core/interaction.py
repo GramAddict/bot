@@ -1,31 +1,29 @@
-from GramAddict.core.device_facade import Location, SleepTime, Timeout
-from GramAddict.core.session_state import SessionState
-from GramAddict.core import storage
 import logging
+from datetime import datetime
+from os import path
+from random import choice, randint, shuffle, uniform
+from time import sleep, time
+from typing import Tuple
+
 import emoji
 import spintax
-from datetime import datetime
-from random import randint, shuffle, choice, uniform
-from typing import Tuple
-from time import sleep, time
-from os import path
 from colorama import Fore, Style
+
+from GramAddict.core import storage
+from GramAddict.core.device_facade import Location, SleepTime, Timeout
 from GramAddict.core.report import print_scrape_report, print_short_report
-from GramAddict.core.resources import ClassName, ResourceID as resources
-from GramAddict.core.utils import (
-    get_value,
-    random_sleep,
-    append_to_file,
-    save_crash,
-)
+from GramAddict.core.resources import ClassName
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.session_state import SessionState
+from GramAddict.core.utils import append_to_file, get_value, random_sleep, save_crash
 from GramAddict.core.views import (
-    MediaType,
-    ProfileView,
     CurrentStoryView,
+    Direction,
+    MediaType,
     PostsGridView,
+    ProfileView,
     SearchView,
     UniversalActions,
-    Direction,
     case_insensitive_re,
 )
 

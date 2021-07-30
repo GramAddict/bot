@@ -1,6 +1,7 @@
 import logging
-from colorama import Fore, Style
 from datetime import datetime, timedelta
+
+from colorama import Fore, Style
 
 logger = logging.getLogger(__name__)
 

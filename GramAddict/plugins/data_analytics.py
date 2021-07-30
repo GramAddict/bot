@@ -1,5 +1,6 @@
 import logging
 import sys
+
 from GramAddict.core.plugin_loader import Plugin
 
 logger = logging.getLogger(__name__)

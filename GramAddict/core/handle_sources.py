@@ -1,27 +1,29 @@
-from datetime import timedelta
-from atomicwrites import atomic_write
-from GramAddict.core.utils import get_value, random_sleep
 import logging
+from datetime import timedelta
 from functools import partial
 from os import path
+
+from atomicwrites import atomic_write
 from colorama import Fore
+
 from GramAddict.core.device_facade import Direction, Timeout
-from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.navigation import (
+    nav_to_blogger,
     nav_to_feed,
     nav_to_hashtag_or_place,
-    nav_to_blogger,
     nav_to_post_likers,
 )
 from GramAddict.core.resources import ClassName
+from GramAddict.core.storage import FollowingStatus
+from GramAddict.core.utils import get_value, random_sleep
 from GramAddict.core.views import (
     FollowingView,
-    PostsViewList,
+    LikeMode,
     OpenedPostView,
+    Owner,
+    PostsViewList,
     ProfileView,
     SwipeTo,
-    Owner,
-    LikeMode,
     TabBarView,
     UniversalActions,
     case_insensitive_re,
