@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.7.5 (2021-07-30)
+
+#### New Features
+
+* new argument "detect_block: true/false" to enable/ disable block check after every action
+#### Fixes
+
+* a better way to sort following list [#207](https://github.com/GramAddict/bot/issues/207)
+#### Performance improvements
+
+* add debug info for swipes
+#### Refactorings
+
+* sort imports
+
+Full set of changes: [`2.7.4...2.7.5`](https://github.com/GramAddict/bot/compare/2.7.4...2.7.5)
+
 ## 2.7.4 (2021-07-25)
 
 #### Fixes
