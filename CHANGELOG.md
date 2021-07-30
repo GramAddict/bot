@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.6 (2021-07-31)
+
+#### Fixes
+
+* missing resource id for sorting following list
+
+Full set of changes: [`2.7.5...2.7.6`](https://github.com/GramAddict/bot/compare/2.7.5...2.7.6)
+
 ## 2.7.5 (2021-07-30)
 
 #### New Features
