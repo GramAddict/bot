@@ -231,11 +231,13 @@ class DeviceFacade:
 
     def swipe_points(self, sx, sy, ex, ey, random_x=True, random_y=True):
         if random_x:
-            sx = sx * uniform(0.85, 1.15)
-            ex = ex * uniform(0.85, 1.15)
+            sx = int(sx * uniform(0.85, 1.15))
+            ex = int(ex * uniform(0.85, 1.15))
         if random_y:
-            ey = ey * uniform(0.98, 1.02)
+            ey = int(ey * uniform(0.98, 1.02))
+        sy = int(sy)
         try:
+            logger.debug(f"Swipe from: ({sx},{sy}) to ({ex},{ey}).")
             self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.5))
             DeviceFacade.sleep_mode(SleepTime.TINY)
         except uiautomator2.JSONRPCError as e:
