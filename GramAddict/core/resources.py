@@ -138,6 +138,7 @@ class ResourceID:
         self.SECONDARY_LABEL = f"{APP_ID}:id/secondary_label"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
+        self.SORTING_ENTRY_ROW_OPTION = f"{APP_ID}:id/sorting_entry_row_option"
         self.SWIPE_REFRESH_ANIMATED_PROGRESSBAR_CONTAINER = (
             f"{APP_ID}:id/swipe_refresh_animated_progressbar_container"
         )
