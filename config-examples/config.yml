@@ -17,7 +17,8 @@ screen-record: false
 speed-multiplier: 1
 debug: false
 # scrape-to-file: scraped.txt
-close-apps: true
+close-apps: false
+detect-block: true
 disable-filters: false
 total-crashes-limit: 5
 

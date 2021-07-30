@@ -2,11 +2,11 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
-from time import sleep
-from colorama import Fore, Style
 from random import choice, randint, uniform
+from time import sleep
 
 import emoji
+from colorama import Fore, Style
 from numpy import NaN
 
 from GramAddict.core.device_facade import (
@@ -16,7 +16,9 @@ from GramAddict.core.device_facade import (
     SleepTime,
     Timeout,
 )
-from GramAddict.core.resources import ClassName, ResourceID as resources, TabBarText
+from GramAddict.core.resources import ClassName
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.resources import TabBarText
 from GramAddict.core.utils import (
     ActionBlockedError,
     Square,
@@ -833,6 +835,7 @@ class PostsViewList:
                     text=text,
                 )
             if post_description.exists():
+                logger.debug("Description exists!")
                 new_description_position = post_description.get_bounds()["bottom"]
                 if new_description_position < (
                     self.device.get_info()["displayHeight"] / 3
@@ -1956,40 +1959,43 @@ class UniversalActions:
         random_sleep(modulable=False)
 
     def detect_block(device):
-        logger.debug("Checking for block...")
-        if "blocked" in device.deviceV2.toast.get_message(1.0, 2.0, default=""):
-            logger.warning("Toast detected!")
-            is_blocked = True
-        block_dialog = device.find(
-            resourceIdMatches=ResourceID.BLOCK_POPUP,
-        )
-        popup_body = device.find(
-            resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
-        )
-        regex = r".+deleted"
-        popup_appears = block_dialog.exists(Timeout.SHORT)
-        if popup_appears:
-            if popup_body.exists():
-                is_post_deleted = re.match(regex, popup_body.get_text(), re.IGNORECASE)
-                if is_post_deleted:
-                    logger.info(f"{is_post_deleted.group()}")
-                    logger.debug("Click on OK button.")
-                    device.find(
-                        resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
-                    ).click()
-                    is_blocked = False
+        if args.detect_block:
+            logger.debug("Checking for block...")
+            if "blocked" in device.deviceV2.toast.get_message(1.0, 2.0, default=""):
+                logger.warning("Toast detected!")
+                is_blocked = True
+            block_dialog = device.find(
+                resourceIdMatches=ResourceID.BLOCK_POPUP,
+            )
+            popup_body = device.find(
+                resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
+            )
+            regex = r".+deleted"
+            popup_appears = block_dialog.exists(Timeout.SHORT)
+            if popup_appears:
+                if popup_body.exists():
+                    is_post_deleted = re.match(
+                        regex, popup_body.get_text(), re.IGNORECASE
+                    )
+                    if is_post_deleted:
+                        logger.info(f"{is_post_deleted.group()}")
+                        logger.debug("Click on OK button.")
+                        device.find(
+                            resourceIdMatches=ResourceID.NEGATIVE_BUTTON,
+                        ).click()
+                        is_blocked = False
+                    else:
+                        is_blocked = True
                 else:
                     is_blocked = True
             else:
-                is_blocked = True
-        else:
-            is_blocked = False
+                is_blocked = False
 
-        if is_blocked:
-            logger.error("Probably block dialog is shown.")
-            raise ActionBlockedError(
-                "Seems that action is blocked. Consider reinstalling Instagram app and be more careful with limits!"
-            )
+            if is_blocked:
+                logger.error("Probably block dialog is shown.")
+                raise ActionBlockedError(
+                    "Seems that action is blocked. Consider reinstalling Instagram app and be more careful with limits!"
+                )
 
     def _check_if_no_posts(self):
         obj = self.device.find(resourceId=ResourceID.IGDS_HEADLINE_EMPHASIZED_HEADLINE)

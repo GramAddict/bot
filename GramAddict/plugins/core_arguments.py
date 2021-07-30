@@ -325,4 +325,9 @@ class CoreArguments(Plugin):
                 "metavar": 1,
                 "default": -1,
             },
+            {
+                "arg": "--detect-block",
+                "help": "enable block detection",
+                "action": "store_true",
+            },
         ]
