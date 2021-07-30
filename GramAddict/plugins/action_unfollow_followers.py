@@ -220,13 +220,22 @@ class ActionUnfollowFollowers(Plugin):
         # Wait until list is rendered
         sorted = False
         for _ in range(2):
-            device.find(
+            user_lst = device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
-            ).wait(Timeout.LONG)
-            sort_container_obj = device.find(
-                resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
             )
+            user_lst.wait(Timeout.LONG)
+
+            sort_container_obj = device.find(
+                resourceId=self.ResourceID.SORTING_ENTRY_ROW_OPTION
+            )
+            if sort_container_obj.exists() and not sorted:
+                self.sort_followings_by_date(
+                    device, self.args.sort_followers_newest_to_oldest
+                )
+                sorted = True
+                continue
+
             top_tab_obj = device.find(
                 resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             )
@@ -245,7 +254,8 @@ class ActionUnfollowFollowers(Plugin):
                 UniversalActions(device)._swipe_points(
                     direction=Direction.DOWN, delta_y=380
                 )
-            if not sorted:
+
+            if sort_container_obj.exists() and not sorted:
                 self.sort_followings_by_date(
                     device, self.args.sort_followers_newest_to_oldest
                 )
