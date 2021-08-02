@@ -101,6 +101,7 @@ class ResourceID:
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
+        self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
         self.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER = (

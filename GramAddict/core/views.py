@@ -221,8 +221,7 @@ class HashTagView:
         self.device = device
 
     def _getRecyclerView(self):
-        views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
-        obj = self.device.find(classNameMatches=views)
+        obj = self.device.find(resourceIdMatches=ResourceID.RECYCLER_VIEW)
         if obj.exists(Timeout.LONG):
             logger.debug("RecyclerView exists.")
         else:
@@ -260,14 +259,22 @@ class PlacesView:
         self.device = device
 
     def _getRecyclerView(self):
-        views = f"({ClassName.RECYCLER_VIEW}|{ClassName.VIEW})"
-        return self.device.find(classNameMatches=views)
+        obj = self.device.find(resourceIdMatches=ResourceID.RECYCLER_VIEW)
+        if obj.exists(Timeout.LONG):
+            logger.debug("RecyclerView exists.")
+        else:
+            logger.debug("RecyclerView doesn't exists.")
+        return obj
 
     def _getFistImageView(self, recycler):
-        return recycler.child(
-            className=ClassName.IMAGE_VIEW,
+        obj = recycler.child(
             resourceIdMatches=ResourceID.IMAGE_BUTTON,
         )
+        if obj.exists(Timeout.LONG):
+            logger.debug("First image in view exists.")
+        else:
+            logger.debug("First image in view doesn't exists.")
+        return obj
 
     def _getRecentTab(self):
         return self.device.find(
@@ -1959,7 +1966,7 @@ class UniversalActions:
         random_sleep(modulable=False)
 
     def detect_block(device):
-        if args.detect_block:
+        if args.disable_block_detection:
             logger.debug("Checking for block...")
             if "blocked" in device.deviceV2.toast.get_message(1.0, 2.0, default=""):
                 logger.warning("Toast detected!")
@@ -1971,7 +1978,7 @@ class UniversalActions:
                 resourceIdMatches=ResourceID.IGDS_HEADLINE_BODY,
             )
             regex = r".+deleted"
-            popup_appears = block_dialog.exists(Timeout.SHORT)
+            popup_appears = block_dialog.exists()
             if popup_appears:
                 if popup_body.exists():
                     is_post_deleted = re.match(
