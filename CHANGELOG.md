@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.7.7 (2021-08-03)
+
+#### Fixes
+
+* place first post not found [#208](https://github.com/GramAddict/bot/issues/208)
+* replace detect-block with disable-block-detection
+#### Performance improvements
+
+* removed unneeded class and sort imports
+
+Full set of changes: [`2.7.6...2.7.7`](https://github.com/GramAddict/bot/compare/2.7.6...2.7.7)
+
 ## 2.7.6 (2021-07-31)
 
 #### Fixes
