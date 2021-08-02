@@ -1,21 +1,23 @@
-from time import sleep
-import emoji
-import yaml
-from GramAddict.core.utils import random_sleep
-from GramAddict.core.device_facade import Timeout
 import json
 import logging
 import os
 import re
-import unicodedata
 import sys
+import unicodedata
+from datetime import datetime
+from enum import Enum, auto
+from time import sleep
 
+import emoji
+import yaml
 from colorama import Fore
 from langdetect import detect
-from enum import Enum, auto
-from datetime import datetime
-from GramAddict.core.views import ProfileView, FollowStatus
-from GramAddict.core.resources import ClassName, ResourceID as resources
+
+from GramAddict.core.device_facade import Timeout
+from GramAddict.core.resources import ClassName
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.utils import random_sleep
+from GramAddict.core.views import FollowStatus, ProfileView
 
 logger = logging.getLogger(__name__)
 
@@ -556,7 +558,6 @@ class Filter:
     def _has_business_category(device, profileView=None):
         business_category_view = device.find(
             resourceId=ResourceID.PROFILE_HEADER_BUSINESS_CATEGORY,
-            className=ClassName.TEXT_VIEW,
         )
         return business_category_view.exists()
 
