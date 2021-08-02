@@ -131,10 +131,12 @@ class Config:
                 "Unknown arguments: " + ", ".join(str(arg) for arg in self.unknown_args)
             )
             self.parser.print_help()
-            if "analytics" in self.args:
-                logger.warning(
-                    "From version v2.0.7 analytics plugin doesn't accept any arguments! Just replace it in your accounts/yourusername/config.yml as 'analytics: true'"
-                )
+            for arg in self.unknown_args:
+                if "detect-block" in arg:
+                    logger.error(
+                        "Please replace the line 'detect-block: true/false' in your config file *.yml with 'disable-block-detection: true/false'"
+                    )
+                    break
             exit(0)
 
         self.device_id = self.args.device

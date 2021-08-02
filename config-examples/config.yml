@@ -18,7 +18,7 @@ speed-multiplier: 1
 debug: false
 # scrape-to-file: scraped.txt
 close-apps: false
-detect-block: true
+disalbe-block-detection: false
 disable-filters: false
 total-crashes-limit: 5
 
