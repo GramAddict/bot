@@ -14,7 +14,6 @@ from colorama import Fore
 from langdetect import detect
 
 from GramAddict.core.device_facade import Timeout
-from GramAddict.core.resources import ClassName
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.utils import random_sleep
 from GramAddict.core.views import FollowStatus, ProfileView
