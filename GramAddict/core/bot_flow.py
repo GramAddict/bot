@@ -35,6 +35,7 @@ from GramAddict.core.utils import load_config as load_utils
 from GramAddict.core.utils import (
     move_usernames_to_accounts,
     open_instagram,
+    pre_post_script,
     print_telegram_reports,
     save_crash,
     set_time_delta,
@@ -113,6 +114,7 @@ def start_bot():
             wait_for_next_session(
                 time_left, session_state, sessions, device, configs.args.screen_record
             )
+        pre_post_script(path=configs.args.pre_script)
         get_device_info(device)
         session_state = SessionState(configs)
         session_state.set_limits_session(configs.args)
@@ -139,7 +141,7 @@ def start_bot():
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "197.0.0.26.119"
+                tested_ig_version = "198.0.0.32.120"
                 running_ig_version = get_instagram_version()
                 running_ig_version_splitted = running_ig_version.split(".")
                 last_ig_version_tested = tested_ig_version.split(".")
@@ -288,7 +290,6 @@ def start_bot():
 
         # turn off bot
         close_instagram(device, configs.args.screen_record)
-
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time.")
@@ -301,6 +302,7 @@ def start_bot():
             + " --------",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
+        pre_post_script(pre=False, path=configs.args.post_script)
 
         if configs.args.repeat and can_repeat(len(sessions), total_sessions):
             print_full_report(sessions, configs.args.scrape_to_file)

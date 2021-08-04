@@ -312,6 +312,28 @@ def close_instagram(device, screen_record):
             )
 
 
+def pre_post_script(path: str, pre: bool = True):
+    if path is not None:
+        if os.path.isfile(path):
+            logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
+            try:
+                cmd_res = subprocess.call(
+                    path, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
+                )
+            except Exception as ex:
+                logger.error(f"This exception has occurred: {ex}")
+            if not cmd_res:
+                logger.info(f"Script executed successfully. (Return code: {cmd_res})")
+            else:
+                logger.warning(
+                    f"Script returns an error. Check your code! (Return code: {cmd_res})"
+                )
+        else:
+            logger.error(
+                f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
+            )
+
+
 def print_telegram_reports(
     configs, telegram_reports_at_end, followers_now, following_now, time_left=None
 ):

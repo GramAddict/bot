@@ -330,4 +330,20 @@ class CoreArguments(Plugin):
                 "help": "disable block detection",
                 "action": "store_false",
             },
+            {
+                "arg": "--pre-script",
+                "nargs": "?",
+                "help": "specify the path for the pre script",
+                "metavar": "",
+                "default": None,
+                "type": "str",
+            },
+            {
+                "arg": "--post-script",
+                "nargs": "?",
+                "help": "specify the path for the post script",
+                "metavar": "",
+                "default": None,
+                "type": "str",
+            },
         ]
