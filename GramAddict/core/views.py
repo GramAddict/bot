@@ -1525,6 +1525,46 @@ class ProfileView(ActionBarView):
             logger.error("Cannot get username.")
         return None
 
+    def getLinkInBio(self):
+        website = self.device.find(resourceIdMatches=ResourceID.PROFILE_HEADER_WEBSITE)
+        if website.exists():
+            website_url = website.get_text()
+        else:
+            website_url = None
+        return website_url
+
+    def getMutualFriends(self):
+        follow_context = self.device.find(
+            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT
+        )
+        if follow_context.exists():
+            text = follow_context.get_text()
+            mutual_friends = re.finditer(
+                r"((?P<others>\s\d+\s)|(?P<extra>,))",
+                text,
+                re.IGNORECASE,
+            )
+            n_others = 0
+            n_extra = 0
+            for match in mutual_friends:
+                if match.group("others"):
+                    n_others = int(match.group("others"))
+                if match.group("extra"):
+                    n_extra = 2
+            if n_others != 0:
+                if n_extra != 0:
+                    mutual_friends = n_others + n_extra
+                else:
+                    mutual_friends = n_others + 1
+            else:
+                if n_extra != 0:
+                    mutual_friends = n_extra
+                else:
+                    mutual_friends = 1
+        else:
+            mutual_friends = 0
+        return mutual_friends
+
     def _parseCounter(self, text):
         multiplier = 1
         text = text.replace(",", ".")
@@ -1731,6 +1771,17 @@ class ProfileView(ActionBarView):
         else:
             logger.error("Can't find following tab!")
             return False
+
+    def navigateToMutual(self):
+        logger.info("Navigate to mutual friends.")
+        has_mutual = False
+        follow_context = self.device.find(
+            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT
+        )
+        if follow_context.exists():
+            follow_context.click()
+            has_mutual = True
+        return has_mutual
 
     def swipe_to_fit_posts(self):
         """calculate the right swipe amount necessary to see 12 photos"""

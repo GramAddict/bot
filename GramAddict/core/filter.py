@@ -24,6 +24,7 @@ FIELD_SKIP_BUSINESS = "skip_business"
 FIELD_SKIP_NON_BUSINESS = "skip_non_business"
 FIELD_SKIP_FOLLOWING = "skip_following"
 FIELD_SKIP_FOLLOWER = "skip_follower"
+FIELD_SKIP_IF_LINK_IN_BIO = "skip_if_link_in_bio"
 FIELD_MIN_FOLLOWERS = "min_followers"
 FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
@@ -42,6 +43,7 @@ FIELD_BIO_LANGUAGE = "biography_language"
 FIELD_MIN_POSTS = "min_posts"
 FIELD_MIN_LIKERS = "min_likers"
 FIELD_MAX_LIKERS = "max_likers"
+FIELD_MUTUAL_FRIENDS = "mutual_friends"
 
 IGNORE_CHARSETS = ["MATHEMATICAL"]
 
@@ -76,29 +78,34 @@ class SkipReason(Enum):
     BIOGRAPHY_LANGUAGE_NOT_MATCH = auto()
     NOT_LOADED = auto()
     RESTRICTED = auto()
+    HAS_LINK_IN_BIO = auto()
+    LT_MUTUAL = auto()
 
 
 class Profile(object):
     def __init__(
         self,
+        mutual_friends,
         follow_button_text,
         is_restricted,
         is_private,
         has_business_category,
         posts_count,
         biography,
+        link_in_bio,
         fullname,
     ):
         self.datetime = str(datetime.now())
         self.followers = 0
         self.followings = 0
-
+        self.mutual_friends = mutual_friends
         self.follow_button_text = follow_button_text
         self.is_restricted = is_restricted
         self.is_private = is_private
         self.has_business_category = has_business_category
         self.posts_count = posts_count
         self.biography = biography
+        self.link_in_bio = link_in_bio
         self.fullname = fullname
 
     def set_followers_and_following(self, followers: int, followings: int):
@@ -199,6 +206,10 @@ class Filter:
             field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
             field_bio_language = self.conditions.get(FIELD_BIO_LANGUAGE)
             field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
+            field_mutual_friends = self.conditions.get(FIELD_MUTUAL_FRIENDS, -1)
+            field_skip_if_link_in_bio = self.conditions.get(
+                FIELD_SKIP_IF_LINK_IN_BIO, False
+            )
 
         profile_data = self.get_all_data(device)
         if self.conditions is None:
@@ -328,6 +339,22 @@ class Filter:
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
             )
+
+        if field_mutual_friends > -1:
+            logger.debug(
+                f"Checking if that user has at least {field_mutual_friends} mutual friends."
+            )
+            if profile_data.mutual_friends < field_mutual_friends:
+                return profile_data, self.return_check_profile(
+                    username, profile_data, SkipReason.LT_MUTUAL
+                )
+
+        if field_skip_if_link_in_bio:
+            logger.debug("Checking if account has link in bio...")
+            if profile_data.link_in_bio is not None:
+                return profile_data, self.return_check_profile(
+                    username, profile_data, SkipReason.HAS_LINK_IN_BIO
+                )
 
         if field_skip_business or field_skip_non_business:
             logger.debug("Checking if account is a business...")
@@ -509,24 +536,28 @@ class Filter:
         profileView = ProfileView(device)
         if not is_restricted:
             profile = Profile(
+                mutual_friends=self._get_mutual_friends(device, profileView),
                 follow_button_text=self._get_follow_button_text(device, profileView),
                 is_restricted=is_restricted,
                 is_private=self._is_private_account(device, profileView),
                 has_business_category=self._has_business_category(device, profileView),
                 posts_count=self._get_posts_count(device, profileView),
                 biography=self._get_profile_biography(device, profileView),
+                link_in_bio=self._get_link_in_bio(device, profileView),
                 fullname=self._get_fullname(device, profileView),
             )
             followers, following = self._get_followers_and_followings(device)
             profile.set_followers_and_following(followers, following)
         else:
             profile = Profile(
+                mutual_friends=None,
                 follow_button_text=None,
                 is_restricted=is_restricted,
                 is_private=None,
                 has_business_category=None,
                 posts_count=None,
                 biography=None,
+                link_in_bio=None,
                 fullname=None,
             )
             profile.set_followers_and_following(None, None)
@@ -640,3 +671,15 @@ class Filter:
         profileView = ProfileView(device) if profileView is None else profileView
         _, text = profileView.getFollowButton()
         return text
+
+    @staticmethod
+    def _get_mutual_friends(device, profileView=None):
+        profileView = ProfileView(device) if profileView is None else profileView
+        mutual_friends = profileView.getMutualFriends()
+        return mutual_friends
+
+    @staticmethod
+    def _get_link_in_bio(device, profileView=None):
+        profileView = ProfileView(device) if profileView is None else profileView
+        link = profileView.getLinkInBio()
+        return link
