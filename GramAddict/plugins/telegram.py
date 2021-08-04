@@ -123,7 +123,7 @@ class TelegramReports(Plugin):
         if time_left is not None:
             timeString = f'Next session will start at: {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
         else:
-            timeString = "There is any new session planned!"
+            timeString = "There is no new session planned!"
 
         dailySummary = df.groupby(by="date").agg(
             {
