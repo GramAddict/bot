@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.8.0 (2021-08-04)
+
+#### New Features
+
+* new filters: 'skip_if_link_in_bio: true/false' and 'mutual_friends: a_number' min count
+* new feature added: pre and post script execution
+
+Full set of changes: [`2.7.7...2.8.0`](https://github.com/GramAddict/bot/compare/2.7.7...2.8.0)
+
 ## 2.7.7 (2021-08-03)
 
 #### Fixes
