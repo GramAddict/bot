@@ -67,7 +67,8 @@ def start_bot():
     check_if_updated()
 
     # Move username folders to a main directory -> accounts
-    move_usernames_to_accounts()
+    if "--move-folders-in-accounts" in configs.args:
+        move_usernames_to_accounts()
 
     # Global Variables
     sessions = PersistentList("sessions", SessionStateEncoder)

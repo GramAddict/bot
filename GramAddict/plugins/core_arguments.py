@@ -202,7 +202,7 @@ class CoreArguments(Plugin):
             },
             {
                 "arg": "--close-apps",
-                "help": "close all apps except IG, for avoid interference",
+                "help": "close all apps except IG, to avoid interference",
                 "action": "store_true",
             },
             {
@@ -345,5 +345,10 @@ class CoreArguments(Plugin):
                 "metavar": "",
                 "default": None,
                 "type": "str",
+            },
+            {
+                "arg": "--move-folders-in-accounts",
+                "help": "allow the script to move all the sibling folders of run.py in accounts folder",
+                "action": "store_true",
             },
         ]
