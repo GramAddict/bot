@@ -736,12 +736,12 @@ class PostsViewList:
             elif hasattr(matches_view, "group"):
                 views = int(matches_view.group("views"))
                 logger.info(
-                    f"I can see only that this post has {views} views(s). It may contains likes.."
+                    f"I can see only that this post has {views} views(s). It may contain likes.."
                 )
                 return -1
             else:
                 if likes_view_text.endswith("others"):
-                    logger.info("This post has more then 1 like.")
+                    logger.info("This post has more than 1 like.")
                     return -1
                 else:
                     logger.info("This post has only 1 like.")

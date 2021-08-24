@@ -45,6 +45,8 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
 from GramAddict.core.views import load_config as load_views
 
+TESTED_IG_VERSION = "202.0.0.37.123"
+
 
 def start_bot():
     # Pre-Load Config
@@ -142,26 +144,15 @@ def start_bot():
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
             try:
-                tested_ig_version = "198.0.0.32.120"
                 running_ig_version = get_instagram_version()
-                running_ig_version_splitted = running_ig_version.split(".")
-                last_ig_version_tested = tested_ig_version.split(".")
                 logger.info(f"Instagram version: {running_ig_version}")
-                for n in range(len(running_ig_version_splitted)):
-                    if int(running_ig_version_splitted[n]) > int(
-                        last_ig_version_tested[n]
-                    ):
-                        logger.info(
-                            f"You have a newer version of IG then the one we tested! (Tested version: {tested_ig_version})",
-                            extra={"color": f"{Style.BRIGHT}"},
-                        )
-                        break
-                    else:
-                        if int(running_ig_version_splitted[n]) == int(
-                            last_ig_version_tested[n]
-                        ):
-                            continue
-                        break
+                if tuple(running_ig_version.split(".")) > tuple(
+                    TESTED_IG_VERSION.split(".")
+                ):
+                    logger.info(
+                        f"You have a newer version of IG then the one we tested! (Tested version: {TESTED_IG_VERSION})",
+                        extra={"color": f"{Style.BRIGHT}"},
+                    )
             except Exception as e:
                 logger.error(f"Error retrieving the IG version. Exception: {e}")
 

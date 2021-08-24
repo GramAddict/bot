@@ -197,7 +197,7 @@ class CoreArguments(Plugin):
             },
             {
                 "arg": "--screen-record",
-                "help": "enable screen recording: it will be saved as debug.mp4",
+                "help": "enable screen recording for debugging",
                 "action": "store_true",
             },
             {

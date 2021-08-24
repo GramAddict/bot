@@ -183,7 +183,7 @@ class TelegramReports(Plugin):
                 • {str(df["comments"].iloc[-1])} comments done
                 • {str(df["pm_sent"].iloc[-1])} PM sent
 
-                *📅 Today total actions*
+                *📅 Todays total actions*
                 • {str(dailySummary["duration"].iloc[-1])} minutes of botting
                 • {str(dailySummary["likes"].iloc[-1])} likes
                 • {str(dailySummary["followed"].iloc[-1])} follows

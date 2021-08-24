@@ -259,7 +259,7 @@ def open_instagram(device, screen_record, close_apps):
         return False
     random_sleep()
     if close_apps:
-        logger.info("Close all the other apps, for avoid interferece..")
+        logger.info("Close all the other apps, to avoid interference...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
@@ -295,7 +295,7 @@ def open_instagram(device, screen_record, close_apps):
             device.start_screenrecord()
         except Exception as e:
             logger.error(
-                f"For use the screen-record feature you have to install the requirements package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
     return True
 
@@ -305,10 +305,10 @@ def close_instagram(device, screen_record):
     device.deviceV2.app_stop(app_id)
     if screen_record:
         try:
-            device.stop_screenrecord()
+            device.stop_screenrecord(crash=False)
         except Exception as e:
             logger.error(
-                f"For use the screen-record feature you have to install the requirements package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple' Exception: {e}"
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
 
 
@@ -368,39 +368,42 @@ def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
 
 def save_crash(device):
     directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    crash_path = os.path.join("crashes", directory_name)
     try:
-        os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
+        os.makedirs(crash_path, exist_ok=False)
     except OSError:
-        logger.error("Directory " + directory_name + " already exists.")
+        logger.error(f"Directory {directory_name} already exists.")
         return
     screenshot_format = ".png"
     try:
-        device.screenshot(
-            "crashes/" + directory_name + "/screenshot" + screenshot_format
-        )
+        device.screenshot(os.path.join(crash_path, "screenshot" + screenshot_format))
     except RuntimeError:
         logger.error("Cannot save screenshot.")
 
     view_hierarchy_format = ".xml"
     try:
         device.dump_hierarchy(
-            "crashes/" + directory_name + "/view_hierarchy" + view_hierarchy_format
+            os.path.join(crash_path, "view_hierarchy" + view_hierarchy_format)
         )
     except RuntimeError:
         logger.error("Cannot save view hierarchy.")
-
+    if args.screen_record:
+        device.stop_screenrecord()
+        files = [f for f in os.listdir("./") if f.endswith(".mp4")]
+        try:
+            os.replace(files[-1], os.path.join(crash_path, "video.mp4"))
+        except (FileNotFoundError, IndexError):
+            logger.error("File *.mp4 not found!")
     g_log_file_name, g_logs_dir, _, _ = get_log_file_config()
-    src_file = f"{g_logs_dir}/{g_log_file_name}"
-    target_file = f"crashes/{directory_name}/logs.txt"
+    src_file = os.path.join(g_logs_dir, g_log_file_name)
+    target_file = os.path.join(crash_path, "logs.txt")
     shutil.copy(src_file, target_file)
 
-    shutil.make_archive(
-        "crashes/" + directory_name, "zip", "crashes/" + directory_name + "/"
-    )
-    shutil.rmtree("crashes/" + directory_name + "/")
+    shutil.make_archive(crash_path, "zip", crash_path)
+    shutil.rmtree(crash_path)
 
     logger.info(
-        'Crash saved as "crashes/' + directory_name + '.zip".',
+        f"Crash saved as {crash_path}.zip",
         extra={"color": Fore.GREEN},
     )
     logger.info(
