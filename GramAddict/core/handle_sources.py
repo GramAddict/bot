@@ -451,8 +451,8 @@ def handle_posts(
     interact_percentage,
     scraping_file,
 ):
-    skipped_post_limit = get_value(
-        self.args.skipped_post_limit,
+    skipped_posts_limit = get_value(
+        self.args.skipped_posts_limit,
         "Skipped post limit: {}",
         5,
     )
@@ -523,9 +523,9 @@ def handle_posts(
                             nr_consecutive_already_interacted = 0
                     else:
                         can_interact = True
-                if nr_consecutive_already_interacted == skipped_post_limit:
+                if nr_consecutive_already_interacted == skipped_posts_limit:
                     logger.info(
-                        f"Reached the limit of already interacted {skipped_post_limit}. Goin to the next source/job!"
+                        f"Reached the limit of already interacted {skipped_posts_limit}. Goin to the next source/job!"
                     )
                     return
                 if can_interact and (likes_in_range or not has_likers):
