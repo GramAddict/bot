@@ -59,6 +59,7 @@ unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
+unfollow-any-followers: 10-20
 unfollow-from-file: [usernames1.txt, usernames2.txt]
 sort-followers-newest-to-oldest: false
 
@@ -84,6 +85,7 @@ interact-percentage: 30-40
 follow-percentage: 30-40
 follow-limit: 50
 skipped-list-limit: 10-15
+skipped-post-limit: 5
 fling-when-skipped: 0
 min-following: 100
 

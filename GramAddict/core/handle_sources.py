@@ -451,6 +451,11 @@ def handle_posts(
     interact_percentage,
     scraping_file,
 ):
+    skipped_post_limit = get_value(
+        self.args.skipped_post_limit,
+        "Skipped post limit: {}",
+        5,
+    )
     if current_job == "feed":
         nav_to_feed(device)
         count_feed_limit = get_value(
@@ -467,6 +472,7 @@ def handle_posts(
     post_description = ""
     nr_same_post = 0
     nr_same_posts_max = 3
+    nr_consecutive_already_interacted = 0
     while True:
         flag, post_description, username, is_ad, is_hashtag = PostsViewList(
             device
@@ -509,11 +515,19 @@ def handle_posts(
                             )
                             if can_reinteract:
                                 can_interact = True
+                                nr_consecutive_already_interacted = 0
+                            else:
+                                nr_consecutive_already_interacted += 1
                         else:
                             can_interact = True
+                            nr_consecutive_already_interacted = 0
                     else:
                         can_interact = True
-
+                if nr_consecutive_already_interacted == skipped_post_limit:
+                    logger.info(
+                        f"Reached the limit of already interacted {skipped_post_limit}. Goin to the next source/job!"
+                    )
+                    return
                 if can_interact and (likes_in_range or not has_likers):
                     logger.info(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
