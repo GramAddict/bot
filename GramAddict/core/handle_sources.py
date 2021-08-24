@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import timedelta
 from functools import partial
 from os import path
@@ -157,6 +158,9 @@ def handle_blogger_from_file(
     limit_reached = False
     if path.isfile(current_filename):
         with open(current_filename, "r") as f:
+            nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
+            logger.info(f"In this file there are {len(nonempty_lines)} entries.")
+            f.seek(0)
             for line in f:
                 username = line.strip()
                 if username != "":
@@ -231,7 +235,9 @@ def handle_blogger_from_file(
             with atomic_write(current_filename, overwrite=True, encoding="utf-8") as f:
                 f.writelines(remaining)
     else:
-        logger.warning(f"File {current_filename} not found.")
+        logger.warning(
+            f"File {current_filename} not found. You have to specify the right relative path from this point: {os.getcwd()}"
+        )
         return
 
     logger.info(f"Interact with users in {current_filename} completed.")
