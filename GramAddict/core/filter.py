@@ -40,6 +40,7 @@ FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
 FIELD_BIO_LANGUAGE = "biography_language"
+FIELD_BIO_BANNED_LANGUAGE = "biography_banned_language"
 FIELD_MIN_POSTS = "min_posts"
 FIELD_MIN_LIKERS = "min_likers"
 FIELD_MAX_LIKERS = "max_likers"
@@ -205,6 +206,7 @@ class Filter:
             )
             field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
             field_bio_language = self.conditions.get(FIELD_BIO_LANGUAGE)
+            field_bio_banned_language = self.conditions.get(FIELD_BIO_BANNED_LANGUAGE)
             field_min_posts = self.conditions.get(FIELD_MIN_POSTS)
             field_mutual_friends = self.conditions.get(FIELD_MUTUAL_FRIENDS, -1)
             field_skip_if_link_in_bio = self.conditions.get(
@@ -393,6 +395,7 @@ class Filter:
             or len(field_mandatory_words) > 0
             or field_specific_alphabet is not None
             or field_bio_language is not None
+            or field_bio_banned_language is not None
         ) and cleaned_biography != "":
             logger.debug("Pulling biography...")
             if len(field_blacklist_words) > 0:
@@ -444,14 +447,32 @@ class Filter:
                     return profile_data, self.return_check_profile(
                         username, profile_data, SkipReason.ALPHABET_NOT_MATCH
                     )
-            if field_bio_language is not None:
+            if field_bio_language is not None or field_bio_banned_language is not None:
+                skip_1 = skip_2 = False
                 logger.debug("Checking main language of account biography...")
                 language = self._find_language(cleaned_biography)
-                if language not in field_bio_language and language != "":
+                if (
+                    field_bio_banned_language
+                    and language in field_bio_banned_language
+                    and language != ""
+                ):
                     logger.info(
-                        f"@{username}'s biography language is not in {', '.join(field_bio_language)}. ({language}), skip.",
+                        f"@{username}'s biography language is in the banned list: {', '.join(field_bio_banned_language)}. ({language}), skip.",
                         extra={"color": f"{Fore.CYAN}"},
                     )
+                    skip_1 = True
+                if (
+                    not skip_1
+                    and field_bio_language
+                    and language not in field_bio_language
+                    and language != ""
+                ):
+                    logger.info(
+                        f"@{username}'s biography language is not in the list: {', '.join(field_bio_language)}. ({language}), skip.",
+                        extra={"color": f"{Fore.CYAN}"},
+                    )
+                    skip_2 = True
+                if skip_1 or skip_2:
                     return profile_data, self.return_check_profile(
                         username,
                         profile_data,

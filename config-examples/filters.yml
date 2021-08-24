@@ -30,6 +30,7 @@ blacklist_words: [sex, link,]
 mandatory_words: [cat, dogs,]
 specific_alphabet: [LATIN, GREEK]
 biography_language: [it, en]
+biography_banned_language: [es, ch]
 
 ## Filters for enabling comments
 # Action specific
