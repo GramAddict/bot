@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.9.0 (2021-08-24)
+
+#### New Features
+
+* new argument to control how many skips in jobs with posts (e.g.: hashtag-post-top) are allowed before moving to another source / job
+* new job to unfollow people who are following you
+* new filter for skipping accounts with banned biography language
+#### Performance improvements
+
+* improved readability of the code and correct some typos
+* moving sibling folders of run.py will no longer executed automatically
+
+Full set of changes: [`2.8.0...2.9.0`](https://github.com/GramAddict/bot/compare/2.8.0...2.9.0)
+
 ## 2.8.0 (2021-08-04)
 
 #### New Features
