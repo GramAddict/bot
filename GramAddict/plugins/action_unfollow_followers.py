@@ -56,6 +56,14 @@ class ActionUnfollowFollowers(Plugin):
                 "operation": True,
             },
             {
+                "arg": "--unfollow-any-followers",
+                "nargs": None,
+                "help": "unfollow at most given number of users, that follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
+                "default": None,
+                "operation": True,
+            },
+            {
                 "arg": "--unfollow-any",
                 "nargs": None,
                 "help": "unfollow at most given number of users. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
@@ -110,6 +118,8 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
         elif self.unfollow_type == "unfollow-any-non-followers":
             self.unfollow_type = UnfollowRestriction.ANY_NON_FOLLOWERS
+        elif self.unfollow_type == "unfollow-any-followers":
+            self.unfollow_type = UnfollowRestriction.ANY_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
 
@@ -335,7 +345,10 @@ class ActionUnfollowFollowers(Plugin):
                             unfollow_restriction
                             == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
                             or unfollow_restriction
-                            == UnfollowRestriction.ANY_NON_FOLLOWERS,
+                            == UnfollowRestriction.ANY_NON_FOLLOWERS
+                            or unfollow_restriction
+                            == UnfollowRestriction.ANY_FOLLOWERS,
+                            True if job_name == "unfollow-any-followers" else False,
                         )
 
                     if unfollowed:
@@ -386,7 +399,12 @@ class ActionUnfollowFollowers(Plugin):
                     return
 
     def do_unfollow(
-        self, device: DeviceFacade, username, my_username, check_if_is_follower
+        self,
+        device: DeviceFacade,
+        username,
+        my_username,
+        check_if_is_follower,
+        unfollow_followers=False,
     ):
         """
         :return: whether unfollow was successful
@@ -404,11 +422,13 @@ class ActionUnfollowFollowers(Plugin):
         is_following_you = self.check_is_follower(device, username, my_username)
         if is_following_you is not None:
             if check_if_is_follower and is_following_you:
-                logger.info(f"Skip @{username}. This user is following you.")
-                logger.info("Back to the followings list.")
-                device.back()
-                return False
-
+                if not unfollow_followers:
+                    logger.info(f"Skip @{username}. This user is following you.")
+                    logger.info("Back to the followings list.")
+                    device.back()
+                    return False
+                else:
+                    logger.info(f"@{username} is following you, unfollow. 😈")
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                 clickable=True,
@@ -511,3 +531,4 @@ class UnfollowRestriction(Enum):
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
     ANY_NON_FOLLOWERS = 3
+    ANY_FOLLOWERS = 4
