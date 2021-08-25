@@ -1,8 +1,9 @@
 import argparse
 from os import getcwd, path
-from GramAddict.version import __version__
-from GramAddict.core.download_from_github import download_from_github
+
 from GramAddict.core.bot_flow import start_bot
+from GramAddict.core.download_from_github import download_from_github
+from GramAddict.version import __version__
 
 
 def cmd_init(args):
@@ -34,10 +35,11 @@ def cmd_run(args):
 
 
 def cmd_dump(args):
-    import uiautomator2 as u2
-    import shutil
     import os
+    import shutil
     import time
+
+    import uiautomator2 as u2
     from colorama import Fore, Style
 
     os.popen("adb shell pkill atx-agent").close()
