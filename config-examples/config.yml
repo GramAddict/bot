@@ -104,6 +104,16 @@ total-pm-limit: 5
 total-scraped-limit: 100
 
 ##############################################################################
+# Ending Session Conditions
+##############################################################################
+
+end-if-likes-limit-reached: true
+end-if-follows-limit-reached: false
+end-if-watches-limit-reached: false
+end-if-comments-limit-reached: false
+end-if-pm-limit-reached: false
+
+##############################################################################
 # Scheduling
 ##############################################################################
 

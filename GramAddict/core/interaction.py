@@ -421,19 +421,47 @@ def _on_interaction(
                 )
                 can_continue = False
         else:
-            if session_state.check_limit(
-                args, limit_type=session_state.Limit.LIKES, output=False
+            if (
+                session_state.check_limit(
+                    args, limit_type=session_state.Limit.LIKES, output=False
+                )
+                and args.end_if_likes_limit_reached
             ):
                 logger.info(
-                    "Reached likes limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                    "Reached liked limit, finish.", extra={"color": f"{Fore.CYAN}"}
                 )
                 can_continue = False
 
-            if session_state.check_limit(
-                args, limit_type=session_state.Limit.FOLLOWS, output=False
+            if (
+                session_state.check_limit(
+                    args, limit_type=session_state.Limit.FOLLOWS, output=False
+                )
+                and args.end_if_follows_limit_reached
             ):
                 logger.info(
                     "Reached followed limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                )
+                can_continue = False
+
+            if (
+                session_state.check_limit(
+                    args, limit_type=session_state.Limit.WATCHES, output=False
+                )
+                and args.end_if_watches_limit_reached
+            ):
+                logger.info(
+                    "Reached watched limit, finish.", extra={"color": f"{Fore.CYAN}"}
+                )
+                can_continue = False
+
+            if (
+                session_state.check_limit(
+                    args, limit_type=session_state.Limit.PM, output=False
+                )
+                and args.end_if_pm_limit_reached
+            ):
+                logger.info(
+                    "Reached pm limit, finish.", extra={"color": f"{Fore.CYAN}"}
                 )
                 can_continue = False
 

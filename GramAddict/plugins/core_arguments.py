@@ -274,6 +274,31 @@ class CoreArguments(Plugin):
                 "default": "1",
             },
             {
+                "arg": "--end-if-likes-limit-reached",
+                "help": "end session if likes limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-follows-limit-reached",
+                "help": "end session if follows limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-watches-limit-reached",
+                "help": "end session if watches limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-comments-limit-reached",
+                "help": "end session if comments limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-pm-limit-reached",
+                "help": "end session if pm limit is reached",
+                "action": "store_true",
+            },
+            {
                 "arg": "--truncate-sources",
                 "nargs": None,
                 "help": "truncate the source list to a finite number of items",
