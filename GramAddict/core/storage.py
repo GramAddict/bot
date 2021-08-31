@@ -113,7 +113,6 @@ class Storage:
             user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
         )
         return True, last_interaction
-        # return datetime.now() - last_interaction <= timedelta(days=3)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
