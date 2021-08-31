@@ -48,7 +48,7 @@ def update_available():
     else:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
     try:
-        r = get(version_request, verify=False)
+        r = get(version_request, verify=True)
         online_version_raw = r.text.split('"')[1]
 
     except Exception as e:
@@ -69,10 +69,9 @@ def update_available():
     for n in range(len(online_version)):
         if int(online_version[n]) > int(local_version[n]):
             return True, online_version_raw
-        else:
-            if int(online_version[n]) == int(local_version[n]):
-                continue
-            break
+        if int(online_version[n]) == int(local_version[n]):
+            continue
+        break
     return False, online_version_raw
 
 
@@ -89,9 +88,8 @@ def check_if_updated(crash=False):
         logger.warning("If you installed with pip: pip3 install GramAddict -U")
         logger.warning("If you installed with git: git pull")
         sleep(5)
-    else:
-        if not crash:
-            logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+    elif not crash:
+        logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
     if not crash:
         logger.info(
             f"GramAddict v.{__version__}",
@@ -196,10 +194,7 @@ def get_instagram_version():
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
-    if len(version_match) == 1:
-        version = version_match[0]
-    else:
-        version = "not found"
+    version = version_match[0] if len(version_match) == 1 else "not found"
     stream.close()
     return version
 
@@ -219,44 +214,28 @@ def open_instagram_with_url(url):
         return False
     return True
 
+def open_app(device, app_id):
+    device.deviceV2.app_start(app_id, use_monkey=True)
+    for _ in range(3):
+        if device.deviceV2.app_wait(app_id, 5, True):
+            return True
+        kill_app(device, app_id)
+        device.deviceV2.app_start(app_id, use_monkey=True)
+    return device.deviceV2.app_wait(app_id, 5, True)
+
+def kill_app(device, app_id):
+    device.deviceV2.app_stop(app_id)
 
 def open_instagram(device, screen_record, close_apps):
-    FastInputIME = "com.github.uiautomator/.FastInputIME"
     nl = "\n"
+    FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
+    if not open_app(device, app_id):
+        logger.error("Unable to open Instagram. Are you sure you have Instagram installed and not something else? In that case please check app_id in config file.")
+        return False
+    logger.info(
+        "Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
     )
-    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
-    err = cmd_res.stderr.strip()
-    if "Error" in err:
-        logger.error(err.replace("\n", ". "))
-        return False
-    elif "more than one device/emulator" in err:
-        logger.error(
-            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
-        )
-        return False
-    elif err == "":
-        logger.debug("Instagram called succesfully.")
-    else:
-        logger.debug(f"{err.replace('Warning: ', '')}.")
-    success = False
-    for _ in range(3):
-        if device.deviceV2.info["currentPackageName"] == app_id:
-            success = True
-            break
-        logger.debug("Wait for Instagram to open.")
-        sleep(3)
-    if success:
-        logger.info(
-            "Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
-        )
-    else:
-        logger.error("Unabled to open Instagram. Try again..")
-        return False
     random_sleep()
     if close_apps:
         logger.info("Close all the other apps, to avoid interference...")
@@ -313,35 +292,35 @@ def close_instagram(device, screen_record):
 
 
 def pre_post_script(path: str, pre: bool = True):
-    if path is not None:
-        if os.path.isfile(path):
-            logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
-            try:
-                cmd_res = subprocess.call(
-                    path, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
-                )
-            except Exception as ex:
-                logger.error(f"This exception has occurred: {ex}")
-            if not cmd_res:
-                logger.info(f"Script executed successfully. (Return code: {cmd_res})")
-            else:
-                logger.warning(
-                    f"Script returns an error. Check your code! (Return code: {cmd_res})"
-                )
-        else:
-            logger.error(
-                f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
+    if path is None:
+        return
+    if os.path.isfile(path):
+        logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
+        try:
+            cmd_res = subprocess.call(
+                path, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
             )
+        except Exception as ex:
+            logger.error(f"This exception has occurred: {ex}")
+        if not cmd_res:
+            logger.info(f"Script executed successfully. (Return code: {cmd_res})")
+        else:
+            logger.warning(
+                f"Script returns an error. Check your code! (Return code: {cmd_res})"
+            )
+    else:
+        logger.error(
+            f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
+        )
 
 
 def print_telegram_reports(
     configs, telegram_reports_at_end, followers_now, following_now, time_left=None
 ):
-    if followers_now is not None:
-        if telegram_reports_at_end:
-            configs.actions["telegram-reports"].run(
-                configs, "telegram-reports", followers_now, following_now, time_left
-            )
+    if followers_now is not None and telegram_reports_at_end:
+        configs.actions["telegram-reports"].run(
+            configs, "telegram-reports", followers_now, following_now, time_left
+        )
 
 
 def kill_atx_agent(device):
@@ -359,8 +338,7 @@ def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
     MIN_INF = 0.3
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
-    if delay < MIN_INF:
-        delay = MIN_INF
+    delay = max(delay, MIN_INF)
     if logging:
         logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
@@ -430,21 +408,19 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
 
 
 def can_repeat(current_session, max_sessions):
-    if max_sessions != -1:
-        logger.info(
-            f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
-            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-        )
-        if current_session >= max_sessions:
-            logger.info(
-                "You reached the total-sessions limit! Finish.",
-                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-            )
-            return False
-        else:
-            return True
-    else:
+    if max_sessions == -1:
         return True
+    logger.info(
+        f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    if current_session < max_sessions:
+        return True
+    logger.info(
+        "You reached the total-sessions limit! Finish.",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    return False
 
 
 def get_value(count, name, default, its_time=False):
