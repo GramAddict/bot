@@ -24,6 +24,11 @@ class Config:
         if "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
+                if not file_name.endswith(".yml"):
+                    logger.error(
+                        f"You have to specify a *.yml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
+                    )
+                    sys.exit(1)
                 with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
