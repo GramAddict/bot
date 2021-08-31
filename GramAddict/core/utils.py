@@ -214,6 +214,7 @@ def open_instagram_with_url(url):
         return False
     return True
 
+
 def open_app(device, app_id):
     device.deviceV2.app_start(app_id, use_monkey=True)
     for _ in range(3):
@@ -223,19 +224,21 @@ def open_app(device, app_id):
         device.deviceV2.app_start(app_id, use_monkey=True)
     return device.deviceV2.app_wait(app_id, 5, True)
 
+
 def kill_app(device, app_id):
     device.deviceV2.app_stop(app_id)
+
 
 def open_instagram(device, screen_record, close_apps):
     nl = "\n"
     FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
     if not open_app(device, app_id):
-        logger.error("Unable to open Instagram. Are you sure you have Instagram installed and not something else? In that case please check app_id in config file.")
+        logger.error(
+            "Unable to open Instagram. Are you sure you have Instagram installed and not something else? In that case please check app_id in config file."
+        )
         return False
-    logger.info(
-        "Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
-    )
+    logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
     random_sleep()
     if close_apps:
         logger.info("Close all the other apps, to avoid interference...")
