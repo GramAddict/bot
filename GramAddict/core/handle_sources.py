@@ -43,13 +43,11 @@ def interact(
     current_job,
     on_interaction,
 ):
+    can_follow = False
     if is_follow_limit_reached is not None:
-        can_follow = not is_follow_limit_reached() and (
-            storage.get_following_status(username) == FollowingStatus.NONE
-            or storage.get_following_status(username) == FollowingStatus.NOT_IN_LIST
-        )
-    else:
-        can_follow = False
+        can_follow = not is_follow_limit_reached() and storage.get_following_status(
+            username
+        ) in [FollowingStatus.NONE, FollowingStatus.NOT_IN_LIST]
 
     (
         interaction_succeed,
@@ -77,22 +75,18 @@ def interact(
         commented=number_of_comments,
         pm_sent=pm_sent,
     )
-    can_continue = on_interaction(
+    return on_interaction(
         succeed=interaction_succeed,
         followed=followed,
         scraped=scraped,
     )
-    return can_continue
 
 
 def random_choice(interact_percentage):
     from random import randint
 
     random_number = randint(1, 100)
-    if interact_percentage >= random_number:
-        return True
-    else:
-        return False
+    return interact_percentage >= random_number
 
 
 def handle_blogger(
@@ -157,83 +151,90 @@ def handle_blogger_from_file(
     on_following_list = False
     limit_reached = False
     if path.isfile(current_filename):
-        with open(current_filename, "r") as f:
-            nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
-            logger.info(f"In this file there are {len(nonempty_lines)} entries.")
-            f.seek(0)
-            for line in f:
-                username = line.strip()
-                if username != "":
-                    if current_job == "unfollow-from-file":
-                        unfollowed = do_unfollow_from_list(
-                            device, username, on_following_list
+        with open(current_filename, "r", encoding="utf-8") as f:
+            usernames = [line.replace(" ", "") for line in f if line != "\n"]
+        logger.info(f"In this file there are {len(usernames)} entries.")
+        not_found = []
+        try:
+            for line, username_raw in enumerate(usernames, start=1):
+                username = username_raw.strip()
+                can_interact = False
+                if current_job == "unfollow-from-file":
+                    unfollowed = do_unfollow_from_list(
+                        device, username, on_following_list
+                    )
+                    on_following_list = True
+                    if unfollowed:
+                        storage.add_interacted_user(
+                            username, self.session_state.id, unfollowed=True
                         )
-                        on_following_list = True
-                        if unfollowed:
-                            storage.add_interacted_user(
-                                username, self.session_state.id, unfollowed=True
-                            )
-                            self.session_state.totalUnfollowed += 1
-                            limit_reached = self.session_state.check_limit(
-                                self.args, limit_type=self.session_state.Limit.UNFOLLOWS
-                            )
-                        if limit_reached:
-                            logger.info("Unfollows limit reached.")
-                            break
+                        self.session_state.totalUnfollowed += 1
+                        limit_reached = self.session_state.check_limit(
+                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+                        )
                     else:
-                        can_interact = False
-                        if storage.is_user_in_blacklist(username):
-                            logger.info(f"@{username} is in blacklist. Skip.")
-                        else:
-                            (
-                                interacted,
-                                interacted_when,
-                            ) = storage.check_user_was_interacted(username)
-                            if interacted:
-                                interact_after = timedelta(
-                                    hours=float(self.args.can_reinteract_after)
-                                )
-                                can_reinteract = storage.can_be_reinteract(
-                                    interacted_when, interact_after
-                                )
-                                logger.info(
-                                    f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
-                                )
-                                if can_reinteract:
-                                    can_interact = True
-                            else:
-                                can_interact = True
-
-                        if can_interact:
-                            if need_to_refresh:
-                                search_view = TabBarView(device).navigateToSearch()
-                            profile_view = search_view.navigateToUsername(
-                                username, True
-                            )
-                            need_to_refresh = False
-                            if not profile_view:
-                                continue
-
-                            if not interact(
-                                storage,
-                                is_follow_limit_reached,
-                                username,
-                                interaction,
-                                device,
-                                self.session_state,
-                                current_job,
-                                on_interaction,
-                            ):
-                                return
-                            device.back()
-                        else:
-                            continue
+                        not_found.append(username_raw)
+                    if limit_reached:
+                        logger.info("Unfollows limit reached.")
+                        break
                 else:
-                    logger.info("Line in file is blank, skip.")
-            remaining = f.readlines()
-        if self.args.delete_interacted_users:
-            with atomic_write(current_filename, overwrite=True, encoding="utf-8") as f:
-                f.writelines(remaining)
+                    if storage.is_user_in_blacklist(username):
+                        logger.info(f"@{username} is in blacklist. Skip.")
+                    else:
+                        (
+                            interacted,
+                            interacted_when,
+                        ) = storage.check_user_was_interacted(username)
+                        if interacted:
+                            interact_after = timedelta(
+                                hours=float(self.args.can_reinteract_after)
+                            )
+                            can_reinteract = storage.can_be_reinteract(
+                                interacted_when, interact_after
+                            )
+                            logger.info(
+                                f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                            )
+                            if can_reinteract:
+                                can_interact = True
+                        else:
+                            can_interact = True
+
+                    if not can_interact:
+                        continue
+                    if need_to_refresh:
+                        search_view = TabBarView(device).navigateToSearch()
+                    profile_view = search_view.navigateToUsername(username, True)
+                    need_to_refresh = False
+                    if not profile_view:
+                        not_found.append(username_raw)
+                        continue
+
+                    if not interact(
+                        storage,
+                        is_follow_limit_reached,
+                        username,
+                        interaction,
+                        device,
+                        self.session_state,
+                        current_job,
+                        on_interaction,
+                    ):
+                        return
+                    device.back()
+        finally:
+            if not_found:
+                with open(
+                    f"{os.path.splitext(current_filename)[0]}_not_found.txt",
+                    mode="a+",
+                    encoding="utf-8",
+                ) as f:
+                    f.writelines(not_found)
+            if self.args.delete_interacted_users:
+                with atomic_write(
+                    current_filename, overwrite=True, encoding="utf-8"
+                ) as f:
+                    f.writelines(usernames[line:])
     else:
         logger.warning(
             f"File {current_filename} not found. You have to specify the right relative path from this point: {os.getcwd()}"
@@ -247,9 +248,10 @@ def handle_blogger_from_file(
 def do_unfollow_from_list(device, username, on_following_list):
     if not on_following_list:
         ProfileView(device)._click_on_avatar()
-        if ProfileView(device).navigateToFollowing():
-            if UniversalActions(device).search_text(username):
-                return FollowingView(device).do_unfollow_from_list(username)
+        if ProfileView(device).navigateToFollowing() and UniversalActions(
+            device
+        ).search_text(username):
+            return FollowingView(device).do_unfollow_from_list(username)
     else:
         if username is not None:
             UniversalActions(device).search_text(username)
@@ -269,13 +271,13 @@ def handle_likers(
     interaction,
     is_follow_limit_reached,
 ):
-    if current_job == "blogger-post-likers":
-        if not nav_to_post_likers(device, target, session_state.my_username):
-            return False
-    else:
-        if not nav_to_hashtag_or_place(device, target, current_job):
-            return False
-
+    if (
+        current_job == "blogger-post-likers"
+        and not nav_to_post_likers(device, target, session_state.my_username)
+        or current_job != "blogger-post-likers"
+        and not nav_to_hashtag_or_place(device, target, current_job)
+    ):
+        return False
     post_description = ""
     nr_same_post = 0
     nr_same_posts_max = 3
@@ -364,18 +366,17 @@ def handle_likers(
                         )
                         element_opened = username_view.click_retry()
 
-                        if element_opened:
-                            if not interact(
-                                storage,
-                                is_follow_limit_reached,
-                                username,
-                                interaction,
-                                device,
-                                session_state,
-                                current_job,
-                                on_interaction,
-                            ):
-                                return
+                        if element_opened and not interact(
+                            storage,
+                            is_follow_limit_reached,
+                            username,
+                            interaction,
+                            device,
+                            session_state,
+                            current_job,
+                            on_interaction,
+                        ):
+                            return
                     if element_opened:
                         opened = True
                         logger.info("Back to likers list.")
@@ -406,22 +407,20 @@ def handle_likers(
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
                 break
             if posts_end_detector.is_fling_limit_reached():
-                prev_screen_iterated_likers.clear()
-                prev_screen_iterated_likers += screen_iterated_likers
                 logger.info(
                     "Reached fling limit. Fling to see other likers.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 likes_list_view.fling(Direction.DOWN)
             else:
-                prev_screen_iterated_likers.clear()
-                prev_screen_iterated_likers += screen_iterated_likers
                 logger.info(
                     "Scroll to see other likers.",
                     extra={"color": f"{Fore.GREEN}"},
                 )
                 likes_list_view.scroll(Direction.DOWN)
 
+            prev_screen_iterated_likers.clear()
+            prev_screen_iterated_likers += screen_iterated_likers
             if posts_end_detector.is_the_end():
                 device.back()
                 PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
@@ -465,9 +464,8 @@ def handle_posts(
         )
         count = 0
         PostsViewList(device)._refresh_feed()
-    else:
-        if not nav_to_hashtag_or_place(device, target, current_job):
-            return
+    elif not nav_to_hashtag_or_place(device, target, current_job):
+        return
 
     post_description = ""
     nr_same_post = 0
@@ -478,7 +476,7 @@ def handle_posts(
             device
         )._check_if_last_post(post_description, current_job)
         has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
-        if not (is_ad or is_hashtag):
+        if not is_ad and not is_hashtag:
             if flag:
                 nr_same_post += 1
                 logger.info(
