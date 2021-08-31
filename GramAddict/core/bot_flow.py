@@ -267,6 +267,8 @@ def start_bot():
         if telegram_reports_at_end:
             logger.info("Going back to your profile..")
             ProfileView(device)._click_on_avatar()
+            if ProfileView(device).getFollowingCount(own_profile=True) is None:
+                ProfileView(device)._click_on_avatar()
             AccountView(device).refresh_account()
             (
                 _,
