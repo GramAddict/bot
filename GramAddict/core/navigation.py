@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from colorama import Fore
 
@@ -24,13 +25,19 @@ def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
     SearchView(device)._close_keyboard()
     ProfileView(device)._click_on_avatar()
+    if ProfileView(device).getFollowingCount(own_profile=True) is None:
+        ProfileView(device)._click_on_avatar()
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
-    if None not in {post, follower, following}:
-        if post == "Posts" and follower == "Followers" and following == "Following":
-            logger.debug("Instagram in English.")
-        else:
-            logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
+    if None in {post, follower, following}:
+        logger.warning(
+            "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
+        )
+    elif post == "Posts" and follower == "Followers" and following == "Following":
+        logger.debug("Instagram in English.")
+    else:
+        logger.info("Switching to English locale.", extra={"color": f"{Fore.GREEN}"})
+        try:
             ProfileView(device).navigateToOptions()
             OptionsView(device).navigateToSettings()
             SettingsView(device).navigateToAccount()
@@ -40,17 +47,18 @@ def check_if_english(device):
                 "After changing language, IG goes to feed. Let's go to profile view again."
             )
             ProfileView(device)._click_on_avatar()
-    else:
-        logger.warning(
-            "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
-        )
+        except Exception as ex:
+            logger.error(f"Please change the language manually to English! Error: {ex}")
+            sys.exit(1)
+        if ProfileView(device).getFollowingCount(own_profile=True) is None:
+            ProfileView(device)._click_on_avatar()
     return ProfileView(device, is_own_profile=True)
 
 
 def nav_to_blogger(device, username, current_job):
     """navigate to blogger (followers list or posts)"""
-    _to_followers = True if current_job.endswith("followers") else False
-    _to_following = True if current_job.endswith("following") else False
+    _to_followers = bool(current_job.endswith("followers"))
+    _to_following = bool(current_job.endswith("following"))
     if username is None:
         profile_view = TabBarView(device).navigateToProfile()
         if _to_followers:
