@@ -11,8 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, first_run=False):
-        self.args = sys.argv
+    def __init__(self, first_run=False, module=False, **kwargs):
+        self.module = module
+        self.args = None
+        if module or kwargs:
+            self.args = kwargs
+            self.module = True
+        else:
+            self.args = sys.argv
         self.config = None
         self.config_list = None
         self.debug = False
@@ -44,16 +50,23 @@ class Config:
             self.username = self.config.get("username", False)
             self.debug = self.config.get("debug", False)
 
-        if "--debug" in self.args:
-            self.debug = True
-        if "--username" in self.args:
-            try:
-                self.username = self.args[self.args.index("--username") + 1]
-            except IndexError:
-                logger.warning(
-                    "Please provide a username with your --username argument. Example: '--username yourusername'"
-                )
-                exit(0)
+        if self.module:
+            if "debug" in self.args and self.args["debug"]:
+                self.debug = True
+            if "username" in self.args:
+                self.username = self.args["username"]
+
+        else:
+            if "--debug" in self.args or "debug" in self.args:
+                self.debug = True
+            if "--username" in self.args or "username" in self.args:
+                try:
+                    self.username = self.args[self.args.index("--username") + 1]
+                except IndexError:
+                    logger.warning(
+                        "Please provide a username with your --username argument. Example: '--username yourusername'"
+                    )
+                    exit(0)
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
@@ -115,15 +128,32 @@ class Config:
             return False
 
         self.enabled = []
-        if self.first_run:
-            logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
-            if self.config:
-                logger.debug(f"Config used: {self.config}")
-            if not len(sys.argv) > 1:
-                self.parser.print_help()
-                exit(0)
-
-        self.args, self.unknown_args = self.parser.parse_known_args()
+        if self.module:
+            if self.first_run:
+                logger.debug("Arguments used:")
+                if self.config:
+                    logger.debug(f"Config used: {self.config}")
+                if not len(self.args) > 0:
+                    self.parser.print_help()
+                    exit(0)
+        else:
+            if self.first_run:
+                logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
+                if self.config:
+                    logger.debug(f"Config used: {self.config}")
+                if not len(sys.argv) > 1:
+                    self.parser.print_help()
+                    exit(0)
+        if self.module:
+            arg_str = ''
+            for k, v in self.args.items():
+                new_key = k.replace('_', '-')
+                new_key = ' --' + new_key
+                arg_str += new_key + ' ' + v
+            self.args, self.unknown_args = self.parser.parse_known_args(
+                args=arg_str)
+        else:
+            self.args, self.unknown_args = self.parser.parse_known_args()
         if "run" in self.unknown_args:
             self.unknown_args.remove("run")
         if self.unknown_args and self.first_run:
@@ -138,9 +168,7 @@ class Config:
                     )
                     break
             exit(0)
-
         self.device_id = self.args.device
-
         # We need to maintain the order of plugins as defined
         # in config or sys.argv
         if self.config_list:
