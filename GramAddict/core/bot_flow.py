@@ -48,14 +48,17 @@ from GramAddict.core.views import load_config as load_views
 TESTED_IG_VERSION = "202.0.0.37.123"
 
 
-def start_bot():
+def start_bot(**kwargs):
     # Pre-Load Config
-    configs = Config(first_run=True)
+    if not kwargs:
+        configs = Config(first_run=True)
+    else:
+        configs = Config(first_run=True, module=True, **kwargs)
 
     # Logging initialization
     configure_logger(configs.debug, configs.username)
     logger = logging.getLogger(__name__)
-    if "--config" not in configs.args:
+    if "config" not in configs.args:
         logger.info(
             "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
             extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
@@ -78,7 +81,6 @@ def start_bot():
     # Load Config
     configs.load_plugins()
     configs.parse_args()
-
     # Some plugins need config values without being passed
     # through. Because we do a weird config/argparse hybrid,
     # we need to load the configs in a weird way
@@ -209,7 +211,7 @@ def start_bot():
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
         if configs.args.repeat:
             logger.info(
-                f"You have {total_sessions+1-len(sessions) if total_sessions > 0 else 'infinite'} session(s) left. You can stop the bot by pressing CTRL+C in console.",
+                f"You have {total_sessions + 1 - len(sessions) if total_sessions > 0 else 'infinite'} session(s) left. You can stop the bot by pressing CTRL+C in console.",
                 extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
             )
             sleep(3)
@@ -313,7 +315,7 @@ def start_bot():
                     time_left,
                 )
                 logger.info(
-                    f'Next session will start at: {(datetime.now()+ timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
+                    f'Next session will start at: {(datetime.now() + timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
                 )
                 try:
                     sleep(time_left)
