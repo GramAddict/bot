@@ -145,13 +145,12 @@ class Config:
                     self.parser.print_help()
                     exit(0)
         if self.module:
-            arg_str = ''
+            arg_str = ""
             for k, v in self.args.items():
-                new_key = k.replace('_', '-')
-                new_key = ' --' + new_key
-                arg_str += new_key + ' ' + v
-            self.args, self.unknown_args = self.parser.parse_known_args(
-                args=arg_str)
+                new_key = k.replace("_", "-")
+                new_key = " --" + new_key
+                arg_str += new_key + " " + v
+            self.args, self.unknown_args = self.parser.parse_known_args(args=arg_str)
         else:
             self.args, self.unknown_args = self.parser.parse_known_args()
         if "run" in self.unknown_args:

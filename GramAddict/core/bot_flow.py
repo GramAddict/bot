@@ -149,7 +149,7 @@ def start_bot(**kwargs):
                 running_ig_version = get_instagram_version()
                 logger.info(f"Instagram version: {running_ig_version}")
                 if tuple(running_ig_version.split(".")) > tuple(
-                        TESTED_IG_VERSION.split(".")
+                    TESTED_IG_VERSION.split(".")
                 ):
                     logger.info(
                         f"You have a newer version of IG then the one we tested! (Tested version: {TESTED_IG_VERSION})",
@@ -185,10 +185,10 @@ def start_bot(**kwargs):
             break
 
         if (
-                session_state.my_username is None
-                or session_state.my_posts_count is None
-                or session_state.my_followers_count is None
-                or session_state.my_following_count is None
+            session_state.my_username is None
+            or session_state.my_posts_count is None
+            or session_state.my_followers_count is None
+            or session_state.my_following_count is None
         ):
             logger.critical(
                 "Could not get one of the following from your profile: username, # of posts, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
@@ -241,7 +241,7 @@ def start_bot(**kwargs):
                 )
                 break
             if not session_state.check_limit(
-                    configs.args, limit_type=session_state.Limit.ALL, output=True
+                configs.args, limit_type=session_state.Limit.ALL, output=True
             ):
                 logger.info(
                     f"Current job: {plugin}",
@@ -305,7 +305,7 @@ def start_bot(**kwargs):
             )
             if inside_working_hours:
                 time_left = (
-                        get_value(configs.args.repeat, "Sleep for {} minutes.", 180) * 60
+                    get_value(configs.args.repeat, "Sleep for {} minutes.", 180) * 60
                 )
                 print_telegram_reports(
                     configs,
