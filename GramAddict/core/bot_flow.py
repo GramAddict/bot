@@ -58,7 +58,7 @@ def start_bot(**kwargs):
     # Logging initialization
     configure_logger(configs.debug, configs.username)
     logger = logging.getLogger(__name__)
-    if "--config" not in configs.args and "config" not in configs.args:
+    if "config" not in configs.args:
         logger.info(
             "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
             extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
