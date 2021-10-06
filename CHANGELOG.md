@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.2 (2021-10-06)
+
+#### Fixes
+
+* other incompatibilities in the latest IG version
+
+Full set of changes: [`2.9.1...2.9.2`](https://github.com/GramAddict/bot/compare/2.9.1...2.9.2)
+
 ## 2.9.1 (2021-10-06)
 
 #### New Features
