@@ -1535,8 +1535,9 @@ class ProfileView(ActionBarView):
         return website_url
 
     def getMutualFriends(self):
+        logger.debug("Looking for mutual friends tab.")
         follow_context = self.device.find(
-            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT
+            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT_TEXT
         )
         if follow_context.exists():
             text = follow_context.get_text()

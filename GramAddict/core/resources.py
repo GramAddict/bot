@@ -71,8 +71,8 @@ class ResourceID:
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (
             f"{APP_ID}:id/profile_header_business_category"
         )
-        self.PROFILE_HEADER_FOLLOW_CONTEXT = (
-            f"{APP_ID}:id/profile_header_follow_context"
+        self.PROFILE_HEADER_FOLLOW_CONTEXT_TEXT = (
+            f"{APP_ID}:id/profile_header_follow_context_text"
         )
         self.PROFILE_HEADER_FULL_NAME = f"{APP_ID}:id/profile_header_full_name"
         self.PROFILE_HEADER_WEBSITE = f"{APP_ID}:id/profile_header_website"
