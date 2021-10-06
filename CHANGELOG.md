@@ -1,6 +1,17 @@
 # Changelog
 
-## 2.9.0 (2021-08-24)
+## 2.9.1 (2021-10-06)
+
+#### New Features
+
+* module version thanks to @patbengr
+#### Fixes
+
+* compatibility with IG: 208.0.0.32.135
+
+Full set of changes: [`2.9.0...2.9.1`](https://github.com/GramAddict/bot/compare/2.9.0...2.9.1)
+
+## 2.9.0 (2021-08-25)
 
 #### New Features
 
