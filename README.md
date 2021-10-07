@@ -181,6 +181,7 @@ We create a virtual environment called `.venv` and activate it:
 - if everything is fine you will get the GramAddict version installed 🥳
 
 #### With git:
+> __Warning:__ console commands like `gramaddict init`, `gramaddict dump` and `gramaddict run` won't work if you installed the bot with git.
 - clone the project: `git clone https://github.com/GramAddict/bot.git gramaddict`
 - enter the gramaddict folder: `cd gramaddict`
 - install the requirements: `pip3 install -r requirements.txt`
@@ -221,6 +222,7 @@ This bot works only if your Instagram is in [English](https://help.instagram.com
    - this is your device ID, you have to use it only if you have more then one device connected at the same time
 5. initialize uiautomator2: `uiautomator2 init`
 6. initialize GramAddict: `gramaddict init your_ig_account_name_here`
+    > __Warning:__ works only if you installed the bot with pip, if you used git you have to create account folder and youraccountname folder manually.
     - that script will crate all the files you need for configure and start this bot
     - you will find them inside the folder `accounts/youraccountname/`
       ```sh

@@ -685,27 +685,32 @@ def _send_PM(device, session_state, my_username, swipe_amount, private=False):
         message_box.set_text(message)
         send_button = device.find(
             resourceId=ResourceID.ROW_THREAD_COMPOSER_BUTTON_SEND,
-            className=ClassName.TEXT_VIEW,
         )
-        send_button.click()
-        UniversalActions.detect_block(device)
-        SearchView(device)._close_keyboard()
-        posted_text = device.find(text=f"{message}")
-        message_sending_icon = device.find(
-            resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
-        )
-        if message_sending_icon.exists():
-            random_sleep()
-        if posted_text.exists(Timeout.MEDIUM) and not message_sending_icon.exists():
-            logger.info("PM send succeed.", extra={"color": f"{Fore.GREEN}"})
-            session_state.totalPm += 1
-            pm_confirmed = True
+        if send_button.exists():
+            send_button.click()
+            UniversalActions.detect_block(device)
+            SearchView(device)._close_keyboard()
+            posted_text = device.find(text=f"{message}")
+            message_sending_icon = device.find(
+                resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
+            )
+            if message_sending_icon.exists():
+                random_sleep()
+            if posted_text.exists(Timeout.MEDIUM) and not message_sending_icon.exists():
+                logger.info("PM send succeed.", extra={"color": f"{Fore.GREEN}"})
+                session_state.totalPm += 1
+                pm_confirmed = True
+            else:
+                logger.warning("Failed to check if PM send succeed.")
+                pm_confirmed = False
+            logger.info("Go back to profile view.")
+            device.back()
+            return pm_confirmed
         else:
-            logger.warning("Failed to check if PM send succeed.")
-            pm_confirmed = False
-        logger.info("Go back to profile view.")
-        device.back()
-        return pm_confirmed
+            logger.warning("Can't find SEND button!")
+            SearchView(device)._close_keyboard()
+            device.back()
+            return False
     else:
         logger.info("PM to this user have been limited.")
         SearchView(device)._close_keyboard()
@@ -827,22 +832,28 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
                     "Cannot find neither Follow button, Follow Back button, nor Unfollow button."
                 )
                 save_crash(device)
-
-        follow_button.click()
-        if device.find(
-            clickable=True,
-            textMatches=UNFOLLOW_REGEX,
-        ).exists(Timeout.SHORT):
-            logger.info(f"Followed @{username}", extra={"color": f"{Fore.GREEN}"})
-            UniversalActions.detect_block(device)
-            return True
-        else:
-            logger.info(
-                f"Looks like I was not able to follow @{username}, maybe you got softbanned for this action!",
-                extra={"color": f"{Fore.RED}"},
-            )
-            UniversalActions.detect_block(device)
-            return False
+        max_tries = 3
+        for n in range(max_tries):
+            follow_button.click()
+            if device.find(
+                textMatches=UNFOLLOW_REGEX,
+                clickable=True,
+            ).exists(Timeout.SHORT):
+                logger.info(f"Followed @{username}", extra={"color": Fore.GREEN})
+                UniversalActions.detect_block(device)
+                return True
+            else:
+                if n < max_tries - 1:
+                    logger.debug(
+                        "Looks like the click on the button dind't work, try again."
+                    )
+                continue
+        logger.warning(
+            f"Looks like I was not able to follow @{username}, maybe you got softbanned for this action!",
+            extra={"color": Fore.RED},
+        )
+        UniversalActions.detect_block(device)
+        return False
     else:
         logger.info("Reached total follows limit, not following.")
         return False

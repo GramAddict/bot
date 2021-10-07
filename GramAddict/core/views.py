@@ -1434,10 +1434,11 @@ class ProfileView(ActionBarView):
                 ResourceID.ACTION_BAR_LARGE_TITLE,
                 ResourceID.ACTION_BAR_TEXTVIEW_TITLE,
                 ResourceID.ACTION_BAR_TITLE_AUTO_SIZE,
+                ResourceID.ACTION_BAR_LARGE_TITLE_AUTO_SIZE,
             ]
         )
         action_bar = self.device.find(
-            resourceIdMatches=bar, className=ClassName.TEXT_VIEW
+            resourceIdMatches=bar,
         )
         if not watching_stories:
             if action_bar.exists(Timeout.LONG):
@@ -1534,8 +1535,9 @@ class ProfileView(ActionBarView):
         return website_url
 
     def getMutualFriends(self):
+        logger.debug("Looking for mutual friends tab.")
         follow_context = self.device.find(
-            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT
+            resourceIdMatches=ResourceID.PROFILE_HEADER_FOLLOW_CONTEXT_TEXT
         )
         if follow_context.exists():
             text = follow_context.get_text()

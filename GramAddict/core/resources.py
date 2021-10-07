@@ -2,6 +2,9 @@ class ResourceID:
     def __init__(self, APP_ID):
         self.ACTION_BAR_CONTAINER = f"{APP_ID}:id/action_bar_container"
         self.ACTION_BAR_LARGE_TITLE = f"{APP_ID}:id/action_bar_large_title"
+        self.ACTION_BAR_LARGE_TITLE_AUTO_SIZE = (
+            f"{APP_ID}:id/action_bar_large_title_auto_size"
+        )
         self.ACTION_BAR_NEW_TITLE_CONTAINER = (
             f"{APP_ID}:id/action_bar_new_title_container"
         )
@@ -68,8 +71,8 @@ class ResourceID:
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (
             f"{APP_ID}:id/profile_header_business_category"
         )
-        self.PROFILE_HEADER_FOLLOW_CONTEXT = (
-            f"{APP_ID}:id/profile_header_follow_context"
+        self.PROFILE_HEADER_FOLLOW_CONTEXT_TEXT = (
+            f"{APP_ID}:id/profile_header_follow_context_text"
         )
         self.PROFILE_HEADER_FULL_NAME = f"{APP_ID}:id/profile_header_full_name"
         self.PROFILE_HEADER_WEBSITE = f"{APP_ID}:id/profile_header_website"
