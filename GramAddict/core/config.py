@@ -11,14 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, first_run=False, module=False, **kwargs):
-        self.module = module
-        self.args = None
-        if module or kwargs:
+    def __init__(self, first_run=False, **kwargs):
+        if kwargs:
             self.args = kwargs
             self.module = True
         else:
             self.args = sys.argv
+            self.module = False
         self.config = None
         self.config_list = None
         self.debug = False
@@ -40,33 +39,32 @@ class Config:
                 logger.warning(
                     "Please provide a filename with your --config argument. Example: '--config accounts/yourusername/config.yml'"
                 )
-                exit(0)
+                exit(2)
             except FileNotFoundError:
                 logger.error(
                     f"I can't see the file '{file_name}'! Double check the spelling or if you're calling the bot from the right folder. (You're there: '{os.getcwd()}')"
                 )
-                exit(0)
+                exit(2)
 
             self.username = self.config.get("username", False)
             self.debug = self.config.get("debug", False)
-
-        if self.module:
-            if "debug" in self.args and self.args["debug"]:
-                self.debug = True
-            if "username" in self.args:
-                self.username = self.args["username"]
-
         else:
-            if "--debug" in self.args or "debug" in self.args:
-                self.debug = True
-            if "--username" in self.args or "username" in self.args:
-                try:
-                    self.username = self.args[self.args.index("--username") + 1]
-                except IndexError:
-                    logger.warning(
-                        "Please provide a username with your --username argument. Example: '--username yourusername'"
-                    )
-                    exit(0)
+            if self.module:
+                if "debug" in self.args:
+                    self.debug = True
+                if "username" in self.args:
+                    self.username = self.args["username"]
+            else:
+                if "--debug" in self.args:
+                    self.debug = True
+                if "--username" in self.args:
+                    try:
+                        self.username = self.args[self.args.index("--username") + 1]
+                    except IndexError:
+                        logger.warning(
+                            "Please provide a username with your --username argument. Example: '--username yourusername'"
+                        )
+                        exit(2)
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
