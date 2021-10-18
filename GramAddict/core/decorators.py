@@ -1,4 +1,5 @@
 import logging
+import sys
 import traceback
 from datetime import datetime
 from http.client import HTTPException
@@ -80,7 +81,10 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 logger.info("Something unexpected happened. Let's try again.")
                 close_instagram(device, screen_record)
                 random_sleep()
-                open_instagram(device, screen_record, configs.args.close_apps)
+                if not open_instagram(device, screen_record, configs.args.close_apps):
+                    print_full_report(sessions, configs.args.scrape_to_file)
+                    sessions.persist(directory=session_state.my_username)
+                    sys.exit(2)
                 TabBarView(device).navigateToProfile()
             except Exception as e:
                 logger.error(traceback.format_exc())

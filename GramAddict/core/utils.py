@@ -232,7 +232,7 @@ def open_instagram(device, screen_record, close_apps):
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     if "Error" in err:
-        logger.error(err.replace("\n", ". "))
+        logger.error(err.replace(nl, ". "))
         return False
     elif "more than one device/emulator" in err:
         logger.error(
@@ -243,23 +243,22 @@ def open_instagram(device, screen_record, close_apps):
         logger.debug("Instagram called succesfully.")
     else:
         logger.debug(f"{err.replace('Warning: ', '')}.")
-    success = False
-    for _ in range(3):
-        if device.deviceV2.info["currentPackageName"] == app_id:
-            success = True
-            break
-        logger.debug("Wait for Instagram to open.")
-        sleep(3)
-    if success:
-        logger.info(
-            "Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"}
-        )
-    else:
-        logger.error("Unabled to open Instagram. Try again..")
-        return False
+
+    max_tries = 3
+    n = 0
+    while device.deviceV2.info["currentPackageName"] != app_id:
+        if n > max_tries:
+            logger.critical("Unabled to open Instagram. Bot will stop.")
+            return False
+        n += 1
+        logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
+        random_sleep(3, 3, modulable=False)
+
+    logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
+
     random_sleep()
     if close_apps:
-        logger.info("Close all the other apps, to avoid interference...")
+        logger.info("Close all the other apps, to avoid interferences...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
@@ -303,6 +302,7 @@ def open_instagram(device, screen_record, close_apps):
 def close_instagram(device, screen_record):
     logger.info("Close Instagram app.")
     device.deviceV2.app_stop(app_id)
+    random_sleep(5, 5, modulable=False)
     if screen_record:
         try:
             device.stop_screenrecord(crash=False)
@@ -412,6 +412,8 @@ def save_crash(device):
     )
     logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
     check_if_updated(crash=True)
+    if args.screen_record:
+        device.start_screenrecord()
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
