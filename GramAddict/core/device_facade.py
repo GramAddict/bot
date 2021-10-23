@@ -77,16 +77,17 @@ class DeviceFacade:
     def __init__(self, device_id):
         self.device_id = device_id
         device_ip = None
-        # self.deviceV2.debug = True
         try:
-            if True:
+            if "." not in device_id:
                 self.deviceV2 = (
                     uiautomator2.connect()
                     if device_id is None
                     else uiautomator2.connect(device_id)
                 )
             else:
-                self.deviveV2 = uiautomator2.connect_adb_wifi(f"{device_ip}:5555")
+                splitted = device_id.split(":")
+                port = splitted[1] if len(splitted) == 2 else "7912"
+                self.deviveV2 = uiautomator2.connect_adb_wifi(f"{device_ip}:{port}")
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
@@ -116,18 +117,11 @@ class DeviceFacade:
             debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
             output = f"debug_{debug_number}.mp4"
         self.deviceV2.screenrecord(output, fps)
-        logger.warning(
-            f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'."
-        )
+        logger.warning("Screen recording has been started.")
 
-    def stop_screenrecord(self):
-        if self.deviceV2.screenrecord.stop():
-            mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
-            if mp4_files != []:
-                last_mp4 = mp4_files[-1]
-                logger.warning(
-                    f"Screen recorder has been stopped succesfully! File '{last_mp4}' available in '{getcwd()}'."
-                )
+    def stop_screenrecord(self, crash=True):
+        if self.deviceV2.screenrecord.stop(crash=crash):
+            logger.warning("Screen recorder has been stopped succesfully!")
 
     def screenshot(self, path):
         self.deviceV2.screenshot(path)
@@ -189,9 +183,11 @@ class DeviceFacade:
     def unlock(self):
         self.swipe(Direction.UP, 0.8)
         sleep(2)
+        logger.debug(f"Screen locked: {self.is_screen_locked()}")
         if self.is_screen_locked():
             self.swipe(Direction.RIGHT, 0.8)
             sleep(2)
+            logger.debug(f"Screen locked: {self.is_screen_locked()}")
 
     def screen_off(self):
         self.deviceV2.screen_off()
