@@ -1,5 +1,6 @@
 class ResourceID:
     def __init__(self, APP_ID):
+        self.ACTION_BAR_BUTTON_BACK = f"{APP_ID}:id/action_bar_button_back"
         self.ACTION_BAR_CONTAINER = f"{APP_ID}:id/action_bar_container"
         self.ACTION_BAR_LARGE_TITLE = f"{APP_ID}:id/action_bar_large_title"
         self.ACTION_BAR_LARGE_TITLE_AUTO_SIZE = (

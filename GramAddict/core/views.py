@@ -1001,13 +1001,19 @@ class PostsViewList:
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         ).get_text()
 
+    def _get_media_container(self):
+        media = self.device.find(
+            resourceIdMatches=ResourceID.CAROUSEL_IMAGE_AND_MEDIA_GROUP
+        )
+        content_desc = None
+        if media.exists():
+            content_desc = media.ui_info()["contentDescription"]
+        return media, content_desc
+
     def _like_in_post_view(self, mode: LikeMode, skip_media_check=False):
         if not skip_media_check:
-            media = self.device.find(
-                resourceIdMatches=ResourceID.CAROUSEL_IMAGE_AND_MEDIA_GROUP
-            )
-            if media.exists():
-                content_desc = media.ui_info()["contentDescription"]
+            media, content_desc = self._get_media_container()
+            if content_desc is not None:
                 media_type, _ = UniversalActions.detect_media_type(content_desc)
                 UniversalActions.watch_media(media_type)
         if mode == LikeMode.DOUBLE_CLICK:
@@ -1491,7 +1497,9 @@ class ProfileView(ActionBarView):
             if action_bar.exists(Timeout.LONG):
                 return action_bar
             else:
-                logger.error("Unable to find action bar!")
+                logger.error(
+                    "Unable to find action bar! (The element with the username at top)"
+                )
                 return None
         else:
             return action_bar
@@ -2059,6 +2067,14 @@ class UniversalActions:
                 start_point_x - delta_x,
                 start_point_y,
             )
+
+    def press_button_back(self):
+        back_button = self.device.find(
+            resourceIdMatches=ResourceID.ACTION_BAR_BUTTON_BACK
+        )
+        if back_button.exists():
+            logger.info("Pressing on back button.")
+            back_button.click()
 
     def _reload_page(self):
         logger.info("Reload page")

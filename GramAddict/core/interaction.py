@@ -236,15 +236,16 @@ def interact_with_user(
             shuffle(photos_indices)
             photos_indices = photos_indices[:likes_value]
             photos_indices = sorted(photos_indices)
-
+        post_grid_view = PostsGridView(device)
+        universal_actions = UniversalActions(device)
         for i in range(len(photos_indices)):
             photo_index = photos_indices[i]
             row = photo_index // 3
             column = photo_index - row * 3
             logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column).")
-            opened_post_view, media_type, obj_count = PostsGridView(
-                device
-            ).navigateToPost(row, column)
+            opened_post_view, media_type, obj_count = post_grid_view.navigateToPost(
+                row, column
+            )
 
             like_succeed = False
             already_liked, _ = opened_post_view._is_post_liked()
@@ -255,14 +256,14 @@ def interact_with_user(
                     opened_post_view.start_video()
                     video_opened = opened_post_view.open_video()
                     if video_opened:
-                        UniversalActions.watch_media(media_type)
+                        universal_actions.watch_media(media_type)
                         like_succeed = opened_post_view.like_video()
                         logger.debug("Closing video...")
                         device.back()
                 elif media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
                     if media_type == MediaType.CAROUSEL:
                         _browse_carousel(device, obj_count)
-                    UniversalActions.watch_media(media_type)
+                    universal_actions.watch_media(media_type)
                     like_succeed = opened_post_view.like_post()
                 if like_succeed:
                     register_like(device, session_state)
