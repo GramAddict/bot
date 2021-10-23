@@ -16,7 +16,7 @@ from GramAddict.core.navigation import (
 )
 from GramAddict.core.resources import ClassName
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep
+from GramAddict.core.utils import get_value, random_choice, random_sleep
 from GramAddict.core.views import (
     FollowingView,
     LikeMode,
@@ -83,16 +83,6 @@ def interact(
         scraped=scraped,
     )
     return can_continue
-
-
-def random_choice(interact_percentage):
-    from random import randint
-
-    random_number = randint(1, 100)
-    if interact_percentage >= random_number:
-        return True
-    else:
-        return False
 
 
 def handle_blogger(
@@ -478,6 +468,7 @@ def handle_posts(
             device
         )._check_if_last_post(post_description, current_job)
         has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
+        already_liked, _ = OpenedPostView(device)._is_post_liked()
         if not (is_ad or is_hashtag):
             if flag:
                 nr_same_post += 1
@@ -491,7 +482,11 @@ def handle_posts(
                     break
             else:
                 nr_same_post = 0
-            if random_choice(interact_percentage):
+            if already_liked:
+                logger.info(
+                    "Post already liked, SKIP.", extra={"color": f"{Fore.CYAN}"}
+                )
+            elif random_choice(interact_percentage):
                 can_interact = False
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
@@ -533,6 +528,7 @@ def handle_posts(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
                     )
                     if scraping_file is None:
+                        OpenedPostView(device).start_video()
                         PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
                         UniversalActions.detect_block(device)
                         if not PostsViewList(device)._check_if_liked():

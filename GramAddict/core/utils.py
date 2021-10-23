@@ -204,7 +204,7 @@ def get_instagram_version():
     return version
 
 
-def open_instagram_with_url(url):
+def open_instagram_with_url(url) -> bool:
     logger.info("Open Instagram app with url: {}".format(url))
     cmd = (
         "adb"
@@ -317,17 +317,10 @@ def pre_post_script(path: str, pre: bool = True):
         if os.path.isfile(path):
             logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
             try:
-                cmd_res = subprocess.call(
-                    path, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
-                )
+                p1 = subprocess.Popen(path)
+                p1.wait()
             except Exception as ex:
                 logger.error(f"This exception has occurred: {ex}")
-            if not cmd_res:
-                logger.info(f"Script executed successfully. (Return code: {cmd_res})")
-            else:
-                logger.warning(
-                    f"Script returns an error. Check your code! (Return code: {cmd_res})"
-                )
         else:
             logger.error(
                 f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
@@ -378,15 +371,13 @@ def save_crash(device):
     try:
         device.screenshot(os.path.join(crash_path, "screenshot" + screenshot_format))
     except RuntimeError:
-        logger.error("Cannot save screenshot.")
+        logger.error(f"Cannot save 'screenshot.{screenshot_format}'.")
 
-    view_hierarchy_format = ".xml"
+    hierarchy_format = ".xml"
     try:
-        device.dump_hierarchy(
-            os.path.join(crash_path, "view_hierarchy" + view_hierarchy_format)
-        )
+        device.dump_hierarchy(os.path.join(crash_path, "hierarchy" + hierarchy_format))
     except RuntimeError:
-        logger.error("Cannot save view hierarchy.")
+        logger.error(f"Cannot save 'hierarchy.{hierarchy_format}'.")
     if args.screen_record:
         device.stop_screenrecord()
         files = [f for f in os.listdir("./") if f.endswith(".mp4")]
@@ -530,6 +521,16 @@ def sample_sources(sources, n_sources):
         f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(emoji.emojize(str(x), use_aliases=True) for x in truncaded)}"
     )
     return truncaded
+
+
+def random_choice(number: int) -> bool:
+    """
+    Generate a random int and compare with the argument passed
+    :param int number: number passed
+    :return: is argument greater or equal then a random generated number
+    :rtype: bool
+    """
+    return number >= randint(1, 100)
 
 
 def init_on_things(source, args, sessions, session_state):

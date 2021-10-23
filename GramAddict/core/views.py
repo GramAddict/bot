@@ -4,6 +4,7 @@ import re
 from enum import Enum, auto
 from random import choice, randint, uniform
 from time import sleep
+from typing import Optional, Tuple, Union
 
 import emoji
 from colorama import Fore, Style
@@ -85,6 +86,7 @@ class LikeMode(Enum):
 class MediaType(Enum):
     PHOTO = auto()
     VIDEO = auto()
+    REEL = auto()
     IGTV = auto()
     CAROUSEL = auto()
 
@@ -944,7 +946,7 @@ class PostsViewList:
                     continue
         post_owner_clickable = False
 
-        for _ in range(2):
+        for _ in range(3):
             if not post_owner_obj.exists():
                 if mode == Owner.OPEN:
                     comment_description = self.device.find(
@@ -967,7 +969,6 @@ class PostsViewList:
                 UniversalActions(self.device)._swipe_points(direction=Direction.UP)
                 post_owner_obj = self.device.find(
                     resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME),
-                    textStartsWith=username,
                 )
             else:
                 post_owner_clickable = True
@@ -1000,36 +1001,28 @@ class PostsViewList:
             resourceIdMatches=(ResourceID.ROW_FEED_PHOTO_PROFILE_NAME)
         ).get_text()
 
-    def _like_in_post_view(self, mode: LikeMode):
-        post_container = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-        media_obj = self.device.find(resourceIdMatches=post_container)
-        if media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP):
-            watch_photo_time = get_value(
-                configs.args.watch_photo_time,
-                "Watching photo for {}s.",
-                0,
-                its_time=True,
+    def _like_in_post_view(self, mode: LikeMode, skip_media_check=False):
+        if not skip_media_check:
+            media = self.device.find(
+                resourceIdMatches=ResourceID.CAROUSEL_IMAGE_AND_MEDIA_GROUP
             )
-            sleep(watch_photo_time)
-        elif media_obj.child(resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP):
-            watch_video_time = get_value(
-                configs.args.watch_video_time,
-                "Watching video for {}s.",
-                0,
-                its_time=True,
-            )
-            sleep(watch_video_time)
-
+            if media.exists():
+                content_desc = media.ui_info()["contentDescription"]
+                media_type, _ = UniversalActions.detect_media_type(content_desc)
+                UniversalActions.watch_media(media_type)
         if mode == LikeMode.DOUBLE_CLICK:
-            logger.info("Double click photo.")
-            _, _, action_bar_bottom = PostsViewList(
-                self.device
-            )._get_action_bar_position()
-            self.device.find(resourceIdMatches=post_container).double_click(
-                obj_over=action_bar_bottom
-            )
+            if media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
+                logger.info("Double click on post.")
+                _, _, action_bar_bottom = PostsViewList(
+                    self.device
+                )._get_action_bar_position()
+                media.double_click(obj_over=action_bar_bottom)
+            else:
+                self._like_in_post_view(
+                    mode=LikeMode.SINGLE_CLICK, skip_media_check=True
+                )
         elif mode == LikeMode.SINGLE_CLICK:
-            logger.info("Like photo from button.")
+            logger.info("Clicking on the little heart ❤️.")
             self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE).click()
 
     def _follow_in_post_view(self):
@@ -1210,12 +1203,12 @@ class OpenedPostView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
-    def _getPostLikeButton(self, scroll_to_find=True):
+    def _get_post_like_button(self, scroll_to_find=True) -> Optional[DeviceFacade.View]:
         """Find the like button right bellow a post.
         Note: sometimes the like button from the post above or bellow are
         dumped as well, so we need handle that situation.
 
-        scroll_to_find: if the like button is not found, scroll a bit down
+        :param bool scroll_to_find: if the like button is not found, scroll a bit down
                         to try to find it. Default: True
         """
         post_view_area = self.device.find(
@@ -1287,34 +1280,119 @@ class OpenedPostView:
 
         return like_btn_view
 
-    def _isPostLiked(self):
-
-        like_btn_view = self._getPostLikeButton()
+    def _is_post_liked(self) -> Union[bool, Optional[DeviceFacade.View]]:
+        """
+        Check if post is liked
+        :return: post is liked or not
+        :rtype: bool
+        """
+        like_btn_view = self._get_post_like_button()
         if not like_btn_view:
-            return False
+            return False, None
 
-        return like_btn_view.get_selected()
+        return like_btn_view.get_selected(), like_btn_view
 
-    def likePost(self, click_btn_like=False):
+    def like_post(self) -> bool:
+        """
+        Like the post with a double click and check if it's liked
+        :return: post has been liked
+        :rtype: bool
+        """
         post_media_view = self.device.find(
             resourceIdMatches=case_insensitive_re(
                 ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
             )
         )
+        liked = False
+        if post_media_view.exists():
+            logger.info("Liking post.")
+            post_media_view.double_click()
 
-        if click_btn_like:
-            like_btn_view = self._getPostLikeButton()
-            if not like_btn_view:
-                return False
-            like_btn_view.click()
-        else:
-            if post_media_view.exists():
-                post_media_view.double_click()
-            else:
-                logger.error("Could not find post area to double click.")
-                return False
+            liked, like_button = self._is_post_liked()
+            if not liked:
+                logger.info("Double click failed, clicking on the little heart ❤️.")
+                like_button.click()
+                liked, _ = self._is_post_liked()
+        return liked
 
-        return self._isPostLiked()
+    def start_video(self) -> bool:
+        """
+        Press on play button if present
+        :return: has play button been pressed
+        :rtype: bool
+        """
+        play_button = self.device.find(
+            resourceIdMatches=case_insensitive_re(ResourceID.VIEW_PLAY_BUTTON)
+        )
+        if play_button.exists():
+            logger.debug("Pressing on play button.")
+            play_button.click()
+            return True
+        return False
+
+    def open_video(self) -> bool:
+        """
+        Open video in full-screen mode
+        :return: video in full-screen mode
+        :rtype: bool
+        """
+        post_media_view = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+            )
+        )
+        in_fullscreen = False
+        if post_media_view.exists():
+            logger.info("Going in full screen.")
+            post_media_view.click()
+            in_fullscreen, _ = self._is_video_in_fullscreen()
+        return in_fullscreen
+
+    def _is_video_in_fullscreen(self) -> Tuple[bool, Optional[DeviceFacade.View]]:
+        """
+        Check if video is in full-screen mode
+        """
+        video_container = self.device.find(
+            resourceIdMatches=case_insensitive_re(
+                ResourceID.VIDEO_CONTAINER_AND_CLIPS_VIDEO_CONTAINER
+            )
+        )
+        return video_container.exists(), video_container
+
+    def _is_video_liked(self) -> bool:
+        """
+        Check if video has been liked
+        """
+        like_button = self.device.find(
+            resourceIdMatches=case_insensitive_re(ResourceID.LIKE_BUTTON)
+        )
+        if like_button.exists():
+            return like_button.get_selected(), like_button
+        return False, None
+
+    def like_video(self) -> bool:
+        """
+        Like the video with a double click and check if it's liked
+        :return: video has been liked
+        :rtype: bool
+        """
+        sidebar = self.device.find(
+            resourceIdMatches=case_insensitive_re(ResourceID.UFI_STACK)
+        )
+        liked = False
+        full_screen, obj = self._is_video_in_fullscreen()
+        if full_screen:
+            logger.info("Liking video.")
+            obj.double_click()
+            if not sidebar.exists():
+                logger.debug("Showing sidebar...")
+                obj.click()
+            liked, like_button = self._is_video_liked()
+            if not liked:
+                logger.info("Double click failed, clicking on the little heart ❤️.")
+                like_button.click()
+                liked, _ = self._is_video_liked()
+        return liked
 
     def _getListViewLikers(self):
         for _ in range(2):
@@ -1331,15 +1409,11 @@ class OpenedPostView:
         obj = self.device.find(
             resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
         )
-        if obj.exists(Timeout.MEDIUM):
-            return obj
-        else:
-            return None
+        return obj if obj.exists(Timeout.MEDIUM) else None
 
     def _getUserName(self, container):
         return container.child(
             resourceId=ResourceID.ROW_USER_PRIMARY_NAME,
-            className=ClassName.TEXT_VIEW,
         )
 
     def _isFollowing(self, container):
@@ -1368,7 +1442,6 @@ class PostsGridView:
         return False
 
     def navigateToPost(self, row, col):
-        obj_count = 1
         post_list_view = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.LIST)
         )
@@ -1381,33 +1454,7 @@ class PostsGridView:
         if not post_view.exists():
             return None, None, None
         content_desc = post_view.ui_info()["contentDescription"]
-        if re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
-            logger.info("It's a photo.")
-            media_type = MediaType.PHOTO
-        elif re.match("^Video|^Hidden Video", content_desc, re.IGNORECASE):
-            logger.info("It's a video.")
-            media_type = MediaType.VIDEO
-        elif re.match("^IGTV", content_desc, re.IGNORECASE):
-            logger.info("It's a IGTV.")
-            media_type = MediaType.IGTV
-        else:
-            carousel_obj = re.finditer(
-                r"((?P<photo>\d+) photo)|((?P<video>\d+) video)",
-                content_desc,
-                re.IGNORECASE,
-            )
-            n_photos = 0
-            n_videos = 0
-            for match in carousel_obj:
-                if match.group("photo"):
-                    n_photos = int(match.group("photo"))
-                if match.group("video"):
-                    n_videos = int(match.group("video"))
-            logger.info(
-                f"It's a carousel with {n_photos} photo(s) and {n_videos} video(s)."
-            )
-            obj_count = n_photos + n_videos
-            media_type = MediaType.CAROUSEL
+        media_type, obj_count = UniversalActions.detect_media_type(content_desc)
         post_view.click()
 
         return OpenedPostView(self.device), media_type, obj_count
@@ -2068,3 +2115,68 @@ class UniversalActions:
             return True
         else:
             return False
+
+    @staticmethod
+    def watch_media(media_type: MediaType) -> None:
+        """
+        Watch media for the amount of time specified in config
+        :return: None
+        :rtype: None
+        """
+        if (
+            media_type in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO)
+            and args.watch_video_time != "0"
+        ):
+            watching_time = get_value(
+                args.watch_video_time, "Watching video for {}s.", 0, its_time=True
+            )
+        elif (
+            media_type in (MediaType.CAROUSEL, MediaType.PHOTO)
+            and args.watch_photo_time != "0"
+        ):
+            watching_time = get_value(
+                args.watch_photo_time, "Watching photo for {}s.", 0, its_time=True
+            )
+        else:
+            return None
+        sleep(watching_time)
+
+    @staticmethod
+    def detect_media_type(content_desc) -> Tuple[MediaType, int]:
+        """
+        Detect the nature and amount of a media
+        :return: MediaType and count
+        :rtype: MediaType, int
+        """
+        obj_count = 1
+        if re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
+            logger.info("It's a photo.")
+            media_type = MediaType.PHOTO
+        elif re.match("^Video|^Hidden Video", content_desc, re.IGNORECASE):
+            logger.info("It's a video.")
+            media_type = MediaType.VIDEO
+        elif re.match("^IGTV", content_desc, re.IGNORECASE):
+            logger.info("It's a IGTV.")
+            media_type = MediaType.IGTV
+        elif re.match("^Reel", content_desc, re.IGNORECASE):
+            logger.info("It's a Reel.")
+            media_type = MediaType.REEL
+        else:
+            carousel_obj = re.finditer(
+                r"((?P<photo>\d+) photo)|((?P<video>\d+) video)",
+                content_desc,
+                re.IGNORECASE,
+            )
+            n_photos = 0
+            n_videos = 0
+            for match in carousel_obj:
+                if match.group("photo"):
+                    n_photos = int(match.group("photo"))
+                if match.group("video"):
+                    n_videos = int(match.group("video"))
+            logger.info(
+                f"It's a carousel with {n_photos} photo(s) and {n_videos} video(s)."
+            )
+            obj_count = n_photos + n_videos
+            media_type = MediaType.CAROUSEL
+        return media_type, obj_count
