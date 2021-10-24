@@ -15,7 +15,13 @@ from GramAddict.core.report import print_scrape_report, print_short_report
 from GramAddict.core.resources import ClassName
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.session_state import SessionState
-from GramAddict.core.utils import append_to_file, get_value, random_sleep, save_crash
+from GramAddict.core.utils import (
+    append_to_file,
+    get_value,
+    random_choice,
+    random_sleep,
+    save_crash,
+)
 from GramAddict.core.views import (
     CurrentStoryView,
     Direction,
@@ -230,51 +236,71 @@ def interact_with_user(
             shuffle(photos_indices)
             photos_indices = photos_indices[:likes_value]
             photos_indices = sorted(photos_indices)
-
-        for i in range(0, len(photos_indices)):
+        post_grid_view = PostsGridView(device)
+        universal_actions = UniversalActions(device)
+        for i in range(len(photos_indices)):
             photo_index = photos_indices[i]
             row = photo_index // 3
             column = photo_index - row * 3
             logger.info(f"Open post #{i + 1} ({row + 1} row, {column + 1} column).")
-            opened_post_view, media_type, obj_count = PostsGridView(
-                device
-            ).navigateToPost(row, column)
+            opened_post_view, media_type, obj_count = post_grid_view.navigateToPost(
+                row, column
+            )
 
             like_succeed = False
-            if opened_post_view:
-                _browse_carousel(device, media_type, obj_count)
-                like_succeed = do_like(
-                    opened_post_view, device, session_state, media_type
-                )
-                if like_succeed is True:
+            already_liked, _ = opened_post_view._is_post_liked()
+            if already_liked:
+                logger.info("Post already liked!")
+            elif opened_post_view and already_liked is not None:
+                if media_type in (MediaType.REEL, MediaType.IGTV, MediaType.VIDEO):
+                    opened_post_view.start_video()
+                    video_opened = opened_post_view.open_video()
+                    if video_opened:
+                        universal_actions.watch_media(media_type)
+                        like_succeed = opened_post_view.like_video()
+                        logger.debug("Closing video...")
+                        device.back()
+                elif media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
+                    if media_type == MediaType.CAROUSEL:
+                        _browse_carousel(device, obj_count)
+                    universal_actions.watch_media(media_type)
+                    like_succeed = opened_post_view.like_post()
+                if like_succeed:
+                    register_like(device, session_state)
                     number_of_liked += 1
-                if comment_percentage != 0:
-                    if can_comment(media_type, profile_filter, current_mode):
-                        if number_of_commented < max_comments_pro_user:
-                            comment_done = _comment(
-                                device,
-                                my_username,
-                                comment_percentage,
-                                args,
-                                session_state,
-                                media_type,
-                            )
-                            if comment_done:
-                                number_of_commented += 1
-                        else:
-                            logger.info(
-                                f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
-                            )
-                logger.info("Back to profile.")
-                device.back()
+                else:
+                    logger.warning("Fail to like post. Let's continue...")
+                if comment_percentage != 0 and can_comment(
+                    media_type, profile_filter, current_mode
+                ):
+                    if number_of_commented < max_comments_pro_user:
+                        comment_done = _comment(
+                            device,
+                            my_username,
+                            comment_percentage,
+                            args,
+                            session_state,
+                            media_type,
+                        )
+                        if comment_done:
+                            number_of_commented += 1
+                    else:
+                        logger.info(
+                            f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
+                        )
+            else:
+                logger.warning("Can't find the post element!")
+                save_crash(device)
             if like_succeed or comment_done:
                 interacted = True
 
-            if not opened_post_view or not like_succeed:
+            if not opened_post_view or (not like_succeed and not already_liked):
                 reason = "open" if not opened_post_view else "like"
                 logger.info(
-                    f"Could not {reason} photo. Posts count: {profile_data.posts_count}."
+                    f"Could not {reason} media. Posts count: {profile_data.posts_count}."
                 )
+            logger.info("Back to profile.")
+            device.back()
 
     if can_send_PM(session_state, pm_percentage):
         sent_pm = _send_PM(device, session_state, my_username, swipe_amount)
@@ -335,40 +361,16 @@ def can_comment(media_type, profile_filter, current_mode):
             return True
         elif media_type == MediaType.VIDEO and can_comment_videos:
             return True
-    else:
-        logger.debug(
-            f"Can't comment because filters are: (photo, video, {current_mode}):{profile_filter.can_comment(current_mode)}"
-        )
-        return False
+    logger.warning(
+        f"Can't comment because filters are: (photo, video, {current_mode}):{profile_filter.can_comment(current_mode)}. Check your config.yml."
+    )
+    return False
 
 
-def do_like(opened_post_view, device, session_state, media_type):
-    if (
-        media_type == MediaType.VIDEO or media_type == MediaType.IGTV
-    ) and args.watch_video_time != "0":
-        watching_time = get_value(
-            args.watch_video_time, "Watching video for {}s.", 0, its_time=True
-        )
-        sleep(watching_time)
-    if media_type == MediaType.PHOTO and args.watch_photo_time != "0":
-        watching_time = get_value(
-            args.watch_photo_time, "Watching photo for {}s.", 0, its_time=True
-        )
-        sleep(watching_time)
-    logger.info("Double click post.")
-    like_succeed = opened_post_view.likePost()
-    if not like_succeed:
-        logger.debug("Double click failed. Try the like button.")
-        like_succeed = opened_post_view.likePost(click_btn_like=True)
-
-    if like_succeed:
-        logger.debug("Like succeed.")
-        UniversalActions.detect_block(device)
-        session_state.totalLikes += 1
-    else:
-        logger.warning("Fail to like post. Let's continue...")
-
-    return like_succeed
+def register_like(device, session_state):
+    logger.debug("Like succeed.")
+    UniversalActions.detect_block(device)
+    session_state.totalLikes += 1
 
 
 def is_follow_limit_reached_for_source(session_state, follow_limit, source):
@@ -491,64 +493,62 @@ def _on_interaction(
     return can_continue
 
 
-def _browse_carousel(device, media_type, obj_count):
-    if media_type == MediaType.CAROUSEL:
-        carousel_percentage = get_value(configs.args.carousel_percentage, None, 0)
-        carousel_count = get_value(configs.args.carousel_count, None, 1)
-        if carousel_percentage > randint(0, 100) and carousel_count > 1:
-            media_obj = device.find(resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP)
-            logger.info("Watching photos/videos in carousel.")
-            if obj_count < carousel_count:
-                logger.info(f"There are only {obj_count} media(s) in this carousel!")
-                carousel_count = obj_count
-            n = 1
-            if media_obj.exists():
-                media_obj_bounds = media_obj.get_bounds()
-                while n < carousel_count:
-                    if media_obj.child(
-                        resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP
-                    ).exists():
-                        watch_photo_time = get_value(
-                            configs.args.watch_photo_time,
-                            "Watching photo for {}s.",
-                            0,
-                            its_time=True,
-                        )
-                        sleep(watch_photo_time)
-                    elif media_obj.child(
-                        resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP
-                    ).exists():
-                        watch_video_time = get_value(
-                            configs.args.watch_video_time,
-                            "Watching video for {}s.",
-                            0,
-                            its_time=True,
-                        )
-                        sleep(watch_video_time)
-                    start_point_y = (
-                        (media_obj_bounds["bottom"] - media_obj_bounds["top"])
-                        / 2
-                        * uniform(0.85, 1.15)
+def _browse_carousel(device, obj_count):
+    carousel_percentage = get_value(configs.args.carousel_percentage, None, 0)
+    carousel_count = get_value(configs.args.carousel_count, None, 1)
+    if carousel_percentage > randint(0, 100) and carousel_count > 1:
+        media_obj = device.find(resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP)
+        logger.info("Watching photos/videos in carousel.")
+        if obj_count < carousel_count:
+            logger.info(f"There are only {obj_count} media(s) in this carousel!")
+            carousel_count = obj_count
+        n = 1
+        if media_obj.exists():
+            media_obj_bounds = media_obj.get_bounds()
+            while n < carousel_count:
+                if media_obj.child(
+                    resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP
+                ).exists():
+                    watch_photo_time = get_value(
+                        configs.args.watch_photo_time,
+                        "Watching photo for {}s.",
+                        0,
+                        its_time=True,
                     )
-                    start_point_x = uniform(0.85, 1.10) * (
-                        media_obj_bounds["right"] * 5 / 6
+                    sleep(watch_photo_time)
+                elif media_obj.child(
+                    resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP
+                ).exists():
+                    watch_video_time = get_value(
+                        configs.args.watch_video_time,
+                        "Watching video for {}s.",
+                        0,
+                        its_time=True,
                     )
-                    delta_x = media_obj_bounds["right"] * uniform(0.5, 0.7)
-                    UniversalActions(device)._swipe_points(
-                        start_point_y=start_point_y,
-                        start_point_x=start_point_x,
-                        delta_x=delta_x,
-                        direction=Direction.LEFT,
-                    )
-                    n += 1
+                    sleep(watch_video_time)
+                start_point_y = (
+                    (media_obj_bounds["bottom"] - media_obj_bounds["top"])
+                    / 2
+                    * uniform(0.85, 1.15)
+                )
+                start_point_x = uniform(0.85, 1.10) * (
+                    media_obj_bounds["right"] * 5 / 6
+                )
+                delta_x = media_obj_bounds["right"] * uniform(0.5, 0.7)
+                UniversalActions(device)._swipe_points(
+                    start_point_y=start_point_y,
+                    start_point_x=start_point_x,
+                    delta_x=delta_x,
+                    direction=Direction.LEFT,
+                )
+                n += 1
 
 
 def _comment(device, my_username, comment_percentage, args, session_state, media_type):
     if not session_state.check_limit(
         args, limit_type=session_state.Limit.COMMENTS, output=False
     ):
-        comment_chance = randint(1, 100)
-        if comment_chance > comment_percentage:
+        if not random_choice(comment_percentage):
             return False
         # we have to do a little swipe for preventing get the previous post comments button (which is covered by top bar, but present in hierarchy!!)
         UniversalActions(device)._swipe_points(

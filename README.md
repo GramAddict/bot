@@ -149,9 +149,11 @@ I'll try to help you accomplish that with a short tutorial. The full is availabl
 - Adb tools
 - a physical device or an emulator (with Android 4.4+)
 ### Step 1: Install Python (>=3.6):
+>Python 3.10 is currently not supported!
 
-If you're on Linux or macOS you should have Python and Git installed, just check that your Python version is >= 3.6
-On windows you have to [install it](https://www.python.org/downloads/) for sure.
+If you're on Linux or macOS you should have Python and Git installed, just check that your Python version is >= 3.6.
+
+On windows you have to [install it](https://www.python.org/downloads/release/python-397/) for sure.
 
 Failed? [Detailed tutorial here](https://docs.gramaddict.org/#/quickstart?id=step-1-install-python-if-not-installed).
 >A little reminder: we refer to python with __python3__. You may have also have python2 installed if you're on Linux for example. If you're on Windows you can use __python__ instead of python3.

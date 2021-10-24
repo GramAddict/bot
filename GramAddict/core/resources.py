@@ -1,5 +1,6 @@
 class ResourceID:
     def __init__(self, APP_ID):
+        self.ACTION_BAR_BUTTON_BACK = f"{APP_ID}:id/action_bar_button_back"
         self.ACTION_BAR_CONTAINER = f"{APP_ID}:id/action_bar_container"
         self.ACTION_BAR_LARGE_TITLE = f"{APP_ID}:id/action_bar_large_title"
         self.ACTION_BAR_LARGE_TITLE_AUTO_SIZE = (
@@ -19,11 +20,13 @@ class ResourceID:
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
+        self.CAROUSEL_IMAGE = f"{APP_ID}:id/carousel_image"
         self.CAROUSEL_IMAGE_MEDIA_GROUP = f"{APP_ID}:id/carousel_image_media_group"
         self.CAROUSEL_VIDEO_MEDIA_GROUP = f"{APP_ID}:id/carousel_video_media_group"
         self.CAROUSEL_INDEX_INDICATOR_TEXT_VIEW = (
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )
+        self.CLIPS_VIDEO_CONTAINER = f"{APP_ID}:id/clips_video_container"
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
         self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
@@ -49,6 +52,7 @@ class ResourceID:
             f"{APP_ID}:id/igds_headline_emphasized_headline"
         )
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
+        self.INDICATOR = f"{APP_ID}:id/indicator"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
         self.LAYOUT_COMMENT_THREAD_EDITTEXT = (
             f"{APP_ID}:id/layout_comment_thread_edittext"
@@ -56,6 +60,7 @@ class ResourceID:
         self.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA = (
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
+        self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
         self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
@@ -155,11 +160,21 @@ class ResourceID:
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
+        self.UFI_STACK = f"{APP_ID}:id/ufi_stack"
         self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
             f"{APP_ID}:id/unified_follow_list_tab_layout"
         )
+        self.VIDEO_CONTAINER = f"{APP_ID}:id/video_container"
+        self.VIEW_PLAY_BUTTON = f"{APP_ID}:id/view_play_button"
         self.ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"
 
+        # mixed containers
+        self.VIDEO_CONTAINER_AND_CLIPS_VIDEO_CONTAINER = (
+            f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
+        )
+        self.CAROUSEL_IMAGE_AND_MEDIA_GROUP = (
+            f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}"
+        )
         self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
             f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
         )

@@ -45,25 +45,23 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
 from GramAddict.core.views import load_config as load_views
 
-TESTED_IG_VERSION = "208.0.0.32.135"
+TESTED_IG_VERSION = "210.0.0.28.71"
 
 
 def start_bot(**kwargs):
-    # Pre-Load Config
-    if not kwargs:
-        configs = Config(first_run=True)
-    else:
-        configs = Config(first_run=True, module=True, **kwargs)
-
     # Logging initialization
-    configure_logger(configs.debug, configs.username)
     logger = logging.getLogger(__name__)
-    if "config" not in configs.args:
-        logger.info(
-            "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
-            extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
-        )
-        sleep(3)
+
+    # Pre-Load Config
+    configs = Config(first_run=True, **kwargs)
+    configure_logger(configs.debug, configs.username)
+    if not kwargs:
+        if "--config" not in configs.args:
+            logger.info(
+                "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
+                extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
+            )
+            sleep(3)
 
     # Config-example hint
     config_examples()

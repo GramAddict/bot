@@ -199,7 +199,7 @@ def get_instagram_version():
     return version
 
 
-def open_instagram_with_url(url):
+def open_instagram_with_url(url) -> bool:
     logger.info("Open Instagram app with url: {}".format(url))
     cmd = (
         "adb"
@@ -233,15 +233,41 @@ def open_instagram(device, screen_record, close_apps):
     nl = "\n"
     FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
-    if not open_app(device, app_id):
+    cmd = (
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
+    )
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    err = cmd_res.stderr.strip()
+    if "Error" in err:
+        logger.error(err.replace(nl, ". "))
+        return False
+    elif "more than one device/emulator" in err:
         logger.error(
-            "Unable to open Instagram. Are you sure you have Instagram installed and not something else? In that case please check app_id in config file."
+            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
         )
         return False
+    elif err == "":
+        logger.debug("Instagram called succesfully.")
+    else:
+        logger.debug(f"{err.replace('Warning: ', '')}.")
+
+    max_tries = 3
+    n = 0
+    while device.deviceV2.info["currentPackageName"] != app_id:
+        if n > max_tries:
+            logger.critical("Unabled to open Instagram. Bot will stop.")
+            return False
+        n += 1
+        logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
+        random_sleep(3, 3, modulable=False)
+
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
+
     random_sleep()
     if close_apps:
-        logger.info("Close all the other apps, to avoid interference...")
+        logger.info("Close all the other apps, to avoid interferences...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
@@ -285,6 +311,7 @@ def open_instagram(device, screen_record, close_apps):
 def close_instagram(device, screen_record):
     logger.info("Close Instagram app.")
     device.deviceV2.app_stop(app_id)
+    random_sleep(5, 5, modulable=False)
     if screen_record:
         try:
             device.stop_screenrecord(crash=False)
@@ -295,22 +322,14 @@ def close_instagram(device, screen_record):
 
 
 def pre_post_script(path: str, pre: bool = True):
-    if path is None:
-        return
-    if os.path.isfile(path):
-        logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
-        try:
-            cmd_res = subprocess.call(
-                path, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
-            )
-        except Exception as ex:
-            logger.error(f"This exception has occurred: {ex}")
-        if not cmd_res:
-            logger.info(f"Script executed successfully. (Return code: {cmd_res})")
-        else:
-            logger.warning(
-                f"Script returns an error. Check your code! (Return code: {cmd_res})"
-            )
+    if path is not None:
+        if os.path.isfile(path):
+            logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
+            try:
+                p1 = subprocess.Popen(path)
+                p1.wait()
+            except Exception as ex:
+                logger.error(f"This exception has occurred: {ex}")
     else:
         logger.error(
             f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
@@ -359,15 +378,13 @@ def save_crash(device):
     try:
         device.screenshot(os.path.join(crash_path, "screenshot" + screenshot_format))
     except RuntimeError:
-        logger.error("Cannot save screenshot.")
+        logger.error(f"Cannot save 'screenshot.{screenshot_format}'.")
 
-    view_hierarchy_format = ".xml"
+    hierarchy_format = ".xml"
     try:
-        device.dump_hierarchy(
-            os.path.join(crash_path, "view_hierarchy" + view_hierarchy_format)
-        )
+        device.dump_hierarchy(os.path.join(crash_path, "hierarchy" + hierarchy_format))
     except RuntimeError:
-        logger.error("Cannot save view hierarchy.")
+        logger.error(f"Cannot save 'hierarchy.{hierarchy_format}'.")
     if args.screen_record:
         device.stop_screenrecord()
         files = [f for f in os.listdir("./") if f.endswith(".mp4")]
@@ -393,6 +410,8 @@ def save_crash(device):
     )
     logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
     check_if_updated(crash=True)
+    if args.screen_record:
+        device.start_screenrecord()
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
@@ -507,6 +526,16 @@ def sample_sources(sources, n_sources):
         f"In this session, {'that source' if len(truncaded)<=1 else 'these sources'} will be handled: {', '.join(emoji.emojize(str(x), use_aliases=True) for x in truncaded)}"
     )
     return truncaded
+
+
+def random_choice(number: int) -> bool:
+    """
+    Generate a random int and compare with the argument passed
+    :param int number: number passed
+    :return: is argument greater or equal then a random generated number
+    :rtype: bool
+    """
+    return number >= randint(1, 100)
 
 
 def init_on_things(source, args, sessions, session_state):
