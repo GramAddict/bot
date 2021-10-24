@@ -2,13 +2,13 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
+from math import nan
 from random import choice, randint, uniform
 from time import sleep
 from typing import Optional, Tuple, Union
 
 import emoji
 from colorama import Fore, Style
-from numpy import NaN
 
 from GramAddict.core.device_facade import (
     DeviceFacade,
@@ -829,7 +829,7 @@ class PostsViewList:
             current_job, Owner.GET_NAME
         )
         swiped_a_bit = False
-        old_description_position = NaN
+        old_description_position = nan
         for _ in range(3):
             post_description = self.device.find(
                 index=-1,
