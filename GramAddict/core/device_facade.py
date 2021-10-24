@@ -72,22 +72,15 @@ class Direction(Enum):
 
 
 class DeviceFacade:
-    deviceV2 = None  # uiautomator2
-
     def __init__(self, device_id):
         self.device_id = device_id
-        device_ip = None
         try:
-            if "." not in device_id:
-                self.deviceV2 = (
-                    uiautomator2.connect()
-                    if device_id is None
-                    else uiautomator2.connect(device_id)
+            if device_id is None or "." not in device_id:
+                self.deviceV2 = uiautomator2.connect(
+                    "" if device_id is None else device_id
                 )
             else:
-                splitted = device_id.split(":")
-                port = splitted[1] if len(splitted) == 2 else "7912"
-                self.deviveV2 = uiautomator2.connect_adb_wifi(f"{device_ip}:{port}")
+                self.deviceV2 = uiautomator2.connect_adb_wifi(f"{device_id}")
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
