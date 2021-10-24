@@ -1,13 +1,19 @@
 import logging
-from random import shuffle
 from os import path
+from random import shuffle
+
+from atomicwrites import atomic_write
+
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.interaction import do_like
+from GramAddict.core.interaction import _browse_carousel, register_like
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.views import OpenedPostView
-from GramAddict.core.utils import (
-    open_instagram_with_url,
-    validate_url,
+from GramAddict.core.utils import open_instagram_with_url, validate_url
+from GramAddict.core.views import (
+    MediaType,
+    OpenedPostView,
+    Owner,
+    PostsViewList,
+    UniversalActions,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,10 +30,10 @@ class LikeFromURLs(Plugin):
         self.arguments = [
             {
                 "arg": "--posts-from-file",
-                "nargs": None,
                 "help": "full path of plaintext file contains urls to likes",
-                "metavar": None,
+                "nargs": "+",
                 "default": None,
+                "metavar": ("postlist1.txt", "postlist2.txt"),
                 "operation": True,
             }
         ]
@@ -47,7 +53,7 @@ class LikeFromURLs(Plugin):
         self.session_state = sessions[-1]
         self.current_mode = plugin
 
-        file_list = [file for file in (self.args.interact_from_file)]
+        file_list = [file for file in (self.args.posts_from_file)]
         shuffle(file_list)
 
         for filename in file_list:
@@ -67,31 +73,71 @@ class LikeFromURLs(Plugin):
             job()
 
     def process_file(self, current_file, storage):
-        # TODO: We need to add interactions properly, honor session/source limits, honor filter,
-        # etc. Not going to try to do this now, but adding a note to do it later
+        universal_actions = UniversalActions(self.device)
+        opened_post_view = OpenedPostView(self.device)
+        post_view_list = PostsViewList(self.device)
         if path.isfile(current_file):
-            with open(current_file, "r") as f:
+            with open(current_file, "r", encoding="utf-8") as f:
+                nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
+                logger.info(f"In this file there are {len(nonempty_lines)} entries.")
+                f.seek(0)
                 for line in f:
                     url = line.strip()
                     if validate_url(url) and "instagram.com/p/" in url:
-                        if open_instagram_with_url(url) is True:
-                            opened_post_view = OpenedPostView(self.device)
-                            username = opened_post_view._getUserName
-                            like_succeed = do_like(opened_post_view, self.device)
-                            logger.info(
-                                "Like for: {}, status: {}".format(url, like_succeed)
-                            )
-                            if like_succeed:
-                                logger.info("Back to profile")
-                                storage.add_interacted_user(
-                                    username, self.session_state.id, liked=1
+                        if open_instagram_with_url(url):
+
+                            already_liked, _ = opened_post_view._is_post_liked()
+                            if already_liked:
+                                logger.info("Post already liked!")
+                            else:
+                                _, content_desc = post_view_list._get_media_container()
+
+                                (
+                                    media_type,
+                                    obj_count,
+                                ) = universal_actions.detect_media_type(content_desc)
+                                if media_type in (
+                                    MediaType.REEL,
+                                    MediaType.IGTV,
+                                    MediaType.VIDEO,
+                                ):
+                                    opened_post_view.start_video()
+                                    video_opened = opened_post_view.open_video()
+                                    if video_opened:
+                                        universal_actions.watch_media(media_type)
+                                        like_succeed = opened_post_view.like_video()
+                                        logger.debug("Closing video...")
+                                        self.device.back()
+                                elif media_type in (
+                                    MediaType.CAROUSEL,
+                                    MediaType.PHOTO,
+                                ):
+                                    if media_type == MediaType.CAROUSEL:
+                                        _browse_carousel(self.device, obj_count)
+                                    universal_actions.watch_media(media_type)
+                                    like_succeed = opened_post_view.like_post()
+
+                                username, _, _ = post_view_list._post_owner(
+                                    self.current_mode, Owner.GET_NAME
                                 )
-                                self.device.back()
-                    else:
-                        logger.info("Line in file is blank, skip.")
+                                if like_succeed:
+                                    register_like(self.device, self.session_state)
+                                    logger.info(
+                                        "Like for: {}, status: {}".format(
+                                            url, like_succeed
+                                        )
+                                    )
+                                    storage.add_interacted_user(
+                                        username, self.session_state.id, liked=1
+                                    )
+                                else:
+                                    logger.info("Not able to like this post!")
+                    logger.info("Going back..")
+                    self.device.back()
                 remaining = f.readlines()
+
             if self.args.delete_interacted_users:
-                with open(current_file, "w", encoding="UTF-8") as f:
+                with atomic_write(current_file, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")

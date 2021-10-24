@@ -32,6 +32,13 @@ class CoreArguments(Plugin):
                 "default": "1-2",
             },
             {
+                "arg": "--likes-percentage",
+                "nargs": None,
+                "help": "chance of liking posts on a particular profile, 100 by default. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "metavar": "50-70",
+                "default": "100",
+            },
+            {
                 "arg": "--total-likes-limit",
                 "nargs": None,
                 "help": "limit on total amount of likes per session, 300 by default",
@@ -105,8 +112,15 @@ class CoreArguments(Plugin):
                 "arg": "--watch-video-time",
                 "nargs": None,
                 "help": "amount of time (seconds) you want to watch a video before interact with it, set to 0 to disable this feature. It can be a number (e.g. 20) or a range (e.g. 20-40)",
-                "metavar": "15-55",
-                "default": "20-40",
+                "metavar": "15-30",
+                "default": "15-30",
+            },
+            {
+                "arg": "--watch-photo-time",
+                "nargs": None,
+                "help": "amount of time (seconds) you want to watch a photo before interact with it, set to 0 to disable this feature. It can be a number (e.g. 20) or a range (e.g. 20-40)",
+                "metavar": "3-4",
+                "default": "3-4",
             },
             {
                 "arg": "--interactions-count",
@@ -121,6 +135,13 @@ class CoreArguments(Plugin):
                 "help": "chance to interact with user/hashtag or place when applicable (currently in hashtag or place-posts-recent/top)",
                 "metavar": "50",
                 "default": "50",
+            },
+            {
+                "arg": "--can-reinteract-after",
+                "nargs": None,
+                "help": "amount of hours that have to pass from the last interaction",
+                "metavar": "50",
+                "default": "-1",
             },
             {
                 "arg": "--repeat",
@@ -176,12 +197,12 @@ class CoreArguments(Plugin):
             },
             {
                 "arg": "--screen-record",
-                "help": "enable screen recording: it will be saved as debug.mp4",
+                "help": "enable screen recording for debugging",
                 "action": "store_true",
             },
             {
                 "arg": "--close-apps",
-                "help": "close all apps except IG, for avoid interferences",
+                "help": "close all apps except IG, to avoid interference",
                 "action": "store_true",
             },
             {
@@ -291,10 +312,50 @@ class CoreArguments(Plugin):
                 "default": "5",
             },
             {
+                "arg": "--skipped-posts-limit",
+                "nargs": None,
+                "help": "limit on how many skips for posts already interacted are allowed before going to the next job/source, 5 by default",
+                "metavar": "5-10",
+                "default": "5",
+            },
+            {
                 "arg": "--uia-version",
                 "nargs": None,
                 "help": "uiautomator version, deprecated.",
                 "metavar": 2,
                 "default": 2,
+            },
+            {
+                "arg": "--total-sessions",
+                "nargs": None,
+                "help": "specify how many sessions you want to do before stopping",
+                "metavar": 1,
+                "default": -1,
+            },
+            {
+                "arg": "--disable-block-detection",
+                "help": "disable block detection",
+                "action": "store_false",
+            },
+            {
+                "arg": "--pre-script",
+                "nargs": "?",
+                "help": "specify the path for the pre script",
+                "metavar": "",
+                "default": None,
+                "type": "str",
+            },
+            {
+                "arg": "--post-script",
+                "nargs": "?",
+                "help": "specify the path for the post script",
+                "metavar": "",
+                "default": None,
+                "type": "str",
+            },
+            {
+                "arg": "--move-folders-in-accounts",
+                "help": "allow the script to move all the sibling folders of run.py in accounts folder",
+                "action": "store_true",
             },
         ]

@@ -1,6 +1,7 @@
 /venv*
 /.venv
 /build
+/dump
 /dist
 /gramaddict.egg-info
 /.idea

@@ -1,7 +1,11 @@
 class ResourceID:
     def __init__(self, APP_ID):
+        self.ACTION_BAR_BUTTON_BACK = f"{APP_ID}:id/action_bar_button_back"
         self.ACTION_BAR_CONTAINER = f"{APP_ID}:id/action_bar_container"
         self.ACTION_BAR_LARGE_TITLE = f"{APP_ID}:id/action_bar_large_title"
+        self.ACTION_BAR_LARGE_TITLE_AUTO_SIZE = (
+            f"{APP_ID}:id/action_bar_large_title_auto_size"
+        )
         self.ACTION_BAR_NEW_TITLE_CONTAINER = (
             f"{APP_ID}:id/action_bar_new_title_container"
         )
@@ -16,9 +20,13 @@ class ResourceID:
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
+        self.CAROUSEL_IMAGE = f"{APP_ID}:id/carousel_image"
+        self.CAROUSEL_IMAGE_MEDIA_GROUP = f"{APP_ID}:id/carousel_image_media_group"
+        self.CAROUSEL_VIDEO_MEDIA_GROUP = f"{APP_ID}:id/carousel_video_media_group"
         self.CAROUSEL_INDEX_INDICATOR_TEXT_VIEW = (
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )
+        self.CLIPS_VIDEO_CONTAINER = f"{APP_ID}:id/clips_video_container"
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
         self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
@@ -44,6 +52,7 @@ class ResourceID:
             f"{APP_ID}:id/igds_headline_emphasized_headline"
         )
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
+        self.INDICATOR = f"{APP_ID}:id/indicator"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
         self.LAYOUT_COMMENT_THREAD_EDITTEXT = (
             f"{APP_ID}:id/layout_comment_thread_edittext"
@@ -51,20 +60,27 @@ class ResourceID:
         self.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA = (
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
+        self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
         self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
+        self.MENU_OPTION_TEXT = f"{APP_ID}:id/menu_option_text"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
         self.MESSAGE_TEXT = f"{APP_ID}:id/message_text"
-        self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
         self.NEW_FEED_PILL = f"{APP_ID}:id/new_feed_pill"
+        self.NETEGO_CAROUSEL_HEADER = f"{APP_ID}:id/netego_carousel_header"
+        self.NOTIFICATION_MESSAGE = f"{APP_ID}:id/notification_message"
         self.PRIMARY_BUTTON = f"{APP_ID}:id/primary_button"
         self.PRIVATE_PROFILE_EMPTY_STATE = f"{APP_ID}:id/private_profile_empty_state"
         self.PROFILE_HEADER_BIO_TEXT = f"{APP_ID}:id/profile_header_bio_text"
         self.PROFILE_HEADER_BUSINESS_CATEGORY = (
             f"{APP_ID}:id/profile_header_business_category"
         )
+        self.PROFILE_HEADER_FOLLOW_CONTEXT_TEXT = (
+            f"{APP_ID}:id/profile_header_follow_context_text"
+        )
         self.PROFILE_HEADER_FULL_NAME = f"{APP_ID}:id/profile_header_full_name"
+        self.PROFILE_HEADER_WEBSITE = f"{APP_ID}:id/profile_header_website"
         self.PROFILE_HEADER_AVATAR_CONTAINER_TOP_LEFT_STUB = (
             f"{APP_ID}:id/profile_header_avatar_container_top_left_stub"
         )
@@ -76,6 +92,7 @@ class ResourceID:
         self.REEL_VIEWER_MEDIA_CONTAINER = f"{APP_ID}:id/reel_viewer_media_container"
         self.REEL_VIEWER_TIMESTAMP = f"{APP_ID}:id/reel_viewer_timestamp"
         self.REEL_VIEWER_TITLE = f"{APP_ID}:id/reel_viewer_title"
+        self.RESTRICTED_ACCOUNT_TITLE = f"{APP_ID}:id/restricted_account_title"
         self.ROW_COMMENT_SUB_ITEMS_BAR = f"{APP_ID}:id/row_comment_sub_items_bar"
         self.ROW_COMMENT_TEXTVIEW_COMMENT = f"{APP_ID}:id/row_comment_textview_comment"
         self.ROW_COMMENT_TEXTVIEW_TIME_AGO = (
@@ -96,6 +113,7 @@ class ResourceID:
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
+        self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
         self.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER = (
@@ -133,6 +151,7 @@ class ResourceID:
         self.SECONDARY_LABEL = f"{APP_ID}:id/secondary_label"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
+        self.SORTING_ENTRY_ROW_OPTION = f"{APP_ID}:id/sorting_entry_row_option"
         self.SWIPE_REFRESH_ANIMATED_PROGRESSBAR_CONTAINER = (
             f"{APP_ID}:id/swipe_refresh_animated_progressbar_container"
         )
@@ -141,11 +160,21 @@ class ResourceID:
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
+        self.UFI_STACK = f"{APP_ID}:id/ufi_stack"
         self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
             f"{APP_ID}:id/unified_follow_list_tab_layout"
         )
+        self.VIDEO_CONTAINER = f"{APP_ID}:id/video_container"
+        self.VIEW_PLAY_BUTTON = f"{APP_ID}:id/view_play_button"
         self.ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"
 
+        # mixed containers
+        self.VIDEO_CONTAINER_AND_CLIPS_VIDEO_CONTAINER = (
+            f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
+        )
+        self.CAROUSEL_IMAGE_AND_MEDIA_GROUP = (
+            f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}"
+        )
         self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
             f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
         )

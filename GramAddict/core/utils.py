@@ -1,29 +1,29 @@
-from GramAddict import __file__
-from GramAddict.core.storage import ACCOUNTS
-from math import nan
-import random
-import sys
-
-from GramAddict.core.report import print_full_report
 import logging
 import os
-import subprocess
+import random
 import re
 import shutil
-import urllib3
-import emoji
-from os import getcwd, walk, rename
-from pathlib import Path
+import subprocess
+import sys
 from datetime import datetime
+from math import nan
+from os import getcwd, rename, walk
+from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
 from urllib.parse import urlparse
+
+import emoji
+import urllib3
+from colorama import Fore, Style
 from requests import get
 
-from colorama import Fore, Style
+from GramAddict import __file__
 from GramAddict.core.log import get_log_file_config
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.report import print_full_report
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.storage import ACCOUNTS
 from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
@@ -43,7 +43,6 @@ def load_config(config):
 
 def update_available():
     urllib3.disable_warnings()
-    logger.info("Checking for updates...")
     if "b" not in __version__:
         version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
     else:
@@ -54,7 +53,7 @@ def update_available():
 
     except Exception as e:
         logger.error(
-            f"There was an error retreiving the latest version of GramAddict: {e}"
+            f"There was an error retrieving the latest version of GramAddict: {e}"
         )
         return False, False
     if "b" not in __version__:
@@ -77,10 +76,42 @@ def update_available():
     return False, online_version_raw
 
 
+def check_if_updated(crash=False):
+    if not crash:
+        logger.info("Checking for updates...")
+    new_update, version = update_available()
+    if new_update:
+        logger.warning("NEW VERSION FOUND!")
+        logger.warning(
+            f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
+        )
+        logger.warning("HOW TO UPDATE:")
+        logger.warning("If you installed with pip: pip3 install GramAddict -U")
+        logger.warning("If you installed with git: git pull")
+        sleep(5)
+    else:
+        if not crash:
+            logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+    if not crash:
+        logger.info(
+            f"GramAddict v.{__version__}",
+            extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"},
+        )
+
+
+def ask_for_a_donation():
+    logger.info(
+        "This bot is backed with love by me for free. If you like using it, consider donating to help keep me motivated: https://www.buymeacoffee.com/mastrolube",
+        extra={"color": f"{Style.BRIGHT}{Fore.MAGENTA}"},
+    )
+
+
 def move_usernames_to_accounts():
     Path(ACCOUNTS).mkdir(parents=True, exist_ok=True)
     ls = next(walk("."))[1]
     ignored_dir = [
+        "__pycache__",
+        "build",
         "accounts",
         "GramAddict",
         "config-examples",
@@ -93,6 +124,8 @@ def move_usernames_to_accounts():
         "gramaddict.egg-info",
         "logs",
         "res",
+        "test",
+        "dump",
     ]
     for n in ignored_dir:
         try:
@@ -105,9 +138,9 @@ def move_usernames_to_accounts():
             if dir != dir.strip():
                 rename(f"{dir}", dir.strip())
             shutil.move(dir.strip(), ACCOUNTS)
-        except:
+        except Exception as e:
             logger.error(
-                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other!"
+                f"Folder {dir.strip()} already exists! Won't overwrite it, please check which is the correct one and delete the other! Exception: {e}"
             )
             sleep(3)
     if len(ls) > 0:
@@ -120,7 +153,12 @@ def config_examples():
     if getcwd() == __file__[:-23]:
         logger.debug("Installed via git, config-examples is in the local folder.")
     else:
-        logger.debug("Intalled via pip.")
+        logger.debug("Installed via pip.")
+        logger.info(
+            "Do you want to update/create your config-examples folder in local? Do the following: \n\t\t\t\tpip3 install --user gitdir (only the first time)\n\t\t\t\tpython3 -m gitdir https://github.com/GramAddict/bot/tree/master/config-examples (python on Windows)",
+            extra={"color": Fore.GREEN},
+        )
+        sleep(3)
 
 
 def check_adb_connection():
@@ -166,7 +204,7 @@ def get_instagram_version():
     return version
 
 
-def open_instagram_with_url(url):
+def open_instagram_with_url(url) -> bool:
     logger.info("Open Instagram app with url: {}".format(url))
     cmd = (
         "adb"
@@ -183,6 +221,8 @@ def open_instagram_with_url(url):
 
 
 def open_instagram(device, screen_record, close_apps):
+    FastInputIME = "com.github.uiautomator/.FastInputIME"
+    nl = "\n"
     logger.info("Open Instagram app.")
     cmd = (
         "adb"
@@ -192,7 +232,7 @@ def open_instagram(device, screen_record, close_apps):
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     if "Error" in err:
-        logger.error(err.replace("\n", ". "))
+        logger.error(err.replace(nl, ". "))
         return False
     elif "more than one device/emulator" in err:
         logger.error(
@@ -200,26 +240,61 @@ def open_instagram(device, screen_record, close_apps):
         )
         return False
     elif err == "":
-        logger.debug("Instagram app opened successfully.")
+        logger.debug("Instagram called succesfully.")
     else:
-        logger.debug(err.replace("Warning: ", ""))
+        logger.debug(f"{err.replace('Warning: ', '')}.")
+
+    max_tries = 3
+    n = 0
+    while device.deviceV2.info["currentPackageName"] != app_id:
+        if n > max_tries:
+            logger.critical("Unabled to open Instagram. Bot will stop.")
+            return False
+        n += 1
+        logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
+        random_sleep(3, 3, modulable=False)
+
+    logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
+
     random_sleep()
     if close_apps:
-        logger.info("Close all the other apps, for avoid interfereces..")
+        logger.info("Close all the other apps, to avoid interferences...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
-
+    logger.debug("Setting FastInputIME as default keyboard.")
     device.deviceV2.set_fastinput_ime(True)
-    ime = device.find(classNameMatches=ClassName.TEXT_VIEW, textMatches="FastInputIME")
-    if ime.exists():
-        logger.debug("Keyboard switch dialog is open. Closing it.")
-        ime.click()
+    cmd = (
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + " shell settings get secure default_input_method"
+    )
+    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    if cmd_res.stdout.replace(nl, "") != FastInputIME:
+        logger.warning(
+            f"FastInputIME is not the default keyboard! Default is: {cmd_res.stdout.replace(nl, '')}. Changing it via adb.."
+        )
+        cmd = (
+            "adb"
+            + ("" if configs.device_id is None else " -s " + configs.device_id)
+            + f" shell ime set {FastInputIME}"
+        )
+        cmd_res = subprocess.run(
+            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
+        )
+        if cmd_res.stdout.startswith("Error:"):
+            logger.warning(
+                f"{cmd_res.stdout.replace(nl, '')}. It looks like you don't have FastInputIME installed :S"
+            )
+        else:
+            logger.info("FastInputIME is the default keyboard.")
+    else:
+        logger.info("FastInputIME is the default keyboard.")
     if screen_record:
         try:
             device.start_screenrecord()
-        except:
-            logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
     return True
 
@@ -227,12 +302,38 @@ def open_instagram(device, screen_record, close_apps):
 def close_instagram(device, screen_record):
     logger.info("Close Instagram app.")
     device.deviceV2.app_stop(app_id)
+    random_sleep(5, 5, modulable=False)
     if screen_record:
         try:
-            device.stop_screenrecord()
-        except:
-            logger.warning(
-                "For use the screen-record feature you have to install the requirments package! Run in the console: 'pip3 install -U 'uiautomator2[image]' -i https://pypi.doubanio.com/simple'"
+            device.stop_screenrecord(crash=False)
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
+            )
+
+
+def pre_post_script(path: str, pre: bool = True):
+    if path is not None:
+        if os.path.isfile(path):
+            logger.info(f"Running '{path}' as {'pre' if pre else 'post'} script.")
+            try:
+                p1 = subprocess.Popen(path)
+                p1.wait()
+            except Exception as ex:
+                logger.error(f"This exception has occurred: {ex}")
+        else:
+            logger.error(
+                f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
+            )
+
+
+def print_telegram_reports(
+    configs, telegram_reports_at_end, followers_now, following_now, time_left=None
+):
+    if followers_now is not None:
+        if telegram_reports_at_end:
+            configs.actions["telegram-reports"].run(
+                configs, "telegram-reports", followers_now, following_now, time_left
             )
 
 
@@ -247,9 +348,12 @@ def kill_atx_agent(device):
     ).close()
 
 
-def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
+def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
+    MIN_INF = 0.3
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
+    if delay < MIN_INF:
+        delay = MIN_INF
     if logging:
         logger.debug(f"{str(delay)[0:4]}s sleep")
     sleep(delay)
@@ -257,46 +361,50 @@ def random_sleep(inf=1.0, sup=3.0, modulable=True, logging=True):
 
 def save_crash(device):
     directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    crash_path = os.path.join("crashes", directory_name)
     try:
-        os.makedirs("crashes/" + directory_name + "/", exist_ok=False)
+        os.makedirs(crash_path, exist_ok=False)
     except OSError:
-        logger.error("Directory " + directory_name + " already exists.")
+        logger.error(f"Directory {directory_name} already exists.")
         return
     screenshot_format = ".png"
     try:
-        device.screenshot(
-            "crashes/" + directory_name + "/screenshot" + screenshot_format
-        )
+        device.screenshot(os.path.join(crash_path, "screenshot" + screenshot_format))
     except RuntimeError:
-        logger.error("Cannot save screenshot.")
+        logger.error(f"Cannot save 'screenshot.{screenshot_format}'.")
 
-    view_hierarchy_format = ".xml"
+    hierarchy_format = ".xml"
     try:
-        device.dump_hierarchy(
-            "crashes/" + directory_name + "/view_hierarchy" + view_hierarchy_format
-        )
+        device.dump_hierarchy(os.path.join(crash_path, "hierarchy" + hierarchy_format))
     except RuntimeError:
-        logger.error("Cannot save view hierarchy.")
-
+        logger.error(f"Cannot save 'hierarchy.{hierarchy_format}'.")
+    if args.screen_record:
+        device.stop_screenrecord()
+        files = [f for f in os.listdir("./") if f.endswith(".mp4")]
+        try:
+            os.replace(files[-1], os.path.join(crash_path, "video.mp4"))
+        except (FileNotFoundError, IndexError):
+            logger.error("File *.mp4 not found!")
     g_log_file_name, g_logs_dir, _, _ = get_log_file_config()
-    src_file = f"{g_logs_dir}/{g_log_file_name}"
-    target_file = f"crashes/{directory_name}/logs.txt"
+    src_file = os.path.join(g_logs_dir, g_log_file_name)
+    target_file = os.path.join(crash_path, "logs.txt")
     shutil.copy(src_file, target_file)
 
-    shutil.make_archive(
-        "crashes/" + directory_name, "zip", "crashes/" + directory_name + "/"
-    )
-    shutil.rmtree("crashes/" + directory_name + "/")
+    shutil.make_archive(crash_path, "zip", crash_path)
+    shutil.rmtree(crash_path)
 
     logger.info(
-        'Crash saved as "crashes/' + directory_name + '.zip".',
+        f"Crash saved as {crash_path}.zip",
         extra={"color": Fore.GREEN},
     )
     logger.info(
         "If you want to report this crash, please upload the dump file via a ticket in the #lobby channel on discord ",
         extra={"color": Fore.GREEN},
     )
-    logger.info("https://discord.gg/NK8PNEFGFF\n", extra={"color": Fore.GREEN})
+    logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
+    check_if_updated(crash=True)
+    if args.screen_record:
+        device.start_screenrecord()
 
 
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
@@ -310,10 +418,29 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
         print_full_report(sessions, configs.args.scrape_to_file)
         if not was_sleeping:
             sessions.persist(directory=session_state.my_username)
+    ask_for_a_donation()
     sys.exit(0)
 
 
-def get_value(count, name, default):
+def can_repeat(current_session, max_sessions):
+    if max_sessions != -1:
+        logger.info(
+            f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
+            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+        )
+        if current_session >= max_sessions:
+            logger.info(
+                "You reached the total-sessions limit! Finish.",
+                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+            )
+            return False
+        else:
+            return True
+    else:
+        return True
+
+
+def get_value(count, name, default, its_time=False):
     def print_error():
         logger.error(
             name.format(default)
@@ -335,7 +462,11 @@ def get_value(count, name, default):
             print_error()
     elif len(parts) == 2:
         try:
-            value = randint(int(parts[0]), int(parts[1]))
+            if not its_time:
+                value = randint(int(parts[0]), int(parts[1]))
+            else:
+                value = round(uniform(int(parts[0]), int(parts[1])), 2)
+
             if name is not None:
                 logger.info(name.format(value), extra={"color": Style.BRIGHT})
         except ValueError:
@@ -360,10 +491,10 @@ def append_to_file(filename, username):
     try:
         if not filename.lower().endswith(".txt"):
             filename = filename + ".txt"
-        with open(filename, "a+", encoding="UTF-8") as file:
+        with open(filename, "a+", encoding="utf-8") as file:
             file.write(username + "\n")
-    except:
-        logger.error(f"Failed to append {username} to: {filename}")
+    except Exception as e:
+        logger.error(f"Failed to append {username} to: {filename}. Exception: {e}")
 
 
 def sample_sources(sources, n_sources):
@@ -392,11 +523,20 @@ def sample_sources(sources, n_sources):
     return truncaded
 
 
+def random_choice(number: int) -> bool:
+    """
+    Generate a random int and compare with the argument passed
+    :param int number: number passed
+    :return: is argument greater or equal then a random generated number
+    :rtype: bool
+    """
+    return number >= randint(1, 100)
+
+
 def init_on_things(source, args, sessions, session_state):
     from functools import partial
-    from GramAddict.core.interaction import (
-        _on_interaction,
-    )
+
+    from GramAddict.core.interaction import _on_interaction
 
     on_interaction = partial(
         _on_interaction,
@@ -417,6 +557,7 @@ def init_on_things(source, args, sessions, session_state):
     else:
         stories_percentage = 0
 
+    likes_percentage = get_value(args.likes_percentage, "Chance of liking: {}%", 100)
     follow_percentage = get_value(
         args.follow_percentage, "Chance of following: {}%", 40
     )
@@ -431,6 +572,7 @@ def init_on_things(source, args, sessions, session_state):
     return (
         on_interaction,
         stories_percentage,
+        likes_percentage,
         follow_percentage,
         comment_percentage,
         pm_percentage,
@@ -445,7 +587,7 @@ def set_time_delta(args):
     m, s = divmod(abs(args.time_delta_session), 60)
     h, m = divmod(m, 60)
     logger.info(
-        f"Time delta has setted to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
+        f"Time delta has set to {'' if args.time_delta_session >0 else '-'}{h:02d}:{m:02d}:{s:02d}."
     )
 
 

@@ -1,11 +1,12 @@
-from GramAddict.core.handle_sources import handle_followers
 import logging
 from functools import partial
 from random import seed
 
 from colorama import Style
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
+from GramAddict.core.handle_sources import handle_followers
 from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
@@ -88,6 +89,7 @@ class InteractBloggerFollowers_Following(Plugin):
             (
                 on_interaction,
                 stories_percentage,
+                likes_percentage,
                 follow_percentage,
                 comment_percentage,
                 pm_percentage,
@@ -111,6 +113,7 @@ class InteractBloggerFollowers_Following(Plugin):
                     profile_filter,
                     on_interaction,
                     stories_percentage,
+                    likes_percentage,
                     follow_percentage,
                     comment_percentage,
                     pm_percentage,
@@ -137,6 +140,7 @@ class InteractBloggerFollowers_Following(Plugin):
         profile_filter,
         on_interaction,
         stories_percentage,
+        likes_percentage,
         follow_percentage,
         comment_percentage,
         pm_percentage,
@@ -146,6 +150,7 @@ class InteractBloggerFollowers_Following(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=self.args.likes_count,
+            likes_percentage=likes_percentage,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,

@@ -1,18 +1,21 @@
-from GramAddict.core.scroll_end_detector import ScrollEndDetector
 import logging
 from enum import Enum, unique
 
 from colorama import Fore
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.device_facade import DeviceFacade, Timeout
 from GramAddict.core.plugin_loader import Plugin
-from GramAddict.core.resources import ClassName, ResourceID as resources
+from GramAddict.core.resources import ClassName
+from GramAddict.core.resources import ResourceID as resources
+from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import random_sleep, save_crash, get_value
+from GramAddict.core.utils import get_value, random_sleep, save_crash
 from GramAddict.core.views import (
-    FollowingView,
-    UniversalActions,
     Direction,
+    FollowingView,
+    ProfileView,
+    UniversalActions,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,6 +51,14 @@ class ActionUnfollowFollowers(Plugin):
                 "arg": "--unfollow-any-non-followers",
                 "nargs": None,
                 "help": "unfollow at most given number of users, that don't follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
+                "metavar": "10-20",
+                "default": None,
+                "operation": True,
+            },
+            {
+                "arg": "--unfollow-any-followers",
+                "nargs": None,
+                "help": "unfollow at most given number of users, that follow you back. The order is from oldest to newest followings. It can be a number (e.g. 10) or a range (e.g. 10-20)",
                 "metavar": "10-20",
                 "default": None,
                 "operation": True,
@@ -107,18 +118,14 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
         elif self.unfollow_type == "unfollow-any-non-followers":
             self.unfollow_type = UnfollowRestriction.ANY_NON_FOLLOWERS
+        elif self.unfollow_type == "unfollow-any-followers":
+            self.unfollow_type = UnfollowRestriction.ANY_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
 
         if count <= 0:
             logger.info(
-                "You want to unfollow "
-                + str(count)
-                + ", you have "
-                + str(self.session_state.my_following_count)
-                + " followings, min following is "
-                + str(self.args.min_following)
-                + ". Finish."
+                f"Now you're following {str(self.session_state.my_following_count)} accounts, {'less then' if count <0 else 'equal to'} min following allowed (you set min-following: {str(self.args.min_following)}). No further unfollows are required. Finish."
             )
             return
 
@@ -138,8 +145,12 @@ class ActionUnfollowFollowers(Plugin):
                 storage,
                 self.unfollow_type,
                 self.session_state.my_username,
+                plugin,
             )
-            logger.info(f"Unfollowed {self.state.unfollowed_count}, finish.")
+            logger.info(
+                f"Unfollowed {self.state.unfollowed_count}, finish.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
             self.state.is_job_completed = True
             device.back()
 
@@ -147,7 +158,14 @@ class ActionUnfollowFollowers(Plugin):
             job()
 
     def unfollow(
-        self, device, count, on_unfollow, storage, unfollow_restriction, my_username
+        self,
+        device,
+        count,
+        on_unfollow,
+        storage,
+        unfollow_restriction,
+        my_username,
+        job_name,
     ):
         skipped_list_limit = get_value(self.args.skipped_list_limit, None, 15)
         skipped_fling_limit = get_value(self.args.fling_when_skipped, None, 0)
@@ -156,7 +174,7 @@ class ActionUnfollowFollowers(Plugin):
             skipped_list_limit=skipped_list_limit,
             skipped_fling_limit=skipped_fling_limit,
         )
-        self.open_my_followings(device)
+        ProfileView(device).navigateToFollowing()
         self.iterate_over_followings(
             device,
             count,
@@ -165,19 +183,12 @@ class ActionUnfollowFollowers(Plugin):
             unfollow_restriction,
             my_username,
             posts_end_detector,
+            job_name,
         )
 
     def on_unfollow(self):
         self.state.unfollowed_count += 1
         self.session_state.totalUnfollowed += 1
-
-    def open_my_followings(self, device):
-        logger.info("Open my followings.")
-        followings_button = device.find(
-            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
-        )
-        if followings_button.exists(Timeout.LONG):
-            followings_button.click()
 
     def sort_followings_by_date(self, device, newest_to_oldest=False):
 
@@ -195,21 +206,17 @@ class ActionUnfollowFollowers(Plugin):
         sort_options_recycler_view = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_SORTING_OPTIONS_RECYCLER_VIEW
         )
-        if not sort_options_recycler_view.exists(Timeout.SHORT):
+        if not sort_options_recycler_view.exists(Timeout.MEDIUM):
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
             )
             return
         if newest_to_oldest:
             logger.info("Sort followings by date: from newsest to oldest.")
-            sort_options_recycler_view.child(
-                textMatches="Date Followed: Latest"
-            ).click()
+            sort_options_recycler_view.child(textContains="Latest").click()
         else:
             logger.info("Sort followings by date: from oldest to newest.")
-            sort_options_recycler_view.child(
-                textMatches="Date Followed: Earliest"
-            ).click()
+            sort_options_recycler_view.child(textContains="Earliest").click()
 
     def iterate_over_followings(
         self,
@@ -220,17 +227,27 @@ class ActionUnfollowFollowers(Plugin):
         unfollow_restriction,
         my_username,
         posts_end_detector,
+        job_name,
     ):
         # Wait until list is rendered
         sorted = False
         for _ in range(2):
-            device.find(
+            user_lst = device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
                 className=ClassName.LINEAR_LAYOUT,
-            ).wait(Timeout.LONG)
-            sort_container_obj = device.find(
-                resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON
             )
+            user_lst.wait(Timeout.LONG)
+
+            sort_container_obj = device.find(
+                resourceId=self.ResourceID.SORTING_ENTRY_ROW_OPTION
+            )
+            if sort_container_obj.exists() and not sorted:
+                self.sort_followings_by_date(
+                    device, self.args.sort_followers_newest_to_oldest
+                )
+                sorted = True
+                continue
+
             top_tab_obj = device.find(
                 resourceId=self.ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             )
@@ -247,9 +264,10 @@ class ActionUnfollowFollowers(Plugin):
                 )
             else:
                 UniversalActions(device)._swipe_points(
-                    direction=Direction.DOWN,
+                    direction=Direction.DOWN, delta_y=380
                 )
-            if not sorted:
+
+            if sort_container_obj.exists() and not sorted:
                 self.sort_followings_by_date(
                     device, self.args.sort_followers_newest_to_oldest
                 )
@@ -327,12 +345,19 @@ class ActionUnfollowFollowers(Plugin):
                             unfollow_restriction
                             == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
                             or unfollow_restriction
-                            == UnfollowRestriction.ANY_NON_FOLLOWERS,
+                            == UnfollowRestriction.ANY_NON_FOLLOWERS
+                            or unfollow_restriction
+                            == UnfollowRestriction.ANY_FOLLOWERS,
+                            True if job_name == "unfollow-any-followers" else False,
                         )
 
                     if unfollowed:
                         storage.add_interacted_user(
-                            username, self.session_state.id, unfollowed=True
+                            username,
+                            self.session_state.id,
+                            unfollowed=True,
+                            job_name=job_name,
+                            target=username,
                         )
                         on_unfollow()
                         unfollowed_count += 1
@@ -374,7 +399,12 @@ class ActionUnfollowFollowers(Plugin):
                     return
 
     def do_unfollow(
-        self, device: DeviceFacade, username, my_username, check_if_is_follower
+        self,
+        device: DeviceFacade,
+        username,
+        my_username,
+        check_if_is_follower,
+        unfollow_followers=False,
     ):
         """
         :return: whether unfollow was successful
@@ -392,11 +422,13 @@ class ActionUnfollowFollowers(Plugin):
         is_following_you = self.check_is_follower(device, username, my_username)
         if is_following_you is not None:
             if check_if_is_follower and is_following_you:
-                logger.info(f"Skip @{username}. This user is following you.")
-                logger.info("Back to the followings list.")
-                device.back()
-                return False
-
+                if not unfollow_followers:
+                    logger.info(f"Skip @{username}. This user is following you.")
+                    logger.info("Back to the followings list.")
+                    device.back()
+                    return False
+                else:
+                    logger.info(f"@{username} is following you, unfollow. 😈")
             unfollow_button = device.find(
                 classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
                 clickable=True,
@@ -468,10 +500,10 @@ class ActionUnfollowFollowers(Plugin):
         logger.info(
             f"Check if @{username} is following you.", extra={"color": f"{Fore.GREEN}"}
         )
-        following_container = device.find(
-            resourceIdMatches=self.ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
-        )
-        following_container.click()
+
+        if not ProfileView(device).navigateToFollowing():
+            logger.info("Can't load profile in time. Skip.")
+            return None
 
         rows = device.find(
             resourceId=self.ResourceID.FOLLOW_LIST_USERNAME,
@@ -499,3 +531,4 @@ class UnfollowRestriction(Enum):
     FOLLOWED_BY_SCRIPT = 1
     FOLLOWED_BY_SCRIPT_NON_FOLLOWERS = 2
     ANY_NON_FOLLOWERS = 3
+    ANY_FOLLOWERS = 4

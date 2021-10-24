@@ -1,10 +1,11 @@
 import logging
 import os
-from colorama import Fore, Style
-from colorama import init as init_colorama
 from logging import LogRecord
 from logging.handlers import RotatingFileHandler
 from uuid import uuid4
+
+from colorama import Fore, Style
+from colorama import init as init_colorama
 
 COLORS = {
     "DEBUG": Style.DIM,
@@ -126,10 +127,10 @@ def update_log_file_name(username: str):
         named_file_handler.doRollover()
 
     # copy existing runtime logs (uidd4.log) to named log file (username.log)
-    with open(old_full_filename, "r", encoding="utf-8") as unamed_file, open(
+    with open(old_full_filename, "r", encoding="utf-8") as unnamed_file, open(
         named_full_filename, "a", encoding="utf-8"
     ) as named_file:
-        for line in unamed_file:
+        for line in unnamed_file:
             named_file.write(line)
 
     root_logger = logging.getLogger()
@@ -141,8 +142,10 @@ def update_log_file_name(username: str):
 
     try:
         os.remove(old_full_filename)
-    except:
-        current_logger.debug(f"Failed to remove old file: {old_full_filename}.")
+    except Exception as e:
+        current_logger.debug(
+            f"Failed to remove old file: {old_full_filename}. Exception: {e}"
+        )
 
     global g_log_file_name
     global g_file_handler

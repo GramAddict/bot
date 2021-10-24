@@ -10,14 +10,15 @@
 ##############################################################################
 
 username: myusername
-device: abcdefg123456
+device: put_your_device_id_there # 'adb devices' in console to know it
 app-id: com.instagram.android
 screen-sleep: true
 screen-record: false
 speed-multiplier: 1
 debug: false
 # scrape-to-file: scraped.txt
-close-apps: true
+close-apps: false
+disable-block-detection: false
 disable-filters: false
 total-crashes-limit: 5
 
@@ -27,6 +28,7 @@ total-crashes-limit: 5
 
 ## Interaction
 blogger-followers: [ username1, username2 ]
+blogger-following: [ username1, username2 ]
 blogger-post-likers: [ username1, username2 ]
 blogger: [ username1, username2 ]
 hashtag-likers-top: [ hashtag1, hashtag2 ]
@@ -39,25 +41,31 @@ place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
 interact-from-file: [usernames1.txt, usernames2.txt]
 posts-from-file: posts.txt
-feed: 2-5
+feed: 2-5 # is the number of likes you will give in feed
 
 ## Special modificators for jobs and sources
 shuffle-jobs: true
 truncate-sources: 2-5
 delete-interacted-users: true
 watch-video-time: 15-35
+watch-photo-time: 3-4
 # blogger-post-limits: 2 this feature is not implemented at this moment
+can-reinteract-after: -1 # -1 or commented for disable this feature, otherwise the amount of hours that have to pass from the last interaction
+# pre-script: pre_script_path_here
+# post-script: post_script_path_here
 
 ## Unfollow
 unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
+unfollow-any-followers: 10-20
 unfollow-from-file: [usernames1.txt, usernames2.txt]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing
-analytics: report
+analytics: false
+telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder
 
 ##############################################################################
 # Source Limits
@@ -65,17 +73,19 @@ analytics: report
 
 interactions-count: 30-40
 likes-count: 1-2
+likes-percentage: 100
 stories-count: 1-2
 stories-percentage: 30-40
 carousel-count: 2-3
 carousel-percentage: 60-70
 max-comments-pro-user: 1-2
-comment-percentage: 30-40
-pm-percentage: 30-40
+# comment-percentage: 30-40
+# pm-percentage: 30-40
 interact-percentage: 30-40
 follow-percentage: 30-40
 follow-limit: 50
 skipped-list-limit: 10-15
+skipped-posts-limit: 5
 fling-when-skipped: 0
 min-following: 100
 
@@ -100,3 +110,4 @@ total-scraped-limit: 100
 working-hours: [10.15-16.40, 18.15-22.46]
 time-delta: 10-15
 repeat: 280-320
+total-sessions: 1 # -1 or commented for infinite sessions

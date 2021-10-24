@@ -1,0 +1,61 @@
+##############################################################################
+# For more information on filters, refer to: 
+# https://docs.gramaddict.org/#/configuration?id=available-filters
+#
+# Note: be sure to comment out any filter not used by adding a # in front
+# AGAIN: YOU DON'T HAVE TO DELETE THE LINE, BUT ONLY COMMENT IT WITH A #!
+##############################################################################
+
+## Filters on profile type
+skip_business: true
+skip_non_business: false
+skip_following: true
+skip_follower: true
+skip_if_link_in_bio: true
+follow_private_or_empty: false
+interact_only_private: false
+
+## Filters on profile stats
+min_followers: 50
+max_followers: 2500
+min_followings: 50
+max_followings: 2500
+min_potency_ratio: 0.5
+max_potency_ratio: 5
+min_posts: 3
+mutual_friends: -1 # -1 for ignore that filter
+
+## Filters on biography and name
+blacklist_words: [sex, link,]
+mandatory_words: [cat, dogs,]
+specific_alphabet: [LATIN, GREEK]
+biography_language: [it, en]
+biography_banned_language: [es, ch]
+
+## Filters for enabling comments
+# Action specific
+comment_hashtag_likers_top: true
+comment_hashtag_likers_recent: true
+comment_hashtag_posts_top: true
+comment_hashtag_posts_recent: true
+comment_place_likers_top: true
+comment_place_likers_recent: true
+comment_place_posts_top: true
+comment_place_posts_recent: true
+comment_blogger_followers: true
+comment_blogger_following: true
+comment_blogger_post_likers: true
+comment_blogger: true
+comment_interact_usernames: true
+comment_interact_from_file: true
+comment_feed: false
+# Content specific
+comment_photos: true
+comment_videos: true
+
+## Filters for sending PM
+pm_to_private_or_empty: true
+
+## Filters on number of post likers
+min_likers: 1
+max_likers: 1000

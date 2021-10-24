@@ -1,13 +1,15 @@
-from datetime import datetime
 import logging
 import string
-import uiautomator2
+from datetime import datetime
 from enum import Enum, auto
-from os import listdir, getcwd
+from os import getcwd, listdir
 from random import randint, uniform
 from re import search
-from subprocess import run
+from subprocess import PIPE, run
 from time import sleep
+
+import uiautomator2
+
 from GramAddict.core.utils import random_sleep
 
 logger = logging.getLogger(__name__)
@@ -70,27 +72,28 @@ class Direction(Enum):
 
 
 class DeviceFacade:
-    deviceV2 = None  # uiautomator2
-
     def __init__(self, device_id):
         self.device_id = device_id
-        device_ip = None
-        # self.deviceV2.debug = True
         try:
-            if True:
-                self.deviceV2 = (
-                    uiautomator2.connect()
-                    if device_id is None
-                    else uiautomator2.connect(device_id)
+            if device_id is None or "." not in device_id:
+                self.deviceV2 = uiautomator2.connect(
+                    "" if device_id is None else device_id
                 )
             else:
-                self.deviveV2 = uiautomator2.connect_adb_wifi(f"{device_ip}:5555")
+                self.deviceV2 = uiautomator2.connect_adb_wifi(f"{device_id}")
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
-    def find(self, *args, **kwargs):
+    def find(
+        self,
+        index=None,
+        *args,
+        **kwargs,
+    ):
         try:
             view = self.deviceV2(*args, **kwargs)
+            if index is not None and view.count > 1:
+                view = self.deviceV2(*args, **kwargs)[index]
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
         return DeviceFacade.View(view=view, device=self.deviceV2)
@@ -107,18 +110,11 @@ class DeviceFacade:
             debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
             output = f"debug_{debug_number}.mp4"
         self.deviceV2.screenrecord(output, fps)
-        logger.warning(
-            f"Start screen recording: it will be saved as '{output}' in '{getcwd()}'."
-        )
+        logger.warning("Screen recording has been started.")
 
-    def stop_screenrecord(self):
-        if self.deviceV2.screenrecord.stop():
-            mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
-            if mp4_files != []:
-                last_mp4 = mp4_files[-1]
-                logger.warning(
-                    f"Screen recorder has been stopped succesfully! File '{last_mp4}' available in '{getcwd()}'."
-                )
+    def stop_screenrecord(self, crash=True):
+        if self.deviceV2.screenrecord.stop(crash=crash):
+            logger.warning("Screen recorder has been stopped succesfully!")
 
     def screenshot(self, path):
         self.deviceV2.screenshot(path)
@@ -130,12 +126,14 @@ class DeviceFacade:
 
     def press_power(self):
         self.deviceV2.press("power")
+        sleep(2)
 
     def is_screen_locked(self):
         data = run(
             f"adb -s {self.deviceV2.serial} shell dumpsys window",
             encoding="utf-8",
-            capture_output=True,
+            stdout=PIPE,
+            stderr=PIPE,
             shell=True,
         )
         if data != "":
@@ -151,7 +149,8 @@ class DeviceFacade:
         data = run(
             f"adb -s {serial} shell dumpsys input_method",
             encoding="utf-8",
-            capture_output=True,
+            stdout=PIPE,
+            stderr=PIPE,
             shell=True,
         )
         if data != "":
@@ -176,9 +175,12 @@ class DeviceFacade:
 
     def unlock(self):
         self.swipe(Direction.UP, 0.8)
-        random_sleep(1, 1, False)
+        sleep(2)
+        logger.debug(f"Screen locked: {self.is_screen_locked()}")
         if self.is_screen_locked():
             self.swipe(Direction.RIGHT, 0.8)
+            sleep(2)
+            logger.debug(f"Screen locked: {self.is_screen_locked()}")
 
     def screen_off(self):
         self.deviceV2.screen_off()
@@ -220,11 +222,13 @@ class DeviceFacade:
 
     def swipe_points(self, sx, sy, ex, ey, random_x=True, random_y=True):
         if random_x:
-            sx = sx * uniform(0.60, 1.40)
-            ex = ex * uniform(0.85, 1.15)
+            sx = int(sx * uniform(0.85, 1.15))
+            ex = int(ex * uniform(0.85, 1.15))
         if random_y:
-            ey = ey * uniform(0.98, 1.02)
+            ey = int(ey * uniform(0.98, 1.02))
+        sy = int(sy)
         try:
+            logger.debug(f"Swipe from: ({sx},{sy}) to ({ex},{ey}).")
             self.deviceV2.swipe_points([[sx, sy], [ex, ey]], uniform(0.2, 0.5))
             DeviceFacade.sleep_mode(SleepTime.TINY)
         except uiautomator2.JSONRPCError as e:
@@ -322,7 +326,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def click(self, mode=None, sleep=None, coord=[]):
+        def click(self, mode=None, sleep=None, coord=[], crash_report_if_fails=True):
             mode = Location.WHOLE if mode is None else mode
             x_abs = -1
             y_abs = -1
@@ -360,7 +364,10 @@ class DeviceFacade:
                     DeviceFacade.sleep_mode(sleep)
                     return
                 except uiautomator2.JSONRPCError as e:
-                    raise DeviceFacade.JsonRpcError(e)
+                    if crash_report_if_fails:
+                        raise DeviceFacade.JsonRpcError(e)
+                    else:
+                        logger.debug("Trying to press on a obj which is gone.")
 
             else:
                 x_offset = 0.5
@@ -387,12 +394,18 @@ class DeviceFacade:
                 DeviceFacade.sleep_mode(sleep)
 
             except uiautomator2.JSONRPCError as e:
-                raise DeviceFacade.JsonRpcError(e)
+                if crash_report_if_fails:
+                    raise DeviceFacade.JsonRpcError(e)
+                else:
+                    logger.debug("Trying to press on a obj which is gone.")
 
         def click_retry(self, mode=None, sleep=None, coord=[], maxretry=2):
             """return True if successfully open the element, else False"""
             self.click(mode, sleep, coord)
+
             while maxretry > 0:
+                # we wait a little bit more before try again
+                random_sleep(2, 4, modulable=False)
                 if not self.exists():
                     return True
                 logger.debug("UI element didn't open! Try again..")
@@ -414,12 +427,12 @@ class DeviceFacade:
             vertical_len = visible_bounds["bottom"] - max(
                 visible_bounds["top"], obj_over
             )
-            horizintal_padding = int(padding * horizontal_len)
+            horizontal_padding = int(padding * horizontal_len)
             vertical_padding = int(padding * vertical_len)
             random_x = int(
                 uniform(
-                    visible_bounds["left"] + horizintal_padding,
-                    visible_bounds["right"] - horizintal_padding,
+                    visible_bounds["left"] + horizontal_padding,
+                    visible_bounds["right"] - horizontal_padding,
                 )
             )
             random_y = int(
@@ -462,19 +475,20 @@ class DeviceFacade:
 
         def exists(self, ui_timeout=None):
             try:
-                # Currently the methods left, rigth, up and down from
+                # Currently the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
                 # All other selectors return an UiObject with exists() == False.
-                # We will open a ticket to uiautomator2 to fix this incosistency.
+                # We will open a ticket to uiautomator2 to fix this inconsistency.
                 if self.viewV2 is None:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                if not exists and self.viewV2.count >= 1:
-                    logger.debug(
-                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
-                    )
-                    self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                    return False
+                if hasattr(self.viewV2, "count"):
+                    if not exists and self.viewV2.count >= 1:
+                        logger.debug(
+                            f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                        )
+                        # More info about that: https://github.com/openatx/uiautomator2/issues/689"
+                        return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -503,6 +517,12 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
+        def get_property(self, property):
+            try:
+                return self.viewV2.info[property]
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
         @staticmethod
         def get_ui_timeout(ui_timeout):
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
@@ -516,13 +536,17 @@ class DeviceFacade:
                 ui_timeout = 8
             return ui_timeout
 
-        def get_text(self, retry=True, error=True):
+        def get_text(self, retry=True, error=True, index=None):
             max_attempts = 1 if not retry else 3
             attempts = 0
             while attempts < max_attempts:
                 attempts += 1
                 try:
-                    text = self.viewV2.info["text"]
+                    text = (
+                        self.viewV2.info["text"]
+                        if index is None
+                        else self.viewV2[index].info["text"]
+                    )
                     if text is None:
                         logger.debug(
                             "Could not get text. Waiting 2 seconds and trying again..."
@@ -533,6 +557,8 @@ class DeviceFacade:
                 except uiautomator2.JSONRPCError as e:
                     if error:
                         raise DeviceFacade.JsonRpcError(e)
+                    else:
+                        return ""
             logger.error(
                 f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
             )
@@ -578,8 +604,15 @@ class DeviceFacade:
 
                     i = 0
                     n += 1
-                if self.viewV2.get_text() is None:
-                    logger.debug(
+                typed_text = self.viewV2.get_text()
+                if (
+                    typed_text is None
+                    or typed_text == "Add a comment…"
+                    or typed_text == "Message…"
+                    or typed_text == ""
+                    or typed_text.startswith("Comment as ")
+                ):
+                    logger.warning(
                         "Failed to write in text field, let's try in the old way.."
                     )
                     self.viewV2.set_text(text)

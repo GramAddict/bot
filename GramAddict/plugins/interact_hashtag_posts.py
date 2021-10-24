@@ -1,15 +1,17 @@
 import logging
 from functools import partial
 from random import seed
-from colorama.ansi import Fore
+
 import emoji
+from colorama.ansi import Fore
+
 from GramAddict.core.decorators import run_safely
 from GramAddict.core.filter import Filter
+from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.interaction import (
     interact_with_user,
     is_follow_limit_reached_for_source,
 )
-from GramAddict.core.handle_sources import handle_posts
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.utils import get_value, init_on_things, sample_sources
 
@@ -88,6 +90,7 @@ class InteractHashtagPosts(Plugin):
             (
                 on_interaction,
                 stories_percentage,
+                likes_percentage,
                 follow_percentage,
                 comment_percentage,
                 pm_percentage,
@@ -111,6 +114,7 @@ class InteractHashtagPosts(Plugin):
                     profile_filter,
                     on_interaction,
                     stories_percentage,
+                    likes_percentage,
                     follow_percentage,
                     comment_percentage,
                     pm_percentage,
@@ -137,6 +141,7 @@ class InteractHashtagPosts(Plugin):
         profile_filter,
         on_interaction,
         stories_percentage,
+        likes_percentage,
         follow_percentage,
         comment_percentage,
         pm_percentage,
@@ -146,6 +151,7 @@ class InteractHashtagPosts(Plugin):
             interact_with_user,
             my_username=self.session_state.my_username,
             likes_count=self.args.likes_count,
+            likes_percentage=likes_percentage,
             stories_percentage=stories_percentage,
             follow_percentage=follow_percentage,
             comment_percentage=comment_percentage,
@@ -176,6 +182,7 @@ class InteractHashtagPosts(Plugin):
             hashtag,
             current_job,
             storage,
+            profile_filter,
             on_interaction,
             interaction,
             is_follow_limit_reached,

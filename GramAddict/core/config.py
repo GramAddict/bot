@@ -1,6 +1,8 @@
-import configargparse
 import logging
+import os
 import sys
+
+import configargparse
 import yaml
 
 from GramAddict.core.plugin_loader import PluginLoader
@@ -9,8 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, first_run=False):
-        self.args = sys.argv
+    def __init__(self, first_run=False, **kwargs):
+        if kwargs:
+            self.args = kwargs
+            self.module = True
+        else:
+            self.args = sys.argv
+            self.module = False
         self.config = None
         self.config_list = None
         self.debug = False
@@ -32,21 +39,32 @@ class Config:
                 logger.warning(
                     "Please provide a filename with your --config argument. Example: '--config accounts/yourusername/config.yml'"
                 )
-                exit(0)
+                exit(2)
+            except FileNotFoundError:
+                logger.error(
+                    f"I can't see the file '{file_name}'! Double check the spelling or if you're calling the bot from the right folder. (You're there: '{os.getcwd()}')"
+                )
+                exit(2)
 
             self.username = self.config.get("username", False)
             self.debug = self.config.get("debug", False)
-
-        if "--debug" in self.args:
-            self.debug = True
-        if "--username" in self.args:
-            try:
-                self.username = self.args[self.args.index("--username") + 1]
-            except IndexError:
-                logger.warning(
-                    "Please provide a username with your --username argument. Example: '--username yourusername'"
-                )
-                exit(0)
+        else:
+            if self.module:
+                if "debug" in self.args:
+                    self.debug = True
+                if "username" in self.args:
+                    self.username = self.args["username"]
+            else:
+                if "--debug" in self.args:
+                    self.debug = True
+                if "--username" in self.args:
+                    try:
+                        self.username = self.args[self.args.index("--username") + 1]
+                    except IndexError:
+                        logger.warning(
+                            "Please provide a username with your --username argument. Example: '--username yourusername'"
+                        )
+                        exit(2)
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
@@ -101,32 +119,53 @@ class Config:
         def _is_legacy_arg(arg):
             if arg == "interact" or arg == "hashtag-likers":
                 if self.first_run:
-                    logger.warn(
+                    logger.warning(
                         f"You are using a legacy argument {arg} that is no longer supported. It will not be used. Please refer to https://docs.gramaddict.org/#/configuration?id=arguments."
                     )
                 return True
             return False
 
         self.enabled = []
-        if self.first_run:
-            logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
-            if self.config:
-                logger.debug(f"Config used: {self.config}")
-            if not len(sys.argv) > 1:
-                self.parser.print_help()
-                exit(0)
-
-        self.args, self.unknown_args = self.parser.parse_known_args()
-
+        if self.module:
+            if self.first_run:
+                logger.debug("Arguments used:")
+                if self.config:
+                    logger.debug(f"Config used: {self.config}")
+                if not len(self.args) > 0:
+                    self.parser.print_help()
+                    exit(0)
+        else:
+            if self.first_run:
+                logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
+                if self.config:
+                    logger.debug(f"Config used: {self.config}")
+                if not len(sys.argv) > 1:
+                    self.parser.print_help()
+                    exit(0)
+        if self.module:
+            arg_str = ""
+            for k, v in self.args.items():
+                new_key = k.replace("_", "-")
+                new_key = " --" + new_key
+                arg_str += new_key + " " + v
+            self.args, self.unknown_args = self.parser.parse_known_args(args=arg_str)
+        else:
+            self.args, self.unknown_args = self.parser.parse_known_args()
+        if "run" in self.unknown_args:
+            self.unknown_args.remove("run")
         if self.unknown_args and self.first_run:
             logger.error(
                 "Unknown arguments: " + ", ".join(str(arg) for arg in self.unknown_args)
             )
             self.parser.print_help()
+            for arg in self.unknown_args:
+                if "detect-block" in arg:
+                    logger.error(
+                        "Please replace the line 'detect-block: true/false' in your config file *.yml with 'disable-block-detection: true/false'"
+                    )
+                    break
             exit(0)
-
         self.device_id = self.args.device
-
         # We need to maintain the order of plugins as defined
         # in config or sys.argv
         if self.config_list:

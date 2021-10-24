@@ -1,27 +1,33 @@
-from GramAddict.core.utils import get_value
 import logging
+import os
+from datetime import timedelta
 from functools import partial
 from os import path
+
+from atomicwrites import atomic_write
 from colorama import Fore
+
 from GramAddict.core.device_facade import Direction, Timeout
-from GramAddict.core.storage import FollowingStatus
 from GramAddict.core.navigation import (
+    nav_to_blogger,
     nav_to_feed,
     nav_to_hashtag_or_place,
-    nav_to_blogger,
     nav_to_post_likers,
 )
 from GramAddict.core.resources import ClassName
+from GramAddict.core.storage import FollowingStatus
+from GramAddict.core.utils import get_value, random_choice, random_sleep
 from GramAddict.core.views import (
     FollowingView,
-    PostsViewList,
+    LikeMode,
     OpenedPostView,
+    Owner,
+    PostsViewList,
     ProfileView,
     SwipeTo,
-    Owner,
-    LikeMode,
     TabBarView,
     UniversalActions,
+    case_insensitive_re,
 )
 
 logger = logging.getLogger(__name__)
@@ -79,17 +85,8 @@ def interact(
     return can_continue
 
 
-def random_choice(interact_percentage):
-    from random import randint
-
-    random_number = randint(1, 100)
-    if interact_percentage > random_number:
-        return True
-    else:
-        return False
-
-
 def handle_blogger(
+    self,
     device,
     session_state,
     blogger,
@@ -100,12 +97,25 @@ def handle_blogger(
     interaction,
     is_follow_limit_reached,
 ):
-    nav_to_blogger(device, blogger, session_state.my_username)
+    if not nav_to_blogger(device, blogger, session_state.my_username):
+        return
+    can_interact = False
     if storage.is_user_in_blacklist(blogger):
         logger.info(f"@{blogger} is in blacklist. Skip.")
-    elif storage.check_user_was_interacted(blogger):
-        logger.info(f"@{blogger}: already interacted. Skip.")
     else:
+        interacted, interacted_when = storage.check_user_was_interacted(blogger)
+        if interacted:
+            interact_after = timedelta(hours=float(self.args.can_reinteract_after))
+            can_reinteract = storage.can_be_reinteract(interacted_when, interact_after)
+            logger.info(
+                f"@{blogger}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+            )
+            if can_reinteract:
+                can_interact = True
+        else:
+            can_interact = True
+
+    if can_interact:
         logger.info(
             f"@{blogger}: interact",
             extra={"color": f"{Fore.YELLOW}"},
@@ -138,6 +148,9 @@ def handle_blogger_from_file(
     limit_reached = False
     if path.isfile(current_filename):
         with open(current_filename, "r") as f:
+            nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
+            logger.info(f"In this file there are {len(nonempty_lines)} entries.")
+            f.seek(0)
             for line in f:
                 username = line.strip()
                 if username != "":
@@ -158,39 +171,63 @@ def handle_blogger_from_file(
                             logger.info("Unfollows limit reached.")
                             break
                     else:
+                        can_interact = False
                         if storage.is_user_in_blacklist(username):
                             logger.info(f"@{username} is in blacklist. Skip.")
-                            continue
-                        elif storage.check_user_was_interacted(username):
-                            logger.info(f"@{username}: already interacted. Skip.")
-                            continue
-                        if need_to_refresh:
-                            search_view = TabBarView(device).navigateToSearch()
-                        profile_view = search_view.navigateToUsername(username, True)
-                        need_to_refresh = False
-                        if not profile_view:
-                            continue
+                        else:
+                            (
+                                interacted,
+                                interacted_when,
+                            ) = storage.check_user_was_interacted(username)
+                            if interacted:
+                                interact_after = timedelta(
+                                    hours=float(self.args.can_reinteract_after)
+                                )
+                                can_reinteract = storage.can_be_reinteract(
+                                    interacted_when, interact_after
+                                )
+                                logger.info(
+                                    f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                                )
+                                if can_reinteract:
+                                    can_interact = True
+                            else:
+                                can_interact = True
 
-                        if not interact(
-                            storage,
-                            is_follow_limit_reached,
-                            username,
-                            interaction,
-                            device,
-                            self.session_state,
-                            current_job,
-                            on_interaction,
-                        ):
-                            return
-                        device.back()
+                        if can_interact:
+                            if need_to_refresh:
+                                search_view = TabBarView(device).navigateToSearch()
+                            profile_view = search_view.navigateToUsername(
+                                username, True
+                            )
+                            need_to_refresh = False
+                            if not profile_view:
+                                continue
+
+                            if not interact(
+                                storage,
+                                is_follow_limit_reached,
+                                username,
+                                interaction,
+                                device,
+                                self.session_state,
+                                current_job,
+                                on_interaction,
+                            ):
+                                return
+                            device.back()
+                        else:
+                            continue
                 else:
                     logger.info("Line in file is blank, skip.")
             remaining = f.readlines()
         if self.args.delete_interacted_users:
-            with open(current_filename, "w", encoding="UTF-8") as f:
+            with atomic_write(current_filename, overwrite=True, encoding="utf-8") as f:
                 f.writelines(remaining)
     else:
-        logger.warning(f"File {current_filename} not found.")
+        logger.warning(
+            f"File {current_filename} not found. You have to specify the right relative path from this point: {os.getcwd()}"
+        )
         return
 
     logger.info(f"Interact with users in {current_filename} completed.")
@@ -210,6 +247,7 @@ def do_unfollow_from_list(device, username, on_following_list):
 
 
 def handle_likers(
+    self,
     device,
     session_state,
     target,
@@ -232,12 +270,10 @@ def handle_likers(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description, _, _ = PostsViewList(device)._check_if_last_post(
+        flag, post_description, _, _, _ = PostsViewList(device)._check_if_last_post(
             post_description, current_job
         )
-        likers_container_exists = PostsViewList(device)._find_likers_container()
-        has_one_liker_or_none = PostsViewList(device)._check_if_only_one_liker_or_none()
-
+        has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
         if flag:
             nr_same_post += 1
             logger.info(f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts.")
@@ -250,7 +286,11 @@ def handle_likers(
         else:
             nr_same_post = 0
 
-        if likers_container_exists and not has_one_liker_or_none:
+        if (
+            has_likers
+            and profile_filter.is_num_likers_in_range(number_of_likers)
+            and number_of_likers != 1
+        ):
             PostsViewList(device).open_likers_container()
         else:
             PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
@@ -267,11 +307,11 @@ def handle_likers(
             logger.info("Iterate over visible likers.")
             screen_iterated_likers = []
             opened = False
-            user_countainer = OpenedPostView(device)._getUserCountainer()
-            if user_countainer is None:
+            user_container = OpenedPostView(device)._getUserContainer()
+            if user_container is None:
                 return
             try:
-                for item in OpenedPostView(device)._getUserCountainer():
+                for item in OpenedPostView(device)._getUserContainer():
                     element_opened = False
                     username_view = OpenedPostView(device)._getUserName(item)
                     if not username_view.exists(Timeout.MEDIUM):
@@ -282,20 +322,32 @@ def handle_likers(
                         break
 
                     username = username_view.get_text()
-                    profile_interact = profile_filter.check_profile_from_list(
-                        device, item, username
-                    )
                     screen_iterated_likers.append(username)
                     posts_end_detector.notify_username_iterated(username)
-                    if not profile_interact:
-                        continue
-                    elif storage.is_user_in_blacklist(username):
+                    can_interact = False
+                    if storage.is_user_in_blacklist(username):
                         logger.info(f"@{username} is in blacklist. Skip.")
-                        continue
-                    elif storage.check_user_was_interacted(username):
-                        logger.info(f"@{username}: already interacted. Skip.")
-                        continue
                     else:
+                        (
+                            interacted,
+                            interacted_when,
+                        ) = storage.check_user_was_interacted(username)
+                        if interacted:
+                            interact_after = timedelta(
+                                hours=float(self.args.can_reinteract_after)
+                            )
+                            can_reinteract = storage.can_be_reinteract(
+                                interacted_when, interact_after
+                            )
+                            logger.info(
+                                f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                            )
+                            if can_reinteract:
+                                can_interact = True
+                        else:
+                            can_interact = True
+
+                    if can_interact:
                         logger.info(
                             f"@{username}: interact",
                             extra={"color": f"{Fore.YELLOW}"},
@@ -382,12 +434,18 @@ def handle_posts(
     target,
     current_job,
     storage,
+    profile_filter,
     on_interaction,
     interaction,
     is_follow_limit_reached,
     interact_percentage,
     scraping_file,
 ):
+    skipped_posts_limit = get_value(
+        self.args.skipped_posts_limit,
+        "Skipped post limit: {}",
+        5,
+    )
     if current_job == "feed":
         nav_to_feed(device)
         count_feed_limit = get_value(
@@ -404,11 +462,14 @@ def handle_posts(
     post_description = ""
     nr_same_post = 0
     nr_same_posts_max = 3
+    nr_consecutive_already_interacted = 0
     while True:
-        flag, post_description, username, ad = PostsViewList(
+        flag, post_description, username, is_ad, is_hashtag = PostsViewList(
             device
         )._check_if_last_post(post_description, current_job)
-        if not ad:
+        has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
+        already_liked, _ = OpenedPostView(device)._is_post_liked()
+        if not (is_ad or is_hashtag):
             if flag:
                 nr_same_post += 1
                 logger.info(
@@ -421,27 +482,53 @@ def handle_posts(
                     break
             else:
                 nr_same_post = 0
-            if random_choice(interact_percentage):
+            if already_liked:
+                logger.info(
+                    "Post already liked, SKIP.", extra={"color": f"{Fore.CYAN}"}
+                )
+            elif random_choice(interact_percentage):
+                can_interact = False
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
-                elif (
-                    storage.check_user_was_interacted(username)
-                    and current_job != "feed"
-                ):
-                    logger.info(f"@{username}: already interacted. Skip.")
-                elif (
-                    storage.check_user_was_interacted_recently(username)
-                    and current_job != "feed"
-                ):
-                    logger.info(
-                        f"@{username}: already interacted in the last week. Skip."
-                    )
-                # for now i put it back wrong as it was (and how it's in the other plugins..) will change that with the database
                 else:
+                    likes_in_range = profile_filter.is_num_likers_in_range(
+                        number_of_likers
+                    )
+                    if current_job != "feed":
+                        interacted, interacted_when = storage.check_user_was_interacted(
+                            username
+                        )
+                        if interacted:
+                            interact_after = timedelta(
+                                hours=float(self.args.can_reinteract_after)
+                            )
+                            can_reinteract = storage.can_be_reinteract(
+                                interacted_when, interact_after
+                            )
+                            logger.info(
+                                f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                            )
+                            if can_reinteract:
+                                can_interact = True
+                                nr_consecutive_already_interacted = 0
+                            else:
+                                nr_consecutive_already_interacted += 1
+                        else:
+                            can_interact = True
+                            nr_consecutive_already_interacted = 0
+                    else:
+                        can_interact = True
+                if nr_consecutive_already_interacted == skipped_posts_limit:
+                    logger.info(
+                        f"Reached the limit of already interacted {skipped_posts_limit}. Goin to the next source/job!"
+                    )
+                    return
+                if can_interact and (likes_in_range or not has_likers):
                     logger.info(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
                     )
                     if scraping_file is None:
+                        OpenedPostView(device).start_video()
                         PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
                         UniversalActions.detect_block(device)
                         if not PostsViewList(device)._check_if_liked():
@@ -462,9 +549,10 @@ def handle_posts(
                                 TabBarView(device).navigateToProfile()
                                 return
                     if current_job != "feed":
-                        if PostsViewList(device)._post_owner(
+                        opened, _, _ = PostsViewList(device)._post_owner(
                             current_job, Owner.OPEN, username
-                        ):
+                        )
+                        if opened:
                             if not interact(
                                 storage,
                                 is_follow_limit_reached,
@@ -594,17 +682,31 @@ def iterate_over_followers(
                 screen_iterated_followers.append(username)
                 scroll_end_detector.notify_username_iterated(username)
 
+                can_interact = False
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
-                elif not is_myself and storage.check_user_was_interacted(username):
-                    logger.info(f"@{username}: already interacted. Skip.")
-                    screen_skipped_followers_count += 1
-                elif is_myself and storage.check_user_was_interacted_recently(username):
-                    logger.info(
-                        f"@{username}: already interacted in the last week. Skip."
-                    )
-                    screen_skipped_followers_count += 1
                 else:
+                    interacted, interacted_when = storage.check_user_was_interacted(
+                        username
+                    )
+                    if interacted:
+                        interact_after = timedelta(
+                            hours=float(self.args.can_reinteract_after)
+                        )
+                        can_reinteract = storage.can_be_reinteract(
+                            interacted_when, interact_after
+                        )
+                        logger.info(
+                            f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                        )
+                        if can_reinteract:
+                            can_interact = True
+                        else:
+                            screen_skipped_followers_count += 1
+                    else:
+                        can_interact = True
+
+                if can_interact:
                     logger.info(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
                     )
@@ -667,12 +769,17 @@ def iterate_over_followers(
                 pressed_retry = False
                 if load_more_button_exists:
                     retry_button = load_more_button.child(
-                        className=ClassName.IMAGE_VIEW
+                        className=ClassName.IMAGE_VIEW,
+                        descriptionMatches=case_insensitive_re("Retry"),
                     )
                     if retry_button.exists():
-                        logger.info('Press "Load" button.')
-                        retry_button.click()
-                        pressed_retry = True
+                        random_sleep()
+                        """It exist but can disappear without pressing on it"""
+                        if retry_button.exists():
+                            logger.info('Press "Load" button and wait few seconds.')
+                            retry_button.click_retry()
+                            random_sleep(5, 10, modulable=False)
+                            pressed_retry = True
 
                 if need_swipe and not pressed_retry:
                     scroll_end_detector.notify_skipped_all()

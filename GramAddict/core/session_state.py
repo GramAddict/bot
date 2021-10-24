@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from json import JSONEncoder
+
 from GramAddict.core.utils import get_value
 
 logger = logging.getLogger(__name__)
@@ -12,6 +13,7 @@ class SessionState:
     id = None
     args = {}
     my_username = None
+    my_posts_count = None
     my_followers_count = None
     my_following_count = None
     totalInteractions = {}
@@ -19,6 +21,7 @@ class SessionState:
     totalFollowed = {}
     totalLikes = 0
     totalComments = 0
+    totalPm = 0
     totalWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
@@ -31,6 +34,7 @@ class SessionState:
         self.id = str(uuid.uuid4())
         self.args = configs.args
         self.my_username = None
+        self.my_posts_count = None
         self.my_followers_count = None
         self.my_following_count = None
         self.totalInteractions = {}
@@ -117,7 +121,7 @@ class SessionState:
             "Checking session limits:",
             f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
             f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{args.current_comments_limit})",
-            f"- Total PM:\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
+            f"- Total PM:\t\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
             f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.current_follow_limit})",
             f"- Total Unfollowed:\t\t\t\t{'Limit Reached' if total_unfollowed else 'OK'} ({self.totalUnfollowed}/{args.current_unfollow_limit})",
             f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",
@@ -286,5 +290,9 @@ class SessionStateEncoder(JSONEncoder):
             "start_time": str(session_state.startTime),
             "finish_time": str(session_state.finishTime),
             "args": session_state.args.__dict__,
-            "profile": {"followers": str(session_state.my_followers_count)},
+            "profile": {
+                "posts": session_state.my_posts_count,
+                "followers": session_state.my_followers_count,
+                "following": session_state.my_following_count,
+            },
         }
