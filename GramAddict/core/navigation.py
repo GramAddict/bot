@@ -25,7 +25,7 @@ def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
     SearchView(device)._close_keyboard()
     ProfileView(device)._click_on_avatar()
-    if ProfileView(device).getFollowingCount(own_profile=True) is None:
+    if ProfileView(device).getFollowingCount() is None:
         ProfileView(device)._click_on_avatar()
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
@@ -50,7 +50,7 @@ def check_if_english(device):
         except Exception as ex:
             logger.error(f"Please change the language manually to English! Error: {ex}")
             sys.exit(1)
-        if ProfileView(device).getFollowingCount(own_profile=True) is None:
+        if ProfileView(device).getFollowingCount() is None:
             ProfileView(device)._click_on_avatar()
     return ProfileView(device, is_own_profile=True)
 
