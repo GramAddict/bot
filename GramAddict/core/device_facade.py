@@ -40,6 +40,7 @@ def get_device_info(device):
 
 class Timeout(Enum):
     ZERO = auto()
+    TINY = auto()
     SHORT = auto()
     MEDIUM = auto()
     LONG = auto()
@@ -138,7 +139,7 @@ class DeviceFacade:
         )
         if data != "":
             flag = search("mDreamingLockscreen=(true|false)", data.stdout)
-            return True if flag is not None and flag.group(1) == "true" else False
+            return flag is not None and flag.group(1) == "true"
         else:
             logger.debug(
                 f"'adb -s {self.deviceV2.serial} shell dumpsys window' returns nothing!"
@@ -155,7 +156,7 @@ class DeviceFacade:
         )
         if data != "":
             flag = search("mInputShown=(true|false)", data.stdout)
-            return True if flag.group(1) == "true" else False
+            return flag.group(1) == "true"
         else:
             logger.debug(
                 f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
@@ -413,9 +414,8 @@ class DeviceFacade:
                 maxretry -= 1
             if not self.exists():
                 return True
-            else:
-                logger.warning("Failed to open the UI element!")
-                return False
+            logger.warning("Failed to open the UI element!")
+            return False
 
         def double_click(self, padding=0.3, obj_over=0):
             """Double click randomly in the selected view using padding
@@ -482,13 +482,16 @@ class DeviceFacade:
                 if self.viewV2 is None:
                     return False
                 exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                if hasattr(self.viewV2, "count"):
-                    if not exists and self.viewV2.count >= 1:
-                        logger.debug(
-                            f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
-                        )
-                        # More info about that: https://github.com/openatx/uiautomator2/issues/689"
-                        return False
+                if (
+                    hasattr(self.viewV2, "count")
+                    and not exists
+                    and self.viewV2.count >= 1
+                ):
+                    logger.debug(
+                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                    )
+                    # More info about that: https://github.com/openatx/uiautomator2/issues/689"
+                    return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -528,6 +531,8 @@ class DeviceFacade:
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
             if ui_timeout == Timeout.ZERO:
                 ui_timeout = 0
+            elif ui_timeout == Timeout.TINY:
+                ui_timeout = 1
             elif ui_timeout == Timeout.SHORT:
                 ui_timeout = 3
             elif ui_timeout == Timeout.MEDIUM:
@@ -547,13 +552,12 @@ class DeviceFacade:
                         if index is None
                         else self.viewV2[index].info["text"]
                     )
-                    if text is None:
-                        logger.debug(
-                            "Could not get text. Waiting 2 seconds and trying again..."
-                        )
-                        sleep(2)  # wait 2 seconds and retry
-                    else:
+                    if text is not None:
                         return text
+                    logger.debug(
+                        "Could not get text. Waiting 2 seconds and trying again..."
+                    )
+                    sleep(2)  # wait 2 seconds and retry
                 except uiautomator2.JSONRPCError as e:
                     if error:
                         raise DeviceFacade.JsonRpcError(e)
@@ -580,8 +584,7 @@ class DeviceFacade:
                 word_list = text.split()
                 n_words = len(word_list)
                 i = 0
-                n = 1
-                for word in word_list:
+                for n, word in enumerate(word_list, start=1):
                     n_single_letters = randint(1, 3)
                     for char in word:
                         if i < n_single_letters:
@@ -593,25 +596,17 @@ class DeviceFacade:
                                 self.deviceV2.send_keys(word[i:-1], clear=False)
                                 random_sleep(0.01, 0.1, modulable=False, logging=False)
                                 self.deviceV2.send_keys(word[-1], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
                             else:
                                 self.deviceV2.send_keys(word[i:], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
+                            random_sleep(0.01, 0.1, modulable=False, logging=False)
                             break
                     if n < n_words:
                         self.deviceV2.send_keys(" ", clear=False)
                         random_sleep(0.01, 0.1, modulable=False, logging=False)
 
                     i = 0
-                    n += 1
                 typed_text = self.viewV2.get_text()
-                if (
-                    typed_text is None
-                    or typed_text == "Add a comment…"
-                    or typed_text == "Message…"
-                    or typed_text == ""
-                    or typed_text.startswith("Comment as ")
-                ):
+                if typed_text != text:
                     logger.warning(
                         "Failed to write in text field, let's try in the old way.."
                     )

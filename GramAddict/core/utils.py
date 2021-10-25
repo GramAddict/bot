@@ -330,10 +330,10 @@ def pre_post_script(path: str, pre: bool = True):
                 p1.wait()
             except Exception as ex:
                 logger.error(f"This exception has occurred: {ex}")
-    else:
-        logger.error(
-            f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
-        )
+        else:
+            logger.error(
+                f"File '{path}' not found. Check your spelling. (The start point for relative paths is this: '{os.getcwd()}')."
+            )
 
 
 def print_telegram_reports(
