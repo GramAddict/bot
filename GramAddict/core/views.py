@@ -986,11 +986,12 @@ class PostsViewList:
         return media, content_desc
 
     def _like_in_post_view(self, mode: LikeMode, skip_media_check=False):
+        universal_actions = UniversalActions(self.device)
         if not skip_media_check:
             media, content_desc = self._get_media_container()
             if content_desc is not None:
-                media_type, _ = UniversalActions.detect_media_type(content_desc)
-                UniversalActions.watch_media(media_type)
+                media_type, _ = universal_actions.detect_media_type(content_desc)
+                universal_actions.watch_media(media_type)
         if mode == LikeMode.DOUBLE_CLICK:
             if media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
                 logger.info("Double click on post.")
@@ -1371,7 +1372,10 @@ class OpenedPostView:
             liked, like_button = self._is_video_liked()
             if not liked:
                 logger.info("Double click failed, clicking on the little heart ❤️.")
-                like_button.click()
+                if like_button is not None:
+                    like_button.click()
+                else:
+                    logger.error("We are seeing another video.")
                 liked, _ = self._is_video_liked()
         return liked
 
@@ -2110,8 +2114,16 @@ class UniversalActions:
         else:
             return False
 
-    @staticmethod
-    def watch_media(media_type: MediaType) -> None:
+    def _get_video_time_left(self) -> int:
+        timer = self.device.find(resourceId=ResourceID.TIMER)
+        if timer.exists():
+            raw_time = timer.get_text().split(":")
+            try:
+                return int(raw_time[0]) * 60 + int(raw_time[1])
+            except IndexError:
+                return 0
+
+    def watch_media(self, media_type: MediaType) -> None:
         """
         Watch media for the amount of time specified in config
         :return: None
@@ -2121,8 +2133,16 @@ class UniversalActions:
             media_type in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO)
             and args.watch_video_time != "0"
         ):
-            watching_time = get_value(
-                args.watch_video_time, "Watching video for {}s.", 0, its_time=True
+            time_left = self._get_video_time_left()
+            if time_left > 0:
+                logger.info(f"This video is about {time_left}s long.")
+            # hardcoded 5 seconds so we have the time to doing everything without going to the next video, hopefully
+            watching_time = min(
+                get_value(args.watch_video_time, name=None, default=0, its_time=True),
+                time_left - 5,
+            )
+            logger.info(
+                f"Watching video for {watching_time if watching_time > 0 else 0}s."
             )
         elif (
             media_type in (MediaType.CAROUSEL, MediaType.PHOTO)
