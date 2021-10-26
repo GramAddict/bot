@@ -172,9 +172,7 @@ class ResourceID:
         self.VIDEO_CONTAINER_AND_CLIPS_VIDEO_CONTAINER = (
             f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
         )
-        self.CAROUSEL_IMAGE_AND_MEDIA_GROUP = (
-            f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}"
-        )
+        self.CAROUSEL_AND_MEDIA_GROUP = f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}|{self.CAROUSEL_IMAGE_MEDIA_GROUP}|{self.CAROUSEL_VIDEO_MEDIA_GROUP}"
         self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
             f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
         )

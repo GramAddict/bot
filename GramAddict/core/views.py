@@ -979,9 +979,7 @@ class PostsViewList:
         ).get_text()
 
     def _get_media_container(self):
-        media = self.device.find(
-            resourceIdMatches=ResourceID.CAROUSEL_IMAGE_AND_MEDIA_GROUP
-        )
+        media = self.device.find(resourceIdMatches=ResourceID.CAROUSEL_AND_MEDIA_GROUP)
         content_desc = None
         if media.exists():
             content_desc = media.ui_info()["contentDescription"]
@@ -2138,13 +2136,15 @@ class UniversalActions:
         sleep(watching_time)
 
     @staticmethod
-    def detect_media_type(content_desc) -> Tuple[MediaType, int]:
+    def detect_media_type(content_desc) -> Tuple[Optional[MediaType], Optional[int]]:
         """
         Detect the nature and amount of a media
         :return: MediaType and count
         :rtype: MediaType, int
         """
         obj_count = 1
+        if content_desc is None:
+            return None, None
         if re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
             logger.info("It's a photo.")
             media_type = MediaType.PHOTO
