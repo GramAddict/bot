@@ -52,6 +52,7 @@ comment_feed: false
 # Content specific
 comment_photos: true
 comment_videos: true
+comment_carousels: true
 
 ## Filters for sending PM
 pm_to_private_or_empty: true

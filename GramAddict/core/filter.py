@@ -35,6 +35,7 @@ FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
 FIELD_COMMENT_PHOTOS = "comment_photos"
 FIELD_COMMENT_VIDEOS = "comment_videos"
+FIELD_COMMENT_CAROUSELS = "comment_carousels"
 FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
@@ -522,6 +523,7 @@ class Filter:
             return (
                 self.conditions.get(FIELD_COMMENT_PHOTOS, True),
                 self.conditions.get(FIELD_COMMENT_VIDEOS, True),
+                self.conditions.get(FIELD_COMMENT_CAROUSELS, True),
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         else:

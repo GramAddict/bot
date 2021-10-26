@@ -199,6 +199,7 @@ def interact_with_user(
         (
             _,
             _,
+            _,
             can_comment_job,
         ) = profile_filter.can_comment(current_mode)
         if can_comment_job and comment_percentage != 0:
@@ -354,15 +355,21 @@ def can_comment(media_type, profile_filter, current_mode):
     (
         can_comment_photos,
         can_comment_videos,
+        can_comment_carousels,
         can_comment_job,
     ) = profile_filter.can_comment(current_mode)
     if can_comment_job:
         if media_type == MediaType.PHOTO and can_comment_photos:
             return True
-        elif media_type == MediaType.VIDEO and can_comment_videos:
+        elif (
+            media_type in (MediaType.VIDEO, MediaType.IGTV, MediaType.REEL)
+            and can_comment_videos
+        ):
+            return True
+        elif media_type == MediaType.CAROUSEL and can_comment_carousels:
             return True
     logger.warning(
-        f"Can't comment because filters are: (photo, video, {current_mode}):{profile_filter.can_comment(current_mode)}. Check your config.yml."
+        f"Can't comment this {media_type} because filters are: (photo, video, carousel, {current_mode}):{profile_filter.can_comment(current_mode)}. Check your config.yml."
     )
     return False
 
