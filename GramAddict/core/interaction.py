@@ -774,15 +774,16 @@ def load_random_comment(my_username, media_type):
             photo_comments = lines[photo_header + 1 : video_header]
             video_comments = lines[video_header + 1 : carousel_header]
             carousel_comments = lines[carousel_header + 1 :]
+            random_comment = ""
             if media_type == MediaType.PHOTO:
                 random_comment = (
                     choice(photo_comments) if len(photo_comments) > 0 else ""
                 )
-            if media_type == MediaType.VIDEO or media_type == MediaType.IGTV:
+            elif media_type in (MediaType.VIDEO, MediaType.IGTV, MediaType.REEL):
                 random_comment = (
                     choice(video_comments) if len(video_comments) > 0 else ""
                 )
-            if media_type == MediaType.CAROUSEL:
+            elif media_type == MediaType.CAROUSEL:
                 random_comment = (
                     choice(carousel_comments) if len(carousel_comments) > 0 else ""
                 )
