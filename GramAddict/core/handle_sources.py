@@ -146,7 +146,8 @@ def handle_blogger_from_file(
     if path.isfile(current_filename):
         with open(current_filename, "r", encoding="utf-8") as f:
             usernames = [line.replace(" ", "") for line in f if line != "\n"]
-        logger.info(f"In this file there are {len(usernames)} entries.")
+        len_usernames = len(usernames)
+        logger.info(f"In this file there are {len_usernames} entries.")
         not_found = []
         try:
             for line, username_raw in enumerate(usernames, start=1):
@@ -223,7 +224,7 @@ def handle_blogger_from_file(
                     encoding="utf-8",
                 ) as f:
                     f.writelines(not_found)
-            if self.args.delete_interacted_users:
+            if self.args.delete_interacted_users and len_usernames != 0:
                 with atomic_write(
                     current_filename, overwrite=True, encoding="utf-8"
                 ) as f:
