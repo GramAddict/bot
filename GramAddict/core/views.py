@@ -2122,6 +2122,7 @@ class UniversalActions:
                 return int(raw_time[0]) * 60 + int(raw_time[1])
             except IndexError:
                 return 0
+        return 0
 
     def watch_media(self, media_type: MediaType) -> None:
         """
