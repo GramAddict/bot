@@ -7,6 +7,7 @@ import unicodedata
 from datetime import datetime
 from enum import Enum, auto
 from time import sleep
+from typing import Tuple
 
 import emoji
 import yaml
@@ -518,7 +519,7 @@ class Filter:
             field_pm_to_private_or_empty
         )
 
-    def can_comment(self, current_mode):
+    def can_comment(self, current_mode) -> Tuple[bool, bool, bool, bool]:
         if self.conditions is not None:
             return (
                 self.conditions.get(FIELD_COMMENT_PHOTOS, True),
@@ -528,7 +529,7 @@ class Filter:
             )
         else:
             logger.debug("filters.yml (or legacy filter.json) is not loaded!")
-        return False, False, False
+        return False, False, False, False
 
     def get_all_data(self, device):
         profile_picture = device.find(
