@@ -2142,7 +2142,7 @@ class UniversalActions:
                 time_left - 5,
             )
             logger.info(
-                f"Watching video for {watching_time if watching_time > 0 else 0}s."
+                f"Watching video for {watching_time if watching_time > 0 else 'few '}s."
             )
         elif (
             media_type in (MediaType.CAROUSEL, MediaType.PHOTO)
@@ -2153,7 +2153,8 @@ class UniversalActions:
             )
         else:
             return None
-        sleep(watching_time)
+        if watching_time > 0:
+            sleep(watching_time)
 
     @staticmethod
     def detect_media_type(content_desc) -> Tuple[Optional[MediaType], Optional[int]]:
