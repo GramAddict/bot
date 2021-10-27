@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.10.0 (2021-10-27)
+
+#### New Features
+
+* you can control if comment carousels
+* support for connect_adb_wifi uia2 method
+* support for watching videos and check for already liked posts
+#### Fixes
+
+* trying to close the android pop-up if ig crashes
+* looking for the like button on the following video instead of the one being played
+* comment fails on some media types
+* checking media_type could fail
+* empty files in unfollow from list job
+* unfollow from list loop
+* removed unexpected keyword argument in getFollowinCount method
+* method connect_adb_wifi contained some errors
+* was being imported nan by numpy instead of the math module
+* ig is not opened but the bot tries to do operations
+#### Performance improvements
+
+* video recording
+* posts-from-file job improved and fixed
+* little improvements to the module mode
+
+Full set of changes: [`2.9.2...2.10.0`](https://github.com/GramAddict/bot/compare/2.9.2...2.10.0)
+
 ## 2.9.2 (2021-10-06)
 
 #### Fixes
@@ -13,9 +40,17 @@ Full set of changes: [`2.9.1...2.9.2`](https://github.com/GramAddict/bot/compare
 #### New Features
 
 * module version thanks to @patbengr
+* if a username in *.txt file is not found, it will be appended to a *_not_found.txt
+* from now you can customize the session ending conditions
 #### Fixes
 
 * compatibility with IG: 208.0.0.32.135
+* cannot check the language of Ig if not at the top of the account
+* handle an exception in case you start the bot without specifying the config file
+* it could happen that you are not at the top of your main profile in some circumstances
+#### Performance improvements
+
+* clean code for open and close ig
 
 Full set of changes: [`2.9.0...2.9.1`](https://github.com/GramAddict/bot/compare/2.9.0...2.9.1)
 
