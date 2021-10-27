@@ -61,7 +61,6 @@ class ResourceID:
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
         self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
-        self.LIST = "android:id/list"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.MENU_OPTION_TEXT = f"{APP_ID}:id/menu_option_text"
@@ -179,6 +178,10 @@ class ResourceID:
         )
         self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
         self.BLOCK_POPUP = f"{self.DIALOG_CONTAINER}|{self.DIALOG_ROOT_VIEW}"
+
+        # android specific
+        self.LIST = "android:id/list"
+        self.AERR_RESTART = "android:id/aerr_restart"
 
 
 class TabBarText:

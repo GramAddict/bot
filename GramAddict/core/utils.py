@@ -261,6 +261,7 @@ def open_instagram(device, screen_record, close_apps):
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
+        check_if_crash_popup_is_there(device)
         random_sleep(3, 3, modulable=False)
 
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
@@ -319,6 +320,12 @@ def close_instagram(device, screen_record):
             logger.error(
                 f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
+
+
+def check_if_crash_popup_is_there(device):
+    obj = device.find(resourceId=ResourceID.AERR_RESTART)
+    if obj.exists():
+        obj.click()
 
 
 def pre_post_script(path: str, pre: bool = True):
