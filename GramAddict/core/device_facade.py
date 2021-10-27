@@ -105,6 +105,46 @@ class DeviceFacade:
         random_sleep()
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=20):
+        import imageio
+
+        def _run_MOD(self):
+            from collections import deque
+
+            pipelines = [self._pipe_limit, self._pipe_convert, self._pipe_resize]
+            _iter = self._iter_minicap()
+            for p in pipelines:
+                _iter = p(_iter)
+
+            with imageio.get_writer(self._filename, fps=self._fps) as wr:
+                frames = deque(maxlen=self._fps * 20)
+                for im in _iter:
+                    frames.append(im)
+                if self.crash:
+                    for frame in frames:
+                        wr.append_data(frame)
+            self._done_event.set()
+
+        def stop_MOD(self, crash=True):
+            """
+            stop record and finish write video
+            Returns:
+                bool: whether video is recorded.
+            """
+            if self._running:
+                self.crash = crash
+                self._stop_event.set()
+                ret = self._done_event.wait(10.0)
+
+                # reset
+                self._stop_event.clear()
+                self._done_event.clear()
+                self._running = False
+                return ret
+
+        from uiautomator2 import screenrecord as _sr
+
+        _sr.Screenrecord._run = _run_MOD
+        _sr.Screenrecord.stop = stop_MOD
         mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
         if mp4_files != []:
             last_mp4 = mp4_files[-1]
