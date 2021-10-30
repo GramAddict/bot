@@ -1603,7 +1603,7 @@ class ProfileView(ActionBarView):
 
     def _parseCounter(self, text):
         multiplier = 1
-        text = text.replace(",", ".")
+        text = text.replace(",", ".").replace("’", ".")
         if "K" in text:
             value = float(text.replace("K", ""))
             multiplier = 1000
