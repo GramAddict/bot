@@ -75,7 +75,7 @@ class InteractHashtagLikers(Plugin):
         # Start
         for source in sample_sources(sources, self.args.truncate_sources):
             limit_reached = self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.ALL
+                limit_type=self.session_state.Limit.ALL
             )
 
             self.state = State()
@@ -128,7 +128,7 @@ class InteractHashtagLikers(Plugin):
             if limit_reached:
                 logger.info("Ending session.")
                 self.session_state.check_limit(
-                    self.args, limit_type=self.session_state.Limit.ALL, output=True
+                    limit_type=self.session_state.Limit.ALL, output=True
                 )
                 break
 

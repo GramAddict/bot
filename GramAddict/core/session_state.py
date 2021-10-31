@@ -76,59 +76,74 @@ class SessionState:
 
     def set_limits_session(
         self,
-        args,
     ):
         """set the limits for current session"""
-        args.current_likes_limit = get_value(args.total_likes_limit, None, 300)
-        args.current_follow_limit = get_value(args.total_follows_limit, None, 50)
-        args.current_unfollow_limit = get_value(args.total_unfollows_limit, None, 50)
-        args.current_comments_limit = get_value(args.total_comments_limit, None, 10)
-        args.current_pm_limit = get_value(args.total_pm_limit, None, 10)
-        args.current_watch_limit = get_value(args.total_watches_limit, None, 50)
-        args.current_success_limit = get_value(
-            args.total_successful_interactions_limit, None, 100
+        self.args.current_likes_limit = get_value(
+            self.args.total_likes_limit, None, 300
         )
-        args.current_total_limit = get_value(args.total_interactions_limit, None, 1000)
-        args.current_scraped_limit = get_value(args.total_scraped_limit, None, 200)
-        args.current_crashes_limit = get_value(args.total_crashes_limit, None, 5)
+        self.args.current_follow_limit = get_value(
+            self.args.total_follows_limit, None, 50
+        )
+        self.args.current_unfollow_limit = get_value(
+            self.args.total_unfollows_limit, None, 50
+        )
+        self.args.current_comments_limit = get_value(
+            self.args.total_comments_limit, None, 10
+        )
+        self.args.current_pm_limit = get_value(self.args.total_pm_limit, None, 10)
+        self.args.current_watch_limit = get_value(
+            self.args.total_watches_limit, None, 50
+        )
+        self.args.current_success_limit = get_value(
+            self.args.total_successful_interactions_limit, None, 100
+        )
+        self.args.current_total_limit = get_value(
+            self.args.total_interactions_limit, None, 1000
+        )
+        self.args.current_scraped_limit = get_value(
+            self.args.total_scraped_limit, None, 200
+        )
+        self.args.current_crashes_limit = get_value(
+            self.args.total_crashes_limit, None, 5
+        )
 
-    def check_limit(self, args, limit_type=None, output=False):
+    def check_limit(self, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
         limit_type = SessionState.Limit.ALL if limit_type is None else limit_type
         # check limits
-        total_likes = self.totalLikes >= int(args.current_likes_limit)
+        total_likes = self.totalLikes >= int(self.args.current_likes_limit)
         total_followed = sum(self.totalFollowed.values()) >= int(
-            args.current_follow_limit
+            self.args.current_follow_limit
         )
-        total_unfollowed = self.totalUnfollowed >= int(args.current_unfollow_limit)
-        total_comments = self.totalComments >= int(args.current_comments_limit)
-        total_pm = self.totalPm >= int(args.current_pm_limit)
-        total_watched = self.totalWatched >= int(args.current_watch_limit)
+        total_unfollowed = self.totalUnfollowed >= int(self.args.current_unfollow_limit)
+        total_comments = self.totalComments >= int(self.args.current_comments_limit)
+        total_pm = self.totalPm >= int(self.args.current_pm_limit)
+        total_watched = self.totalWatched >= int(self.args.current_watch_limit)
         total_successful = sum(self.successfulInteractions.values()) >= int(
-            args.current_success_limit
+            self.args.current_success_limit
         )
         total_interactions = sum(self.totalInteractions.values()) >= int(
-            args.current_total_limit
+            self.args.current_total_limit
         )
 
         total_scraped = sum(self.totalScraped.values()) >= int(
-            args.current_scraped_limit
+            self.args.current_scraped_limit
         )
 
-        total_crashes = self.totalCrashes >= int(args.current_crashes_limit)
+        total_crashes = self.totalCrashes >= int(self.args.current_crashes_limit)
 
         session_info = [
             "Checking session limits:",
-            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{args.current_likes_limit})",
-            f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{args.current_comments_limit})",
-            f"- Total PM:\t\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{args.current_pm_limit})",
-            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{args.current_follow_limit})",
-            f"- Total Unfollowed:\t\t\t\t{'Limit Reached' if total_unfollowed else 'OK'} ({self.totalUnfollowed}/{args.current_unfollow_limit})",
-            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{args.current_watch_limit})",
-            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{args.current_success_limit})",
-            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{args.current_total_limit})",
-            f"- Total Crashes:\t\t\t\t{'Limit Reached' if total_crashes else 'OK'} ({self.totalCrashes}/{args.current_crashes_limit})",
-            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{args.current_scraped_limit})",
+            f"- Total Likes:\t\t\t\t{'Limit Reached' if total_likes else 'OK'} ({self.totalLikes}/{self.args.current_likes_limit})",
+            f"- Total Comments:\t\t\t\t{'Limit Reached' if total_comments else 'OK'} ({self.totalComments}/{self.args.current_comments_limit})",
+            f"- Total PM:\t\t\t\t\t{'Limit Reached' if total_pm else 'OK'} ({self.totalPm}/{self.args.current_pm_limit})",
+            f"- Total Followed:\t\t\t\t{'Limit Reached' if total_followed else 'OK'} ({sum(self.totalFollowed.values())}/{self.args.current_follow_limit})",
+            f"- Total Unfollowed:\t\t\t\t{'Limit Reached' if total_unfollowed else 'OK'} ({self.totalUnfollowed}/{self.args.current_unfollow_limit})",
+            f"- Total Watched:\t\t\t\t{'Limit Reached' if total_watched else 'OK'} ({self.totalWatched}/{self.args.current_watch_limit})",
+            f"- Total Successful Interactions:\t\t{'Limit Reached' if total_successful else 'OK'} ({sum(self.successfulInteractions.values())}/{self.args.current_success_limit})",
+            f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{self.args.current_total_limit})",
+            f"- Total Crashes:\t\t\t\t{'Limit Reached' if total_crashes else 'OK'} ({self.totalCrashes}/{self.args.current_crashes_limit})",
+            f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{self.args.current_scraped_limit})",
         ]
 
         if limit_type == SessionState.Limit.ALL:
