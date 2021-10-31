@@ -12,6 +12,7 @@ from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
+from typing import Union
 from urllib.parse import urlparse
 
 import emoji
@@ -233,13 +234,18 @@ def open_instagram(device, screen_record, close_apps):
     nl = "\n"
     FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
-    )
-    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
-    err = cmd_res.stderr.strip()
+
+    def call_ig():
+        cmd = (
+            "adb"
+            + ("" if configs.device_id is None else " -s " + configs.device_id)
+            + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
+        )
+        return subprocess.run(
+            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
+        )
+
+    err = call_ig().stderr.strip()
     if "Error" in err:
         logger.error(err.replace(nl, ". "))
         return False
@@ -261,7 +267,8 @@ def open_instagram(device, screen_record, close_apps):
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
-        check_if_crash_popup_is_there(device)
+        if check_if_crash_popup_is_there(device):
+            call_ig()
         random_sleep(3, 3, modulable=False)
 
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
@@ -322,10 +329,65 @@ def close_instagram(device, screen_record):
             )
 
 
-def check_if_crash_popup_is_there(device):
-    obj = device.find(resourceId=ResourceID.AERR_RESTART)
+def check_if_crash_popup_is_there(device) -> bool:
+    obj = device.find(resourceId=ResourceID.CRASH_POPUP)
     if obj.exists():
         obj.click()
+        return True
+    return False
+
+
+def show_ending_conditions():
+    end_likes = configs.args.end_if_likes_limit_reached
+    end_follows = configs.args.end_if_follows_limit_reached
+    end_watches = configs.args.end_if_watches_limit_reached
+    end_comments = configs.args.end_if_comments_limit_reached
+    end_pm = configs.args.end_if_pm_limit_reached
+    logger.info(
+        "-----------------------------------------------------------------------",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    logger.info(
+        "Session will end when at least one of these conditions is reached:",
+        extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+    )
+    logger.info(
+        f"Likes: {end_likes}",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_likes else Fore.GREEN}"},
+    )
+    logger.info(
+        f"Follows: {end_follows}",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_follows else Fore.GREEN}"},
+    )
+    logger.info(
+        f"Watches: {end_watches}",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_watches else Fore.GREEN}"},
+    )
+    logger.info(
+        f"Comments: {end_comments}",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_comments else Fore.GREEN}"},
+    )
+    logger.info(
+        f"PM: {end_pm}",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_pm else Fore.GREEN}"},
+    )
+    logger.info(
+        "Total actions: True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED}"},
+    )
+    logger.info(
+        "Total successfull actions: True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.RED}"},
+    )
+    logger.info(
+        "For more info -> https://github.com/GramAddict/docs/blob/main/configuration.md#ending-session-conditions",
+        extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+    )
+    logger.info(
+        "-----------------------------------------------------------------------",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    sleep(5)
 
 
 def pre_post_script(path: str, pre: bool = True):
@@ -436,7 +498,7 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
     sys.exit(0)
 
 
-def can_repeat(current_session, max_sessions):
+def can_repeat(current_session, max_sessions: int) -> bool:
     if max_sessions == -1:
         return True
     logger.info(
@@ -452,45 +514,35 @@ def can_repeat(current_session, max_sessions):
     return False
 
 
-def get_value(count, name, default, its_time=False):
-    def print_error():
+def get_value(
+    count: str, name: str, default: Union[int, float] = 0, its_time: bool = False
+) -> Union[int, float]:
+    def print_error() -> None:
         logger.error(
-            name.format(default)
-            + f'. Using default value instead of "{count}", because it must be '
+            f'Using default value instead of "{count}", because it must be '
             "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
 
     parts = count.split("-")
-    if len(parts) <= 0:
-        value = default
-        print_error()
-    elif len(parts) == 1:
-        try:
+    try:
+        if len(parts) == 1:
             value = int(count)
-            if name is not None:
-                logger.info(name.format(value), extra={"color": Style.BRIGHT})
-        except ValueError:
-            value = default
-            print_error()
-    elif len(parts) == 2:
-        try:
+        elif len(parts) == 2:
             if not its_time:
                 value = randint(int(parts[0]), int(parts[1]))
             else:
                 value = round(uniform(int(parts[0]), int(parts[1])), 2)
-
-            if name is not None:
-                logger.info(name.format(value), extra={"color": Style.BRIGHT})
-        except ValueError:
-            value = default
-            print_error()
-    else:
+        else:
+            raise ValueError
+    except ValueError:
         value = default
         print_error()
+    if name is not None:
+        logger.info(name.format(value), extra={"color": Style.BRIGHT})
     return value
 
 
-def validate_url(x):
+def validate_url(x) -> bool:
     try:
         result = urlparse(x)
         return all([result.scheme, result.netloc, result.path])
@@ -499,7 +551,7 @@ def validate_url(x):
         return False
 
 
-def append_to_file(filename, username):
+def append_to_file(filename: str, username: str) -> None:
     try:
         if not filename.lower().endswith(".txt"):
             filename = filename + ".txt"

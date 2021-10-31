@@ -39,13 +39,14 @@ from GramAddict.core.utils import (
     print_telegram_reports,
     save_crash,
     set_time_delta,
+    show_ending_conditions,
     stop_bot,
     wait_for_next_session,
 )
 from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
 from GramAddict.core.views import load_config as load_views
 
-TESTED_IG_VERSION = "210.0.0.28.71"
+TESTED_IG_VERSION = "211.0.0.33.117"
 
 
 def start_bot(**kwargs):
@@ -58,7 +59,7 @@ def start_bot(**kwargs):
     if not kwargs:
         if "--config" not in configs.args:
             logger.info(
-                "We strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
+                "It's strongly recommend to use a config.yml file. Follow these links for more details: https://docs.gramaddict.org/#/configuration and https://github.com/GramAddict/bot/tree/master/config-examples",
                 extra={"color": f"{Fore.GREEN}{Style.BRIGHT}"},
             )
             sleep(3)
@@ -92,7 +93,7 @@ def start_bot(**kwargs):
 
     if len(configs.enabled) < 1:
         logger.error(
-            "You have to specify one of the actions: " + ", ".join(configs.actions)
+            "You have to specify one of these actions: " + ", ".join(configs.actions)
         )
         return
     device = create_device(configs.device_id)
@@ -120,7 +121,7 @@ def start_bot(**kwargs):
         pre_post_script(path=configs.args.pre_script)
         get_device_info(device)
         session_state = SessionState(configs)
-        session_state.set_limits_session(configs.args)
+        session_state.set_limits_session()
         sessions.append(session_state)
         device.wake_up()
 
@@ -150,7 +151,7 @@ def start_bot(**kwargs):
                     TESTED_IG_VERSION.split(".")
                 ):
                     logger.info(
-                        f"You have a newer version of IG then the one tested! (Tested version: {TESTED_IG_VERSION})",
+                        f"You have a newer version of IG then the one tested! (Tested version: {TESTED_IG_VERSION}). That shouldn't be a problem.",
                         extra={"color": f"{Style.BRIGHT}"},
                     )
             except Exception as e:
@@ -189,7 +190,7 @@ def start_bot(**kwargs):
             or session_state.my_following_count is None
         ):
             logger.critical(
-                "Could not get one of the following from your profile: username, # of posts, # of followers, # of followings. This is typically due to a soft ban. Review the crash screenshot to see if this is the case."
+                "Could not get one of the following from your profile: username, # of posts, # of followers, # of followings. This is typically due to a soft-ban. Review the crash screenshot to see if this is the case."
             )
             logger.critical(
                 f"Username: {session_state.my_username}, Posts: {session_state.my_posts_count}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
@@ -228,6 +229,8 @@ def start_bot(**kwargs):
             if configs.args.telegram_reports:
                 telegram_reports_at_end = True
 
+        show_ending_conditions()
+
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -239,8 +242,12 @@ def start_bot(**kwargs):
                 )
                 break
             if not session_state.check_limit(
-                configs.args, limit_type=session_state.Limit.ALL, output=True
+                limit_type=session_state.Limit.ALL, output=True
             ):
+                logger.info(
+                    "-------------------------------------------------",
+                    extra={"color": f"{Fore.RED}"},
+                )
                 logger.info(
                     f"Current job: {plugin}",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
