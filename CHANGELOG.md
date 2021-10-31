@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.1 (2021-10-31)
+
+#### Fixes
+
+* someone in the world has a " ’ " as thousands separator instead of " , "
+
+Full set of changes: [`2.10.0...2.10.1`](https://github.com/GramAddict/bot/compare/2.10.0...2.10.1)
+
 ## 2.10.0 (2021-10-27)
 
 #### New Features
