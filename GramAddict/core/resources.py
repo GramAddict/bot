@@ -111,6 +111,7 @@ class ResourceID:
         self.ROW_HASHTAG_TEXTVIEW_TAG_NAME = (
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
+        self.INDICATOR_ICON_VIEW = f"{APP_ID}:id/indicator_icon_view"
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
         self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
@@ -182,6 +183,8 @@ class ResourceID:
         # android specific
         self.LIST = "android:id/list"
         self.AERR_RESTART = "android:id/aerr_restart"
+        self.AERR_CLOSE = "android:id/aerr_close"
+        self.CRASH_POPUP = f"{self.AERR_RESTART}|{self.AERR_CLOSE}"
 
 
 class TabBarText:

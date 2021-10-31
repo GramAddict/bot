@@ -164,7 +164,7 @@ def handle_blogger_from_file(
                         )
                         self.session_state.totalUnfollowed += 1
                         limit_reached = self.session_state.check_limit(
-                            self.args, limit_type=self.session_state.Limit.UNFOLLOWS
+                            limit_type=self.session_state.Limit.UNFOLLOWS
                         )
                     else:
                         not_found.append(username_raw)
@@ -462,17 +462,24 @@ def handle_posts(
         return
 
     post_description = ""
+    likes_failed = 0
     nr_same_post = 0
     nr_same_posts_max = 3
     nr_consecutive_already_interacted = 0
+    post_view_list = PostsViewList(device)
+    opened_post_view = OpenedPostView(device)
     while True:
-        flag, post_description, username, is_ad, is_hashtag = PostsViewList(
-            device
-        )._check_if_last_post(post_description, current_job)
-        has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
-        already_liked, _ = OpenedPostView(device)._is_post_liked()
+        (
+            is_same_post,
+            post_description,
+            username,
+            is_ad,
+            is_hashtag,
+        ) = post_view_list._check_if_last_post(post_description, current_job)
+        has_likers, number_of_likers = post_view_list._find_likers_container()
+        already_liked, _ = opened_post_view._is_post_liked()
         if not (is_ad or is_hashtag):
-            if flag:
+            if is_same_post:
                 nr_same_post += 1
                 logger.info(
                     f"Warning: {nr_same_post}/{nr_same_posts_max} repeated posts."
@@ -530,28 +537,34 @@ def handle_posts(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
                     )
                     if scraping_file is None:
-                        OpenedPostView(device).start_video()
-                        PostsViewList(device)._like_in_post_view(LikeMode.DOUBLE_CLICK)
-                        UniversalActions.detect_block(device)
-                        if not PostsViewList(device)._check_if_liked():
-                            PostsViewList(device)._like_in_post_view(
-                                LikeMode.SINGLE_CLICK
-                            )
+                        opened_post_view.start_video()
+                        if not session_state.check_limit(
+                            limit_type=session_state.Limit.LIKES, output=True
+                        ):
+                            post_view_list._like_in_post_view(LikeMode.DOUBLE_CLICK)
                             UniversalActions.detect_block(device)
-                        session_state.totalLikes += 1
-                        if current_job == "feed":
-                            count += 1
-                            logger.info(
-                                f"Interacted feed bloggers: {count}/{count_feed_limit}"
-                            )
-                            if count >= count_feed_limit:
-                                logger.info(
-                                    f"Interacted {count} bloggers in feed, finish."
-                                )
-                                TabBarView(device).navigateToProfile()
-                                return
+                            liked = post_view_list._check_if_liked()
+                            if not liked:
+                                post_view_list._like_in_post_view(LikeMode.SINGLE_CLICK)
+                                UniversalActions.detect_block(device)
+                                liked = post_view_list._check_if_liked()
+                            if liked:
+                                session_state.totalLikes += 1
+                                if current_job == "feed":
+                                    count += 1
+                                    logger.info(
+                                        f"Interacted feed bloggers: {count}/{count_feed_limit}"
+                                    )
+                                    if count >= count_feed_limit:
+                                        logger.info(
+                                            f"Interacted {count} bloggers in feed, finish."
+                                        )
+                                        TabBarView(device).navigateToProfile()
+                                        return
+                            else:
+                                likes_failed += 1
                     if current_job != "feed":
-                        opened, _, _ = PostsViewList(device)._post_owner(
+                        opened, _, _ = post_view_list._post_owner(
                             current_job, Owner.OPEN, username
                         )
                         if opened:
@@ -567,9 +580,11 @@ def handle_posts(
                             ):
                                 return
                             device.back()
-
-        PostsViewList(device).swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
-        PostsViewList(device).swipe_to_fit_posts(SwipeTo.NEXT_POST)
+        if likes_failed == 10:
+            logger.warning("You failed to do 10 likes! Soft-ban?!")
+            return
+        post_view_list.swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
+        post_view_list.swipe_to_fit_posts(SwipeTo.NEXT_POST)
 
 
 def handle_followers(
