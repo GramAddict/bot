@@ -48,9 +48,12 @@ class InteractOwnFeed(Plugin):
         profile_filter = Filter(storage)
         self.current_mode = plugin
 
-        limit_reached = self.session_state.check_limit(
-            limit_type=self.session_state.Limit.ALL
-        )
+        (
+            active_limits_reached,
+            _,
+            actions_limit_reached,
+        ) = self.session_state.check_limit(limit_type=self.session_state.Limit.ALL)
+        limit_reached = active_limits_reached or actions_limit_reached
 
         self.state = State()
         logger.info("Interact with your own feed", extra={"color": f"{Style.BRIGHT}"})
