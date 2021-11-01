@@ -133,7 +133,7 @@ def handle_blogger(
 def handle_blogger_from_file(
     self,
     device,
-    current_filename,
+    parameter_passed,
     current_job,
     storage,
     on_interaction,
@@ -143,12 +143,26 @@ def handle_blogger_from_file(
     need_to_refresh = True
     on_following_list = False
     limit_reached = False
-    if path.isfile(current_filename):
-        with open(current_filename, "r", encoding="utf-8") as f:
+
+    filename = parameter_passed.split(" ")[0]
+    try:
+        amount_of_users = get_value(parameter_passed.split(" ")[1], None, 10)
+    except IndexError:
+        amount_of_users = 10
+        logger.warning(
+            f"You didn't passed how many users should be processed from the list! Default is {amount_of_users} users."
+        )
+    if path.isfile(filename):
+        with open(filename, "r", encoding="utf-8") as f:
             usernames = [line.replace(" ", "") for line in f if line != "\n"]
         len_usernames = len(usernames)
-        logger.info(f"In this file there are {len_usernames} entries.")
+        if len_usernames < amount_of_users:
+            amount_of_users = len_usernames
+        logger.info(
+            f"In {filename} there are {len_usernames} entries, {amount_of_users} users will be processed."
+        )
         not_found = []
+        processed_users = 0
         try:
             for line, username_raw in enumerate(usernames, start=1):
                 username = username_raw.strip()
@@ -166,10 +180,16 @@ def handle_blogger_from_file(
                         limit_reached = self.session_state.check_limit(
                             limit_type=self.session_state.Limit.UNFOLLOWS
                         )
+                        processed_users += 1
                     else:
                         not_found.append(username_raw)
                     if limit_reached:
                         logger.info("Unfollows limit reached.")
+                        break
+                    if processed_users == amount_of_users:
+                        logger.info(
+                            f"{processed_users} users have been unfollowed, going to the next job."
+                        )
                         break
                 else:
                     if storage.is_user_in_blacklist(username):
@@ -216,26 +236,30 @@ def handle_blogger_from_file(
                     ):
                         return
                     device.back()
+                    processed_users += 1
+                    if processed_users == amount_of_users:
+                        logger.info(
+                            f"{processed_users} users have been interracted, going to the next job."
+                        )
+                        return
         finally:
             if not_found:
                 with open(
-                    f"{os.path.splitext(current_filename)[0]}_not_found.txt",
+                    f"{os.path.splitext(filename)[0]}_not_found.txt",
                     mode="a+",
                     encoding="utf-8",
                 ) as f:
                     f.writelines(not_found)
             if self.args.delete_interacted_users and len_usernames != 0:
-                with atomic_write(
-                    current_filename, overwrite=True, encoding="utf-8"
-                ) as f:
+                with atomic_write(filename, overwrite=True, encoding="utf-8") as f:
                     f.writelines(usernames[line:])
     else:
         logger.warning(
-            f"File {current_filename} not found. You have to specify the right relative path from this point: {os.getcwd()}"
+            f"File {filename} not found. You have to specify the right relative path from this point: {os.getcwd()}"
         )
         return
 
-    logger.info(f"Interact with users in {current_filename} completed.")
+    logger.info(f"Interact with users in {filename} completed.")
     device.back()
 
 

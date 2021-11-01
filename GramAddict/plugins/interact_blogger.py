@@ -69,9 +69,9 @@ class InteractBloggerPostLikers(Plugin):
 
         # Handle sources
         if plugin == "interact-from-file":
-            sources = [file for file in self.args.interact_from_file]
+            sources = [file for file in self.args.interact_from_file if file != ""]
         elif plugin == "unfollow-from-file":
-            sources = [file for file in self.args.unfollow_from_file]
+            sources = [file for file in self.args.unfollow_from_file if file != ""]
         else:
             sources = [source for source in self.args.blogger]
 
