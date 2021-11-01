@@ -490,6 +490,8 @@ def handle_posts(
     nr_same_post = 0
     nr_same_posts_max = 3
     nr_consecutive_already_interacted = 0
+    already_liked_count = 0
+    already_liked_count_limit = 20
     post_view_list = PostsViewList(device)
     opened_post_view = OpenedPostView(device)
     while True:
@@ -503,6 +505,11 @@ def handle_posts(
         has_likers, number_of_likers = post_view_list._find_likers_container()
         already_liked, _ = opened_post_view._is_post_liked()
         if not (is_ad or is_hashtag):
+            if already_liked_count == already_liked_count_limit:
+                logger.info(
+                    f"Limit of {already_liked_count_limit} already liked posts limit reached, finish."
+                )
+                break
             if is_same_post:
                 nr_same_post += 1
                 logger.info(
@@ -519,6 +526,7 @@ def handle_posts(
                 logger.info(
                     "Post already liked, SKIP.", extra={"color": f"{Fore.CYAN}"}
                 )
+                already_liked_count += 1
             elif random_choice(interact_percentage):
                 can_interact = False
                 if storage.is_user_in_blacklist(username):
@@ -555,7 +563,7 @@ def handle_posts(
                     logger.info(
                         f"Reached the limit of already interacted {skipped_posts_limit}. Goin to the next source/job!"
                     )
-                    return
+                    break
                 if can_interact and (likes_in_range or not has_likers):
                     logger.info(
                         f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
@@ -579,12 +587,23 @@ def handle_posts(
                                     logger.info(
                                         f"Interacted feed bloggers: {count}/{count_feed_limit}"
                                     )
+                                    likes_limit = self.session_state.check_limit(
+                                        limit_type=self.session_state.Limit.LIKES
+                                    )
+                                    success_limit = self.session_state.check_limit(
+                                        limit_type=self.session_state.Limit.SUCCESS
+                                    )
+                                    total_limit = self.session_state.check_limit(
+                                        limit_type=self.session_state.Limit.TOTAL
+                                    )
+                                    if likes_limit or success_limit or total_limit:
+                                        logger.info("Limit reached, finish.")
+                                        break
                                     if count >= count_feed_limit:
                                         logger.info(
                                             f"Interacted {count} bloggers in feed, finish."
                                         )
-                                        TabBarView(device).navigateToProfile()
-                                        return
+                                        break
                             else:
                                 likes_failed += 1
                     if current_job != "feed":
@@ -602,13 +621,14 @@ def handle_posts(
                                 current_job,
                                 on_interaction,
                             ):
-                                return
+                                break
                             device.back()
         if likes_failed == 10:
             logger.warning("You failed to do 10 likes! Soft-ban?!")
             return
         post_view_list.swipe_to_fit_posts(SwipeTo.HALF_PHOTO)
         post_view_list.swipe_to_fit_posts(SwipeTo.NEXT_POST)
+    TabBarView(device).navigateToProfile()
 
 
 def handle_followers(
