@@ -7,7 +7,6 @@ from random import randint, uniform
 from re import search
 from subprocess import PIPE, run
 from time import sleep
-from typing import Optional
 
 import uiautomator2
 
@@ -616,13 +615,15 @@ class DeviceFacade:
             )
             return ""
 
-        def get_selected(self) -> Optional[bool]:
+        def get_selected(self) -> bool:
             try:
                 if self.viewV2.exists():
                     return self.viewV2.info["selected"]
                 else:
-                    logger.debug("Object has disappeared!")
-                    return None
+                    logger.debug(
+                        "Object has disappeared! Probably too short video which has been liked!"
+                    )
+                    return True
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

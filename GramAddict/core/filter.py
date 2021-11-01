@@ -189,7 +189,6 @@ class Filter:
         """
         This method assumes being on someone's profile already.
         """
-        global field_skip_following
         if self.conditions is not None:
             field_skip_business = self.conditions.get(FIELD_SKIP_BUSINESS, False)
             field_skip_non_business = self.conditions.get(

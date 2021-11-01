@@ -927,7 +927,7 @@ def _watch_stories(
             stories_ring.click(sleep=SleepTime.TINY)
             story_view = CurrentStoryView(device)
             story_frame = story_view.getStoryFrame()
-            story_frame.wait(Timeout.SHORT)
+            story_frame.wait(Timeout.MEDIUM)
             if story_view.getUsername() == username:
                 start = datetime.now()
                 if not watch_story():

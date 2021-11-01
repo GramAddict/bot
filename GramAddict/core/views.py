@@ -85,6 +85,7 @@ class MediaType(Enum):
     REEL = auto()
     IGTV = auto()
     CAROUSEL = auto()
+    UNKNOWN = auto()
 
 
 class Owner(Enum):
@@ -988,7 +989,10 @@ class PostsViewList:
         obj_count = 1
         if content_desc is None:
             return None, None
-        if re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
+        if content_desc == "":
+            logger.info("That media is missing content description :S")
+            media_type = MediaType.UNKNOWN
+        elif re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
             logger.info("It's a photo.")
             media_type = MediaType.PHOTO
         elif re.match("^Video|^Hidden Video", content_desc, re.IGNORECASE):
@@ -1228,22 +1232,14 @@ class OpenedPostView:
         self.has_tags = False
 
     def _get_post_like_button(self) -> Optional[DeviceFacade.View]:
-        universal_actions = UniversalActions(self.device)
         post_media_view = self.device.find(
             resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
         )
-        like_btn = self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE)
-
-        for _ in range(3):
-            if post_media_view.exists() and like_btn.exists():
-                if like_btn.count_items() > 1:
-                    universal_actions._swipe_points(
-                        direction=Direction.DOWN, delta_y=100
-                    )
-                else:
-                    return like_btn
-            else:
-                universal_actions._swipe_points(direction=Direction.DOWN, delta_y=100)
+        if post_media_view.exists(Timeout.MEDIUM):
+            like_button = post_media_view.down(
+                resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
+            )
+            return like_button
         return None
 
     def _is_post_liked(self) -> Tuple[Optional[bool], Optional[DeviceFacade.View]]:
@@ -1277,15 +1273,21 @@ class OpenedPostView:
                     "Post has tags, better going with a single click on the little heart ❤️."
                 )
                 like_button = self._get_post_like_button()
-                like_button.click()
-                liked, _ = self._is_post_liked()
+                if like_button is not None:
+                    like_button.click()
+                    liked, _ = self._is_post_liked()
+                else:
+                    logger.warning("Can't find the like button object!")
             else:
                 post_media_view.double_click()
                 liked, like_button = self._is_post_liked()
                 if not liked:
-                    logger.info("Double click failed, clicking on the little heart ❤️.")
-                    like_button.click()
-                    liked, _ = self._is_post_liked()
+                    if like_button is not None:
+                        logger.info(
+                            "Double click failed, clicking on the little heart ❤️."
+                        )
+                        like_button.click()
+                        liked, _ = self._is_post_liked()
         return liked
 
     def start_video(self) -> bool:
@@ -1328,20 +1330,26 @@ class OpenedPostView:
         :rtype: None
         """
         if (
-            media_type in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO)
+            media_type
+            in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO, MediaType.UNKNOWN)
             and args.watch_video_time != "0"
         ):
+            is_opened = self._is_video_in_fullscreen
             time_left = self._get_video_time_left()
-            if time_left > 0:
-                logger.info(f"This video is about {time_left}s long.")
-            # hardcoded 5 seconds so we have the time to doing everything without going to the next video, hopefully
-            watching_time = min(
-                get_value(args.watch_video_time, name=None, default=0, its_time=True),
-                time_left - 5,
+            watching_time = get_value(
+                args.watch_video_time, name=None, default=0, its_time=True
             )
+            if time_left > 0 and not media_type == MediaType.REEL and is_opened:
+                logger.info(f"This video is about {time_left}s long.")
+                # hardcoded 5 seconds so we have the time to doing everything without going to the next video, hopefully
+                watching_time = min(
+                    watching_time,
+                    time_left - 5,
+                )
             logger.info(
                 f"Watching video for {watching_time if watching_time > 0 else 'few '}s."
             )
+
         elif (
             media_type in (MediaType.CAROUSEL, MediaType.PHOTO)
             and args.watch_photo_time != "0"
@@ -1356,6 +1364,7 @@ class OpenedPostView:
             sleep(watching_time)
 
     def _get_video_time_left(self) -> int:
+        self._is_video_in_fullscreen
         timer = self.device.find(resourceId=ResourceID.TIMER)
         if timer.exists():
             raw_time = timer.get_text().split(":")
