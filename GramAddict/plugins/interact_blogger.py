@@ -73,15 +73,18 @@ class InteractBloggerPostLikers(Plugin):
         elif plugin == "unfollow-from-file":
             sources = [file for file in self.args.unfollow_from_file if file != ""]
         else:
-            sources = [source for source in self.args.blogger]
+            sources = [source for source in self.args.blogger if source != ""]
 
         for source in sample_sources(sources, self.args.truncate_sources):
             (
                 active_limits_reached,
-                _,
+                unfollow_limits_reached,
                 actions_limit_reached,
             ) = self.session_state.check_limit(limit_type=self.session_state.Limit.ALL)
-            limit_reached = active_limits_reached or actions_limit_reached
+            if plugin == "unfollow-from-file":
+                limit_reached = unfollow_limits_reached or actions_limit_reached
+            else:
+                limit_reached = active_limits_reached or actions_limit_reached
 
             self.state = State()
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
