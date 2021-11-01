@@ -1832,7 +1832,7 @@ class ProfileView(ActionBarView):
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_FOLLOWING_CONTAINER
         )
         if following_button.exists(Timeout.LONG):
-            following_button.click()
+            following_button.click_retry()
             following_tab = self.device.find(
                 resourceIdMatches=ResourceID.UNIFIED_FOLLOW_LIST_TAB_LAYOUT
             ).child(textContains="Following")

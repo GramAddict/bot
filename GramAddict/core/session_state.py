@@ -147,19 +147,27 @@ class SessionState:
         ]
 
         if limit_type == SessionState.Limit.ALL:
-            if output:
-                for line in session_info:
-                    logger.info(line)
-            else:
-                for line in session_info:
-                    logger.debug(line)
+            if output is not None:
+                if output:
+                    for line in session_info:
+                        logger.info(line)
+                else:
+                    for line in session_info:
+                        logger.debug(line)
 
             return (
                 total_likes
+                and self.args.end_if_likes_limit_reached
                 or total_followed
-                or total_interactions
-                or total_successful
-                or total_scraped
+                and self.args.end_if_follows_limit_reached
+                or total_watched
+                and self.args.end_if_watches_limit_reached
+                or total_comments
+                and self.args.end_if_comments_limit_reached
+                or total_pm
+                and self.args.end_if_pm_limit_reached,
+                total_unfollowed,
+                total_interactions or total_successful or total_scraped,
             )
 
         elif limit_type == SessionState.Limit.LIKES:

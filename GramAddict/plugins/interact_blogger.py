@@ -76,9 +76,12 @@ class InteractBloggerPostLikers(Plugin):
             sources = [source for source in self.args.blogger]
 
         for source in sample_sources(sources, self.args.truncate_sources):
-            limit_reached = self.session_state.check_limit(
-                limit_type=self.session_state.Limit.ALL
-            )
+            (
+                active_limits_reached,
+                _,
+                actions_limit_reached,
+            ) = self.session_state.check_limit(limit_type=self.session_state.Limit.ALL)
+            limit_reached = active_limits_reached or actions_limit_reached
 
             self.state = State()
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})

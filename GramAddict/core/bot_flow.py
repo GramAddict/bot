@@ -230,7 +230,11 @@ def start_bot(**kwargs):
                 telegram_reports_at_end = True
 
         show_ending_conditions()
-
+        print_limits = True
+        unfollow_jobs = [x for x in jobs_list if "unfollow" in x]
+        logger.info(
+            f"There is/are {len(jobs_list)-len(unfollow_jobs)} active-job(s) and {len(unfollow_jobs)} unfollow-job(s) scheduled for this session."
+        )
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -241,30 +245,66 @@ def start_bot(**kwargs):
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
-            if not session_state.check_limit(
-                limit_type=session_state.Limit.ALL, output=True
-            ):
+            (
+                active_limits_reached,
+                unfollow_limit_reached,
+                actions_limit_reached,
+            ) = session_state.check_limit(
+                limit_type=session_state.Limit.ALL, output=print_limits
+            )
+            if actions_limit_reached:
                 logger.info(
-                    "-------------------------------------------------",
-                    extra={"color": f"{Fore.RED}"},
-                )
-                logger.info(
-                    f"Current job: {plugin}",
-                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
-                )
-                if configs.args.scrape_to_file is not None:
-                    logger.warning("You're in scraping mode!")
-                if ProfileView(device).getUsername() != session_state.my_username:
-                    logger.debug("Not in your main profile.")
-                    TabBarView(device).navigateToProfile()
-                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
-
-            else:
-                logger.info(
-                    "At last one of these limits has been reached: interactions/successful/follower/likes or scraped. Ending session.",
+                    "At last one of these limits has been reached: interactions/successful or scraped. Ending session.",
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
+            if ProfileView(device).getUsername() != session_state.my_username:
+                logger.debug("Not in your main profile.")
+                TabBarView(device).navigateToProfile()
+            if plugin in unfollow_jobs:
+                if configs.args.scrape_to_file is not None:
+                    logger.warning(
+                        "Scraping in unfollow-jobs doesn't make any sense. SKIP. "
+                    )
+                    continue
+                if unfollow_limit_reached:
+                    logger.warning(
+                        f"Can't perform {plugin} job because the unfollow limit has been reached. SKIP."
+                    )
+                    print_limits = None
+                    continue
+                logger.info(
+                    f"Current unfollow-job: {plugin}",
+                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+                )
+                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+                unfollow_jobs.remove(plugin)
+                print_limits = True
+            else:
+                if active_limits_reached:
+                    logger.warning(
+                        f"Can't perform {plugin} job because a limit for active-jobs has been reached."
+                    )
+                    print_limits = None
+                    if unfollow_jobs:
+                        continue
+                    else:
+                        logger.info(
+                            "No other jobs can be done cause of limit reached. Ending session.",
+                            extra={"color": f"{Fore.CYAN}"},
+                        )
+                        break
+
+                logger.info(
+                    f"Current active-job: {plugin}",
+                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+                )
+                if configs.args.scrape_to_file is not None:
+                    logger.warning(
+                        "You're in scraping mode! That means you're only collection data without interacting!"
+                    )
+                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+                print_limits = True
 
         # save the session in sessions.json
         session_state.finishTime = datetime.now()
