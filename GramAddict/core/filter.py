@@ -349,6 +349,10 @@ class Filter:
                 f"Checking if that user has at least {field_mutual_friends} mutual friends."
             )
             if profile_data.mutual_friends < field_mutual_friends:
+                logger.info(
+                    f"@{username} has less then {field_mutual_friends} mutual friends, skip.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.LT_MUTUAL
                 )
@@ -356,6 +360,10 @@ class Filter:
         if field_skip_if_link_in_bio:
             logger.debug("Checking if account has link in bio...")
             if profile_data.link_in_bio is not None:
+                logger.info(
+                    f"@{username} has a link in bio, skip.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.HAS_LINK_IN_BIO
                 )
