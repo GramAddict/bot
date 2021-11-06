@@ -1561,12 +1561,11 @@ class ProfileView(ActionBarView):
         return None
 
     def getLinkInBio(self):
-        website = self.device.find(resourceIdMatches=ResourceID.PROFILE_HEADER_WEBSITE)
-        if website.exists():
-            website_url = website.get_text()
-        else:
-            website_url = None
-        return website_url
+        obj = self.device.find(resourceIdMatches=ResourceID.PROFILE_HEADER_WEBSITE)
+        if obj.exists():
+            website = obj.get_text()
+            return website if website != "" else None
+        return None
 
     def getMutualFriends(self):
         logger.debug("Looking for mutual friends tab.")
