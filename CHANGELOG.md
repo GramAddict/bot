@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.2 (2021-11-06)
+
+#### Fixes
+
+* link in bio object exists even if it's empty
+
+Full set of changes: [`2.10.1...2.10.2`](https://github.com/GramAddict/bot/compare/2.10.1...2.10.2)
+
 ## 2.10.1 (2021-10-31)
 
 #### Fixes
