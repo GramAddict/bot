@@ -581,31 +581,21 @@ class DeviceFacade:
                 ui_timeout = 8
             return ui_timeout
 
-        def get_text(self, retry=True, error=True, index=None):
-            max_attempts = 1 if not retry else 3
-            attempts = 0
-            while attempts < max_attempts:
-                attempts += 1
-                try:
-                    text = (
-                        self.viewV2.info["text"]
-                        if index is None
-                        else self.viewV2[index].info["text"]
-                    )
-                    if text is not None:
-                        return text
-                    logger.debug(
-                        "Could not get text. Waiting 2 seconds and trying again..."
-                    )
-                    sleep(2)  # wait 2 seconds and retry
-                except uiautomator2.JSONRPCError as e:
-                    if error:
-                        raise DeviceFacade.JsonRpcError(e)
-                    else:
-                        return ""
-            logger.error(
-                f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
-            )
+        def get_text(self, error=True, index=None):
+            try:
+                text = (
+                    self.viewV2.info["text"]
+                    if index is None
+                    else self.viewV2[index].info["text"]
+                )
+                if text is not None:
+                    return text
+            except uiautomator2.JSONRPCError as e:
+                if error:
+                    raise DeviceFacade.JsonRpcError(e)
+                else:
+                    return ""
+            logger.debug("Object exists but doesn't contain any text.")
             return ""
 
         def get_selected(self) -> bool:
