@@ -1609,9 +1609,12 @@ class ProfileView(ActionBarView):
             logger.error("Cannot get username.")
         return None
 
-    def getLinkInBio(self) -> Optional[str]:
-        website = self.device.find(resourceIdMatches=ResourceID.PROFILE_HEADER_WEBSITE)
-        return website.get_text() if website.exists() else None
+    def getLinkInBio(self):
+        obj = self.device.find(resourceIdMatches=ResourceID.PROFILE_HEADER_WEBSITE)
+        if obj.exists():
+            website = obj.get_text()
+            return website if website != "" else None
+        return None
 
     def getMutualFriends(self) -> int:
         logger.debug("Looking for mutual friends tab.")
