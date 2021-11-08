@@ -423,7 +423,7 @@ def _on_interaction(
 
         if args.scrape_to_file is not None:
             if session_state.check_limit(
-                args, limit_type=session_state.Limit.SCRAPED, output=False
+                args, limit_type=session_state.Limit.SCRAPED, output=True
             ):
                 logger.info(
                     "Reached scraped limit, finish.", extra={"color": f"{Fore.CYAN}"}

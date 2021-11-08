@@ -70,9 +70,11 @@ class SessionState:
                 self.totalFollowed[source] += 1
         if self.totalScraped.get(source) is None:
             self.totalScraped[source] = 1 if scraped else 0
+            self.successfulInteractions[source] = 1 if scraped else 0
         else:
             if scraped:
                 self.totalScraped[source] += 1
+                self.successfulInteractions[source] += 1
 
     def set_limits_session(
         self,
