@@ -95,11 +95,12 @@ def print_full_report(sessions, scrape_mode):
     )
 
     total_interactions = {}
+    total_interactions_num = 0
     successful_interactions = {}
+    total_successful_interactions_num = 0
     total_followed = {}
     total_followed_num = 0
-    total_successful_interactions_num = 0
-    total_interactions_num = 0
+    total_scraped_num = 0
     total_scraped = {}
     for session in sessions:
         for source, count in session.totalInteractions.items():
@@ -127,12 +128,12 @@ def print_full_report(sessions, scrape_mode):
                 total_scraped[source] = count
             else:
                 total_scraped[source] += count
-
-    logger.info(
-        f"Total interactions: ({total_interactions_num}) {_stringify_interactions(total_interactions)}",
-        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-    )
+            total_scraped_num += count
     if scrape_mode is None:
+        logger.info(
+            f"Total interactions: ({total_interactions_num}) {_stringify_interactions(total_interactions)}",
+            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+        )
         logger.info(
             f"Successful interactions: ({total_successful_interactions_num}) {_stringify_interactions(successful_interactions)}",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
@@ -168,7 +169,7 @@ def print_full_report(sessions, scrape_mode):
         )
     else:
         logger.info(
-            f"Total users scraped: {_stringify_interactions(total_scraped)}",
+            f"Total users scraped: ({total_scraped_num}) {_stringify_interactions(total_scraped)}",
             extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
         )
 
@@ -187,9 +188,9 @@ def print_short_report(source, session_state):
 
 
 def print_scrape_report(source, session_state):
-    total_scraped = sum(session_state.totalScraped.values())
+    total_scraped = session_state.totalScraped.get(source)
     logger.info(
-        f"Session progress: {total_scraped} users scraped for {source}.",
+        f"Session progress: {total_scraped} user(s) scraped for {source}.",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.4 (2021-11-08)
+
+#### Fixes
+
+* scraped is now counted as successful interaction
+
+Full set of changes: [`2.10.3...2.10.4`](https://github.com/GramAddict/bot/compare/2.10.3...2.10.4)
+
 ## 2.10.3 (2021-11-06)
 
 #### Fixes
