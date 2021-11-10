@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.0 (2021-11-10)
+
+### Fix
+
+- limit check was wrong in interact_blogger plugin
+- feed job was ignoring limits
+- feed job
+- don't throw an error if config files *.yaml instead of *.yml are used
+
+### Perf
+
+- jobs have been split in "active-" and "unfollow-" jobs
+- you can pass how many users have to be processed when working with *.text (unfollow-from-list and interact-from-list)
+- other bot flow improvements
+- bot flow improved
+- showing session ending conditions at bot start
+- removed unnecessary argument in check_limit function
+
 ## 2.10.4 (2021-11-08)
 
 #### Fixes
