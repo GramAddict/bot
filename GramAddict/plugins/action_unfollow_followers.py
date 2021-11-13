@@ -85,7 +85,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass

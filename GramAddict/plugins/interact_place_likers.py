@@ -5,7 +5,6 @@ from random import seed
 from colorama import Style
 
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.filter import Filter
 from GramAddict.core.handle_sources import handle_likers
 from GramAddict.core.interaction import (
     interact_with_user,
@@ -48,7 +47,7 @@ class InteractPlaceLikers(Plugin):
             },
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass
@@ -59,7 +58,6 @@ class InteractPlaceLikers(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # Handle sources

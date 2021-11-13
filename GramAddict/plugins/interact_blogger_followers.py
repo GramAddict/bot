@@ -5,7 +5,6 @@ from random import seed
 from colorama import Style
 
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.filter import Filter
 from GramAddict.core.handle_sources import handle_followers
 from GramAddict.core.interaction import (
     interact_with_user,
@@ -50,7 +49,7 @@ class InteractBloggerFollowers_Following(Plugin):
             },
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass
@@ -63,7 +62,6 @@ class InteractBloggerFollowers_Following(Plugin):
         self.session_state = sessions[-1]
         self.args = configs.args
         self.ResourceID = resources(self.args.app_id)
-        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already

@@ -8,6 +8,7 @@ from colorama import Fore, Style
 
 from GramAddict.core.config import Config
 from GramAddict.core.device_facade import create_device, get_device_info
+from GramAddict.core.filter import Filter
 from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
 from GramAddict.core.log import (
@@ -27,6 +28,7 @@ from GramAddict.core.utils import (
     check_if_updated,
     close_instagram,
     config_examples,
+    countdown,
     get_instagram_version,
     get_value,
     kill_atx_agent,
@@ -97,6 +99,10 @@ def start_bot(**kwargs):
         )
         return
     device = create_device(configs.device_id)
+    profile_view = ProfileView(device)
+    account_view = AccountView(device)
+    search_view = SearchView(device)
+    tab_bar_view = TabBarView(device)
     session_state = None
     if str(configs.args.total_sessions) != "-1":
         total_sessions = get_value(configs.args.total_sessions, None, -1)
@@ -157,13 +163,13 @@ def start_bot(**kwargs):
             except Exception as e:
                 logger.error(f"Error retrieving the IG version. Exception: {e}")
 
-            SearchView(device)._close_keyboard()
+            search_view._close_keyboard()
         else:
             break
         try:
-            profileView = check_if_english(device)
+            check_if_english(device)
             if configs.args.username is not None:
-                success = AccountView(device).changeToUsername(configs.args.username)
+                success = account_view.changeToUsername(configs.args.username)
                 if not success:
                     logger.error(
                         f"Not able to change to {configs.args.username}, abort!"
@@ -171,13 +177,13 @@ def start_bot(**kwargs):
                     save_crash(device)
                     device.back()
                     break
-            AccountView(device).refresh_account()
+            account_view.refresh_account()
             (
                 session_state.my_username,
                 session_state.my_posts_count,
                 session_state.my_followers_count,
                 session_state.my_following_count,
-            ) = profileView.getProfileInfo()
+            ) = profile_view.getProfileInfo()
         except Exception as e:
             logger.error(f"Exception: {e}")
             save_crash(device)
@@ -207,14 +213,13 @@ def start_bot(**kwargs):
                 )
 
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
-        logger.info(report_string, extra={"color": f"{Style.BRIGHT}"})
+        logger.info(report_string, extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
         if configs.args.repeat:
             logger.info(
                 f"You have {total_sessions + 1 - len(sessions) if total_sessions > 0 else 'infinite'} session(s) left. You can stop the bot by pressing CTRL+C in console.",
-                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
             )
             sleep(3)
-        storage = Storage(session_state.my_username)
         if configs.args.shuffle_jobs:
             jobs_list = random.sample(configs.enabled, len(configs.enabled))
         else:
@@ -228,13 +233,15 @@ def start_bot(**kwargs):
             jobs_list.remove("telegram-reports")
             if configs.args.telegram_reports:
                 telegram_reports_at_end = True
-
-        show_ending_conditions()
         print_limits = True
         unfollow_jobs = [x for x in jobs_list if "unfollow" in x]
         logger.info(
             f"There is/are {len(jobs_list)-len(unfollow_jobs)} active-job(s) and {len(unfollow_jobs)} unfollow-job(s) scheduled for this session."
         )
+        storage = Storage(session_state.my_username)
+        filters = Filter(storage)
+        show_ending_conditions()
+        countdown(10, "Bot will start in: ")
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
@@ -258,9 +265,9 @@ def start_bot(**kwargs):
                     extra={"color": f"{Fore.CYAN}"},
                 )
                 break
-            if ProfileView(device).getUsername() != session_state.my_username:
+            if profile_view.getUsername() != session_state.my_username:
                 logger.debug("Not in your main profile.")
-                TabBarView(device).navigateToProfile()
+                tab_bar_view.navigateToProfile()
             if plugin in unfollow_jobs:
                 if configs.args.scrape_to_file is not None:
                     logger.warning(
@@ -277,7 +284,9 @@ def start_bot(**kwargs):
                     f"Current unfollow-job: {plugin}",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
-                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+                configs.actions[plugin].run(
+                    device, configs, storage, sessions, filters, plugin
+                )
                 unfollow_jobs.remove(plugin)
                 print_limits = True
             else:
@@ -303,7 +312,9 @@ def start_bot(**kwargs):
                     logger.warning(
                         "You're in scraping mode! That means you're only collection data without interacting!"
                     )
-                configs.actions[plugin].run(device, configs, storage, sessions, plugin)
+                configs.actions[plugin].run(
+                    device, configs, storage, sessions, filters, plugin
+                )
                 print_limits = True
 
         # save the session in sessions.json
@@ -313,16 +324,16 @@ def start_bot(**kwargs):
         # print reports
         if telegram_reports_at_end:
             logger.info("Going back to your profile..")
-            ProfileView(device)._click_on_avatar()
-            if ProfileView(device).getFollowingCount() is None:
-                ProfileView(device)._click_on_avatar()
-            AccountView(device).refresh_account()
+            profile_view._click_on_avatar()
+            if profile_view.getFollowingCount() is None:
+                profile_view._click_on_avatar()
+            account_view.refresh_account()
             (
                 _,
                 _,
                 followers_now,
                 following_now,
-            ) = ProfileView(device).getProfileInfo()
+            ) = profile_view.getProfileInfo()
 
         if analytics_at_end:
             configs.actions["analytics"].run(
