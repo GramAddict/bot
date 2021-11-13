@@ -2000,13 +2000,11 @@ class CurrentStoryView:
     def getStoryFrame(self) -> DeviceFacade.View:
         return self.device.find(
             resourceId=ResourceID.REEL_VIEWER_MEDIA_CONTAINER,
-            className=ClassName.FRAME_LAYOUT,
         )
 
     def getUsername(self) -> str:
         reel_viewer_title = self.device.find(
             resourceId=ResourceID.REEL_VIEWER_TITLE,
-            className=ClassName.TEXT_VIEW,
         )
         return (
             ""
@@ -2017,7 +2015,6 @@ class CurrentStoryView:
     def getTimestamp(self) -> Optional[datetime.datetime]:
         reel_viewer_timestamp = self.device.find(
             resourceId=ResourceID.REEL_VIEWER_TIMESTAMP,
-            className=ClassName.TEXT_VIEW,
         )
         if reel_viewer_timestamp.exists():
             timestamp = reel_viewer_timestamp.get_text().strip()
