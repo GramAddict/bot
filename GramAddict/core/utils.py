@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime
 from math import nan
 from os import getcwd, rename, walk
@@ -344,50 +345,60 @@ def show_ending_conditions():
     end_comments = configs.args.end_if_comments_limit_reached
     end_pm = configs.args.end_if_pm_limit_reached
     logger.info(
-        "-----------------------------------------------------------------------",
+        "-" * 70,
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     logger.info(
-        "Session will end when at least one of these conditions is reached:",
-        extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+        f"{'Session ending conditions:':<35} Value",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     logger.info(
-        f"Likes: {end_likes}",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_likes else Fore.GREEN}"},
+        "-" * 70,
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
     logger.info(
-        f"Follows: {end_follows}",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_follows else Fore.GREEN}"},
+        f"{'Likes:':<35} {end_likes}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_likes else Fore.RED}"},
     )
     logger.info(
-        f"Watches: {end_watches}",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_watches else Fore.GREEN}"},
+        f"{'Follows:':<35} {end_follows}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_follows else Fore.RED}"},
     )
     logger.info(
-        f"Comments: {end_comments}",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_comments else Fore.GREEN}"},
+        f"{'Watches:':<35} {end_watches}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_watches else Fore.RED}"},
     )
     logger.info(
-        f"PM: {end_pm}",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED if end_pm else Fore.GREEN}"},
+        f"{'Comments:':<35} {end_comments}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_comments else Fore.RED}"},
     )
     logger.info(
-        "Total actions: True (not mutable)",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED}"},
+        f"{'PM:':<35} {end_pm}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_pm else Fore.RED}"},
     )
     logger.info(
-        "Total successfull actions: True (not mutable)",
-        extra={"color": f"{Style.BRIGHT}{Fore.RED}"},
+        f"{'Total actions:':<35} True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
+    )
+    logger.info(
+        f"{'Total successfull actions:':<35} True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
     )
     logger.info(
         "For more info -> https://github.com/GramAddict/docs/blob/main/configuration.md#ending-session-conditions",
         extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
     )
     logger.info(
-        "-----------------------------------------------------------------------",
+        "-" * 70,
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
     )
-    sleep(5)
+
+
+def countdown(seconds: int = 10, waiting_message: str = "") -> None:
+    while seconds:
+        print(waiting_message, f"{seconds:02d}", end="\r")
+        time.sleep(1)
+        seconds -= 1
 
 
 def pre_post_script(path: str, pre: bool = True):

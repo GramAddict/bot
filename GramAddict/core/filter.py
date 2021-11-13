@@ -11,7 +11,7 @@ from typing import Optional, Tuple
 
 import emoji
 import yaml
-from colorama import Fore
+from colorama import Fore, Style
 from langdetect import detect
 
 from GramAddict.core.device_facade import Timeout
@@ -150,12 +150,27 @@ class Filter:
                     logger.error(
                         f"Please check {json_file.name}, it contains this error: {e}"
                     )
-                    sys.exit(0)
+                    sys.exit(2)
+        self.storage = storage
+        if self.conditions is not None:
+            logger.info("-" * 70, extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"})
+            logger.info(
+                f"{'Filters recap (no spell check!)':<35} Value",
+                extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"},
+            )
+            logger.info("-" * 70, extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"})
+            for k, v in self.conditions.items():
+                if isinstance(v, bool):
+                    logger.info(
+                        f"{k:<35} {v}",
+                        extra={"color": f"{Fore.GREEN if v else Fore.RED}"},
+                    )
+                else:
+                    logger.info(f"{k:<35} {v}", extra={"color": f"{Fore.WHITE}"})
         else:
             logger.warning(
-                f"The legacy filters file {filter_path} doesn't exists. Download and use the filters.yml instead from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
+                "The filters file doesn't exists in your account folder. Download and use it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
             )
-        self.storage = storage
 
     def is_num_likers_in_range(self, likes_on_post: str) -> bool:
         if self.conditions is not None and likes_on_post is not None:
