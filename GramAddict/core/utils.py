@@ -263,13 +263,14 @@ def open_instagram(device, screen_record, close_apps):
     max_tries = 3
     n = 0
     while device.deviceV2.info["currentPackageName"] != app_id:
-        if n > max_tries:
+        if n == max_tries:
             logger.critical("Unabled to open Instagram. Bot will stop.")
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
         if check_if_crash_popup_is_there(device):
-            call_ig()
+            logger.info("Ig crashed, try to open it again...")
+        call_ig()
         random_sleep(3, 3, modulable=False)
 
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
