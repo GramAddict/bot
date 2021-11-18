@@ -1426,11 +1426,12 @@ class PostsGridView:
 
         return False
 
+    def _get_post_view(self):
+        return self.device.find(resourceIdMatches=case_insensitive_re(ResourceID.LIST))
+
     def navigateToPost(self, row, col):
-        post_list_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(ResourceID.LIST)
-        )
-        post_list_view.wait(Timeout.SHORT)
+        post_list_view = self._get_post_view()
+        post_list_view.wait(Timeout.MEDIUM)
         OFFSET = 1  # row with post starts from index 1
         row_view = post_list_view.child(index=row + OFFSET)
         if not row_view.exists():
