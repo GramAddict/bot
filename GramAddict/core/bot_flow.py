@@ -1,7 +1,6 @@
 import logging
 import random
 from datetime import datetime, timedelta
-from sys import exit
 from time import sleep
 
 from colorama import Fore, Style
@@ -31,6 +30,7 @@ from GramAddict.core.utils import (
     countdown,
     get_instagram_version,
     get_value,
+    head_up_notifications,
     kill_atx_agent,
 )
 from GramAddict.core.utils import load_config as load_utils
@@ -130,7 +130,7 @@ def start_bot(**kwargs):
         session_state.set_limits_session()
         sessions.append(session_state)
         device.wake_up()
-
+        head_up_notifications(enabled=False)
         logger.info(
             "-------- START: "
             + str(session_state.startTime.strftime("%H:%M:%S - %Y/%m/%d"))
@@ -146,7 +146,7 @@ def start_bot(**kwargs):
                 logger.error(
                     "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
-                exit(0)
+                stop_bot(device, sessions, session_state, False)
 
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
@@ -202,7 +202,7 @@ def start_bot(**kwargs):
                 f"Username: {session_state.my_username}, Posts: {session_state.my_posts_count}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
             )
             save_crash(device)
-            exit(1)
+            stop_bot(device, sessions, session_state, configs.args.screen_record)
 
         if not is_log_file_updated():
             try:
@@ -211,7 +211,6 @@ def start_bot(**kwargs):
                 logger.error(
                     f"Failed to update log file name. Will continue anyway. {e}"
                 )
-
         report_string = f"Hello, @{session_state.my_username}! You have {session_state.my_followers_count} followers and {session_state.my_following_count} followings so far."
         logger.info(report_string, extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
         if configs.args.repeat:
@@ -347,7 +346,7 @@ def start_bot(**kwargs):
             logger.info("Screen turned off for sleeping time.")
 
         kill_atx_agent(device)
-
+        head_up_notifications(enabled=True)
         logger.info(
             "-------- FINISH: "
             + str(session_state.finishTime.strftime("%H:%M:%S - %Y/%m/%d"))

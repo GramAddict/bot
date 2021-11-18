@@ -231,6 +231,18 @@ def kill_app(device, app_id):
     device.deviceV2.app_stop(app_id)
 
 
+def head_up_notifications(enabled: bool = False):
+    """
+    Enable or disable head-up-notifications
+    """
+    cmd = (
+        "adb"
+        + ("" if configs.device_id is None else " -s " + configs.device_id)
+        + f" shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
+    )
+    return subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
 def open_instagram(device, screen_record, close_apps):
     nl = "\n"
     FastInputIME = "com.github.uiautomator/.FastInputIME"
@@ -498,6 +510,7 @@ def save_crash(device):
 def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
     close_instagram(device, screen_record)
     kill_atx_agent(device)
+    head_up_notifications(enabled=True)
     logger.info(
         f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
@@ -507,7 +520,7 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
         if not was_sleeping:
             sessions.persist(directory=session_state.my_username)
     ask_for_a_donation()
-    sys.exit(0)
+    sys.exit(2)
 
 
 def can_repeat(current_session, max_sessions: int) -> bool:
