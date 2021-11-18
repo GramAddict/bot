@@ -48,7 +48,7 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
 from GramAddict.core.views import load_config as load_views
 
-TESTED_IG_VERSION = "212.0.0.38.119"
+TESTED_IG_VERSION = "214.0.0.27.120"
 
 
 def start_bot(**kwargs):

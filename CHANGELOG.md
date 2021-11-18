@@ -6,17 +6,28 @@
 
 - limit check was wrong in interact_blogger plugin
 - feed job was ignoring limits
-- feed job
+- feed job improvements
 - don't throw an error if config files *.yaml instead of *.yml are used
 
 ### Perf
 
 - jobs have been split in "active-" and "unfollow-" jobs
 - you can pass how many users have to be processed when working with *.text (unfollow-from-list and interact-from-list)
-- other bot flow improvements
 - bot flow improved
 - showing session ending conditions at bot start
 - removed unnecessary argument in check_limit function
+- disable head notifications while the bot is running
+
+## 2.10.5 (2021-11-18)
+
+#### Fixes
+
+* 'NoneType' object has no attribute '_is_post_liked'
+#### Others
+
+* removed a typo
+
+Full set of changes: [`2.10.4...2.10.5`](https://github.com/GramAddict/bot/compare/2.10.4...2.10.5)
 
 ## 2.10.4 (2021-11-08)
 
@@ -47,7 +58,7 @@ Full set of changes: [`2.10.1...2.10.2`](https://github.com/GramAddict/bot/compa
 
 #### Fixes
 
-* someone in the world has a " ’ " as thousands separator instead of " , "
+* someone in the world has a " â€™ " as thousands separator instead of " , "
 
 Full set of changes: [`2.10.0...2.10.1`](https://github.com/GramAddict/bot/compare/2.10.0...2.10.1)
 

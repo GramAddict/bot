@@ -250,7 +250,7 @@ def interact_with_user(
 
             like_succeed = False
             if opened_post_view is None:
-                device.back()
+                save_crash(device)
                 continue
             already_liked, _ = opened_post_view._is_post_liked()
             if already_liked:
@@ -304,6 +304,9 @@ def interact_with_user(
                     f"Could not {reason} media. Posts count: {profile_data.posts_count}."
                 )
             logger.info("Back to profile.")
+            while not post_grid_view._get_post_view().exists():
+                logger.debug("We are in the wrong place...")
+                device.back()
             device.back()
 
     if can_send_PM(session_state, pm_percentage):
