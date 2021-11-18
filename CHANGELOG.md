@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.10.5 (2021-11-18)
+
+#### Fixes
+
+* 'NoneType' object has no attribute '_is_post_liked'
+#### Others
+
+* removed a typo
+
+Full set of changes: [`2.10.4...2.10.5`](https://github.com/GramAddict/bot/compare/2.10.4...2.10.5)
+
 ## 2.10.4 (2021-11-08)
 
 #### Fixes
