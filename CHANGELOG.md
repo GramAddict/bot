@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.0 (2021-11-10)
+## 3.0.0b8 (2021-11-18)
 
 ### Fix
 
@@ -16,7 +16,10 @@
 - bot flow improved
 - showing session ending conditions at bot start
 - removed unnecessary argument in check_limit function
+- removed some unnecessary classes in story view
+- before starting the bot will tell you the filters you are going to use
 - disable head notifications while the bot is running
+- move Filter instance outside of plugins
 
 ## 2.10.5 (2021-11-18)
 
