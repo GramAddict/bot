@@ -8,13 +8,7 @@ from GramAddict.core.decorators import run_safely
 from GramAddict.core.interaction import _browse_carousel, register_like
 from GramAddict.core.plugin_loader import Plugin
 from GramAddict.core.utils import open_instagram_with_url, validate_url
-from GramAddict.core.views import (
-    MediaType,
-    OpenedPostView,
-    Owner,
-    PostsViewList,
-    UniversalActions,
-)
+from GramAddict.core.views import MediaType, OpenedPostView, Owner, PostsViewList
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +32,7 @@ class LikeFromURLs(Plugin):
             }
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass
@@ -73,7 +67,6 @@ class LikeFromURLs(Plugin):
             job()
 
     def process_file(self, current_file, storage):
-        universal_actions = UniversalActions(self.device)
         opened_post_view = OpenedPostView(self.device)
         post_view_list = PostsViewList(self.device)
         if path.isfile(current_file):
@@ -95,7 +88,7 @@ class LikeFromURLs(Plugin):
                                 (
                                     media_type,
                                     obj_count,
-                                ) = universal_actions.detect_media_type(content_desc)
+                                ) = post_view_list.detect_media_type(content_desc)
                                 if media_type in (
                                     MediaType.REEL,
                                     MediaType.IGTV,
@@ -104,7 +97,7 @@ class LikeFromURLs(Plugin):
                                     opened_post_view.start_video()
                                     video_opened = opened_post_view.open_video()
                                     if video_opened:
-                                        universal_actions.watch_media(media_type)
+                                        opened_post_view.watch_media(media_type)
                                         like_succeed = opened_post_view.like_video()
                                         logger.debug("Closing video...")
                                         self.device.back()
@@ -114,7 +107,7 @@ class LikeFromURLs(Plugin):
                                 ):
                                     if media_type == MediaType.CAROUSEL:
                                         _browse_carousel(self.device, obj_count)
-                                    universal_actions.watch_media(media_type)
+                                    opened_post_view.watch_media(media_type)
                                     like_succeed = opened_post_view.like_post()
 
                                 username, _, _ = post_view_list._post_owner(

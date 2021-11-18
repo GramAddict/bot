@@ -39,7 +39,7 @@ place-posts-top: [ place1, place2 ]
 place-posts-recent: [ place1, place2 ]
 place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
-interact-from-file: [usernames1.txt, usernames2.txt]
+interact-from-file: [usernames1.txt 10-15, usernames2.txt 3]
 posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed
 
@@ -60,7 +60,7 @@ unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
 unfollow-any-followers: 10-20
-unfollow-from-file: [usernames1.txt, usernames2.txt]
+unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing

@@ -61,6 +61,7 @@ class Location(Enum):
     RIGHT = auto()
     LEFT = auto()
     BOTTOMRIGHT = auto()
+    LEFTEDGE = auto()
     RIGHTEDGE = auto()
     TOPLEFT = auto()
 
@@ -116,7 +117,7 @@ class DeviceFacade:
                 _iter = p(_iter)
 
             with imageio.get_writer(self._filename, fps=self._fps) as wr:
-                frames = deque(maxlen=self._fps * 20)
+                frames = deque(maxlen=self._fps * 30)
                 for im in _iter:
                     frames.append(im)
                 if self.crash:
@@ -239,7 +240,7 @@ class DeviceFacade:
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
-    def swipe(self, direction: "Direction", scale=0.5):
+    def swipe(self, direction: Direction, scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
         """
@@ -379,6 +380,10 @@ class DeviceFacade:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
 
+            elif mode == Location.LEFTEDGE:
+                x_offset = uniform(0.1, 0.2)
+                y_offset = uniform(0.40, 0.60)
+
             elif mode == Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
                 y_offset = uniform(0.15, 0.85)
@@ -389,7 +394,7 @@ class DeviceFacade:
 
             elif mode == Location.RIGHTEDGE:
                 x_offset = uniform(0.8, 0.9)
-                y_offset = uniform(0.30, 0.70)
+                y_offset = uniform(0.40, 0.60)
 
             elif mode == Location.BOTTOMRIGHT:
                 x_offset = uniform(0.8, 0.9)
@@ -513,7 +518,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def exists(self, ui_timeout=None):
+        def exists(self, ui_timeout=None) -> bool:
             try:
                 # Currently the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
@@ -521,7 +526,7 @@ class DeviceFacade:
                 # We will open a ticket to uiautomator2 to fix this inconsistency.
                 if self.viewV2 is None:
                     return False
-                exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                exists: bool = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
                 if (
                     hasattr(self.viewV2, "count")
                     and not exists
@@ -536,7 +541,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def count_items(self):
+        def count_items(self) -> int:
             try:
                 return self.viewV2.count
             except uiautomator2.JSONRPCError as e:
@@ -567,7 +572,7 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
         @staticmethod
-        def get_ui_timeout(ui_timeout):
+        def get_ui_timeout(ui_timeout: Timeout) -> int:
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
             if ui_timeout == Timeout.ZERO:
                 ui_timeout = 0
@@ -600,11 +605,17 @@ class DeviceFacade:
 
         def get_selected(self) -> bool:
             try:
-                return self.viewV2.info["selected"]
+                if self.viewV2.exists():
+                    return self.viewV2.info["selected"]
+                else:
+                    logger.debug(
+                        "Object has disappeared! Probably too short video which has been liked!"
+                    )
+                    return True
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def set_text(self, text):
+        def set_text(self, text: str) -> None:
             punct_list = string.punctuation
             try:
                 self.click(sleep=SleepTime.SHORT)

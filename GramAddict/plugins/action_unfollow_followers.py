@@ -85,7 +85,7 @@ class ActionUnfollowFollowers(Plugin):
             },
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass
@@ -190,7 +190,7 @@ class ActionUnfollowFollowers(Plugin):
         self.state.unfollowed_count += 1
         self.session_state.totalUnfollowed += 1
 
-    def sort_followings_by_date(self, device, newest_to_oldest=False):
+    def sort_followings_by_date(self, device, newest_to_oldest=False) -> bool:
 
         sort_button = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
@@ -200,7 +200,7 @@ class ActionUnfollowFollowers(Plugin):
             logger.error(
                 "Cannot find button to sort followings. Continue without sorting."
             )
-            return
+            return False
         sort_button.click()
 
         sort_options_recycler_view = device.find(
@@ -210,13 +210,14 @@ class ActionUnfollowFollowers(Plugin):
             logger.error(
                 "Cannot find options to sort followings. Continue without sorting."
             )
-            return
+            return False
         if newest_to_oldest:
             logger.info("Sort followings by date: from newest to oldest.")
             sort_options_recycler_view.child(textContains="Latest").click()
         else:
             logger.info("Sort followings by date: from oldest to newest.")
             sort_options_recycler_view.child(textContains="Earliest").click()
+        return True
 
     def iterate_over_followings(
         self,
@@ -242,10 +243,9 @@ class ActionUnfollowFollowers(Plugin):
                 resourceId=self.ResourceID.SORTING_ENTRY_ROW_OPTION
             )
             if sort_container_obj.exists() and not sorted:
-                self.sort_followings_by_date(
+                sorted = self.sort_followings_by_date(
                     device, self.args.sort_followers_newest_to_oldest
                 )
-                sorted = True
                 continue
 
             top_tab_obj = device.find(
@@ -362,7 +362,6 @@ class ActionUnfollowFollowers(Plugin):
                         on_unfollow()
                         unfollowed_count += 1
                         total_unfollows_limit_reached = self.session_state.check_limit(
-                            self.args,
                             limit_type=self.session_state.Limit.UNFOLLOWS,
                             output=True,
                         )

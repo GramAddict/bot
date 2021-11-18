@@ -29,9 +29,9 @@ class Config:
         if "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
-                if not file_name.endswith(".yml"):
+                if not file_name.endswith((".yml", ".yaml")):
                     logger.error(
-                        f"You have to specify a *.yml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
+                        f"You have to specify a *.yml / *.yaml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
                     )
                     sys.exit(1)
                 with open(file_name, encoding="utf-8") as fin:

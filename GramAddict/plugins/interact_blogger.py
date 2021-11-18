@@ -5,7 +5,6 @@ from random import seed
 from colorama import Style
 
 from GramAddict.core.decorators import run_safely
-from GramAddict.core.filter import Filter
 from GramAddict.core.handle_sources import handle_blogger, handle_blogger_from_file
 from GramAddict.core.interaction import (
     interact_with_user,
@@ -53,7 +52,7 @@ class InteractBloggerPostLikers(Plugin):
             },
         ]
 
-    def run(self, device, configs, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         class State:
             def __init__(self):
                 pass
@@ -64,21 +63,26 @@ class InteractBloggerPostLikers(Plugin):
         self.sessions = sessions
         self.session_state = sessions[-1]
         self.args = configs.args
-        profile_filter = Filter(storage)
         self.current_mode = plugin
 
         # Handle sources
         if plugin == "interact-from-file":
-            sources = [file for file in self.args.interact_from_file]
+            sources = [file for file in self.args.interact_from_file if file != ""]
         elif plugin == "unfollow-from-file":
-            sources = [file for file in self.args.unfollow_from_file]
+            sources = [file for file in self.args.unfollow_from_file if file != ""]
         else:
-            sources = [source for source in self.args.blogger]
+            sources = [source for source in self.args.blogger if source != ""]
 
         for source in sample_sources(sources, self.args.truncate_sources):
-            limit_reached = self.session_state.check_limit(
-                self.args, limit_type=self.session_state.Limit.ALL
-            )
+            (
+                active_limits_reached,
+                unfollow_limits_reached,
+                actions_limit_reached,
+            ) = self.session_state.check_limit(limit_type=self.session_state.Limit.ALL)
+            if plugin == "unfollow-from-file":
+                limit_reached = unfollow_limits_reached or actions_limit_reached
+            else:
+                limit_reached = active_limits_reached or actions_limit_reached
 
             self.state = State()
             logger.info(f"Handle {source}", extra={"color": f"{Style.BRIGHT}"})
@@ -143,7 +147,7 @@ class InteractBloggerPostLikers(Plugin):
             if limit_reached:
                 logger.info("Ending session.")
                 self.session_state.check_limit(
-                    self.args, limit_type=self.session_state.Limit.ALL, output=True
+                    limit_type=self.session_state.Limit.ALL, output=True
                 )
                 break
 

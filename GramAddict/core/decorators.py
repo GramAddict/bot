@@ -72,7 +72,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 save_crash(device)
                 session_state.totalCrashes += 1
                 if session_state.check_limit(
-                    configs.args, limit_type=session_state.Limit.CRASHES, output=True
+                    limit_type=session_state.Limit.CRASHES, output=True
                 ):
                     logger.error(
                         "Reached crashes limit. Bot has crashed too much! Please check what's going on."
