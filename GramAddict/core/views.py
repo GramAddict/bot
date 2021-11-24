@@ -1601,7 +1601,7 @@ class ProfileView(ActionBarView):
             mutual_friends = 0
         return mutual_friends
 
-    def _parseCounter2(raw_text: str) -> Optional[int]:
+    def _parseCounter(raw_text: str) -> Optional[int]:
         multiplier = 1
         regex = r"(?!(K|M|\.))\D+"
         subst = "."
