@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.10.6 (2021-11-24)
+
+#### Performance improvements
+
+* the parsing of the number of posts / followers / following could fail for someone
+
+Full set of changes: [`2.10.4...2.10.6`](https://github.com/GramAddict/bot/compare/2.10.4...2.10.6)
+
 ## 2.10.5 (2021-11-18)
 
 #### Fixes
@@ -40,7 +48,7 @@ Full set of changes: [`2.10.1...2.10.2`](https://github.com/GramAddict/bot/compa
 
 #### Fixes
 
-* someone in the world has a " ’ " as thousands separator instead of " , "
+* someone in the world has a " ï¿½ " as thousands separator instead of " , "
 
 Full set of changes: [`2.10.0...2.10.1`](https://github.com/GramAddict/bot/compare/2.10.0...2.10.1)
 
