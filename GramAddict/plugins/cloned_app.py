@@ -17,4 +17,9 @@ class ClonedApp(Plugin):
                 "metavar": "com.instagram.android",
                 "default": "com.instagram.android",
             },
+            {
+                "arg": "--use-cloned-app",
+                "help": "use the cloned app instead the official, if the dialog box get displayed",
+                "action": "store_true",
+            },
         ]

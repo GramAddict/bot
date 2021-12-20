@@ -283,6 +283,7 @@ def open_instagram(device, screen_record, close_apps):
         if check_if_crash_popup_is_there(device):
             logger.info("Ig crashed, try to open it again...")
         call_ig()
+        choose_cloned_app(device)
         random_sleep(3, 3, modulable=False)
 
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
@@ -412,6 +413,15 @@ def countdown(seconds: int = 10, waiting_message: str = "") -> None:
         print(waiting_message, f"{seconds:02d}", end="\r")
         time.sleep(1)
         seconds -= 1
+
+
+def choose_cloned_app(device) -> None:
+    """if dialog box is displayed choose for original or cloned app"""
+    app_number = "1" if not configs.args.use_cloned_app else "2"
+    obj = device.find(resourceId=f"{ResourceID.MIUI_APP}{app_number}")
+    if obj.exists(3):
+        logger.debug(f"Cloned app menu exists. Pressing on app number {app_number}.")
+        obj.click()
 
 
 def pre_post_script(path: str, pre: bool = True):

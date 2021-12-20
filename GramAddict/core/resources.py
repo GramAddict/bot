@@ -197,6 +197,10 @@ class ResourceID:
         self.AERR_CLOSE = "android:id/aerr_close"
         self.CRASH_POPUP = f"{self.AERR_RESTART}|{self.AERR_CLOSE}"
 
+        # device spacific
+        ## MIUI
+        self.MIUI_APP = "android.miui:id/app"
+
 
 class TabBarText:
     ACTIVITY_CONTENT_DESC = "Activity"

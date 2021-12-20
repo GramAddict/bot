@@ -12,6 +12,7 @@
 username: myusername
 device: put_your_device_id_there # 'adb devices' in console to know it
 app-id: com.instagram.android
+use-cloned-app: false
 screen-sleep: true
 screen-record: false
 speed-multiplier: 1

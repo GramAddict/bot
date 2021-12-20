@@ -1,12 +1,15 @@
 # Changelog
 
-## 3.0.0b8 (2021-11-18)
+## 3.0.0b12 (2021-11-19)
+
+### New Features
+
+- use the cloned app instead the official, if the dialog box get displayed
 
 ### Fix
 
 - limit check was wrong in interact_blogger plugin
 - feed job was ignoring limits
-- feed job improvements
 - don't throw an error if config files *.yaml instead of *.yml are used
 
 ### Perf
@@ -18,8 +21,11 @@
 - removed unnecessary argument in check_limit function
 - removed some unnecessary classes in story view
 - before starting the bot will tell you the filters you are going to use
+- countdown before starting, so you can check that everything is ok (filters and ending conditions)
 - disable head notifications while the bot is running
 - move Filter instance outside of plugins
+- feed job improvements
+- looking for description improvements
 
 ## 2.10.5 (2021-11-18)
 
@@ -303,7 +309,7 @@ Full set of changes: [`2.6.0...2.6.1`](https://github.com/GramAddict/bot/compare
 * browse the carousel could fail in some circumstances
 #### Docs
 
-* complitely rewrote the README.md
+* completely rewrote the README.md
 #### Others
 
 * donation alert when bot stops by pressing CTRL+C
