@@ -243,7 +243,7 @@ def head_up_notifications(enabled: bool = False):
     return subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
 
 
-def open_instagram(device, screen_record, close_apps):
+def open_instagram(device):
     nl = "\n"
     FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
@@ -289,7 +289,7 @@ def open_instagram(device, screen_record, close_apps):
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
 
     random_sleep()
-    if close_apps:
+    if configs.args.close_apps:
         logger.info("Close all the other apps, to avoid interferences...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
@@ -321,7 +321,7 @@ def open_instagram(device, screen_record, close_apps):
             logger.info("FastInputIME is the default keyboard.")
     else:
         logger.info("FastInputIME is the default keyboard.")
-    if screen_record:
+    if configs.args.screen_record:
         try:
             device.start_screenrecord()
         except Exception as e:
@@ -331,11 +331,11 @@ def open_instagram(device, screen_record, close_apps):
     return True
 
 
-def close_instagram(device, screen_record):
+def close_instagram(device):
     logger.info("Close Instagram app.")
     device.deviceV2.app_stop(app_id)
     random_sleep(5, 5, modulable=False)
-    if screen_record:
+    if configs.args.screen_record:
         try:
             device.stop_screenrecord(crash=False)
         except Exception as e:
@@ -517,8 +517,8 @@ def save_crash(device):
         device.start_screenrecord()
 
 
-def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
-    close_instagram(device, screen_record)
+def stop_bot(device, sessions, session_state, was_sleeping=False):
+    close_instagram(device)
     kill_atx_agent(device)
     head_up_notifications(enabled=True)
     logger.info(
@@ -705,7 +705,7 @@ def wait_for_next_session(time_left, session_state, sessions, device, screen_rec
     try:
         sleep(time_left.total_seconds())
     except KeyboardInterrupt:
-        stop_bot(device, sessions, session_state, screen_record, was_sleeping=True)
+        stop_bot(device, sessions, session_state, was_sleeping=True)
 
 
 class ActionBlockedError(Exception):

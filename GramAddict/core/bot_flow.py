@@ -149,7 +149,7 @@ def start_bot(**kwargs):
                 stop_bot(device, sessions, session_state, False)
 
         logger.info("Device screen ON and unlocked.")
-        if open_instagram(device, configs.args.screen_record, configs.args.close_apps):
+        if open_instagram(device):
             try:
                 running_ig_version = get_instagram_version()
                 logger.info(f"Instagram version: {running_ig_version}")
@@ -340,7 +340,7 @@ def start_bot(**kwargs):
             )
 
         # turn off bot
-        close_instagram(device, configs.args.screen_record)
+        close_instagram(device)
         if configs.args.screen_sleep:
             device.screen_off()
             logger.info("Screen turned off for sleeping time.")

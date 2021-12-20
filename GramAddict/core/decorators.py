@@ -77,11 +77,11 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                     logger.error(
                         "Reached crashes limit. Bot has crashed too much! Please check what's going on."
                     )
-                    stop_bot(device, sessions, session_state, screen_record)
+                    stop_bot(device, sessions, session_state)
                 logger.info("Something unexpected happened. Let's try again.")
-                close_instagram(device, screen_record)
+                close_instagram(device)
                 random_sleep()
-                if not open_instagram(device, screen_record, configs.args.close_apps):
+                if not open_instagram(device):
                     print_full_report(sessions, configs.args.scrape_to_file)
                     sessions.persist(directory=session_state.my_username)
                     sys.exit(2)
@@ -92,7 +92,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                     f"List of running apps: {', '.join(device.deviceV2.app_list_running())}"
                 )
                 save_crash(device)
-                close_instagram(device, screen_record)
+                close_instagram(device)
                 print_full_report(sessions, configs.args.scrape_to_file)
                 sessions.persist(directory=session_state.my_username)
                 raise e
