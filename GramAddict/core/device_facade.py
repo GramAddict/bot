@@ -7,6 +7,7 @@ from random import randint, uniform
 from re import search
 from subprocess import PIPE, run
 from time import sleep
+from typing import Optional
 
 import uiautomator2
 
@@ -556,6 +557,17 @@ class DeviceFacade:
         def wait_gone(self, ui_timeout=None):
             try:
                 return self.viewV2.wait_gone(timeout=self.get_ui_timeout(ui_timeout))
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def is_above_this(self, obj2) -> Optional[bool]:
+            obj1 = self.viewV2
+            obj2 = obj2.viewV2
+            try:
+                if obj1.exists() and obj2.exists():
+                    return obj1.info["bounds"]["top"] < obj2.info["bounds"]["top"]
+                else:
+                    return None
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
