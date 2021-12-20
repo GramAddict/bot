@@ -2,7 +2,6 @@ import datetime
 import logging
 import re
 from enum import Enum, auto
-from math import nan
 from random import choice, randint, uniform
 from time import sleep
 from typing import Optional, Tuple
@@ -566,12 +565,13 @@ class SearchView:
 class PostsViewList:
     def __init__(self, device: DeviceFacade):
         self.device = device
+        self.has_tags = False
 
     def swipe_to_fit_posts(self, swipe: SwipeTo):
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view
         in order to make it available to other plug-ins I cutted it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
-        containers_content = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        containers_content = ResourceID.MEDIA_CONTAINER
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
         suggested_users = ResourceID.NETEGO_CAROUSEL_HEADER
 
@@ -653,7 +653,7 @@ class PostsViewList:
     def _find_likers_container(self):
         universal_actions = UniversalActions(self.device)
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
-        media_container = ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
+        media_container = ResourceID.MEDIA_CONTAINER
         likes = 0
         for _ in range(4):
             gap_view_obj = self.device.find(resourceIdMatches=containers_gap)
@@ -689,6 +689,7 @@ class PostsViewList:
             logger.debug("Likers container exists!")
             likes = self._get_number_of_likers(likes_view)
             return likes_view.exists(), likes
+        return False, 0
 
     def _get_number_of_likers(self, likes_view):
         likes = 0
@@ -793,71 +794,74 @@ class PostsViewList:
             else:
                 likes_view.click(Location.LEFT)
 
+    def _has_tags(self) -> bool:
+        tags_icon = self.device.find(
+            resourceIdMatches=case_insensitive_re(ResourceID.INDICATOR_ICON_VIEW)
+        )
+        self.has_tags = tags_icon.exists()
+        return self.has_tags
+
     def _check_if_last_post(
         self, last_description, current_job
-    ) -> Tuple[bool, str, str, bool, bool]:
+    ) -> Tuple[bool, str, str, bool, bool, bool]:
         """check if that post has been just interacted"""
         universal_actions = UniversalActions(self.device)
         username, is_ad, is_hashtag = PostsViewList(self.device)._post_owner(
             current_job, Owner.GET_NAME
         )
-        swiped_a_bit = False
-        old_description_position = nan
-        for _ in range(3):
+        has_tags = self._has_tags()
+        while True:
             post_description = self.device.find(
                 index=-1,
-                resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                resourceIdMatches=ResourceID.ROW_FEED_TEXT,
                 textStartsWith=username,
             )
             if not post_description.exists() and post_description.count_items() >= 1:
                 text = post_description.get_text()
                 post_description = self.device.find(
                     index=-1,
-                    resourceId=ResourceID.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT,
+                    resourceIdMatches=ResourceID.ROW_FEED_TEXT,
                     text=text,
                 )
             if post_description.exists():
-                logger.debug("Description exists!")
-                new_description_position = post_description.get_bounds()["bottom"]
-                if (
-                    new_description_position
-                    < (self.device.get_info()["displayHeight"] / 3)
-                    and old_description_position != new_description_position
-                ):
-                    old_description_position = new_description_position
-                    universal_actions._swipe_points(Direction.DOWN, delta_y=100)
-                    continue
+                logger.debug("Description found!")
                 new_description = post_description.get_text().upper()
                 if new_description != last_description:
-                    return False, new_description, username, is_ad, is_hashtag
+                    return False, new_description, username, is_ad, is_hashtag, has_tags
                 logger.info(
                     "This post has the same description and author as the last one."
                 )
-                return True, new_description, username, is_ad, is_hashtag
+                return True, new_description, username, is_ad, is_hashtag, has_tags
             else:
-                gap_view_obj = self.device.find(resourceIdMatches=ResourceID.GAP_VIEW)
+                gap_view_obj = self.device.find(resourceId=ResourceID.GAP_VIEW)
                 feed_composer = self.device.find(
-                    resourceIdMatches=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
+                    resourceId=ResourceID.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW
                 )
-
-                if (gap_view_obj.exists() or feed_composer.exists()) and (
-                    (
-                        gap_view_obj.count_items() > 1
-                        or feed_composer.count_items() > 1
-                        or swiped_a_bit
-                    )
+                if gap_view_obj.exists() and gap_view_obj.get_bounds()["bottom"] < (
+                    self.device.get_info()["displayHeight"] / 3
                 ):
-                    logger.info(
-                        "Can't find the description of this post. Maybe it's blank.."
+                    universal_actions._swipe_points(
+                        direction=Direction.DOWN, delta_y=200
                     )
-                    return False, "", username, is_ad, is_hashtag
+                    continue
+                row_feed_profile_header = self.device.find(
+                    resourceId=ResourceID.ROW_FEED_PROFILE_HEADER
+                )
+                if row_feed_profile_header.count_items() > 1:
+                    logger.info("This post hasn't the description...")
+                    return False, "", username, is_ad, is_hashtag, has_tags
+                profile_header_is_above = row_feed_profile_header.is_above_this(
+                    gap_view_obj if gap_view_obj.exists() else feed_composer
+                )
+                if profile_header_is_above is not None:
+                    if not profile_header_is_above:
+                        logger.info("This post hasn't the description...")
+                        return False, "", username, is_ad, is_hashtag, has_tags
 
                 logger.debug(
                     "Can't find the description, try to swipe a little bit down."
                 )
-                universal_actions._swipe_points(direction=Direction.DOWN, delta_y=100)
-                swiped_a_bit = True
-        return False, "", username, is_ad, is_hashtag
+                universal_actions._swipe_points(direction=Direction.DOWN, delta_y=200)
 
     def _if_action_bar_is_over_obj_swipe(self, obj):
         """do a swipe of the amount of the action bar"""
@@ -886,10 +890,10 @@ class PostsViewList:
 
     def _refresh_feed(self):
         logger.info("Refresh feed..")
-        refresh_pill = self.device.find(resourceIdMatches=ResourceID.NEW_FEED_PILL)
+        refresh_pill = self.device.find(resourceId=ResourceID.NEW_FEED_PILL)
         if refresh_pill.exists(Timeout.SHORT):
             refresh_pill.click()
-            random_sleep(modulable=False)
+            random_sleep(inf=5, sup=8, modulable=False)
         else:
             UniversalActions(self.device)._reload_page()
 
@@ -959,7 +963,9 @@ class PostsViewList:
                     self.device
                 )._check_if_ad_or_hashtag(post_owner_obj)
             if username is None:
-                username = post_owner_obj.get_text().replace("•", "").strip()
+                username = (
+                    post_owner_obj.get_text().replace("•", "").strip().split(" ", 1)[0]
+                )
             return username, is_ad, is_hashtag
 
         elif mode == Owner.GET_POSITION:
@@ -989,19 +995,21 @@ class PostsViewList:
         obj_count = 1
         if content_desc is None:
             return None, None
-        if content_desc == "":
-            logger.info("That media is missing content description :S")
+        if re.match(r"^,|^\s*$", content_desc, re.IGNORECASE):
+            logger.info(
+                "That media is missing content description, so I don't know which kind of video it is."
+            )
             media_type = MediaType.UNKNOWN
-        elif re.match("^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
+        elif re.match(r"^Photo|^Hidden Photo", content_desc, re.IGNORECASE):
             logger.info("It's a photo.")
             media_type = MediaType.PHOTO
-        elif re.match("^Video|^Hidden Video", content_desc, re.IGNORECASE):
+        elif re.match(r"^Video|^Hidden Video", content_desc, re.IGNORECASE):
             logger.info("It's a video.")
             media_type = MediaType.VIDEO
-        elif re.match("^IGTV", content_desc, re.IGNORECASE):
+        elif re.match(r"^IGTV", content_desc, re.IGNORECASE):
             logger.info("It's a IGTV.")
             media_type = MediaType.IGTV
-        elif re.match("^Reel", content_desc, re.IGNORECASE):
+        elif re.match(r"^Reel", content_desc, re.IGNORECASE):
             logger.info("It's a Reel.")
             media_type = MediaType.REEL
         else:
@@ -1044,8 +1052,12 @@ class PostsViewList:
                     mode=LikeMode.SINGLE_CLICK, skip_media_check=True
                 )
         elif mode == LikeMode.SINGLE_CLICK:
-            logger.info("Clicking on the little heart ❤️.")
-            self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE).click()
+            like_button_exists, _ = self._find_likers_container()
+            if like_button_exists:
+                logger.info("Clicking on the little heart ❤️.")
+                self.device.find(
+                    resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
+                ).click()
 
     def _follow_in_post_view(self):
         logger.info("Follow blogger in place.")
@@ -1232,14 +1244,12 @@ class OpenedPostView:
         self.has_tags = False
 
     def _get_post_like_button(self) -> Optional[DeviceFacade.View]:
-        post_media_view = self.device.find(
-            resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-        )
+        post_media_view = self.device.find(resourceIdMatches=ResourceID.MEDIA_CONTAINER)
         if post_media_view.exists(Timeout.MEDIUM):
             like_button = post_media_view.down(
                 resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
             )
-            return like_button
+            return like_button if like_button.exists() else None
         return None
 
     def _is_post_liked(self) -> Tuple[Optional[bool], Optional[DeviceFacade.View]]:
@@ -1261,9 +1271,7 @@ class OpenedPostView:
         :rtype: bool
         """
         post_media_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-            )
+            resourceIdMatches=case_insensitive_re(ResourceID.MEDIA_CONTAINER)
         )
         liked = False
         if post_media_view.exists():
@@ -1312,9 +1320,7 @@ class OpenedPostView:
         :rtype: bool
         """
         post_media_view = self.device.find(
-            resourceIdMatches=case_insensitive_re(
-                ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER
-            )
+            resourceIdMatches=case_insensitive_re(ResourceID.MEDIA_CONTAINER)
         )
         in_fullscreen = False
         if post_media_view.exists():
@@ -2097,9 +2103,9 @@ class UniversalActions:
             back_button.click()
 
     def _reload_page(self) -> None:
-        logger.info("Reload page")
-        UniversalActions(self.device)._swipe_points(direction=Direction.UP)
-        random_sleep(modulable=False)
+        logger.debug("Reload page.")
+        self._swipe_points(direction=Direction.UP)
+        random_sleep(inf=5, sup=8, modulable=False)
 
     @staticmethod
     def detect_block(device) -> bool:

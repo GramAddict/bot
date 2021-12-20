@@ -300,7 +300,7 @@ def handle_likers(
     nr_same_post = 0
     nr_same_posts_max = 3
     while True:
-        flag, post_description, _, _, _ = PostsViewList(device)._check_if_last_post(
+        flag, post_description, _, _, _, _ = PostsViewList(device)._check_if_last_post(
             post_description, current_job
         )
         has_likers, number_of_likers = PostsViewList(device)._find_likers_container()
@@ -474,6 +474,11 @@ def handle_posts(
         5,
     )
     if current_job == "feed":
+        if scraping_file:
+            logger.warning(
+                "Scraping and interacting with own feed doesn't make any sense. Skip."
+            )
+            return
         nav_to_feed(device)
         count_feed_limit = get_value(
             self.args.feed,
@@ -501,6 +506,7 @@ def handle_posts(
             username,
             is_ad,
             is_hashtag,
+            has_tags,
         ) = post_view_list._check_if_last_post(post_description, current_job)
         has_likers, number_of_likers = post_view_list._find_likers_container()
         already_liked, _ = opened_post_view._is_post_liked()
@@ -559,6 +565,7 @@ def handle_posts(
                             nr_consecutive_already_interacted = 0
                     else:
                         can_interact = True
+
                 if nr_consecutive_already_interacted == skipped_posts_limit:
                     logger.info(
                         f"Reached the limit of already interacted {skipped_posts_limit}. Goin to the next source/job!"
@@ -573,7 +580,10 @@ def handle_posts(
                         if not session_state.check_limit(
                             limit_type=session_state.Limit.LIKES, output=True
                         ):
-                            post_view_list._like_in_post_view(LikeMode.DOUBLE_CLICK)
+                            if has_tags:
+                                post_view_list._like_in_post_view(LikeMode.SINGLE_CLICK)
+                            else:
+                                post_view_list._like_in_post_view(LikeMode.DOUBLE_CLICK)
                             UniversalActions.detect_block(device)
                             liked = post_view_list._check_if_liked()
                             if not liked:

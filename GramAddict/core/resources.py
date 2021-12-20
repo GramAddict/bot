@@ -27,6 +27,7 @@ class ResourceID:
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )
         self.CLIPS_VIDEO_CONTAINER = f"{APP_ID}:id/clips_video_container"
+        self.COLLECTION_ROOT_VIEW = f"{APP_ID}:id/collection_root_view"
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
         self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
@@ -47,6 +48,7 @@ class ResourceID:
         self.FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
         self.FOOTER_SPACE = f"{APP_ID}:id/footer_space"
         self.GAP_VIEW = f"{APP_ID}:id/gap_view"
+        self.GAP_BINDER_GROUP = f"{APP_ID}:id/gap_binder_group"
         self.IGDS_HEADLINE_BODY = f"{APP_ID}:id/igds_headline_body"
         self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
             f"{APP_ID}:id/igds_headline_emphasized_headline"
@@ -62,6 +64,7 @@ class ResourceID:
         )
         self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
+        self.MEDIA_CONTENT_LOCATION = f"{APP_ID}:id/media_content_location"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.MENU_OPTION_TEXT = f"{APP_ID}:id/menu_option_text"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
@@ -102,6 +105,8 @@ class ResourceID:
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (
             f"{APP_ID}:id/row_feed_comment_textview_layout"
         )
+        self.ROW_FEED_CTA_WRAPPER = f"{APP_ID}:id/row_feed_cta_wrapper"
+        self.ROW_FEED_HEADLINE = f"{APP_ID}:id/row_feed_headline"
         self.ROW_FEED_LIKE_COUNT_FACEPILE_STUB = (
             f"{APP_ID}:id/row_feed_like_count_facepile_stub"
         )
@@ -111,6 +116,7 @@ class ResourceID:
         self.ROW_HASHTAG_TEXTVIEW_TAG_NAME = (
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
+        self.ROW_FEED_PROFILE_HEADER = f"{APP_ID}:id/row_feed_profile_header"
         self.INDICATOR_ICON_VIEW = f"{APP_ID}:id/indicator_icon_view"
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
         self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
@@ -155,6 +161,9 @@ class ResourceID:
         self.SWIPE_REFRESH_ANIMATED_PROGRESSBAR_CONTAINER = (
             f"{APP_ID}:id/swipe_refresh_animated_progressbar_container"
         )
+        self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT = (
+            f"{APP_ID}:id/sponsored_content_server_rendered_root"
+        )
         self.TAB_AVATAR = f"{APP_ID}:id/tab_avatar"
         self.TAB_BAR = f"{APP_ID}:id/tab_bar"
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
@@ -174,11 +183,13 @@ class ResourceID:
             f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
         )
         self.CAROUSEL_AND_MEDIA_GROUP = f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}|{self.CAROUSEL_IMAGE_MEDIA_GROUP}|{self.CAROUSEL_VIDEO_MEDIA_GROUP}"
-        self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
-            f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
-        )
+        self.MEDIA_CONTAINER = f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}|{self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT}|{self.COLLECTION_ROOT_VIEW}|{self.MEDIA_CONTENT_LOCATION}"
         self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
         self.BLOCK_POPUP = f"{self.DIALOG_CONTAINER}|{self.DIALOG_ROOT_VIEW}"
+
+        self.ROW_FEED_TEXT = (
+            f"{self.ROW_FEED_HEADLINE}|{self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT}"
+        )
 
         # android specific
         self.LIST = "android:id/list"

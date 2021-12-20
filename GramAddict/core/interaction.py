@@ -423,7 +423,7 @@ def _on_interaction(
 
         if args.scrape_to_file is not None:
             if session_state.check_limit(
-                args, limit_type=session_state.Limit.SCRAPED, output=True
+                limit_type=session_state.Limit.SCRAPED, output=True
             ):
                 logger.info(
                     "Reached scraped limit, finish.", extra={"color": f"{Fore.CYAN}"}
@@ -585,7 +585,7 @@ def _comment(
             resourceId=ResourceID.TAB_BAR,
         )
         media = device.find(
-            resourceIdMatches=ResourceID.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER,
+            resourceIdMatches=ResourceID.MEDIA_CONTAINER,
         )
         if int(tab_bar.get_bounds()["top"]) - int(media.get_bounds()["bottom"]) < 150:
             universal_actions._swipe_points(
