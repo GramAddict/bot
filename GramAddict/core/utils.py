@@ -639,7 +639,7 @@ def init_on_things(source, args, sessions, session_state):
 
     on_interaction = partial(
         _on_interaction,
-        likes_limit=int(args.total_likes_limit),
+        likes_limit=args.current_likes_limit,
         source=source,
         interactions_limit=get_value(
             args.interactions_count, "Interactions count: {}", 70
