@@ -1,31 +1,35 @@
 # Changelog
 
-## 3.0.0b12 (2021-11-19)
+## 3.0.0 (2022-01-05)
 
 ### New Features
 
-- use the cloned app instead the official, if the dialog box get displayed
+- use the cloned app instead the official, if the dialog box get displayed (this is currently supporter for MIUI devices)
+- new filter options: *interact_if_public* and *interact_if_private*
+- *interact_only_private* has been removed, delete it from your filters.yml
 
 ### Fix
 
 - limit check was wrong in interact_blogger plugin
 - feed job was ignoring limits
-- don't throw an error if config files *.yaml instead of *.yml are used
+- don't throw an error if config files \*.yaml instead of \*.yml are used
+- likes_limit was referring to total_likes_limit and not current_likes_limit (that caused an error if you specify an interval)
 
 ### Perf
 
-- jobs have been split in "active-" and "unfollow-" jobs
-- you can pass how many users have to be processed when working with *.text (unfollow-from-list and interact-from-list)
+- jobs have been split in "active-" and "unfollow-" jobs. That means, for example, that the bot won't stop the activity if it reached the likes limit and you scheduled the unfollow.
+- you can pass how many users have to be processed when working with \*.text (unfollow-from-list and interact-from-list)
 - bot flow improved
-- showing session ending conditions at bot start
-- removed unnecessary argument in check_limit function
-- removed some unnecessary classes in story view
-- before starting the bot will tell you the filters you are going to use
-- countdown before starting, so you can check that everything is ok (filters and ending conditions)
-- disable head notifications while the bot is running
-- move Filter instance outside of plugins
 - feed job improvements
 - looking for description improvements
+- better handle of empty biographies
+- showing session ending conditions at bot start
+- countdown before starting, so you can check that everything is ok (filters and ending conditions)
+- before starting, the bot will tell you the filters you are going to use (there is no spell check there, if you wrote them wrong they will be displayed there but not get considered)
+- disable head notifications while the bot is running
+- removed unnecessary argument in check_limit function
+- removed some unnecessary classes in story view
+- move Filter instance outside of plugins
 
 ## 2.10.5 (2021-11-18)
 
