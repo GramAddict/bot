@@ -23,7 +23,7 @@ class DataAnalytics(Plugin):
             }
         ]
 
-    def run(self, device, configs, storage, sessions, profile_filter, plugin):
+    def run(self, device, configs, storage, sessions, plugin):
         logger.warning(
             """Analytics have been removed due to a problem in some OS with loading matplotlib.
                             I'll rewrite and improve the report using other libriries.
