@@ -26,6 +26,8 @@ FIELD_SKIP_NON_BUSINESS = "skip_non_business"
 FIELD_SKIP_FOLLOWING = "skip_following"
 FIELD_SKIP_FOLLOWER = "skip_follower"
 FIELD_SKIP_IF_LINK_IN_BIO = "skip_if_link_in_bio"
+FIELD_SKIP_PRIVATE = "skip_if_private"
+FIELD_SKIP_PUBLIC = "skip_if_public"
 FIELD_MIN_FOLLOWERS = "min_followers"
 FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
@@ -37,7 +39,6 @@ FIELD_PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
 FIELD_COMMENT_PHOTOS = "comment_photos"
 FIELD_COMMENT_VIDEOS = "comment_videos"
 FIELD_COMMENT_CAROUSELS = "comment_carousels"
-FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
@@ -64,6 +65,7 @@ class SkipReason(Enum):
     YOU_FOLLOW = auto()
     FOLLOW_YOU = auto()
     IS_PRIVATE = auto()
+    IS_PUBLIC = auto()
     UNKNOWN_PRIVACY = auto()
     LT_FOLLOWERS = auto()
     GT_FOLLOWERS = auto()
@@ -83,6 +85,7 @@ class SkipReason(Enum):
     RESTRICTED = auto()
     HAS_LINK_IN_BIO = auto()
     LT_MUTUAL = auto()
+    BIOGRAPHY_IS_EMPTY = auto()
 
 
 class Profile(object):
@@ -219,9 +222,6 @@ class Filter:
             field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
             field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS, [])
             field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS, [])
-            field_interact_only_private = self.conditions.get(
-                FIELD_INTERACT_ONLY_PRIVATE, False
-            )
             field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
             field_bio_language = self.conditions.get(FIELD_BIO_LANGUAGE)
             field_bio_banned_language = self.conditions.get(FIELD_BIO_BANNED_LANGUAGE)
@@ -230,6 +230,8 @@ class Filter:
             field_skip_if_link_in_bio = self.conditions.get(
                 FIELD_SKIP_IF_LINK_IN_BIO, False
             )
+            field_skip_if_private = self.conditions.get(FIELD_SKIP_PRIVATE, False)
+            field_skip_if_public = self.conditions.get(FIELD_SKIP_PUBLIC, False)
 
         profile_data = self.get_all_data(device)
         if self.conditions is None:
@@ -273,29 +275,34 @@ class Filter:
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.FOLLOW_YOU
             )
+        logger.debug(
+            f"This account is {'private' if profile_data.is_private else 'public'}."
+        )
 
-        if field_interact_only_private:
-            logger.debug("Checking if account is private...")
-
-        if field_interact_only_private:
-            if profile_data.is_private is False:
-
-                logger.info(
-                    f"@{username} has public account, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.IS_PRIVATE
-                )
-
-            elif profile_data.is_private is None:
-                logger.info(
-                    f"Could not determine if @{username} is public or private, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.UNKNOWN_PRIVACY
-                )
+        if profile_data.is_private and field_skip_if_public:
+            logger.info(
+                f"@{username} has public account and you want to interract only private, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.IS_PUBLIC
+            )
+        elif profile_data.is_private and field_skip_if_private:
+            logger.info(
+                f"@{username} has private account and you want to interract only public, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.IS_PRIVATE
+            )
+        elif profile_data.is_private is None:
+            logger.info(
+                f"Could not determine if @{username} is public or private, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.UNKNOWN_PRIVACY
+            )
 
         logger.debug("Checking if account is within follower/following parameters...")
         if profile_data.followers is not None and profile_data.followings is not None:
@@ -417,16 +424,32 @@ class Filter:
                 username, profile_data, SkipReason.NOT_ENOUGH_POSTS
             )
 
-        cleaned_biography = emoji.get_emoji_regexp().sub(
-            "", profile_data.biography.replace("\n", "").lower()
+        cleaned_biography = " ".join(
+            emoji.get_emoji_regexp()
+            .sub("", profile_data.biography.replace("\n", ""))
+            .lower()
+            .split()
         )
+
+        if not cleaned_biography and (
+            len(field_mandatory_words) > 0
+            or field_bio_language is not None
+            or field_specific_alphabet is not None
+        ):
+            logger.info(
+                f"@{username} has an empty biography, that means there isn't any mandatory things that can be checked. Skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.BIOGRAPHY_IS_EMPTY
+            )
         if (
             len(field_blacklist_words) > 0
             or len(field_mandatory_words) > 0
             or field_specific_alphabet is not None
             or field_bio_language is not None
             or field_bio_banned_language is not None
-        ) and cleaned_biography != "":
+        ):
             logger.debug("Pulling biography...")
             if len(field_blacklist_words) > 0:
                 logger.debug(
