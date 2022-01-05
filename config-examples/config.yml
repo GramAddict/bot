@@ -1,4 +1,3 @@
----
 ##############################################################################
 # For more information on parameters, refer to: 
 # https://docs.gramaddict.org/#/configuration?id=configuration-file
@@ -9,7 +8,7 @@
 # General Configuration
 ##############################################################################
 
-username: myusername
+username: myusername # you have to put your IG name here!
 device: put_your_device_id_there # 'adb devices' in console to know it
 app-id: com.instagram.android
 use-cloned-app: false
