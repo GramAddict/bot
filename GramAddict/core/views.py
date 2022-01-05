@@ -859,7 +859,7 @@ class PostsViewList:
                         return False, "", username, is_ad, is_hashtag, has_tags
 
                 logger.debug(
-                    "Can't find the description, try to swipe a little bit down."
+                    f"Can't find the description of {username}'s post, try to swipe a little bit down."
                 )
                 universal_actions._swipe_points(direction=Direction.DOWN, delta_y=200)
 

@@ -633,6 +633,10 @@ def handle_posts(
                             ):
                                 break
                             device.back()
+            else:
+                logger.info(
+                    f"Skipped because your interact % is {interact_percentage}/100 and {username}'s post was unlucky!"
+                )
         if likes_failed == 10:
             logger.warning("You failed to do 10 likes! Soft-ban?!")
             return
