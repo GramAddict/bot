@@ -1,21 +1,29 @@
 # Changelog
 
-## 3.0.0 (2022-01-05)
+## 3.0.1 (2022-01-05)
+### Fix
+- missing argument in analytics report
 
+### Others
+- new logo for the readme.md
+- added some useful info for the user
+### Performance improvements
+- added some useful info for the user
+## 3.0.0 (2022-01-05)
 ### New Features
 
 - use the cloned app instead the official, if the dialog box get displayed (this is currently supporter for MIUI devices)
 - new filter options: *interact_if_public* and *interact_if_private*
 - *interact_only_private* has been removed, delete it from your filters.yml
 
-### Fix
+### Performance improvements
 
 - limit check was wrong in interact_blogger plugin
 - feed job was ignoring limits
 - don't throw an error if config files \*.yaml instead of \*.yml are used
 - likes_limit was referring to total_likes_limit and not current_likes_limit (that caused an error if you specify an interval)
 
-### Perf
+### Performance improvements
 
 - jobs have been split in "active-" and "unfollow-" jobs. That means, for example, that the bot won't stop the activity if it reached the likes limit and you scheduled the unfollow.
 - you can pass how many users have to be processed when working with \*.text (unfollow-from-list and interact-from-list)
