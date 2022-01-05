@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/GramAddict/bot/raw/master/res/logo.png" width="250">
+  <img src="https://github.com/GramAddict/bot/raw/master/res/logo.png">
   <br />
   <h1 align="center">GramAddict</h1>
   <br />
@@ -23,7 +23,7 @@
     <a href="https://github.com/GramAddict/bot/stargazers">
 	    <img src="https://img.shields.io/github/stars/gramaddict/bot?style=flat">
     </a>
-    <a href="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
+    <a href="https://img.shields.io/github/last-commit/gramaddict/bot/master?style=flat">
 	    <img src="https://img.shields.io/github/last-commit/gramaddict/bot/develop?style=flat">
     </a>
     <a href="https://pypi.org/project/gramaddict/">
