@@ -30,7 +30,13 @@
 - removed unnecessary argument in check_limit function
 - removed some unnecessary classes in story view
 - move Filter instance outside of plugins
+## 2.10.6 (2021-11-24)
 
+#### Performance improvements
+
+* the parsing of the number of posts / followers / following could fail for someone
+
+Full set of changes: [`2.10.4...2.10.6`](https://github.com/GramAddict/bot/compare/2.10.4...2.10.6)
 ## 2.10.5 (2021-11-18)
 
 #### Fixes

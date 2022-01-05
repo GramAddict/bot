@@ -1650,23 +1650,24 @@ class ProfileView(ActionBarView):
             mutual_friends = 0
         return mutual_friends
 
-    def _parseCounter(self, text: str) -> int:
+    def _parseCounter(self, raw_text: str) -> Optional[int]:
         multiplier = 1
-        text = text.replace(",", ".").replace("’", ".")
+        regex = r"(?!(K|M|\.))\D+"
+        subst = "."
+        text = re.sub(regex, subst, raw_text)
         if "K" in text:
             value = float(text.replace("K", ""))
-            multiplier = 1000
+            multiplier = 1_000
         elif "M" in text:
             value = float(text.replace("M", ""))
-            multiplier = 1000000
+            multiplier = 1_000_000
         else:
-            value = int(text.replace(".", ""))
-        try:
-            count = int(value * multiplier)
-        except ValueError:
-            logger.error(f"Cannot parse {text}.")
-            count = None
-        return count
+            try:
+                value = int(text.replace(".", ""))
+            except ValueError:
+                logger.error(f"Cannot parse {repr(raw_text)}.")
+                return None
+        return int(value * multiplier)
 
     def _getFollowersTextView(self):
         followers_text_view = self.device.find(
