@@ -30,7 +30,7 @@ class ExamplePlugin(Plugin):
             },
         ]
 
-    def run(self, device, config, storage, sessions, plugin):
+    def run(self, device, configs, storage, sessions, profile_filter, plugin):
         # Your code here. All variables above must be in function definition, but
         # do not have to be used. If not needed, just ignore it. If you need anything
         # else from the main script - please include it in __init__.py and update
