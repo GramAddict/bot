@@ -43,7 +43,7 @@ interact-from-file: [usernames1.txt 10-15, usernames2.txt 3]
 posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed
 
-## Special modificators for jobs and sources
+## Special modifier for jobs and sources
 shuffle-jobs: true
 truncate-sources: 2-5
 delete-interacted-users: true
