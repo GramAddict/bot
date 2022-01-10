@@ -369,7 +369,7 @@ def can_comment(media_type: MediaType, profile_filter, current_mode) -> bool:
         elif media_type == MediaType.CAROUSEL and can_comment_carousels:
             return True
     logger.warning(
-        f"Can't comment this {media_type} because filters are: (photo, video, carousel, {current_mode}):{profile_filter.can_comment(current_mode)}. Check your config.yml."
+        f"Can't comment this {media_type} because filters are: can_comment_photos = {can_comment_photos}, can_comment_videos = {can_comment_videos}, can_comment_carousels = {can_comment_carousels}, can_comment_{current_mode} = {can_comment_job}. Check your filters.yml."
     )
     return False
 

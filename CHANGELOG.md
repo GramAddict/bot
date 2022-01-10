@@ -11,8 +11,7 @@
 ### Others
 - new logo for the readme.md
 - added some useful info for the user
-### Performance improvements
-- added some useful info for the user
+
 ## 3.0.0 (2022-01-05)
 ### New Features
 
