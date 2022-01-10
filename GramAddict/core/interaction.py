@@ -838,17 +838,17 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
 
         follow_button = device.find(
             clickable=True,
-            textMatches=FOLLOW_REGEX,
+            textMatches=case_insensitive_re(FOLLOW_REGEX),
         )
 
         if not follow_button.exists():
             unfollow_button = device.find(
                 clickable=True,
-                textMatches=UNFOLLOW_REGEX,
+                textMatches=case_insensitive_re(UNFOLLOW_REGEX),
             )
             followback_button = device.find(
                 clickable=True,
-                textMatches=FOLLOWBACK_REGEX,
+                textMatches=case_insensitive_re(FOLLOWBACK_REGEX),
             )
             if unfollow_button.exists():
                 logger.info(
