@@ -72,7 +72,6 @@ class SkipReason(Enum):
     LT_FOLLOWINGS = auto()
     GT_FOLLOWINGS = auto()
     POTENCY_RATIO = auto()
-    UNDEFINED_FOLLOWERS_FOLLOWING = auto()
     HAS_BUSINESS = auto()
     HAS_NON_BUSINESS = auto()
     NOT_ENOUGH_POSTS = auto()
@@ -234,8 +233,6 @@ class Filter:
             field_skip_if_public = self.conditions.get(FIELD_SKIP_PUBLIC, False)
 
         profile_data = self.get_all_data(device)
-        if self.conditions is None:
-            return profile_data, False
         if profile_data.is_restricted:
             logger.info(
                 "This is a restricted profile, skip.",
@@ -244,14 +241,21 @@ class Filter:
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.RESTRICTED
             )
-        if profile_data.follow_button_text == FollowStatus.NONE:
+        if profile_data.follow_button_text == FollowStatus.NONE or None in (
+            profile_data.followers,
+            profile_data.followings,
+            profile_data.posts_count,
+        ):
             logger.info(
-                "Profile was not fully loaded or the user uses a bug for having super huge profile description, skip.",
+                "Profile was not fully loaded, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.NOT_LOADED
             )
+        if self.conditions is None:
+            logger.debug("filters.yml not loaded!")
+            return profile_data, False
         if (
             field_skip_following
             and profile_data.follow_button_text == FollowStatus.FOLLOWING
@@ -305,74 +309,65 @@ class Filter:
             )
 
         logger.debug("Checking if account is within follower/following parameters...")
-        if profile_data.followers is not None and profile_data.followings is not None:
-            if field_min_followers is not None and profile_data.followers < int(
-                field_min_followers
-            ):
-                logger.info(
-                    f"@{username} has less than {field_min_followers} followers, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.LT_FOLLOWERS
-                )
-            if field_max_followers is not None and profile_data.followers > int(
-                field_max_followers
-            ):
-                logger.info(
-                    f"@{username} has more than {field_max_followers} followers, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.GT_FOLLOWERS
-                )
-            if field_min_followings is not None and profile_data.followings < int(
-                field_min_followings
-            ):
-                logger.info(
-                    f"@{username} has less than {field_min_followings} followings, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.LT_FOLLOWINGS
-                )
-            if field_max_followings is not None and profile_data.followings > int(
-                field_max_followings
-            ):
-                logger.info(
-                    f"@{username} has more than {field_max_followings} followings, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.GT_FOLLOWINGS
-                )
-
-            if (field_min_potency_ratio != 0 or field_max_potency_ratio != 999) and (
-                (
-                    int(profile_data.followings) == 0
-                    or profile_data.followers / profile_data.followings
-                    < float(field_min_potency_ratio)
-                    or profile_data.followers / profile_data.followings
-                    > float(field_max_potency_ratio)
-                )
-            ):
-                logger.info(
-                    f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.POTENCY_RATIO
-                )
-
-        else:
-            logger.critical(
-                "Either followers, followings, or possibly both are undefined. Cannot filter."
+        if field_min_followers is not None and profile_data.followers < int(
+            field_min_followers
+        ):
+            logger.info(
+                f"@{username} has less than {field_min_followers} followers, skip.",
+                extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
-                username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
+                username, profile_data, SkipReason.LT_FOLLOWERS
+            )
+        if field_max_followers is not None and profile_data.followers > int(
+            field_max_followers
+        ):
+            logger.info(
+                f"@{username} has more than {field_max_followers} followers, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.GT_FOLLOWERS
+            )
+        if field_min_followings is not None and profile_data.followings < int(
+            field_min_followings
+        ):
+            logger.info(
+                f"@{username} has less than {field_min_followings} followings, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.LT_FOLLOWINGS
+            )
+        if field_max_followings is not None and profile_data.followings > int(
+            field_max_followings
+        ):
+            logger.info(
+                f"@{username} has more than {field_max_followings} followings, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.GT_FOLLOWINGS
             )
 
-        if field_mutual_friends > -1:
+        if (field_min_potency_ratio != 0 or field_max_potency_ratio != 999) and (
+            (
+                int(profile_data.followings) == 0
+                or profile_data.followers / profile_data.followings
+                < float(field_min_potency_ratio)
+                or profile_data.followers / profile_data.followings
+                > float(field_max_potency_ratio)
+            )
+        ):
+            logger.info(
+                f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.POTENCY_RATIO
+            )
+
+        if field_mutual_friends != -1:
             logger.debug(
                 f"Checking if that user has at least {field_mutual_friends} mutual friends."
             )
