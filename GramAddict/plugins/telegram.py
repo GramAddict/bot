@@ -74,30 +74,35 @@ class TelegramReports(Plugin):
 
         aggActivity = []
         for session in activity:
-            start = session["start_time"]
-            finish = session["finish_time"]
-            followed = session.get("total_followed", 0)
-            unfollowed = session.get("total_unfollowed", 0)
-            likes = session.get("total_likes", 0)
-            watched = session.get("total_watched", 0)
-            comments = session.get("total_comments", 0)
-            pm_sent = session.get("total_pm", 0)
-            followers = int(session.get("profile", 0).get("followers", 0))
-            following = int(session.get("profile", 0).get("following", 0))
-            aggActivity.append(
-                [
-                    start,
-                    finish,
-                    likes,
-                    watched,
-                    followed,
-                    unfollowed,
-                    comments,
-                    pm_sent,
-                    followers,
-                    following,
-                ]
-            )
+            try:
+                id = session["id"]
+                start = session["start_time"]
+                finish = session["finish_time"]
+                followed = session.get("total_followed", 0)
+                unfollowed = session.get("total_unfollowed", 0)
+                likes = session.get("total_likes", 0)
+                watched = session.get("total_watched", 0)
+                comments = session.get("total_comments", 0)
+                pm_sent = session.get("total_pm", 0)
+                followers = int(session.get("profile", 0).get("followers", 0))
+                following = int(session.get("profile", 0).get("following", 0))
+                aggActivity.append(
+                    [
+                        start,
+                        finish,
+                        likes,
+                        watched,
+                        followed,
+                        unfollowed,
+                        comments,
+                        pm_sent,
+                        followers,
+                        following,
+                    ]
+                )
+            except TypeError:
+                logger.error(f"The session {id} has malformed data, skip.")
+                continue
 
         df = pd.DataFrame(
             aggActivity,
