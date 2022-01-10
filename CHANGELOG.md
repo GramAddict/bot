@@ -1,5 +1,9 @@
 # Changelog
-
+## 3.0.2 (2022-01-10)
+### Fix
+- "back" in "Follow Back" is not uppercase anymore
+### Performance improvements
+- better handling for not loaded profiles
 ## 3.0.1 (2022-01-05)
 ### Fix
 - missing argument in analytics report
