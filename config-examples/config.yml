@@ -9,7 +9,7 @@
 ##############################################################################
 
 username: myusername # you have to put your IG name here!
-device: put_your_device_id_there # 'adb devices' in console to know it
+# device: put_your_device_id_there # 'adb devices' in the console to know it.  It's needed only if you have more than 1 device connected
 app-id: com.instagram.android
 use-cloned-app: false
 screen-sleep: true
