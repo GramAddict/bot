@@ -1,4 +1,10 @@
 # Changelog
+## 3.0.3 (2022-01-17)
+### Fix
+- in the new version (217..) the element for sorting following list has changed
+### Performance improvements
+-  better info when min-following is used in unfollow actions or you're trying to unfollow more people than the number you're following
+-  handle of malformed data in telegram-reports
 ## 3.0.2 (2022-01-10)
 ### Fix
 - "back" in "Follow Back" is not uppercase anymore
