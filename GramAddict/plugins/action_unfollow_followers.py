@@ -111,6 +111,15 @@ class ActionUnfollowFollowers(Plugin):
             count_arg,
             self.session_state.my_following_count - int(self.args.min_following),
         )
+        if count < 1:
+            logger.warning(
+                f"Now you're following {self.session_state.my_following_count} accounts, {'less then' if count <0 else 'equal to'} min following allowed (you set min-following: {self.args.min_following}). No further unfollows are required. Finish."
+            )
+            return
+        elif count < count_arg:
+            logger.warning(
+                f"You can't unfollow {count_arg} accounts, because you set min-following to {self.args.min_following} and you have {self.session_state.my_following_count} followers. For that reason only {count} unfollows can be perfomed."
+            )
 
         if self.unfollow_type == "unfollow":
             self.unfollow_type = UnfollowRestriction.FOLLOWED_BY_SCRIPT
@@ -122,12 +131,6 @@ class ActionUnfollowFollowers(Plugin):
             self.unfollow_type = UnfollowRestriction.ANY_FOLLOWERS
         else:
             self.unfollow_type = UnfollowRestriction.ANY
-
-        if count <= 0:
-            logger.info(
-                f"Now you're following {str(self.session_state.my_following_count)} accounts, {'less then' if count <0 else 'equal to'} min following allowed (you set min-following: {str(self.args.min_following)}). No further unfollows are required. Finish."
-            )
-            return
 
         @run_safely(
             device=device,
