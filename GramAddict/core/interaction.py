@@ -545,7 +545,7 @@ def _browse_carousel(device: DeviceFacade, obj_count: int) -> None:
                     )
                     sleep(watch_video_time)
                 start_point_y = (
-                    (media_obj_bounds["bottom"] - media_obj_bounds["top"])
+                    (media_obj_bounds["bottom"] + media_obj_bounds["top"])
                     / 2
                     * uniform(0.85, 1.15)
                 )
