@@ -1,4 +1,7 @@
 # Changelog
+## 3.0.4 (2022-01-17)
+### Fix
+- carousel mid point calculation was wrong (typo)
 ## 3.0.3 (2022-01-17)
 ### Fix
 - in the new version (217..) the element for sorting following list has changed
