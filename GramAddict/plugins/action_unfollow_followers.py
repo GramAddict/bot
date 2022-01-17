@@ -197,7 +197,6 @@ class ActionUnfollowFollowers(Plugin):
 
         sort_button = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
-            className=ClassName.IMAGE_VIEW,
         )
         if not sort_button.exists(Timeout.MEDIUM):
             logger.error(
