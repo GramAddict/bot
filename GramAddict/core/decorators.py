@@ -6,7 +6,7 @@ from http.client import HTTPException
 from socket import timeout
 
 from colorama import Fore, Style
-from uiautomator2.exceptions import UiObjectNotFoundError as UiObjectNotFoundErrorv2
+from uiautomator2.exceptions import UiObjectNotFoundError
 
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.report import print_full_report
@@ -63,7 +63,7 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 IndexError,
                 HTTPException,
                 timeout,
-                UiObjectNotFoundErrorv2,
+                UiObjectNotFoundError,
             ):
                 logger.error(traceback.format_exc())
                 logger.info(
@@ -88,6 +88,10 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 TabBarView(device).navigateToProfile()
             except Exception as e:
                 logger.error(traceback.format_exc())
+                for exception_line in traceback.format_exception_only(type(e), e):
+                    logger.critical(
+                        f"'{exception_line}' -> This kind of exception will stop the bot (no restart)."
+                    )
                 logger.info(
                     f"List of running apps: {', '.join(device.deviceV2.app_list_running())}"
                 )
