@@ -339,9 +339,10 @@ def handle_likers(
             opened = False
             user_container = OpenedPostView(device)._getUserContainer()
             if user_container is None:
+                logger.warning("Likers list didn't load :(")
                 return
             try:
-                for item in OpenedPostView(device)._getUserContainer():
+                for item in user_container:
                     element_opened = False
                     username_view = OpenedPostView(device)._getUserName(item)
                     if not username_view.exists(Timeout.MEDIUM):
