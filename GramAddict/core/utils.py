@@ -217,16 +217,6 @@ def open_instagram_with_url(url) -> bool:
     return True
 
 
-def open_app(device, app_id):
-    device.deviceV2.app_start(app_id, use_monkey=True)
-    for _ in range(3):
-        if device.deviceV2.app_wait(app_id, 5, True):
-            return True
-        kill_app(device, app_id)
-        device.deviceV2.app_start(app_id, use_monkey=True)
-    return device.deviceV2.app_wait(app_id, 5, True)
-
-
 def kill_app(device, app_id):
     device.deviceV2.app_stop(app_id)
 
@@ -489,7 +479,12 @@ def save_crash(device):
     except RuntimeError:
         logger.error(f"Cannot save 'hierarchy.{hierarchy_format}'.")
     if args.screen_record:
-        device.stop_screenrecord()
+        try:
+            device.stop_screenrecord(crash=True)
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
+            )
         files = [f for f in os.listdir("./") if f.endswith(".mp4")]
         try:
             os.replace(files[-1], os.path.join(crash_path, "video.mp4"))
@@ -514,7 +509,12 @@ def save_crash(device):
     logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
     check_if_updated(crash=True)
     if args.screen_record:
-        device.start_screenrecord()
+        try:
+            device.start_screenrecord()
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
+            )
 
 
 def stop_bot(device, sessions, session_state, was_sleeping=False):
