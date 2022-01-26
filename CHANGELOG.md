@@ -1,4 +1,9 @@
 # Changelog
+## 3.0.5 (2022-01-26)
+### Fix
+- avoid pressing on music tab instead of hashtags (this bug was only for small screens)
+### Others
+- the bot restarts after a crash, except for some scenarios that will be highlighted
 ## 3.0.4 (2022-01-17)
 ### Fix
 - carousel mid point calculation was wrong (typo)
