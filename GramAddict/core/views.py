@@ -346,10 +346,12 @@ class SearchView:
                 textMatches=case_insensitive_re(tab.name),
             )
             if not tab_text_view.exists():
-                logger.debug("Tabs container hasn't text! Let's try with index.")
-                tab_text_view = tab_layout.child(index=tab.value - 1)
-            if tab_text_view.exists():
-                return tab_text_view
+                logger.debug("Tabs container hasn't text! Let's try with description.")
+                for obj in tab_layout.child():
+                    if obj.ui_info()["contentDescription"].upper() == tab.name.upper():
+                        tab_text_view = obj
+                        break
+            return tab_text_view
         return None
 
     def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
@@ -1449,7 +1451,7 @@ class OpenedPostView:
         obj = self.device.find(
             resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
         )
-        return obj if obj.exists(Timeout.MEDIUM) else None
+        return obj if obj.exists(Timeout.LONG) else None
 
     def _getUserName(self, container):
         return container.child(
