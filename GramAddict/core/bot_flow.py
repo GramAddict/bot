@@ -48,7 +48,7 @@ from GramAddict.core.utils import (
 from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
 from GramAddict.core.views import load_config as load_views
 
-TESTED_IG_VERSION = "217.0.0.15.474"
+TESTED_IG_VERSION = "219.0.0.12.117"
 
 
 def start_bot(**kwargs):
@@ -240,7 +240,8 @@ def start_bot(**kwargs):
         storage = Storage(session_state.my_username)
         filters = Filter(storage)
         show_ending_conditions()
-        countdown(10, "Bot will start in: ")
+        if not configs.args.debug:
+            countdown(10, "Bot will start in: ")
         for plugin in jobs_list:
             inside_working_hours, time_left = SessionState.inside_working_hours(
                 configs.args.working_hours, configs.args.time_delta_session
