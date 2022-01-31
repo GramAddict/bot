@@ -1,4 +1,12 @@
 # Changelog
+## 3.1.0 (2022-01-31)
+### New Features
+- new argument `dont-type` allows writing text by pasting it instead of typing it
+- you can go next line in your PM by adding `\n` in the text
+### Fix
+- the bot wasn't able to confirm the like if the button was not visible in the view
+### Others
+- don't show countdown in debug mode
 ## 3.0.5 (2022-01-26)
 ### Fix
 - avoid pressing on music tab instead of hashtags (this bug was only for small screens)
