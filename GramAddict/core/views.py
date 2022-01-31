@@ -1263,12 +1263,19 @@ class OpenedPostView:
         self.has_tags = False
 
     def _get_post_like_button(self) -> Optional[DeviceFacade.View]:
+        attempt = 0
         post_media_view = self.device.find(resourceIdMatches=ResourceID.MEDIA_CONTAINER)
         if post_media_view.exists(Timeout.MEDIUM):
-            like_button = post_media_view.down(
-                resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
-            )
-            return like_button if like_button.exists() else None
+            while True:
+                like_button = post_media_view.down(
+                    resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
+                )
+                if like_button.viewV2 is not None or attempt == 3:
+                    return like_button if like_button.exists() else None
+                UniversalActions(self.device)._swipe_points(
+                    direction=Direction.DOWN, delta_y=100
+                )
+                attempt += 1
         return None
 
     def _is_post_liked(self) -> Tuple[Optional[bool], Optional[DeviceFacade.View]]:
