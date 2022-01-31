@@ -13,6 +13,7 @@ from GramAddict.core.device_facade import (
     DeviceFacade,
     Direction,
     Location,
+    Mode,
     SleepTime,
     Timeout,
 )
@@ -397,7 +398,9 @@ class SearchView:
         accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
         if accounts_tab is None:
             logger.error("Cannot find tab: ACCOUNTS. Will type first and change after.")
-            search_edit_text.set_text(username)
+            search_edit_text.set_text(
+                username, Mode.PASTE if args.dont_type else Mode.TYPE
+            )
             echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
             if echo_text.exists(Timeout.SHORT):
                 logger.debug("Search by pressing on echo text.")
@@ -413,7 +416,9 @@ class SearchView:
 
         if not already_typed:
             if interact_usernames:
-                search_edit_text.set_text(username)
+                search_edit_text.set_text(
+                    username, Mode.PASTE if args.dont_type else Mode.TYPE
+                )
             else:
                 searched_user_recent = self._getUsernameRow(username)
                 if searched_user_recent.exists(Timeout.MEDIUM):
@@ -421,7 +426,9 @@ class SearchView:
                     return ProfileView(self.device, is_own_profile=False)
                 logger.debug(f"{username} not in recent searching history.")
                 if search_edit_text.exists():
-                    search_edit_text.set_text(username)
+                    search_edit_text.set_text(
+                        username, Mode.PASTE if args.dont_type else Mode.TYPE
+                    )
                 else:
                     return None
         username_view = self._getUsernameRow(username)
@@ -443,7 +450,10 @@ class SearchView:
         hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
         if hashtag_tab is None:
             logger.debug("Cannot find tab: TAGS. Will type first and change after.")
-            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            search_edit_text.set_text(
+                emoji.emojize(hashtag, use_aliases=True),
+                Mode.PASTE if args.dont_type else Mode.TYPE,
+            )
             echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
             if echo_text.exists(Timeout.SHORT):
                 logger.debug("Search by pressing on echo text.")
@@ -477,7 +487,10 @@ class SearchView:
             )
             if not search_edit_text.exists():
                 search_edit_text = self._getSearchEditText()
-            search_edit_text.set_text(emoji.emojize(hashtag, use_aliases=True))
+            search_edit_text.set_text(
+                emoji.emojize(hashtag, use_aliases=True),
+                Mode.PASTE if args.dont_type else Mode.TYPE,
+            )
         hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
 
         if not hashtag_view.exists(Timeout.MEDIUM):
@@ -510,7 +523,9 @@ class SearchView:
         place_tab = self._getTabTextView(SearchTabs.PLACES)
         if place_tab is None:
             logger.debug("Cannot find tab: PLACE. Will type first and change after.")
-            search_edit_text.set_text(place)
+            search_edit_text.set_text(
+                place, Mode.PASTE if args.dont_type else Mode.TYPE
+            )
             echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
             if echo_text.exists(Timeout.SHORT):
                 logger.debug("Search by pressing on echo text.")
@@ -524,7 +539,9 @@ class SearchView:
         logger.debug("Pressing on places tab.")
         place_tab.click(sleep=SleepTime.SHORT)
         if not already_typed:
-            search_edit_text.set_text(place)
+            search_edit_text.set_text(
+                place, Mode.PASTE if args.dont_type else Mode.TYPE
+            )
 
         # After set_text we assume that the the first occurrence It's correct
         # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
@@ -1122,7 +1139,7 @@ class LanguageView:
             resourceId=ResourceID.SEARCH,
             className=ClassName.EDIT_TEXT,
         )
-        search_edit_text.set_text(language)
+        search_edit_text.set_text(language, Mode.PASTE if args.dont_type else Mode.TYPE)
 
         list_view = self.device.find(
             resourceId=ResourceID.LANGUAGE_LIST_LOCALE,
@@ -2155,7 +2172,7 @@ class UniversalActions:
     def search_text(self, username):
         search_row = self.device.find(resourceId=ResourceID.ROW_SEARCH_EDIT_TEXT)
         if search_row.exists(Timeout.MEDIUM):
-            search_row.set_text(username)
+            search_row.set_text(username, Mode.PASTE if args.dont_type else Mode.TYPE)
             return True
         else:
             return False

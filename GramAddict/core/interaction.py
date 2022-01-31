@@ -11,7 +11,13 @@ import spintax
 from colorama import Fore, Style
 
 from GramAddict.core import storage
-from GramAddict.core.device_facade import DeviceFacade, Location, SleepTime, Timeout
+from GramAddict.core.device_facade import (
+    DeviceFacade,
+    Location,
+    Mode,
+    SleepTime,
+    Timeout,
+)
 from GramAddict.core.report import print_scrape_report, print_short_report
 from GramAddict.core.resources import ClassName
 from GramAddict.core.resources import ResourceID as resources
@@ -612,7 +618,9 @@ def _comment(
                     logger.info(
                         f"Write comment: {comment}", extra={"color": f"{Fore.CYAN}"}
                     )
-                    comment_box.set_text(comment)
+                    comment_box.set_text(
+                        comment, Mode.PASTE if args.dont_type else Mode.TYPE
+                    )
 
                     post_button = device.find(
                         resourceId=ResourceID.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA
@@ -650,7 +658,7 @@ def _comment(
                     resourceId=ResourceID.ROW_FEED_BUTTON_LIKE,
                 )
                 if like_button.exists():
-                    logger.info("This post have comments disabled.")
+                    logger.info("This post has comments disabled.")
                     return False
                 universal_actions._swipe_points(
                     direction=Direction.DOWN, delta_y=randint(150, 250)
@@ -709,14 +717,17 @@ def _send_PM(
         message = load_random_message(my_username)
         if message is None:
             logger.warning(
-                "You forgot to populate your PM list! If you don't want to comment set 'pm-percentage: false'"
+                "You forgot to populate your PM list! If you don't want to comment set 'pm-percentage: 0'"
             )
             device.back()
             return False
+        nl = "\n"
+        nlv = "\\n"
         logger.info(
-            f"Write private message: {message}", extra={"color": f"{Fore.CYAN}"}
+            f"Write private message: {message.replace(nl, nlv)}",
+            extra={"color": f"{Fore.CYAN}"},
         )
-        message_box.set_text(message)
+        message_box.set_text(message, Mode.PASTE if args.dont_type else Mode.TYPE)
         send_button = device.find(
             resourceId=ResourceID.ROW_THREAD_COMPOSER_BUTTON_SEND,
         )
@@ -768,7 +779,10 @@ def load_random_message(my_username: str) -> Optional[str]:
                     lines.append(line)
                 random_message = choice(lines)
                 if random_message != "":
-                    return emoji.emojize(spintax.spin(random_message), use_aliases=True)
+                    return emoji.emojize(
+                        spintax.spin(random_message.replace("\\n", "\n")),
+                        use_aliases=True,
+                    )
                 else:
                     return None
         except Exception as e:

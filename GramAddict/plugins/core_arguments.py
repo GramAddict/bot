@@ -383,4 +383,9 @@ class CoreArguments(Plugin):
                 "help": "allow the script to move all the sibling folders of run.py in accounts folder",
                 "action": "store_true",
             },
+            {
+                "arg": "--dont-type",
+                "help": "instead of typing you can paste the text as in old versions",
+                "action": "store_true",
+            },
         ]

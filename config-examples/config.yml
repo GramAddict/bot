@@ -20,6 +20,7 @@ debug: false
 close-apps: false
 disable-block-detection: false
 disable-filters: false
+dont-type: false
 total-crashes-limit: 5
 
 ##############################################################################
@@ -64,7 +65,7 @@ unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
 sort-followers-newest-to-oldest: false
 
 ## Post Processing
-analytics: false
+analytics: false # no more supported
 telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder
 
 ##############################################################################
@@ -93,12 +94,12 @@ min-following: 100
 # Total Limits Per Session
 ##############################################################################
 
-total-likes-limit: 300
+total-likes-limit: 150
 total-follows-limit: 50
 total-unfollows-limit: 50
-total-watches-limit: 500
-total-successful-interactions-limit: 100
-total-interactions-limit: 500
+total-watches-limit: 150
+total-successful-interactions-limit: 150
+total-interactions-limit: 300
 total-comments-limit: 5
 total-pm-limit: 5
 total-scraped-limit: 100
