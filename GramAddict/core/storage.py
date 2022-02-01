@@ -151,7 +151,7 @@ class Storage:
         target=None,
     ):
         user = self.interacted_users.get(username, {})
-        user[USER_LAST_INTERACTION] = str(datetime.now())
+        user[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if followed:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
