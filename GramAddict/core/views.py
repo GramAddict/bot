@@ -2040,9 +2040,12 @@ class CurrentStoryView:
         reel_viewer_title = self.device.find(
             resourceId=ResourceID.REEL_VIEWER_TITLE,
         )
+        reel_exists = reel_viewer_title.exists(ignore_bug=True)
+        if reel_exists == "BUG!":
+            return reel_exists
         return (
             ""
-            if not reel_viewer_title.exists()
+            if not reel_exists
             else reel_viewer_title.get_text(error=False).replace(" ", "")
         )
 

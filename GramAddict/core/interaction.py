@@ -1,5 +1,6 @@
 import logging
 import os
+from argparse import Namespace
 from datetime import datetime
 from os import path
 from random import choice, randint, shuffle, uniform
@@ -906,12 +907,12 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
 
 
 def _watch_stories(
-    device,
-    profile_view,
-    username,
-    stories_percentage,
-    args,
-    session_state,
+    device: DeviceFacade,
+    profile_view: ProfileView,
+    username: str,
+    stories_percentage: int,
+    args: Namespace,
+    session_state: SessionState,
 ):
     if not random_choice(stories_percentage):
         return 0
@@ -930,7 +931,7 @@ def _watch_stories(
             stories_counter += 1
             for _ in range(7):
                 random_sleep(0.5, 1, modulable=False, logging=False)
-                if story_view.getUsername() != username:
+                if story_view.getUsername().strip().upper() != username.upper():
                     return False
             return True
 
@@ -941,11 +942,15 @@ def _watch_stories(
             )
             stories_counter = 0
             logger.debug("Open the story container.")
-            stories_ring.click(sleep=SleepTime.TINY)
+            stories_ring.click(sleep=SleepTime.SHORT)
             story_view = CurrentStoryView(device)
             story_frame = story_view.getStoryFrame()
             story_frame.wait(Timeout.MEDIUM)
-            if story_view.getUsername() == username:
+            story_username = story_view.getUsername()
+            if (
+                story_username == "BUG!"
+                or story_username.strip().upper() == username.upper()
+            ):
                 start = datetime.now()
                 if not watch_story():
                     return stories_counter
@@ -966,7 +971,7 @@ def _watch_stories(
                         )
                         break
                 for _ in range(4):
-                    if story_view.getUsername() == username:
+                    if story_view.getUsername().strip().upper() == username.upper():
                         device.back()
                     else:
                         break

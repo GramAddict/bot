@@ -528,7 +528,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def exists(self, ui_timeout=None) -> bool:
+        def exists(self, ui_timeout=None, ignore_bug: bool = False) -> bool:
             try:
                 # Currently the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
@@ -543,8 +543,10 @@ class DeviceFacade:
                     and self.viewV2.count >= 1
                 ):
                     logger.debug(
-                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                        f"UIA2 BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
                     )
+                    if ignore_bug:
+                        return "BUG!"
                     # More info about that: https://github.com/openatx/uiautomator2/issues/689"
                     return False
                 return exists
