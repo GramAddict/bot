@@ -1,4 +1,7 @@
 # Changelog
+## 3.1.1 (2022-02-01)
+### Fix
+- inconsistent way to store datetime in json
 ## 3.1.0 (2022-01-31)
 ### New Features
 - new argument `dont-type` allows writing text by pasting it instead of typing it
