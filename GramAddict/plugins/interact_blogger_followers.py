@@ -66,9 +66,9 @@ class InteractBloggerFollowers_Following(Plugin):
 
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         if self.args.blogger_followers is not None:
-            sources = [source for source in self.args.blogger_followers]
+            sources = [s for s in self.args.blogger_followers if s.strip()]
         else:
-            sources = [source for source in self.args.blogger_following]
+            sources = [s for s in self.args.blogger_following if s.strip()]
 
         # Start
         for source in sample_sources(sources, self.args.truncate_sources):
