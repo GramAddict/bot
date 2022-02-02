@@ -16,11 +16,11 @@ screen-sleep: true
 screen-record: false
 speed-multiplier: 1
 debug: false
-# scrape-to-file: scraped.txt
 close-apps: false
 disable-block-detection: false
 disable-filters: false
 dont-type: false
+# scrape-to-file: scraped.txt
 total-crashes-limit: 5
 
 ##############################################################################
