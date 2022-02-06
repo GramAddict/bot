@@ -36,7 +36,6 @@ from GramAddict.core.views import (
     MediaType,
     PostsGridView,
     ProfileView,
-    SearchView,
     UniversalActions,
     case_insensitive_re,
 )
@@ -583,7 +582,6 @@ def _comment(
         if not random_choice(comment_percentage):
             return False
         universal_actions = UniversalActions(device)
-        search_view = SearchView(device)
         # we have to do a little swipe for preventing get the previous post comments button (which is covered by top bar, but present in hierarchy!!)
         universal_actions._swipe_points(
             direction=Direction.DOWN, delta_y=randint(150, 250)
@@ -613,7 +611,7 @@ def _comment(
                 if comment_box.exists():
                     comment = load_random_comment(my_username, media_type)
                     if comment is None:
-                        search_view._close_keyboard()
+                        UniversalActions.close_keyboard(device)
                         device.back()
                         return False
                     logger.info(
@@ -629,12 +627,12 @@ def _comment(
                     post_button.click()
                 else:
                     logger.info("Comments on this post have been limited.")
-                    search_view._close_keyboard()
+                    universal_actions.close_keyboard(device)
                     device.back()
                     return False
 
                 universal_actions.detect_block(device)
-                search_view._close_keyboard()
+                universal_actions.close_keyboard(device)
                 posted_text = device.find(
                     text=f"{my_username} {comment}",
                 )
@@ -674,6 +672,7 @@ def _send_PM(
     swipe_amount: int,
     private: bool = False,
 ) -> bool:
+    universal_actions = UniversalActions(device)
     if private:
         options = device.find(
             classNameMatches=ClassName.FRAME_LAYOUT,
@@ -694,7 +693,7 @@ def _send_PM(
     else:
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists() and swipe_amount != 0:
-            UniversalActions(device)._swipe_points(
+            universal_actions._swipe_points(
                 direction=Direction.UP, delta_y=swipe_amount
             )
         message_button = device.find(
@@ -712,8 +711,7 @@ def _send_PM(
         className=ClassName.EDIT_TEXT,
         enabled="true",
     )
-    search_view = SearchView(device)
-    universal_actions = UniversalActions(device)
+
     if message_box.exists():
         message = load_random_message(my_username)
         if message is None:
@@ -735,7 +733,7 @@ def _send_PM(
         if send_button.exists():
             send_button.click()
             universal_actions.detect_block(device)
-            search_view._close_keyboard()
+            universal_actions.close_keyboard(device)
             posted_text = device.find(text=f"{message}")
             message_sending_icon = device.find(
                 resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
@@ -754,12 +752,12 @@ def _send_PM(
             return pm_confirmed
         else:
             logger.warning("Can't find SEND button!")
-            search_view._close_keyboard()
+            universal_actions.close_keyboard(device)
             device.back()
             return False
     else:
         logger.info("PM to this user have been limited.")
-        search_view._close_keyboard()
+        universal_actions.close_keyboard(device)
         device.back()
         return False
 

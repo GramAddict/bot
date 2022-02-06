@@ -45,10 +45,10 @@ from GramAddict.core.utils import (
     stop_bot,
     wait_for_next_session,
 )
-from GramAddict.core.views import AccountView, ProfileView, SearchView, TabBarView
+from GramAddict.core.views import AccountView, ProfileView, TabBarView, UniversalActions
 from GramAddict.core.views import load_config as load_views
 
-TESTED_IG_VERSION = "219.0.0.12.117"
+TESTED_IG_VERSION = "220.0.0.16.115"
 
 
 def start_bot(**kwargs):
@@ -98,11 +98,7 @@ def start_bot(**kwargs):
             "You have to specify one of these actions: " + ", ".join(configs.actions)
         )
         return
-    device = create_device(configs.device_id)
-    profile_view = ProfileView(device)
-    account_view = AccountView(device)
-    search_view = SearchView(device)
-    tab_bar_view = TabBarView(device)
+    device = create_device(configs.device_id, configs.app_id)
     session_state = None
     if str(configs.args.total_sessions) != "-1":
         total_sessions = get_value(configs.args.total_sessions, None, -1)
@@ -146,7 +142,7 @@ def start_bot(**kwargs):
                 logger.error(
                     "Can't unlock your screen. There may be a passcode on it. If you would like your screen to be turned on and unlocked automatically, please remove the passcode."
                 )
-                stop_bot(device, sessions, session_state, False)
+                stop_bot(device, sessions, session_state, was_sleeping=False)
 
         logger.info("Device screen ON and unlocked.")
         if open_instagram(device):
@@ -163,9 +159,12 @@ def start_bot(**kwargs):
             except Exception as e:
                 logger.error(f"Error retrieving the IG version. Exception: {e}")
 
-            search_view._close_keyboard()
+            UniversalActions.close_keyboard(device)
         else:
             break
+        profile_view = ProfileView(device)
+        account_view = AccountView(device)
+        tab_bar_view = TabBarView(device)
         try:
             check_if_english(device)
             if configs.args.username is not None:
@@ -202,7 +201,7 @@ def start_bot(**kwargs):
                 f"Username: {session_state.my_username}, Posts: {session_state.my_posts_count}, Followers: {session_state.my_followers_count}, Following: {session_state.my_following_count}"
             )
             save_crash(device)
-            stop_bot(device, sessions, session_state, configs.args.screen_record)
+            stop_bot(device, sessions, session_state)
 
         if not is_log_file_updated():
             try:
@@ -324,9 +323,9 @@ def start_bot(**kwargs):
         # print reports
         if telegram_reports_at_end:
             logger.info("Going back to your profile..")
-            profile_view._click_on_avatar()
+            profile_view.click_on_avatar()
             if profile_view.getFollowingCount() is None:
-                profile_view._click_on_avatar()
+                profile_view.click_on_avatar()
             account_view.refresh_account()
             (
                 _,

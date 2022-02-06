@@ -12,7 +12,6 @@ from GramAddict.core.views import (
     PlacesView,
     PostsGridView,
     ProfileView,
-    SearchView,
     SettingsView,
     TabBarView,
     UniversalActions,
@@ -23,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
-    SearchView(device)._close_keyboard()
-    ProfileView(device)._click_on_avatar()
+    UniversalActions.close_keyboard(device)
+    ProfileView(device).click_on_avatar()
     if ProfileView(device).getFollowingCount() is None:
-        ProfileView(device)._click_on_avatar()
+        ProfileView(device).click_on_avatar()
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
     if None in {post, follower, following}:
@@ -46,12 +45,12 @@ def check_if_english(device):
             logger.debug(
                 "After changing language, IG goes to feed. Let's go to profile view again."
             )
-            ProfileView(device)._click_on_avatar()
+            ProfileView(device).click_on_avatar()
         except Exception as ex:
             logger.error(f"Please change the language manually to English! Error: {ex}")
             sys.exit(1)
         if ProfileView(device).getFollowingCount() is None:
-            ProfileView(device)._click_on_avatar()
+            ProfileView(device).click_on_avatar()
     return ProfileView(device, is_own_profile=True)
 
 

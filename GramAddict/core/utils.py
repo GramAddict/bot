@@ -13,7 +13,7 @@ from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
-from typing import Union
+from typing import Optional, Union
 from urllib.parse import urlparse
 
 import emoji
@@ -178,7 +178,7 @@ def check_adb_connection():
         message = "Cannot proceed."
     elif devices_count > 1 and not is_device_id_provided:
         is_ok = False
-        message = "Use '--device devicename' to specify a device."
+        message = "Set a device name in your config.yml"
 
     if is_ok:
         logger.debug(f"Connected devices via adb: {devices_count}. {message}")
@@ -258,7 +258,7 @@ def open_instagram(device):
         )
         return False
     elif err == "":
-        logger.debug("Instagram called succesfully.")
+        logger.debug("Instagram called successfully.")
     else:
         logger.debug(f"{err.replace('Warning: ', '')}.")
 
@@ -266,7 +266,7 @@ def open_instagram(device):
     n = 0
     while device.deviceV2.info["currentPackageName"] != app_id:
         if n == max_tries:
-            logger.critical("Unabled to open Instagram. Bot will stop.")
+            logger.critical("Unable to open Instagram. Bot will stop.")
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
@@ -550,7 +550,10 @@ def can_repeat(current_session, max_sessions: int) -> bool:
 
 
 def get_value(
-    count: str, name: str, default: Union[int, float] = 0, its_time: bool = False
+    count: str,
+    name: Optional[str],
+    default: Union[int, float] = 0,
+    its_time: bool = False,
 ) -> Union[int, float]:
     def print_error() -> None:
         logger.error(
@@ -589,7 +592,7 @@ def validate_url(x) -> bool:
 def append_to_file(filename: str, username: str) -> None:
     try:
         if not filename.lower().endswith(".txt"):
-            filename = filename + ".txt"
+            filename += ".txt"
         with open(filename, "a+", encoding="utf-8") as file:
             file.write(username + "\n")
     except Exception as e:
