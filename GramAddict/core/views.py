@@ -1351,7 +1351,7 @@ class OpenedPostView:
             in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO, MediaType.UNKNOWN)
             and args.watch_video_time != "0"
         ):
-            in_fullscreen, _ = self._is_video_in_fullscreen
+            in_fullscreen, _ = self._is_video_in_fullscreen()
             time_left = self._get_video_time_left()
             watching_time = get_value(
                 args.watch_video_time, name=None, default=0, its_time=True
