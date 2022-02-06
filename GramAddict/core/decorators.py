@@ -56,10 +56,11 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                     )
                     TabBarView(device).navigateToProfile()
                 except KeyboardInterrupt:
-                    stop_bot(device, sessions, session_state, screen_record)
+                    stop_bot(device, sessions, session_state)
 
             except (
                 DeviceFacade.JsonRpcError,
+                DeviceFacade.AppHasCrashed,
                 IndexError,
                 HTTPException,
                 timeout,

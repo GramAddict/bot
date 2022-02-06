@@ -16,9 +16,9 @@ from GramAddict.core.utils import random_sleep
 logger = logging.getLogger(__name__)
 
 
-def create_device(device_id):
+def create_device(device_id, app_id):
     try:
-        return DeviceFacade(device_id)
+        return DeviceFacade(device_id, app_id)
     except ImportError as e:
         logger.error(str(e))
         return None
@@ -80,8 +80,9 @@ class Mode(Enum):
 
 
 class DeviceFacade:
-    def __init__(self, device_id):
+    def __init__(self, device_id, app_id):
         self.device_id = device_id
+        self.app_id = app_id
         try:
             if device_id is None or "." not in device_id:
                 self.deviceV2 = uiautomator2.connect(
@@ -92,16 +93,33 @@ class DeviceFacade:
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
+    def _get_current_app(self):
+        try:
+            return self.deviceV2.app_current()["package"]
+        except uiautomator2.JSONRPCError as e:
+            raise DeviceFacade.JsonRpcError(e)
+
+    def _ig_is_opened(self) -> bool:
+        return self._get_current_app() == self.app_id
+
+    def check_if_ig_is_opened(func):
+        def wrapper(self, **kwargs):
+            if not self._ig_is_opened():
+                raise DeviceFacade.AppHasCrashed("App has crashed!")
+            return func(self, **kwargs)
+
+        return wrapper
+
+    @check_if_ig_is_opened
     def find(
         self,
         index=None,
-        *args,
         **kwargs,
     ):
         try:
-            view = self.deviceV2(*args, **kwargs)
+            view = self.deviceV2(**kwargs)
             if index is not None and view.count > 1:
-                view = self.deviceV2(*args, **kwargs)[index]
+                view = self.deviceV2(**kwargs)[index]
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
         return DeviceFacade.View(view=view, device=self.deviceV2)
@@ -153,7 +171,7 @@ class DeviceFacade:
         _sr.Screenrecord._run = _run_MOD
         _sr.Screenrecord.stop = stop_MOD
         mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
-        if mp4_files != []:
+        if mp4_files:
             last_mp4 = mp4_files[-1]
             debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
             output = f"debug_{debug_number}.mp4"
@@ -162,7 +180,7 @@ class DeviceFacade:
 
     def stop_screenrecord(self, crash=True):
         if self.deviceV2.screenrecord.stop(crash=crash):
-            logger.warning("Screen recorder has been stopped succesfully!")
+            logger.warning("Screen recorder has been stopped successfully!")
 
     def screenshot(self, path):
         self.deviceV2.screenshot(path)
@@ -193,9 +211,9 @@ class DeviceFacade:
             )
             return None
 
-    def is_keyboard_show(serial):
+    def _is_keyboard_show(self):
         data = run(
-            f"adb -s {serial} shell dumpsys input_method",
+            f"adb -s {self.deviceV2.serial} shell dumpsys input_method",
             encoding="utf-8",
             stdout=PIPE,
             stderr=PIPE,
@@ -206,7 +224,7 @@ class DeviceFacade:
             return flag.group(1) == "true"
         else:
             logger.debug(
-                f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
+                f"'adb -s {self.deviceV2.serial} shell dumpsys input_method' returns nothing!"
             )
             return None
 
@@ -323,6 +341,12 @@ class DeviceFacade:
         def ui_info(self):
             try:
                 return self.viewV2.info
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def content_desc(self):
+            try:
+                return self.viewV2.info["contentDescription"]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -528,9 +552,9 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def exists(self, ui_timeout=None) -> bool:
+        def exists(self, ui_timeout=None, ignore_bug: bool = False) -> bool:
             try:
-                # Currently the methods left, right, up and down from
+                # Currently, the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
                 # All other selectors return an UiObject with exists() == False.
                 # We will open a ticket to uiautomator2 to fix this inconsistency.
@@ -543,8 +567,10 @@ class DeviceFacade:
                     and self.viewV2.count >= 1
                 ):
                     logger.debug(
-                        f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                        f"UIA2 BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
                     )
+                    if ignore_bug:
+                        return "BUG!"
                     # More info about that: https://github.com/openatx/uiautomator2/issues/689"
                     return False
                 return exists
@@ -690,4 +716,7 @@ class DeviceFacade:
                 raise DeviceFacade.JsonRpcError(e)
 
     class JsonRpcError(Exception):
+        pass
+
+    class AppHasCrashed(Exception):
         pass

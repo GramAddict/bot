@@ -1,4 +1,16 @@
 # Changelog
+## 3.1.2 (2022-02-06)
+### Fix
+- find the profile icon even with the different interface
+- wrong arguments for stop_bot function
+- workaround for avoiding story watching crash due to a bug of UIA2
+### Performance improvements
+- check if IG is opened when we try to find an element, raise an exception if it's not true (I used a decorator, for fun :D)
+- simplify some functions
+### Others
+- move close_keyboard method to universal class
+- a lot of typos
+- some types hint
 ## 3.1.1 (2022-02-01)
 ### Fix
 - inconsistent way to store datetime in json
@@ -17,7 +29,7 @@
 - the bot restarts after a crash, except for some scenarios that will be highlighted
 ## 3.0.4 (2022-01-17)
 ### Fix
-- carousel mid point calculation was wrong (typo)
+- carousel mid-point calculation was wrong (typo)
 ## 3.0.3 (2022-01-17)
 ### Fix
 - in the new version (217..) the element for sorting following list has changed

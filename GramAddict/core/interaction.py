@@ -1,5 +1,6 @@
 import logging
 import os
+from argparse import Namespace
 from datetime import datetime
 from os import path
 from random import choice, randint, shuffle, uniform
@@ -35,7 +36,6 @@ from GramAddict.core.views import (
     MediaType,
     PostsGridView,
     ProfileView,
-    SearchView,
     UniversalActions,
     case_insensitive_re,
 )
@@ -582,7 +582,6 @@ def _comment(
         if not random_choice(comment_percentage):
             return False
         universal_actions = UniversalActions(device)
-        search_view = SearchView(device)
         # we have to do a little swipe for preventing get the previous post comments button (which is covered by top bar, but present in hierarchy!!)
         universal_actions._swipe_points(
             direction=Direction.DOWN, delta_y=randint(150, 250)
@@ -612,7 +611,7 @@ def _comment(
                 if comment_box.exists():
                     comment = load_random_comment(my_username, media_type)
                     if comment is None:
-                        search_view._close_keyboard()
+                        UniversalActions.close_keyboard(device)
                         device.back()
                         return False
                     logger.info(
@@ -628,12 +627,12 @@ def _comment(
                     post_button.click()
                 else:
                     logger.info("Comments on this post have been limited.")
-                    search_view._close_keyboard()
+                    universal_actions.close_keyboard(device)
                     device.back()
                     return False
 
                 universal_actions.detect_block(device)
-                search_view._close_keyboard()
+                universal_actions.close_keyboard(device)
                 posted_text = device.find(
                     text=f"{my_username} {comment}",
                 )
@@ -673,6 +672,7 @@ def _send_PM(
     swipe_amount: int,
     private: bool = False,
 ) -> bool:
+    universal_actions = UniversalActions(device)
     if private:
         options = device.find(
             classNameMatches=ClassName.FRAME_LAYOUT,
@@ -693,7 +693,7 @@ def _send_PM(
     else:
         coordinator_layout = device.find(resourceId=ResourceID.COORDINATOR_ROOT_LAYOUT)
         if coordinator_layout.exists() and swipe_amount != 0:
-            UniversalActions(device)._swipe_points(
+            universal_actions._swipe_points(
                 direction=Direction.UP, delta_y=swipe_amount
             )
         message_button = device.find(
@@ -711,8 +711,7 @@ def _send_PM(
         className=ClassName.EDIT_TEXT,
         enabled="true",
     )
-    search_view = SearchView(device)
-    universal_actions = UniversalActions(device)
+
     if message_box.exists():
         message = load_random_message(my_username)
         if message is None:
@@ -734,7 +733,7 @@ def _send_PM(
         if send_button.exists():
             send_button.click()
             universal_actions.detect_block(device)
-            search_view._close_keyboard()
+            universal_actions.close_keyboard(device)
             posted_text = device.find(text=f"{message}")
             message_sending_icon = device.find(
                 resourceId=ResourceID.ACTION_ICON, className=ClassName.IMAGE_VIEW
@@ -753,12 +752,12 @@ def _send_PM(
             return pm_confirmed
         else:
             logger.warning("Can't find SEND button!")
-            search_view._close_keyboard()
+            universal_actions.close_keyboard(device)
             device.back()
             return False
     else:
         logger.info("PM to this user have been limited.")
-        search_view._close_keyboard()
+        universal_actions.close_keyboard(device)
         device.back()
         return False
 
@@ -906,12 +905,12 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
 
 
 def _watch_stories(
-    device,
-    profile_view,
-    username,
-    stories_percentage,
-    args,
-    session_state,
+    device: DeviceFacade,
+    profile_view: ProfileView,
+    username: str,
+    stories_percentage: int,
+    args: Namespace,
+    session_state: SessionState,
 ):
     if not random_choice(stories_percentage):
         return 0
@@ -930,7 +929,7 @@ def _watch_stories(
             stories_counter += 1
             for _ in range(7):
                 random_sleep(0.5, 1, modulable=False, logging=False)
-                if story_view.getUsername() != username:
+                if story_view.getUsername().strip().upper() != username.upper():
                     return False
             return True
 
@@ -941,11 +940,15 @@ def _watch_stories(
             )
             stories_counter = 0
             logger.debug("Open the story container.")
-            stories_ring.click(sleep=SleepTime.TINY)
+            stories_ring.click(sleep=SleepTime.SHORT)
             story_view = CurrentStoryView(device)
             story_frame = story_view.getStoryFrame()
             story_frame.wait(Timeout.MEDIUM)
-            if story_view.getUsername() == username:
+            story_username = story_view.getUsername()
+            if (
+                story_username == "BUG!"
+                or story_username.strip().upper() == username.upper()
+            ):
                 start = datetime.now()
                 if not watch_story():
                     return stories_counter
@@ -966,7 +969,7 @@ def _watch_stories(
                         )
                         break
                 for _ in range(4):
-                    if story_view.getUsername() == username:
+                    if story_view.getUsername().strip().upper() == username.upper():
                         device.back()
                     else:
                         break

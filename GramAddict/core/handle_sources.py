@@ -265,7 +265,7 @@ def handle_blogger_from_file(
 
 def do_unfollow_from_list(device, username, on_following_list):
     if not on_following_list:
-        ProfileView(device)._click_on_avatar()
+        ProfileView(device).click_on_avatar()
         if ProfileView(device).navigateToFollowing() and UniversalActions(
             device
         ).search_text(username):

@@ -125,11 +125,18 @@ class TabBarView:
         self._navigateTo(TabBarTabs.PROFILE)
         return ProfileView(self.device, is_own_profile=True)
 
+    def _get_new_profile_position(self) -> Optional[DeviceFacade.View]:
+        buttons = self.device.find(className=ResourceID.BUTTON)
+        for button in buttons:
+            if button.content_desc() == "Profile":
+                return button
+        return None
+
     def _navigateTo(self, tab: TabBarTabs):
         tab_name = tab.name
         logger.debug(f"Navigate to {tab_name}")
         button = None
-        SearchView(self.device)._close_keyboard()
+        UniversalActions.close_keyboard(self.device)
         if tab == TabBarTabs.HOME:
             button = self.device.find(
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
@@ -173,13 +180,14 @@ class TabBarView:
                 classNameMatches=ClassName.BUTTON_OR_FRAME_LAYOUT_REGEX,
                 descriptionMatches=case_insensitive_re(TabBarText.PROFILE_CONTENT_DESC),
             )
+            if not button.exists():
+                button = self._get_new_profile_position()
 
-        if button.exists(Timeout.MEDIUM):
+        if button is not None or button.exists(Timeout.MEDIUM):
             # Two clicks to reset tab content
             button.click(sleep=SleepTime.SHORT)
             if tab is not TabBarTabs.PROFILE:
                 button.click(sleep=SleepTime.SHORT)
-
             return
 
         logger.error(f"Didn't find tab {tab_name} in the tab bar...")
@@ -302,7 +310,7 @@ class SearchView:
             logger.error(
                 "Can't find the search bar! Refreshing it by pressing Home and Search again.."
             )
-            SearchView(self.device)._close_keyboard()
+            UniversalActions.close_keyboard(self.device)
             TabBarView(self.device).navigateToHome()
             TabBarView(self.device).navigateToSearch()
         logger.error("Can't find the search bar!")
@@ -558,28 +566,6 @@ class SearchView:
 
         return PlacesView(self.device)
 
-    def _close_keyboard(self):
-        flag = DeviceFacade.is_keyboard_show(self.device.deviceV2.serial)
-        if flag:
-            logger.debug("The keyboard is currently open. Press back to close.")
-            self.device.back()
-        elif flag is None:
-            tabbar_container = self.device.find(
-                resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
-            )
-            if tabbar_container.exists():
-                delta = tabbar_container.get_bounds()["bottom"]
-            else:
-                delta = 375
-            logger.debug(
-                "Failed to check if keyboard is open! Will do a little swipe up to prevent errors."
-            )
-            UniversalActions(self.device)._swipe_points(
-                direction=Direction.UP,
-                start_point_y=randint(delta + 10, delta + 150),
-                delta_y=randint(50, 100),
-            )
-
 
 class PostsViewList:
     def __init__(self, device: DeviceFacade):
@@ -588,7 +574,7 @@ class PostsViewList:
 
     def swipe_to_fit_posts(self, swipe: SwipeTo):
         """calculate the right swipe amount necessary to swipe to next post in hashtag post view
-        in order to make it available to other plug-ins I cutted it in two moves"""
+        in order to make it available to other plug-ins I cut it in two moves"""
         displayWidth = self.device.get_info()["displayWidth"]
         containers_content = ResourceID.MEDIA_CONTAINER
         containers_gap = ResourceID.GAP_VIEW_AND_FOOTER_SPACE
@@ -895,7 +881,7 @@ class PostsViewList:
                 )
 
     def _get_action_bar_position(self) -> Tuple[bool, int, int]:
-        """action bar is overlayed, if you press on it you go back to the first post
+        """action bar is overlay, if you press on it, you go back to the first post
         knowing his position is important to avoid it: exists, top, bottom"""
         action_bar = self.device.find(resourceIdMatches=ResourceID.ACTION_BAR_CONTAINER)
         if action_bar.exists():
@@ -999,9 +985,7 @@ class PostsViewList:
 
     def _get_media_container(self):
         media = self.device.find(resourceIdMatches=ResourceID.CAROUSEL_AND_MEDIA_GROUP)
-        content_desc = None
-        if media.exists():
-            content_desc = media.ui_info()["contentDescription"]
+        content_desc = media.content_desc() if media.exists() else None
         return media, content_desc
 
     @staticmethod
@@ -1059,6 +1043,10 @@ class PostsViewList:
             if content_desc is not None:
                 media_type, _ = post_view_list.detect_media_type(content_desc)
                 opened_post_view.watch_media(media_type)
+            else:
+                return
+        else:
+            return
         if mode == LikeMode.DOUBLE_CLICK:
             if media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
                 logger.info("Double click on post.")
@@ -1080,11 +1068,11 @@ class PostsViewList:
 
     def _follow_in_post_view(self):
         logger.info("Follow blogger in place.")
-        self.device.find(resourceIdMatches=(ResourceID.BUTTON)).click()
+        self.device.find(resourceIdMatches=ResourceID.BUTTON).click()
 
     def _comment_in_post_view(self):
         logger.info("Open comments of post.")
-        self.device.find(resourceIdMatches=(ResourceID.ROW_FEED_BUTTON_COMMENT)).click()
+        self.device.find(resourceIdMatches=ResourceID.ROW_FEED_BUTTON_COMMENT).click()
 
     def _check_if_liked(self):
         logger.debug("Check if like succeeded in post view.")
@@ -1263,9 +1251,9 @@ class OpenedPostView:
         self.has_tags = False
 
     def _get_post_like_button(self) -> Optional[DeviceFacade.View]:
-        attempt = 0
         post_media_view = self.device.find(resourceIdMatches=ResourceID.MEDIA_CONTAINER)
         if post_media_view.exists(Timeout.MEDIUM):
+            attempt = 0
             while True:
                 like_button = post_media_view.down(
                     resourceIdMatches=ResourceID.ROW_FEED_BUTTON_LIKE
@@ -1315,13 +1303,10 @@ class OpenedPostView:
             else:
                 post_media_view.double_click()
                 liked, like_button = self._is_post_liked()
-                if not liked:
-                    if like_button is not None:
-                        logger.info(
-                            "Double click failed, clicking on the little heart ❤️."
-                        )
-                        like_button.click()
-                        liked, _ = self._is_post_liked()
+                if not liked and like_button is not None:
+                    logger.info("Double click failed, clicking on the little heart ❤️.")
+                    like_button.click()
+                    liked, _ = self._is_post_liked()
         return liked
 
     def start_video(self) -> bool:
@@ -1366,14 +1351,14 @@ class OpenedPostView:
             in (MediaType.IGTV, MediaType.REEL, MediaType.VIDEO, MediaType.UNKNOWN)
             and args.watch_video_time != "0"
         ):
-            is_opened = self._is_video_in_fullscreen
+            in_fullscreen, _ = self._is_video_in_fullscreen
             time_left = self._get_video_time_left()
             watching_time = get_value(
                 args.watch_video_time, name=None, default=0, its_time=True
             )
-            if time_left > 0 and not media_type == MediaType.REEL and is_opened:
+            if time_left > 0 and media_type != MediaType.REEL and in_fullscreen:
                 logger.info(f"This video is about {time_left}s long.")
-                # hardcoded 5 seconds so we have the time to doing everything without going to the next video, hopefully
+                # hardcoded 5 seconds, so we have the time to doing everything without going to the next video, hopefully
                 watching_time = min(
                     watching_time,
                     time_left - 5,
@@ -1396,7 +1381,6 @@ class OpenedPostView:
             sleep(watching_time)
 
     def _get_video_time_left(self) -> int:
-        self._is_video_in_fullscreen
         timer = self.device.find(resourceId=ResourceID.TIMER)
         if timer.exists():
             raw_time = timer.get_text().split(":")
@@ -1602,14 +1586,30 @@ class ProfileView(ActionBarView):
             save_crash(self.device)
             return None, None, None
 
-    def _click_on_avatar(self):
+    def _new_ui_profile_button(self) -> bool:
+        found = False
+        buttons = self.device.find(className=ResourceID.BUTTON)
+        for button in buttons:
+            if button.content_desc() == "Profile":
+                button.click()
+                found = True
+        return found
+
+    def _old_ui_profile_button(self) -> bool:
+        found = False
         obj = self.device.find(resourceIdMatches=ResourceID.TAB_AVATAR)
         if obj.exists(Timeout.MEDIUM):
             obj.click()
-        else:
+            found = True
+        return found
+
+    def click_on_avatar(self):
+        while True:
+            if self._new_ui_profile_button():
+                break
+            if self._old_ui_profile_button():
+                break
             self.device.back()
-            if obj.exists():
-                obj.click()
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
@@ -2040,9 +2040,12 @@ class CurrentStoryView:
         reel_viewer_title = self.device.find(
             resourceId=ResourceID.REEL_VIEWER_TITLE,
         )
+        reel_exists = reel_viewer_title.exists(ignore_bug=True)
+        if reel_exists == "BUG!":
+            return reel_exists
         return (
             ""
-            if not reel_viewer_title.exists()
+            if not reel_exists
             else reel_viewer_title.get_text(error=False).replace(" ", "")
         )
 
@@ -2183,3 +2186,26 @@ class UniversalActions:
             return True
         else:
             return False
+
+    @staticmethod
+    def close_keyboard(device):
+        flag = DeviceFacade(device.device_id, device.app_id)._is_keyboard_show()
+        if flag:
+            logger.debug("The keyboard is currently open. Press back to close.")
+            device.back()
+        elif flag is None:
+            tabbar_container = device.find(
+                resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+            )
+            if tabbar_container.exists():
+                delta = tabbar_container.get_bounds()["bottom"]
+            else:
+                delta = 375
+            logger.debug(
+                "Failed to check if keyboard is open! Will do a little swipe up to prevent errors."
+            )
+            UniversalActions(device)._swipe_points(
+                direction=Direction.UP,
+                start_point_y=randint(delta + 10, delta + 150),
+                delta_y=randint(50, 100),
+            )
