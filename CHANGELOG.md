@@ -1,4 +1,7 @@
 # Changelog
+## 3.1.3 (2022-02-06)
+### Fix
+- missing parenthesis in calling a method
 ## 3.1.2 (2022-02-06)
 ### Fix
 - find the profile icon even with the different interface
