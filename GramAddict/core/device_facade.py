@@ -2,6 +2,7 @@ import logging
 import string
 from datetime import datetime
 from enum import Enum, auto
+from inspect import stack
 from os import getcwd, listdir
 from random import randint, uniform
 from re import search
@@ -104,7 +105,9 @@ class DeviceFacade:
 
     def check_if_ig_is_opened(func):
         def wrapper(self, **kwargs):
-            if not self._ig_is_opened():
+            avoid_lst = ["choose_cloned_app", "check_if_crash_popup_is_there"]
+            caller = stack()[1].function
+            if not self._ig_is_opened() and caller not in avoid_lst:
                 raise DeviceFacade.AppHasCrashed("App has crashed!")
             return func(self, **kwargs)
 

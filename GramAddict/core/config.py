@@ -22,6 +22,8 @@ class Config:
         self.config_list = None
         self.plugins = None
         self.actions = None
+        self.enabled = []
+        self.unknown_args = []
         self.debug = False
         self.device_id = None
         self.app_id = None
@@ -128,7 +130,7 @@ class Config:
 
     def parse_args(self):
         def _is_legacy_arg(arg):
-            if arg == "interact" or arg == "hashtag-likers":
+            if arg in ["interact", "hashtag-likers"]:
                 if self.first_run:
                     logger.warning(
                         f"You are using a legacy argument {arg} that is no longer supported. It will not be used. Please refer to https://docs.gramaddict.org/#/configuration?id=arguments."
@@ -136,7 +138,6 @@ class Config:
                 return True
             return False
 
-        self.enabled = []
         if self.module:
             if self.first_run:
                 logger.debug("Arguments used:")

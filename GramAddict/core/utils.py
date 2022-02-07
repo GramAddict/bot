@@ -254,7 +254,7 @@ def open_instagram(device):
         return False
     elif "more than one device/emulator" in err:
         logger.error(
-            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
+            f"{err[9:].capitalize()}, specify only one by using `device: devicename` in your config.yml"
         )
         return False
     elif err == "":
