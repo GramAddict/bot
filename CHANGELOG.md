@@ -1,4 +1,7 @@
 # Changelog
+## 3.1.5 (2022-02-07)
+### Fix
+- `app_id` was None for them who used the tool in a fancy way (without using config files)
 ## 3.1.4 (2022-02-07)
 ### Fix
 - avoid a problem with `check_if_crash_popup_is_there` and `choose_cloned_app` being decorated before starting IG
