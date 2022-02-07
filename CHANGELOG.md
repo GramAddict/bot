@@ -1,4 +1,7 @@
 # Changelog
+## 3.1.4 (2022-02-07)
+### Fix
+- avoid a problem with `check_if_crash_popup_is_there` and `choose_cloned_app` being decorated before starting IG
 ## 3.1.3 (2022-02-06)
 ### Fix
 - missing parenthesis in calling a method
