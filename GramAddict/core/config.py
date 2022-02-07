@@ -40,6 +40,8 @@ class Config:
                 app_id = self.args["app_id"]
                 if app_id:
                     self.app_id = app_id
+                else:
+                    self.app_id = "com.instagram.android"
         elif "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
@@ -79,6 +81,10 @@ class Config:
                         "Please provide a username with your --username argument. Example: '--username yourusername'"
                     )
                     exit(2)
+            if "--app-id" in self.args:
+                self.app_id = self.args[self.args.index("--app-id") + 1]
+            else:
+                self.app_id = "com.instagram.android"
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
