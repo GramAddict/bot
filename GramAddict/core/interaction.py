@@ -220,7 +220,13 @@ def interact_with_user(
         start_time = time()
         full_rows, columns_last_row = profile_view.count_photo_in_view()
         end_time = format(time() - start_time, ".2f")
-        photos_indices = list(range(full_rows * 3 + (columns_last_row)))
+        photos_indices = list(range(full_rows * 3 + columns_last_row))
+
+        if len(photos_indices) == profile_data.posts_count and len(photos_indices) > 1:
+            del photos_indices[-1]
+            logger.debug(
+                "This is a temporary fix, for avoid bot to crash we have removed the last picture form the list."
+            )
 
         logger.info(
             f"There {f'is {len(photos_indices)} post' if len(photos_indices)<=1 else f'are {len(photos_indices)} posts'} fully visible. Calculated in {end_time}s"
