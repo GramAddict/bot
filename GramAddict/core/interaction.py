@@ -79,7 +79,7 @@ def interact_with_user(
     number_of_liked = 0
     number_of_watched = 0
     number_of_commented = 0
-    like_succeed = comment_done = interacted = followed = scraped = sent_pm = False
+    comment_done = interacted = followed = scraped = sent_pm = False
 
     if username == my_username:
         logger.info("It's you, skip.")
@@ -116,7 +116,8 @@ def interact_with_user(
         private_empty = "Private" if profile_data.is_private else "Empty"
         logger.info(f"{private_empty} account.")
         if (
-            can_send_PM(session_state, pm_percentage)
+            pm_percentage != 0
+            and can_send_PM(session_state, pm_percentage)
             and profile_filter.can_pm_to_private_or_empty
         ):
             sent_pm = _send_PM(
@@ -315,7 +316,7 @@ def interact_with_user(
                 device.back()
             device.back()
 
-    if can_send_PM(session_state, pm_percentage):
+    if pm_percentage != 0 and can_send_PM(session_state, pm_percentage):
         sent_pm = _send_PM(device, session_state, my_username, swipe_amount)
         swipe_amount = 0
         if sent_pm:
