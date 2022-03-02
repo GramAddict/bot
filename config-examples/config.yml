@@ -65,6 +65,10 @@ unfollow-any-followers: 10-20
 unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
 sort-followers-newest-to-oldest: false
 
+## Remove followers
+remove-followers-from-list: [remove1.txt 5-10, remove2.txt 6]
+delete-removed-follower-from-list: true
+
 ## Post Processing
 analytics: false # no more supported
 telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder

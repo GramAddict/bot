@@ -2026,6 +2026,35 @@ class FollowersView:
     def __init__(self, device: DeviceFacade):
         self.device = device
 
+    def _find_user_to_remove(self, username):
+        row = self.device.find(resourceId=ResourceID.FOLLOW_LIST_CONTAINER)
+        return row if row.child(textMatches=username).exists() else None
+
+    def _get_remove_button(self, row_obj):
+        REMOVE_TEXT = "^Remove$"
+        return row_obj.child(
+            resourceId=ResourceID.BUTTON, textMatches=case_insensitive_re(REMOVE_TEXT)
+        )
+
+    def _click_button(self, obj, obj_name):
+        if obj.exists(Timeout.SHORT):
+            logger.info(f"Pressing on {obj_name} button.")
+            obj.click()
+            return True
+        logger.info(f"Object {obj_name} doesn't exists. Can't press on it!")
+        return False
+
+    def _confirm_remove_follower(self):
+        obj = self.device.find(resourceId=ResourceID.ACTION_SHEET_ROW_TEXT_VIEW)
+        return self._click_button(obj, "remove confirmation")
+
+    def remove_follower(self, username):
+        user_row = self._find_user_to_remove(username)
+        if user_row is not None and user_row.exists():
+            if self._click_button(self._get_remove_button(user_row), "remove"):
+                return self._confirm_remove_follower()
+        return False
+
 
 class CurrentStoryView:
     def __init__(self, device: DeviceFacade):

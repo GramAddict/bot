@@ -25,33 +25,18 @@ FILENAME_MESSAGES = "pm_list.txt"
 
 
 class Storage:
-    interacted_users_path = None
-    interacted_users = {}
-
-    history_filter_users_path = None
-    history_filter_users = {}
-
-    filter_path = None
-    filter = {}
-
-    comment_path = None
-    comment = []
-
-    whitelist = []
-    blacklist = []
-
     def __init__(self, my_username):
         if my_username is None:
             logger.error(
                 "No username, thus the script won't get access to interacted users and sessions data."
             )
             return
+        self.account_path = os.path.join(ACCOUNTS, my_username)
+        if not os.path.exists(self.account_path):
+            os.makedirs(self.account_path)
 
-        if not os.path.exists(f"{ACCOUNTS}/{my_username}"):
-            os.makedirs(f"{ACCOUNTS}/{my_username}")
-
-        self.interacted_users_path = (
-            f"{ACCOUNTS}/{my_username}/{FILENAME_INTERACTED_USERS}"
+        self.interacted_users_path = os.path.join(
+            self.account_path, FILENAME_INTERACTED_USERS
         )
         if os.path.exists(self.interacted_users_path):
             with open(self.interacted_users_path, encoding="utf-8") as json_file:
@@ -63,8 +48,8 @@ class Storage:
                     )
                     sys.exit(0)
 
-        self.history_filter_users_path = (
-            f"{ACCOUNTS}/{my_username}/{FILENAME_HISTORY_FILTER_USERS}"
+        self.history_filter_users_path = os.path.join(
+            self.account_path, FILENAME_HISTORY_FILTER_USERS
         )
 
         if os.path.exists(self.history_filter_users_path):
@@ -77,34 +62,31 @@ class Storage:
                     )
                     sys.exit(0)
 
-        self.filter_path = f"{ACCOUNTS}/{my_username}/{FILTER}"
+        self.filter_path = os.path.join(self.account_path, FILTER)
         if not os.path.exists(self.filter_path):
-            self.filter_path = f"{ACCOUNTS}/{my_username}/{OLD_FILTER}"
+            self.filter_path = os.path.join(self.account_path, OLD_FILTER)
 
-        whitelist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_WHITELIST}"
+        whitelist_path = os.path.join(self.account_path, FILENAME_WHITELIST)
         if os.path.exists(whitelist_path):
             with open(whitelist_path, encoding="utf-8") as file:
                 self.whitelist = [line.rstrip() for line in file]
 
-        blacklist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_BLACKLIST}"
+        blacklist_path = os.path.join(self.account_path, FILENAME_BLACKLIST)
         if os.path.exists(blacklist_path):
             with open(blacklist_path, encoding="utf-8") as file:
                 self.blacklist = [line.rstrip() for line in file]
 
-        self.report_path = f"{ACCOUNTS}/{my_username}/{REPORTS}/"
+        self.report_path = os.path.join(self.account_path, REPORTS)
 
     def can_be_reinteract(self, last_interaction, hours_that_have_to_pass):
         if hours_that_have_to_pass > timedelta(hours=0):
             delta = datetime.now() - last_interaction
-            if delta < hours_that_have_to_pass:
-                return False
-            else:
-                return True
+            return delta >= hours_that_have_to_pass
         else:
             return False
 
     def check_user_was_interacted(self, username):
-        """returns when an username has been interacted, False if not already interacted"""
+        """returns when a username has been interacted, False if not already interacted"""
         user = self.interacted_users.get(username)
         if user is None:
             return False, None

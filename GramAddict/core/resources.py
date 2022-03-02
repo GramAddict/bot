@@ -17,6 +17,7 @@ class ResourceID:
             f"{APP_ID}:id/action_bar_large_title_auto_size"
         )
         self.ACTION_ICON = f"{APP_ID}:id/action_icon"
+        self.ACTION_SHEET_ROW_TEXT_VIEW = f"{APP_ID}:id/action_sheet_row_text_view"
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
