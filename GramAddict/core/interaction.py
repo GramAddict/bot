@@ -929,7 +929,7 @@ def _watch_stories(
             nonlocal stories_counter
             stories_counter += 1
             for _ in range(7):
-                random_sleep(0.5, 1, modulable=False, logging=False)
+                random_sleep(0.5, 1, modulable=False, log=False)
                 if story_view.getUsername().strip().upper() != username.upper():
                     return False
             return True
