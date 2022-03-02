@@ -25,6 +25,7 @@ from GramAddict.core.utils import (
     can_repeat,
     check_adb_connection,
     check_if_updated,
+    check_screen_timeout,
     close_instagram,
     config_examples,
     countdown,
@@ -123,6 +124,7 @@ def start_bot(**kwargs):
         session_state = SessionState(configs)
         session_state.set_limits_session()
         sessions.append(session_state)
+        check_screen_timeout()
         device.wake_up()
         head_up_notifications(enabled=False)
         logger.info(

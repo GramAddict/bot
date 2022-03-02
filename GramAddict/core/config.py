@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Optional
 
 import configargparse
 import yaml
@@ -25,8 +26,8 @@ class Config:
         self.enabled = []
         self.unknown_args = []
         self.debug = False
-        self.device_id = None
-        self.app_id = None
+        self.device_id: Optional[str] = None
+        self.app_id: Optional[str] = None
         self.first_run = first_run
         self.username = False
 

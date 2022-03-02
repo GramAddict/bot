@@ -23,6 +23,7 @@ from colorama import Fore, Style
 from requests import get
 
 from GramAddict import __file__
+from GramAddict.core.config import Config
 from GramAddict.core.log import get_log_file_config
 from GramAddict.core.report import print_full_report
 from GramAddict.core.resources import ResourceID as resources
@@ -33,7 +34,7 @@ http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
 
-def load_config(config):
+def load_config(config: Config):
     global app_id
     global args
     global configs
@@ -164,7 +165,7 @@ def config_examples():
 
 def check_adb_connection():
     is_device_id_provided = configs.device_id is not None
-    # sometimes it needs two requests to wake up..
+    # sometimes it needs two requests to wake up...
     stream = os.popen("adb devices")
     stream.close()
     stream = os.popen("adb devices")
@@ -191,9 +192,7 @@ def check_adb_connection():
 
 def get_instagram_version():
     stream = os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell dumpsys package {app_id}"
+        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell dumpsys package {app_id}"
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
@@ -203,12 +202,8 @@ def get_instagram_version():
 
 
 def open_instagram_with_url(url) -> bool:
-    logger.info("Open Instagram app with url: {}".format(url))
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell am start -a android.intent.action.VIEW -d {}".format(url)
-    )
+    logger.info(f"Open Instagram app with url: {url}")
+    cmd = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell am start -a android.intent.action.VIEW -d {url}"
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     random_sleep()
@@ -226,12 +221,22 @@ def head_up_notifications(enabled: bool = False):
     """
     Enable or disable head-up-notifications
     """
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
-    )
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
     return subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
+def check_screen_timeout():
+    MIN_TIMEOUT = 5 * 6_000
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get system screen_off_timeout"
+    resp = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    if int(resp.stdout.lstrip()) < MIN_TIMEOUT:
+        logger.info(
+            f"Setting timeout of the screen to {MIN_TIMEOUT/6_000:.0f} minutes."
+        )
+        cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
+        subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    else:
+        logger.info("Screen timeout is fine!")
 
 
 def open_instagram(device):
@@ -240,13 +245,9 @@ def open_instagram(device):
     logger.info("Open Instagram app.")
 
     def call_ig():
-        cmd = (
-            "adb"
-            + ("" if configs.device_id is None else " -s " + configs.device_id)
-            + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
-        )
+        cmd_ig: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
         return subprocess.run(
-            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
+            cmd_ig, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
         )
 
     err = call_ig().stderr.strip()
@@ -286,21 +287,13 @@ def open_instagram(device):
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
     device.deviceV2.set_fastinput_ime(True)
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell settings get secure default_input_method"
-    )
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get secure default_input_method"
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     if cmd_res.stdout.replace(nl, "") != FastInputIME:
         logger.warning(
             f"FastInputIME is not the default keyboard! Default is: {cmd_res.stdout.replace(nl, '')}. Changing it via adb.."
         )
-        cmd = (
-            "adb"
-            + ("" if configs.device_id is None else " -s " + configs.device_id)
-            + f" shell ime set {FastInputIME}"
-        )
+        cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell ime set {FastInputIME}"
         cmd_res = subprocess.run(
             cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
         )
@@ -440,15 +433,15 @@ def print_telegram_reports(
 
 
 def kill_atx_agent(device):
+    _restore_keyboard(device)
+    logger.info("Kill atx agent.")
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell pkill atx-agent"
+    subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
+def _restore_keyboard(device):
     logger.debug("Back to default keyboard!")
     device.deviceV2.set_fastinput_ime(False)
-    logger.info("Kill atx agent.")
-    os.popen(
-        (
-            ("adb" + ("" if configs.device_id is None else f" -s {configs.device_id}"))
-            + " shell pkill atx-agent"
-        )
-    ).close()
 
 
 def random_sleep(inf=0.5, sup=3.0, modulable=True, log=True):
