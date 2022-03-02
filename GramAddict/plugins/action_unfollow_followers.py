@@ -10,7 +10,12 @@ from GramAddict.core.resources import ClassName
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.scroll_end_detector import ScrollEndDetector
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_sleep, save_crash
+from GramAddict.core.utils import (
+    get_value,
+    inspect_current_view,
+    random_sleep,
+    save_crash,
+)
 from GramAddict.core.views import (
     Direction,
     FollowingView,
@@ -200,7 +205,7 @@ class ActionUnfollowFollowers(Plugin):
     def sort_followings_by_date(self, device, newest_to_oldest=False) -> bool:
 
         sort_button = device.find(
-            resourceId=self.ResourceID.SORTING_ENTRY_ROW_ICON,
+            resourceId=self.ResourceID.SORTING_ENTRY_ROW_OPTION,
         )
         if not sort_button.exists(Timeout.MEDIUM):
             logger.error(
@@ -286,10 +291,14 @@ class ActionUnfollowFollowers(Plugin):
         while True:
             screen_iterated_followings = []
             logger.info("Iterate over visible followings.")
-            for item in device.find(
+            user_list = device.find(
                 resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
-                className=ClassName.LINEAR_LAYOUT,
-            ):
+            )
+            row_height, n_users = inspect_current_view(user_list)
+            for item in user_list:
+                cur_row_height = item.get_height()
+                if cur_row_height < row_height:
+                    continue
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 if not user_name_view.exists():
@@ -380,7 +389,7 @@ class ActionUnfollowFollowers(Plugin):
                 prev_screen_iterated_followings = screen_iterated_followings
                 logger.info("Need to scroll now.", extra={"color": f"{Fore.GREEN}"})
                 list_view = device.find(
-                    resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
+                    resourceId=self.ResourceID.LIST,
                 )
                 list_view.scroll(Direction.DOWN)
             else:

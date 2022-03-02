@@ -108,7 +108,7 @@ class DeviceFacade:
             avoid_lst = ["choose_cloned_app", "check_if_crash_popup_is_there"]
             caller = stack()[1].function
             if not self._ig_is_opened() and caller not in avoid_lst:
-                raise DeviceFacade.AppHasCrashed("App has crashed!")
+                raise DeviceFacade.AppHasCrashed("App has crashed / has been closed!")
             return func(self, **kwargs)
 
         return wrapper
@@ -335,8 +335,10 @@ class DeviceFacade:
         def __iter__(self):
             children = []
             try:
-                for item in self.viewV2:
-                    children.append(DeviceFacade.View(view=item, device=self.deviceV2))
+                children.extend(
+                    DeviceFacade.View(view=item, device=self.deviceV2)
+                    for item in self.viewV2
+                )
                 return iter(children)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -405,8 +407,6 @@ class DeviceFacade:
             if coord is None:
                 coord = []
             mode = Location.WHOLE if mode is None else mode
-            x_abs = -1
-            y_abs = -1
             if mode == Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
@@ -586,7 +586,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def wait(self, ui_timeout=None):
+        def wait(self, ui_timeout=Timeout.MEDIUM):
             try:
                 return self.viewV2.wait(timeout=self.get_ui_timeout(ui_timeout))
             except uiautomator2.JSONRPCError as e:
@@ -609,15 +609,23 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_bounds(self):
+        def get_bounds(self) -> dict:
             try:
                 return self.viewV2.info["bounds"]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_property(self, property):
+        def get_height(self) -> int:
+            bounds = self.get_bounds()
+            return bounds["bottom"] - bounds["top"]
+
+        def get_width(self):
+            bounds = self.get_bounds()
+            return bounds["right"] - bounds["left"]
+
+        def get_property(self, prop: str):
             try:
-                return self.viewV2.info[property]
+                return self.viewV2.info[prop]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

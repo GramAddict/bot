@@ -16,7 +16,12 @@ from GramAddict.core.navigation import (
 )
 from GramAddict.core.resources import ClassName
 from GramAddict.core.storage import FollowingStatus
-from GramAddict.core.utils import get_value, random_choice, random_sleep
+from GramAddict.core.utils import (
+    get_value,
+    inspect_current_view,
+    random_choice,
+    random_sleep,
+)
 from GramAddict.core.views import (
     FollowingView,
     LikeMode,
@@ -341,8 +346,12 @@ def handle_likers(
             if user_container is None:
                 logger.warning("Likers list didn't load :(")
                 return
+            row_height, n_users = inspect_current_view(user_container)
             try:
                 for item in user_container:
+                    cur_row_height = item.get_height()
+                    if cur_row_height < row_height:
+                        continue
                     element_opened = False
                     username_view = OpenedPostView(device)._getUserName(item)
                     if not username_view.exists(Timeout.MEDIUM):
@@ -569,7 +578,7 @@ def handle_posts(
 
                 if nr_consecutive_already_interacted == skipped_posts_limit:
                     logger.info(
-                        f"Reached the limit of already interacted {skipped_posts_limit}. Goin to the next source/job!"
+                        f"Reached the limit of already interacted {skipped_posts_limit}. Going to the next source/job!"
                     )
                     break
                 if can_interact and (likes_in_range or not has_likers):
@@ -738,13 +747,16 @@ def iterate_over_followers(
         screen_iterated_followers = []
         screen_skipped_followers_count = 0
         scroll_end_detector.notify_new_page()
-
+        user_list = device.find(
+            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+        )
+        row_height, n_users = inspect_current_view(user_list)
         try:
-            for item in device.find(
-                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
-                className=ClassName.LINEAR_LAYOUT,
-            ):
-                element_opened = False
+
+            for item in user_list:
+                cur_row_height = item.get_height()
+                if cur_row_height < row_height:
+                    continue
                 user_info_view = item.child(index=1)
                 user_name_view = user_info_view.child(index=0).child()
                 if not user_name_view.exists():

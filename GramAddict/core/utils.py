@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections import Counter
 from datetime import datetime
 from math import nan
 from os import getcwd, rename, walk
@@ -13,7 +14,7 @@ from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import emoji
@@ -693,7 +694,7 @@ def set_time_delta(args):
     )
 
 
-def wait_for_next_session(time_left, session_state, sessions, device, screen_record):
+def wait_for_next_session(time_left, session_state, sessions, device):
     hours, remainder = divmod(time_left.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     kill_atx_agent(device)
@@ -709,6 +710,17 @@ def wait_for_next_session(time_left, session_state, sessions, device, screen_rec
         sleep(time_left.total_seconds())
     except KeyboardInterrupt:
         stop_bot(device, sessions, session_state, was_sleeping=True)
+
+
+def inspect_current_view(user_list) -> Tuple[int, int]:
+    """
+    return the number of users and each row height in the current view
+    """
+    user_list.wait()
+    lst = [item.get_height() for item in user_list if item.wait()]
+    row_height, n_users = Counter(lst).most_common()[0]
+    logger.debug(f"There are {n_users} users fully visible in that view.")
+    return row_height, n_users
 
 
 class ActionBlockedError(Exception):
