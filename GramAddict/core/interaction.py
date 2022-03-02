@@ -938,7 +938,14 @@ def _watch_stories(
                 random_sleep(0.5, 1, modulable=False, log=False)
                 if story_view.getUsername().strip().upper() != username.upper():
                     return False
+            like_story()
             return True
+
+        def like_story():
+            obj = device.find(resourceIdMatches=ResourceID.TOOLBAR_LIKE_BUTTON)
+            if obj.exists():
+                obj.click()
+                logger.info("Story has been liked!")
 
         stories_ring = profile_view.StoryRing()
         if stories_ring.exists():

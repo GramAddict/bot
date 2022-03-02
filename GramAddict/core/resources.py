@@ -171,6 +171,7 @@ class ResourceID:
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
         self.TIMER = f"{APP_ID}:id/timer"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
+        self.TOOLBAR_LIKE_BUTTON = f"{APP_ID}:id/toolbar_like_button"
         self.UFI_STACK = f"{APP_ID}:id/ufi_stack"
         self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
             f"{APP_ID}:id/unified_follow_list_tab_layout"
