@@ -117,9 +117,7 @@ def start_bot(**kwargs):
             configs.args.working_hours, configs.args.time_delta_session
         )
         if not inside_working_hours:
-            wait_for_next_session(
-                time_left, session_state, sessions, device, configs.args.screen_record
-            )
+            wait_for_next_session(time_left, session_state, sessions, device)
         pre_post_script(path=configs.args.pre_script)
         get_device_info(device)
         session_state = SessionState(configs)
@@ -397,7 +395,6 @@ def start_bot(**kwargs):
                     session_state,
                     sessions,
                     device,
-                    configs.args.screen_record,
                 )
         else:
             break
