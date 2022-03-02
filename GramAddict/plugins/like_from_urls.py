@@ -1,4 +1,5 @@
 import logging
+import os
 from os import path
 from random import shuffle
 
@@ -69,8 +70,9 @@ class LikeFromURLs(Plugin):
     def process_file(self, current_file, storage):
         opened_post_view = OpenedPostView(self.device)
         post_view_list = PostsViewList(self.device)
-        if path.isfile(current_file):
-            with open(current_file, "r", encoding="utf-8") as f:
+        filename: str = os.path.join(storage.account_path, current_file.split(" ")[0])
+        if path.isfile(filename):
+            with open(filename, "r", encoding="utf-8") as f:
                 nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
                 logger.info(f"In this file there are {len(nonempty_lines)} entries.")
                 f.seek(0)
@@ -130,7 +132,7 @@ class LikeFromURLs(Plugin):
                 remaining = f.readlines()
 
             if self.args.delete_interacted_users:
-                with atomic_write(current_file, overwrite=True, encoding="utf-8") as f:
+                with atomic_write(filename, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
             logger.warning(f"File {current_file} not found.")
