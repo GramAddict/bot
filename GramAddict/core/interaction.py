@@ -42,10 +42,6 @@ from GramAddict.core.views import (
 
 logger = logging.getLogger(__name__)
 
-FOLLOW_REGEX = "^Follow$"
-FOLLOWBACK_REGEX = "^Follow Back$"
-UNFOLLOW_REGEX = "^Following|^Requested"
-
 
 def load_config(config):
     global args
@@ -856,56 +852,60 @@ def _follow(device, username, follow_percentage, args, session_state, swipe_amou
                 direction=Direction.UP, delta_y=swipe_amount
             )
 
+        FOLLOW_REGEX = "^Follow$"
         follow_button = device.find(
             clickable=True,
             textMatches=case_insensitive_re(FOLLOW_REGEX),
         )
-
-        if not follow_button.exists():
-            unfollow_button = device.find(
-                clickable=True,
-                textMatches=case_insensitive_re(UNFOLLOW_REGEX),
-            )
-            followback_button = device.find(
-                clickable=True,
-                textMatches=case_insensitive_re(FOLLOWBACK_REGEX),
-            )
-            if unfollow_button.exists():
-                logger.info(
-                    f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
-                )
-                return False
-            elif followback_button.exists():
-                logger.info(
-                    f"@{username} already follows you.",
-                    extra={"color": f"{Fore.GREEN}"},
-                )
-                return False
-            else:
-                logger.error(
-                    "Cannot find neither Follow button, Follow Back button, nor Unfollow button."
-                )
-                save_crash(device)
-        max_tries = 3
-        for n in range(max_tries):
-            follow_button.click()
-            if device.find(
-                textMatches=UNFOLLOW_REGEX,
-                clickable=True,
-            ).exists(Timeout.SHORT):
-                logger.info(f"Followed @{username}", extra={"color": Fore.GREEN})
-                universal_actions.detect_block(device)
-                return True
-            else:
-                if n < max_tries - 1:
-                    logger.debug(
-                        "Looks like the click on the button dind't work, try again."
-                    )
-        logger.warning(
-            f"Looks like I was not able to follow @{username}, maybe you got softbanned for this action!",
-            extra={"color": Fore.RED},
+        UNFOLLOW_REGEX = "^Following|^Requested"
+        unfollow_button = device.find(
+            clickable=True,
+            textMatches=case_insensitive_re(UNFOLLOW_REGEX),
         )
-        universal_actions.detect_block(device)
+        FOLLOWBACK_REGEX = "^Follow Back$"
+        followback_button = device.find(
+            clickable=True,
+            textMatches=case_insensitive_re(FOLLOWBACK_REGEX),
+        )
+
+        if followback_button.exists():
+            logger.info(
+                f"@{username} already follows you.",
+                extra={"color": f"{Fore.GREEN}"},
+            )
+            return False
+        elif unfollow_button.exists():
+            logger.info(
+                f"You already follow @{username}.", extra={"color": f"{Fore.GREEN}"}
+            )
+            return False
+        elif follow_button.exists():
+            max_tries = 3
+            for n in range(max_tries):
+                follow_button.click()
+                if device.find(
+                    textMatches=UNFOLLOW_REGEX,
+                    clickable=True,
+                ).exists(Timeout.SHORT):
+                    logger.info(f"Followed @{username}", extra={"color": Fore.GREEN})
+                    universal_actions.detect_block(device)
+                    return True
+                else:
+                    if n < max_tries - 1:
+                        logger.debug(
+                            "Looks like the click on the button didn't work, try again."
+                        )
+            logger.warning(
+                f"Looks like I was not able to follow @{username}, maybe you got soft-banned for this action!",
+                extra={"color": Fore.RED},
+            )
+            universal_actions.detect_block(device)
+        else:
+            logger.error(
+                "Cannot find neither Follow button, Follow Back button, nor Unfollow button."
+            )
+            save_crash(device)
+
     else:
         logger.info("Reached total follows limit, not following.")
     return False
