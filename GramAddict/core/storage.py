@@ -70,11 +70,15 @@ class Storage:
         if os.path.exists(whitelist_path):
             with open(whitelist_path, encoding="utf-8") as file:
                 self.whitelist = [line.rstrip() for line in file]
+        else:
+            self.whitelist = []
 
         blacklist_path = os.path.join(self.account_path, FILENAME_BLACKLIST)
         if os.path.exists(blacklist_path):
             with open(blacklist_path, encoding="utf-8") as file:
                 self.blacklist = [line.rstrip() for line in file]
+        else:
+            self.blacklist = []
 
         self.report_path = os.path.join(self.account_path, REPORTS)
 
