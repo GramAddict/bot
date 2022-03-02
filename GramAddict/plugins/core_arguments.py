@@ -337,6 +337,11 @@ class CoreArguments(Plugin):
                 "default": "5",
             },
             {
+                "arg": "--count-app-crashes",
+                "help": "count as a crash if the app crashes/loses view",
+                "action": "store_true",
+            },
+            {
                 "arg": "--skipped-posts-limit",
                 "nargs": None,
                 "help": "limit on how many skips for posts already interacted are allowed before going to the next job/source, 5 by default",

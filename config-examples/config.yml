@@ -22,6 +22,7 @@ disable-filters: false
 dont-type: false
 # scrape-to-file: scraped.txt
 total-crashes-limit: 5
+count-app-crashes: false
 
 ##############################################################################
 # Actions
