@@ -944,8 +944,13 @@ def _watch_stories(
         def like_story():
             obj = device.find(resourceIdMatches=ResourceID.TOOLBAR_LIKE_BUTTON)
             if obj.exists():
-                obj.click()
-                logger.info("Story has been liked!")
+                if not obj.get_selected():
+                    obj.click()
+                    logger.info("Story has been liked!")
+                else:
+                    logger.info("Story is already liked!")
+            else:
+                logger.info("There is no like button!")
 
         stories_ring = profile_view.StoryRing()
         if stories_ring.exists():
