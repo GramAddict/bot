@@ -431,11 +431,11 @@ def pre_post_script(path: str, pre: bool = True):
 
 
 def print_telegram_reports(
-    configs, telegram_reports_at_end, followers_now, following_now, time_left=None
+    conf, telegram_reports_at_end, followers_now, following_now, time_left=None
 ):
     if followers_now is not None and telegram_reports_at_end:
-        configs.actions["telegram-reports"].run(
-            configs, "telegram-reports", followers_now, following_now, time_left
+        conf.actions["telegram-reports"].run(
+            conf, "telegram-reports", followers_now, following_now, time_left
         )
 
 
@@ -444,24 +444,26 @@ def kill_atx_agent(device):
     device.deviceV2.set_fastinput_ime(False)
     logger.info("Kill atx agent.")
     os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell pkill atx-agent"
+        (
+            ("adb" + ("" if configs.device_id is None else f" -s {configs.device_id}"))
+            + " shell pkill atx-agent"
+        )
     ).close()
 
 
-def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
+def random_sleep(inf=0.5, sup=3.0, modulable=True, log=True):
     MIN_INF = 0.3
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
     delay = max(delay, MIN_INF)
-    if logging:
-        logger.debug(f"{str(delay)[0:4]}s sleep")
+    if log:
+        logger.debug(f"{str(delay)[:4]}s sleep")
     sleep(delay)
 
 
 def save_crash(device):
-    directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    directory_name = f"{__version__}_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
     crash_path = os.path.join("crashes", directory_name)
     try:
         os.makedirs(crash_path, exist_ok=False)
