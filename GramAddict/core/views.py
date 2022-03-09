@@ -1433,6 +1433,7 @@ class OpenedPostView:
         if full_screen:
             logger.info("Liking video.")
             obj.double_click()
+            UniversalActions.detect_block(self.device)
             if not sidebar.exists():
                 logger.debug("Showing sidebar...")
                 obj.click()
@@ -1441,6 +1442,7 @@ class OpenedPostView:
                 logger.info("Double click failed, clicking on the little heart ❤️.")
                 if like_button is not None:
                     like_button.click()
+                    UniversalActions.detect_block(self.device)
                 else:
                     logger.error("We are seeing another video.")
                 liked, _ = self._is_video_liked()
