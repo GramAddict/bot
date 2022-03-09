@@ -140,13 +140,13 @@ class Storage:
         user[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if followed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
         elif unfollowed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.casefold()
         elif scraped:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.casefold()
         else:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.casefold()
 
         # Save only the last session_id
         user["session_id"] = session_id
