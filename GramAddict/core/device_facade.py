@@ -487,7 +487,7 @@ class DeviceFacade:
             self.click(mode, sleep, coord)
 
             while maxretry > 0:
-                # we wait a little bit more before try again
+                # we wait a little more before try again
                 random_sleep(2, 4, modulable=False)
                 if not self.exists():
                     return True

@@ -1,6 +1,6 @@
 from GramAddict.core.plugin_loader import Plugin
 
-# Note: this is mainly here to house old arguments until we figure out args better
+# Note: this is mainly here to house old arguments until we figure our args better
 
 
 class CoreArguments(Plugin):

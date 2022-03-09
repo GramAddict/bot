@@ -551,7 +551,7 @@ class SearchView:
                 place, Mode.PASTE if args.dont_type else Mode.TYPE
             )
 
-        # After set_text we assume that the the first occurrence It's correct
+        # After set_text we assume that the first occurrence It's correct
         # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
         # I mean, we can't search for text because 'Italia' != 'Italy', but It's also the correct item
 
@@ -1038,15 +1038,13 @@ class PostsViewList:
     def _like_in_post_view(self, mode: LikeMode, skip_media_check: bool = False):
         post_view_list = PostsViewList(self.device)
         opened_post_view = OpenedPostView(self.device)
-        if not skip_media_check:
-            media, content_desc = self._get_media_container()
-            if content_desc is not None:
-                media_type, _ = post_view_list.detect_media_type(content_desc)
-                opened_post_view.watch_media(media_type)
-            else:
-                return
-        else:
+        if skip_media_check:
             return
+        media, content_desc = self._get_media_container()
+        if content_desc is None:
+            return
+        media_type, _ = post_view_list.detect_media_type(content_desc)
+        opened_post_view.watch_media(media_type)
         if mode == LikeMode.DOUBLE_CLICK:
             if media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
                 logger.info("Double click on post.")
@@ -1473,7 +1471,6 @@ class OpenedPostView:
             resourceId=ResourceID.BUTTON,
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
-        # UIA1 doesn't use .get_text()
         if type(text) != str:
             text = text.get_text() if text.exists() else ""
         return text in ["Following", "Requested"]
@@ -1615,17 +1612,17 @@ class ProfileView(ActionBarView):
 
     def getFollowButton(self):
         button_regex = f"{ClassName.BUTTON}|{ClassName.TEXT_VIEW}"
-        following_regex_all = "^Following|^Requested|^Follow Back|^Follow"
+        following_regex_all = "^following|^requested|^follow back|^follow"
         following_or_follow_back_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
             textMatches=case_insensitive_re(following_regex_all),
         )
         if following_or_follow_back_button.exists(Timeout.MEDIUM):
-            button_text = following_or_follow_back_button.get_text()
-            if button_text in ["Following", "Requested"]:
+            button_text = following_or_follow_back_button.get_text().casefold()
+            if button_text in ["following", "requested"]:
                 button_status = FollowStatus.FOLLOWING
-            elif button_text == "Follow Back":
+            elif button_text == "follow back":
                 button_status = FollowStatus.FOLLOW_BACK
             else:
                 button_status = FollowStatus.FOLLOW

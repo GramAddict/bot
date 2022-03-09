@@ -707,7 +707,7 @@ class Filter:
         results = []
         try:
             for _ in range(5):
-                # we do a BO5, that would mitigate the inconsistency a little bit
+                # we do a BO5, that would mitigate the inconsistency a little
                 results.append(detect(biography))
             language = max(results, key=results.count)
         except Exception as e:

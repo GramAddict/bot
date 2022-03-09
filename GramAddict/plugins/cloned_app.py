@@ -1,6 +1,6 @@
 from GramAddict.core.plugin_loader import Plugin
 
-# Not really a plugin, but didn't wanna add the parameter to coreå
+# Not really a plugin, but didn't want to add the parameter to core
 
 
 class ClonedApp(Plugin):
