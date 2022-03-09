@@ -1619,7 +1619,7 @@ class ProfileView(ActionBarView):
         following_or_follow_back_button = self.device.find(
             classNameMatches=button_regex,
             clickable=True,
-            textMatches=following_regex_all,
+            textMatches=case_insensitive_re(following_regex_all),
         )
         if following_or_follow_back_button.exists(Timeout.MEDIUM):
             button_text = following_or_follow_back_button.get_text()
