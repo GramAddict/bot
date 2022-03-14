@@ -381,7 +381,6 @@ def start_bot(**kwargs):
                         device,
                         sessions,
                         session_state,
-                        configs.args.screen_record,
                         was_sleeping=True,
                     )
             else:
