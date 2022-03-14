@@ -120,6 +120,9 @@ class ResourceID:
         self.ROW_FEED_PROFILE_HEADER = f"{APP_ID}:id/row_feed_profile_header"
         self.INDICATOR_ICON_VIEW = f"{APP_ID}:id/indicator_icon_view"
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
+        self.RECOMMENDED_USER_ROW_CONTENT_IDENTIFIER = (
+            f"{APP_ID}:id/recommended_user_row_content_identifier"
+        )
         self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
@@ -192,6 +195,7 @@ class ResourceID:
         self.ROW_FEED_TEXT = (
             f"{self.ROW_FEED_HEADLINE}|{self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT}"
         )
+        self.USER_LIST_CONTAINER = f"{self.FOLLOW_LIST_CONTAINER}|{self.ROW_USER_CONTAINER_BASE}|{self.RECOMMENDED_USER_ROW_CONTENT_IDENTIFIER}"
 
         # android specific
         self.LIST = "android:id/list"
@@ -199,7 +203,7 @@ class ResourceID:
         self.AERR_CLOSE = "android:id/aerr_close"
         self.CRASH_POPUP = f"{self.AERR_RESTART}|{self.AERR_CLOSE}"
 
-        # device spacific
+        # device specific
         ## MIUI
         self.MIUI_APP = "android.miui:id/app"
 

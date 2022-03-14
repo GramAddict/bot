@@ -1035,7 +1035,12 @@ class PostsViewList:
             media_type = MediaType.CAROUSEL
         return media_type, obj_count
 
-    def _like_in_post_view(self, mode: LikeMode, skip_media_check: bool = False):
+    def _like_in_post_view(
+        self,
+        mode: LikeMode,
+        skip_media_check: bool = False,
+        already_watched: bool = False,
+    ):
         post_view_list = PostsViewList(self.device)
         opened_post_view = OpenedPostView(self.device)
         if skip_media_check:
@@ -1043,8 +1048,9 @@ class PostsViewList:
         media, content_desc = self._get_media_container()
         if content_desc is None:
             return
-        media_type, _ = post_view_list.detect_media_type(content_desc)
-        opened_post_view.watch_media(media_type)
+        if not already_watched:
+            media_type, _ = post_view_list.detect_media_type(content_desc)
+            opened_post_view.watch_media(media_type)
         if mode == LikeMode.DOUBLE_CLICK:
             if media_type in (MediaType.CAROUSEL, MediaType.PHOTO):
                 logger.info("Double click on post.")
@@ -1457,7 +1463,7 @@ class OpenedPostView:
 
     def _getUserContainer(self):
         obj = self.device.find(
-            resourceId=ResourceID.ROW_USER_CONTAINER_BASE,
+            resourceIdMatches=ResourceID.USER_LIST_CONTAINER,
         )
         return obj if obj.exists(Timeout.LONG) else None
 
