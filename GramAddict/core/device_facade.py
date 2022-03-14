@@ -665,11 +665,10 @@ class DeviceFacade:
             try:
                 if self.viewV2.exists():
                     return self.viewV2.info["selected"]
-                else:
-                    logger.debug(
-                        "Object has disappeared! Probably too short video which has been liked!"
-                    )
-                    return True
+                logger.debug(
+                    "Object has disappeared! Probably too short video which has been liked!"
+                )
+                return True
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -684,8 +683,7 @@ class DeviceFacade:
                     random_sleep(0.3, 1, modulable=False)
                     start = datetime.now()
                     sentences = text.splitlines()
-                    j = 0
-                    for sentence in sentences:
+                    for j, sentence in enumerate(sentences, start=1):
                         word_list = sentence.split()
                         n_words = len(word_list)
                         for n, word in enumerate(word_list, start=1):
@@ -708,7 +706,6 @@ class DeviceFacade:
                             if n < n_words:
                                 self.deviceV2.send_keys(" ", clear=False)
                                 # random_sleep(0.01, 0.1, modulable=False, logging=False)
-                        j += 1
                         if j < len(sentences):
                             self.deviceV2.send_keys("\n")
 

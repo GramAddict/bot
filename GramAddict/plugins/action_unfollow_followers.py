@@ -85,7 +85,7 @@ class ActionUnfollowFollowers(Plugin):
             },
             {
                 "arg": "--sort-followers-newest-to-oldest",
-                "help": "sort the followers from newest to oldest instead of viceversa (default)",
+                "help": "sort the followers from newest to oldest instead of vice-versa (default)",
                 "action": "store_true",
             },
         ]
@@ -123,11 +123,11 @@ class ActionUnfollowFollowers(Plugin):
             return
         elif self.session_state.my_following_count < count_arg:
             logger.warning(
-                f"You can't unfollow {count_arg} accounts, because you are following {self.session_state.my_following_count} accounts. For that reason only {count} unfollows can be perfomed."
+                f"You can't unfollow {count_arg} accounts, because you are following {self.session_state.my_following_count} accounts. For that reason only {count} unfollows can be performed."
             )
         elif count < count_arg:
             logger.warning(
-                f"You can't unfollow {count_arg} accounts, because you set min-following to {self.args.min_following} and you have {self.session_state.my_following_count} followers. For that reason only {count} unfollows can be perfomed."
+                f"You can't unfollow {count_arg} accounts, because you set min-following to {self.args.min_following} and you have {self.session_state.my_following_count} followers. For that reason only {count} unfollows can be performed."
             )
 
         if self.unfollow_type == "unfollow":
@@ -292,7 +292,7 @@ class ActionUnfollowFollowers(Plugin):
             screen_iterated_followings = []
             logger.info("Iterate over visible followings.")
             user_list = device.find(
-                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+                resourceIdMatches=self.ResourceID.USER_LIST_CONTAINER,
             )
             row_height, n_users = inspect_current_view(user_list)
             for item in user_list:
@@ -401,7 +401,7 @@ class ActionUnfollowFollowers(Plugin):
                     random_sleep()
                     if load_more_button.exists():
                         logger.warning(
-                            "Can't interate over the list anymore, you may be softbanned and cannot perform this action (refreshing follower list)."
+                            "Can't iterate over the list anymore, you may be softbanned and cannot perform this action (refreshing follower list)."
                         )
                         return
                     list_view.scroll(Direction.DOWN)

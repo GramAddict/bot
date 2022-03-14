@@ -40,7 +40,7 @@ class TelegramReports(Plugin):
         modulename = "pandas"
         if modulename not in sys.modules:
             logger.error(
-                f"You can't use {plugin} withtout installing {modulename}. Type that in console: 'pip3 install gramaddict[telegram-reports]'"
+                f"You can't use {plugin} without installing {modulename}. Type that in console: 'pip3 install gramaddict[telegram-reports]'"
             )
             return
 
@@ -188,7 +188,7 @@ class TelegramReports(Plugin):
                 • {str(df["comments"].iloc[-1])} comments done
                 • {str(df["pm_sent"].iloc[-1])} PM sent
 
-                *📅 Todays total actions*
+                *📅 Today's total actions*
                 • {str(dailySummary["duration"].iloc[-1])} minutes of botting
                 • {str(dailySummary["likes"].iloc[-1])} likes
                 • {str(dailySummary["followed"].iloc[-1])} follows
