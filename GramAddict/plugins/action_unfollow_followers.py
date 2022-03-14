@@ -88,6 +88,13 @@ class ActionUnfollowFollowers(Plugin):
                 "help": "sort the followers from newest to oldest instead of vice-versa (default)",
                 "action": "store_true",
             },
+            {
+                "arg": "--unfollow-by-date",
+                "nargs": None,
+                "help": "unfollow users followed by the bot after x amount of days",
+                "metavar": "3",
+                "default": 0,
+            },
         ]
 
     def run(self, device, configs, storage, sessions, profile_filter, plugin):
@@ -317,38 +324,54 @@ class ActionUnfollowFollowers(Plugin):
                         logger.info(f"@{username} is in whitelist. Skip.")
                         continue
 
-                    if (
-                        unfollow_restriction == UnfollowRestriction.FOLLOWED_BY_SCRIPT
-                        or unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
-                    ):
+                    if unfollow_restriction in [
+                        UnfollowRestriction.FOLLOWED_BY_SCRIPT,
+                        UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                    ]:
                         following_status = storage.get_following_status(username)
+                        _, last_interaction = storage.check_user_was_interacted(
+                            username
+                        )
                         if following_status == FollowingStatus.NOT_IN_LIST:
                             logger.info(
                                 f"@{username} has not been followed by this bot. Skip."
                             )
                             continue
-                        elif not following_status == FollowingStatus.FOLLOWED:
+                        elif not storage.can_be_unfollowed(
+                            last_interaction,
+                            get_value(self.args.unfollow_by_date, None, 0),
+                        ):
+                            logger.info(
+                                f"@{username} has been followed less then {self.args.unfollow_by_date} days ago. Skip."
+                            )
+                            continue
+                        elif following_status == FollowingStatus.UNFOLLOWED:
+                            logger.info(
+                                f"You have already unfollowed @{username} on {last_interaction}. Probably you got a soft ban at some point. Try again... Following status: {following_status.name}."
+                            )
+                        elif following_status not in (
+                            FollowingStatus.FOLLOWED,
+                            FollowingStatus.REQUESTED,
+                        ):
                             logger.info(
                                 f"Skip @{username}. Following status: {following_status.name}."
                             )
                             continue
 
-                    if (
-                        unfollow_restriction == UnfollowRestriction.ANY
-                        or unfollow_restriction == UnfollowRestriction.ANY_NON_FOLLOWERS
-                    ):
+                    if unfollow_restriction in [
+                        UnfollowRestriction.ANY,
+                        UnfollowRestriction.ANY_NON_FOLLOWERS,
+                    ]:
                         following_status = storage.get_following_status(username)
                         if following_status == FollowingStatus.UNFOLLOWED:
                             logger.info(
                                 f"Skip @{username}. Following status: {following_status.name}."
                             )
                             continue
-                    if (
-                        unfollow_restriction == UnfollowRestriction.ANY
-                        or unfollow_restriction
-                        == UnfollowRestriction.FOLLOWED_BY_SCRIPT
-                    ):
+                    if unfollow_restriction in [
+                        UnfollowRestriction.ANY,
+                        UnfollowRestriction.FOLLOWED_BY_SCRIPT,
+                    ]:
                         unfollowed = FollowingView(device).do_unfollow_from_list(
                             user_row=item, username=username
                         )
@@ -358,12 +381,12 @@ class ActionUnfollowFollowers(Plugin):
                             username,
                             my_username,
                             unfollow_restriction
-                            == UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS
-                            or unfollow_restriction
-                            == UnfollowRestriction.ANY_NON_FOLLOWERS
-                            or unfollow_restriction
-                            == UnfollowRestriction.ANY_FOLLOWERS,
-                            True if job_name == "unfollow-any-followers" else False,
+                            in [
+                                UnfollowRestriction.FOLLOWED_BY_SCRIPT_NON_FOLLOWERS,
+                                UnfollowRestriction.ANY_NON_FOLLOWERS,
+                                UnfollowRestriction.ANY_FOLLOWERS,
+                            ],
+                            job_name == "unfollow-any-followers",
                         )
 
                     if unfollowed:
@@ -372,7 +395,7 @@ class ActionUnfollowFollowers(Plugin):
                             self.session_state.id,
                             unfollowed=True,
                             job_name=job_name,
-                            target=username,
+                            target=None,
                         )
                         on_unfollow()
                         unfollowed_count += 1
@@ -401,7 +424,7 @@ class ActionUnfollowFollowers(Plugin):
                     random_sleep()
                     if load_more_button.exists():
                         logger.warning(
-                            "Can't iterate over the list anymore, you may be softbanned and cannot perform this action (refreshing follower list)."
+                            "Can't iterate over the list anymore, you may be soft-banned and cannot perform this action (refreshing follower list)."
                         )
                         return
                     list_view.scroll(Direction.DOWN)

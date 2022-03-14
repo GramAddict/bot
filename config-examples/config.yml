@@ -63,7 +63,10 @@ unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
 unfollow-any-followers: 10-20
 unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
+
+## Special modifier for unfollow jobs
 sort-followers-newest-to-oldest: false
+unfollow-by-date: 15
 
 ## Remove followers
 remove-followers-from-list: [remove1.txt 5-10, remove2.txt 6]
@@ -99,15 +102,15 @@ min-following: 100
 # Total Limits Per Session
 ##############################################################################
 
-total-likes-limit: 150
-total-follows-limit: 50
-total-unfollows-limit: 50
-total-watches-limit: 150
-total-successful-interactions-limit: 150
-total-interactions-limit: 300
-total-comments-limit: 5
-total-pm-limit: 5
-total-scraped-limit: 100
+total-likes-limit: 120-150
+total-follows-limit: 40-50
+total-unfollows-limit: 40-50
+total-watches-limit: 120-150
+total-successful-interactions-limit: 120-150
+total-interactions-limit: 280-300
+total-comments-limit: 3-5
+total-pm-limit: 3-5
+total-scraped-limit: 100-150
 
 ##############################################################################
 # Ending Session Conditions

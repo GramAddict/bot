@@ -4,6 +4,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from enum import Enum, unique
+from typing import Optional
 
 from atomicwrites import atomic_write
 
@@ -82,12 +83,26 @@ class Storage:
 
         self.report_path = os.path.join(self.account_path, REPORTS)
 
-    def can_be_reinteract(self, last_interaction, hours_that_have_to_pass):
-        if hours_that_have_to_pass > timedelta(hours=0):
-            delta = datetime.now() - last_interaction
-            return delta >= hours_that_have_to_pass
-        else:
+    def can_be_reinteract(
+        self, last_interaction: datetime, hours_that_have_to_pass: int
+    ) -> bool:
+        return self._check_time(
+            last_interaction, timedelta(hours=hours_that_have_to_pass)
+        )
+
+    def can_be_unfollowed(
+        self, last_interaction: datetime, days_that_have_to_pass: int
+    ) -> bool:
+        return self._check_time(
+            last_interaction, timedelta(days=days_that_have_to_pass)
+        )
+
+    def _check_time(
+        self, stored_time: Optional[datetime], limit_time: timedelta
+    ) -> bool:
+        if stored_time is None or limit_time == timedelta(hours=0):
             return False
+        return datetime.now() - stored_time >= limit_time
 
     def check_user_was_interacted(self, username):
         """returns when a username has been interacted, False if not already interacted"""
