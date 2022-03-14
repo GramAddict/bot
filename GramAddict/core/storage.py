@@ -35,11 +35,13 @@ class Storage:
         self.account_path = os.path.join(ACCOUNTS, my_username)
         if not os.path.exists(self.account_path):
             os.makedirs(self.account_path)
+        self.interacted_users = {}
+        self.history_filter_users = {}
 
         self.interacted_users_path = os.path.join(
             self.account_path, FILENAME_INTERACTED_USERS
         )
-        if os.path.exists(self.interacted_users_path):
+        if os.path.isfile(self.interacted_users_path):
             with open(self.interacted_users_path, encoding="utf-8") as json_file:
                 try:
                     self.interacted_users = json.load(json_file)
@@ -48,12 +50,11 @@ class Storage:
                         f"Please check {json_file.name}, it contains this error: {e}"
                     )
                     sys.exit(0)
-
         self.history_filter_users_path = os.path.join(
             self.account_path, FILENAME_HISTORY_FILTER_USERS
         )
 
-        if os.path.exists(self.history_filter_users_path):
+        if os.path.isfile(self.history_filter_users_path):
             with open(self.history_filter_users_path, encoding="utf-8") as json_file:
                 try:
                     self.history_filter_users = json.load(json_file)
@@ -62,7 +63,6 @@ class Storage:
                         f"Please check {json_file.name}, it contains this error: {e}"
                     )
                     sys.exit(0)
-
         self.filter_path = os.path.join(self.account_path, FILTER)
         if not os.path.exists(self.filter_path):
             self.filter_path = os.path.join(self.account_path, OLD_FILTER)
