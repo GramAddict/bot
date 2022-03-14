@@ -46,6 +46,7 @@ def interact(
     device,
     session_state,
     current_job,
+    target,
     on_interaction,
 ):
     can_follow = False
@@ -68,7 +69,7 @@ def interact(
         storage.add_interacted_user,
         session_id=session_state.id,
         job_name=current_job,
-        target=username,
+        target=target,
     )
 
     add_interacted_user(
@@ -123,14 +124,15 @@ def handle_blogger(
             extra={"color": f"{Fore.YELLOW}"},
         )
         if not interact(
-            storage,
-            is_follow_limit_reached,
-            blogger,
-            interaction,
-            device,
-            session_state,
-            current_job,
-            on_interaction,
+            storage=storage,
+            is_follow_limit_reached=is_follow_limit_reached,
+            username=blogger,
+            interaction=interaction,
+            device=device,
+            session_state=session_state,
+            current_job=current_job,
+            target=blogger,
+            on_interaction=on_interaction,
         ):
             return
 
@@ -230,14 +232,15 @@ def handle_blogger_from_file(
                         continue
 
                     if not interact(
-                        storage,
-                        is_follow_limit_reached,
-                        username,
-                        interaction,
-                        device,
-                        self.session_state,
-                        current_job,
-                        on_interaction,
+                        storage=storage,
+                        is_follow_limit_reached=is_follow_limit_reached,
+                        username=username,
+                        interaction=interaction,
+                        device=device,
+                        session_state=self.session_state,
+                        current_job=current_job,
+                        target=username,
+                        on_interaction=on_interaction,
                     ):
                         return
                     device.back()
@@ -395,14 +398,15 @@ def handle_likers(
                         element_opened = username_view.click_retry()
 
                         if element_opened and not interact(
-                            storage,
-                            is_follow_limit_reached,
-                            username,
-                            interaction,
-                            device,
-                            session_state,
-                            current_job,
-                            on_interaction,
+                            storage=storage,
+                            is_follow_limit_reached=is_follow_limit_reached,
+                            username=username,
+                            interaction=interaction,
+                            device=device,
+                            session_state=session_state,
+                            current_job=current_job,
+                            target=target,
+                            on_interaction=on_interaction,
                         ):
                             return
                     if element_opened:
@@ -597,7 +601,9 @@ def handle_posts(
                             UniversalActions.detect_block(device)
                             liked = post_view_list._check_if_liked()
                             if not liked:
-                                post_view_list._like_in_post_view(LikeMode.SINGLE_CLICK)
+                                post_view_list._like_in_post_view(
+                                    LikeMode.SINGLE_CLICK, already_watched=True
+                                )
                                 UniversalActions.detect_block(device)
                                 liked = post_view_list._check_if_liked()
                             if liked:
@@ -632,14 +638,15 @@ def handle_posts(
                         )
                         if opened:
                             if not interact(
-                                storage,
-                                is_follow_limit_reached,
-                                username,
-                                interaction,
-                                device,
-                                session_state,
-                                current_job,
-                                on_interaction,
+                                storage=storage,
+                                is_follow_limit_reached=is_follow_limit_reached,
+                                username=username,
+                                interaction=interaction,
+                                device=device,
+                                session_state=session_state,
+                                current_job=current_job,
+                                target=target,
+                                on_interaction=on_interaction,
                             ):
                                 break
                             device.back()
@@ -670,37 +677,6 @@ def handle_followers(
     is_myself = username == session_state.my_username
     if not nav_to_blogger(device, username, current_job):
         return
-
-    def scroll_to_bottom(self, device):
-        logger.info("Scroll to bottom.")
-
-        def is_end_reached():
-            see_all_button = device.find(
-                resourceId=self.ResourceID.SEE_ALL_BUTTON,
-                className=ClassName.TEXT_VIEW,
-            )
-            return see_all_button.exists()
-
-        list_view = device.find(
-            resourceId=self.ResourceID.LIST, className=ClassName.LIST_VIEW
-        )
-        while not is_end_reached():
-            list_view.fling(Direction.DOWN)
-
-        logger.info("Scroll back to the first follower.")
-
-        def is_at_least_one_follower():
-            follower = device.find(
-                resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
-                className=ClassName.LINEAR_LAYOUT,
-            )
-            return follower.exists()
-
-        while not is_at_least_one_follower():
-            list_view.scroll(Direction.UP)
-
-        if is_myself:
-            scroll_to_bottom(device)
 
     iterate_over_followers(
         self,
@@ -748,7 +724,7 @@ def iterate_over_followers(
         screen_skipped_followers_count = 0
         scroll_end_detector.notify_new_page()
         user_list = device.find(
-            resourceId=self.ResourceID.FOLLOW_LIST_CONTAINER,
+            resourceIdMatches=self.ResourceID.USER_LIST_CONTAINER,
         )
         row_height, n_users = inspect_current_view(user_list)
         try:
@@ -802,14 +778,15 @@ def iterate_over_followers(
 
                     if element_opened:
                         if not interact(
-                            storage,
-                            is_follow_limit_reached,
-                            username,
-                            interaction,
-                            device,
-                            session_state,
-                            current_job,
-                            on_interaction,
+                            storage=storage,
+                            is_follow_limit_reached=is_follow_limit_reached,
+                            username=username,
+                            interaction=interaction,
+                            device=device,
+                            session_state=session_state,
+                            current_job=current_job,
+                            target=target,
+                            on_interaction=on_interaction,
                         ):
                             return
                     if element_opened:
