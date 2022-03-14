@@ -268,7 +268,9 @@ def open_instagram(device):
     n = 0
     while device.deviceV2.info["currentPackageName"] != app_id:
         if n == max_tries:
-            logger.critical("Unable to open Instagram. Bot will stop.")
+            logger.critical(
+                f"Unable to open Instagram. Bot will stop. Current package name: {device.deviceV2.info['currentPackageName']} (Looking for {app_id}"
+            )
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
@@ -489,11 +491,9 @@ def save_crash(device):
     g_log_file_name, g_logs_dir, _, _ = get_log_file_config()
     src_file = os.path.join(g_logs_dir, g_log_file_name)
     target_file = os.path.join(crash_path, "logs.txt")
-    shutil.copy(src_file, target_file)
-
+    trim_txt(source=src_file, target=target_file)  # copy logs trimmed
     shutil.make_archive(crash_path, "zip", crash_path)
     shutil.rmtree(crash_path)
-
     logger.info(
         f"Crash saved as {crash_path}.zip",
         extra={"color": Fore.GREEN},
@@ -511,6 +511,22 @@ def save_crash(device):
             logger.error(
                 f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
+
+
+def trim_txt(source: str, target: str) -> None:
+    with open(source, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    tail = next(
+        (
+            index
+            for index, line in enumerate(lines[::-1])
+            if line.find("Arguments used:") != -1
+        ),
+        250,
+    )
+    rem = lines[-tail:]
+    with open(target, "w", encoding="utf-8") as f:
+        f.writelines(rem)
 
 
 def stop_bot(device, sessions, session_state, was_sleeping=False):
@@ -713,12 +729,18 @@ def inspect_current_view(user_list) -> Tuple[int, int]:
     """
     user_list.wait()
     lst = [item.get_height() for item in user_list if item.wait()]
+    if not lst:
+        raise EmptyList
     row_height, n_users = Counter(lst).most_common()[0]
     logger.debug(f"There are {n_users} users fully visible in that view.")
     return row_height, n_users
 
 
 class ActionBlockedError(Exception):
+    pass
+
+
+class EmptyList(Exception):
     pass
 
 
