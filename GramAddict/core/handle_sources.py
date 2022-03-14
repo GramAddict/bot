@@ -58,6 +58,7 @@ def interact(
     (
         interaction_succeed,
         followed,
+        requested,
         scraped,
         pm_sent,
         number_of_liked,
@@ -75,6 +76,7 @@ def interact(
     add_interacted_user(
         username,
         followed=followed,
+        is_requested=requested,
         scraped=scraped,
         liked=number_of_liked,
         watched=number_of_watched,

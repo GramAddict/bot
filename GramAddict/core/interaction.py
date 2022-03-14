@@ -68,7 +68,7 @@ def interact_with_user(
     session_state,
     scraping_file,
     current_mode,
-) -> Tuple[bool, bool, bool, bool, int, int, int]:
+) -> Tuple[bool, bool, bool, bool, bool, int, int, int]:
     """
     :return: (whether interaction succeed, whether @username was followed during the interaction, if you scraped that account, if you sent a PM, number of liked, number of watched, number of commented)
     """
@@ -76,12 +76,15 @@ def interact_with_user(
     number_of_watched = 0
     number_of_commented = 0
     comment_done = interacted = followed = scraped = sent_pm = False
-
+    logger.debug("Checking profile..")
+    start_time = time()
+    profile_data, skipped = profile_filter.check_profile(device, username)
     if username == my_username:
         logger.info("It's you, skip.")
         return (
             interacted,
             followed,
+            profile_data.is_private,
             scraped,
             sent_pm,
             number_of_liked,
@@ -89,15 +92,13 @@ def interact_with_user(
             number_of_commented,
         )
 
-    logger.debug("Checking profile..")
-    start_time = time()
-    profile_data, skipped = profile_filter.check_profile(device, username)
     if skipped:
         delta = format(time() - start_time, ".2f")
         logger.debug(f"Profile checked in {delta}s")
         return (
             interacted,
             followed,
+            profile_data.is_private,
             scraped,
             sent_pm,
             number_of_liked,
@@ -132,6 +133,7 @@ def interact_with_user(
                 return (
                     interacted,
                     followed,
+                    profile_data.is_private,
                     scraped,
                     sent_pm,
                     number_of_liked,
@@ -143,6 +145,7 @@ def interact_with_user(
             return (
                 interacted,
                 followed,
+                profile_data.is_private,
                 scraped,
                 sent_pm,
                 number_of_liked,
@@ -161,6 +164,7 @@ def interact_with_user(
         return (
             interacted,
             followed,
+            profile_data.is_private,
             scraped,
             sent_pm,
             number_of_liked,
@@ -192,6 +196,7 @@ def interact_with_user(
             return (
                 interacted,
                 followed,
+                profile_data.is_private,
                 scraped,
                 sent_pm,
                 number_of_liked,
@@ -338,6 +343,7 @@ def interact_with_user(
     return (
         interacted,
         followed,
+        profile_data.is_private,
         scraped,
         sent_pm,
         number_of_liked,

@@ -269,7 +269,7 @@ def open_instagram(device):
     while device.deviceV2.info["currentPackageName"] != app_id:
         if n == max_tries:
             logger.critical(
-                f"Unable to open Instagram. Bot will stop. Current package name: {device.deviceV2.info['currentPackageName']} (Looking for {app_id}"
+                f"Unable to open Instagram. Bot will stop. Current package name: {device.deviceV2.info['currentPackageName']} (Looking for {app_id})"
             )
             return False
         n += 1

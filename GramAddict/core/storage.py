@@ -127,6 +127,7 @@ class Storage:
         username,
         session_id,
         followed=False,
+        is_requested=None,
         unfollowed=False,
         scraped=False,
         liked=0,
@@ -140,7 +141,10 @@ class Storage:
         user[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if followed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
+            if is_requested:
+                user[USER_FOLLOWING_STATUS] = FollowingStatus.REQUESTED.name.casefold()
+            else:
+                user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
         elif unfollowed:
             user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.casefold()
         elif scraped:
@@ -221,6 +225,7 @@ class Storage:
 class FollowingStatus(Enum):
     NONE = 0
     FOLLOWED = 1
-    UNFOLLOWED = 2
-    NOT_IN_LIST = 3
-    SCRAPED = 4
+    REQUESTED = 2
+    UNFOLLOWED = 3
+    NOT_IN_LIST = 4
+    SCRAPED = 5
