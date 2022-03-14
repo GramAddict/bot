@@ -269,7 +269,7 @@ class CoreArguments(Plugin):
             {
                 "arg": "--max-comments-pro-user",
                 "nargs": None,
-                "help": "limit on max possibile comments for each interacted user",
+                "help": "limit on max possible comments for each interacted user",
                 "metavar": "1-2",
                 "default": "1",
             },

@@ -112,6 +112,7 @@ class Profile(object):
         self.biography = biography
         self.link_in_bio = link_in_bio
         self.fullname = fullname
+        self.potency_ratio = None
 
     def set_followers_and_following(
         self, followers: Optional[int], followings: Optional[int]
@@ -122,8 +123,6 @@ class Profile(object):
             self.potency_ratio = (
                 0 if self.followings == 0 else self.followers / self.followings
             )
-        else:
-            self.potency_ratio = None
 
 
 class Filter:
@@ -285,7 +284,7 @@ class Filter:
 
         if profile_data.is_private and field_skip_if_public:
             logger.info(
-                f"@{username} has public account and you want to interract only private, skip.",
+                f"@{username} has public account and you want to interact only private, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
@@ -293,7 +292,7 @@ class Filter:
             )
         elif profile_data.is_private and field_skip_if_private:
             logger.info(
-                f"@{username} has private account and you want to interract only public, skip.",
+                f"@{username} has private account and you want to interact only public, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
