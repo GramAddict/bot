@@ -969,8 +969,14 @@ def _watch_stories(
                 or story_username.strip().upper() == username.upper()
             ):
                 start = datetime.now()
-                if not watch_story():
-                    return stories_counter
+                try:
+                    if not watch_story():
+                        return stories_counter
+                except Exception as e:
+                    logger.debug(f"Exception: {e}")
+                    logger.debug(
+                        "Ignore this error! Stories ended while we were interacting with it."
+                    )
                 for _ in range(stories_to_watch - 1):
                     try:
                         logger.debug("Going to the next story...")
@@ -984,7 +990,7 @@ def _watch_stories(
                     except Exception as e:
                         logger.debug(f"Exception: {e}")
                         logger.debug(
-                            "Ignore this error! Stories ended while we were pressing on the next one."
+                            "Ignore this error! Stories ended while we were interacting with it."
                         )
                         break
                 for _ in range(4):
