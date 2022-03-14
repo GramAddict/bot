@@ -26,6 +26,12 @@ def cmd_init(args):
                 )
             else:
                 print(f"'accounts/{username}' folder already exists, skip.")
+                continue
+            with open(f"./accounts/{username}/config.yml", "r+", encoding="utf-8") as f:
+                config = f.read()
+                f.seek(0)
+                config_fixed = config.replace("myusername", username)
+                f.write(config_fixed)
     else:
         print("You have to provide at last one account name..")
 
