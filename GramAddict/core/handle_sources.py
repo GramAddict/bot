@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import timedelta
 from functools import partial
 from os import path
 
@@ -110,8 +109,9 @@ def handle_blogger(
     else:
         interacted, interacted_when = storage.check_user_was_interacted(blogger)
         if interacted:
-            interact_after = timedelta(hours=float(self.args.can_reinteract_after))
-            can_reinteract = storage.can_be_reinteract(interacted_when, interact_after)
+            can_reinteract = storage.can_be_reinteract(
+                interacted_when, get_value(self.args.can_reinteract_after, None, 0)
+            )
             logger.info(
                 f"@{blogger}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
             )
@@ -209,11 +209,9 @@ def handle_blogger_from_file(
                             interacted_when,
                         ) = storage.check_user_was_interacted(username)
                         if interacted:
-                            interact_after = timedelta(
-                                hours=float(self.args.can_reinteract_after)
-                            )
                             can_reinteract = storage.can_be_reinteract(
-                                interacted_when, interact_after
+                                interacted_when,
+                                get_value(self.args.can_reinteract_after, None, 0),
                             )
                             logger.info(
                                 f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
@@ -378,11 +376,9 @@ def handle_likers(
                             interacted_when,
                         ) = storage.check_user_was_interacted(username)
                         if interacted:
-                            interact_after = timedelta(
-                                hours=float(self.args.can_reinteract_after)
-                            )
                             can_reinteract = storage.can_be_reinteract(
-                                interacted_when, interact_after
+                                interacted_when,
+                                get_value(self.args.can_reinteract_after, None, 0),
                             )
                             logger.info(
                                 f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
@@ -562,11 +558,9 @@ def handle_posts(
                             username
                         )
                         if interacted:
-                            interact_after = timedelta(
-                                hours=float(self.args.can_reinteract_after)
-                            )
                             can_reinteract = storage.can_be_reinteract(
-                                interacted_when, interact_after
+                                interacted_when,
+                                get_value(self.args.can_reinteract_after, None, 0),
                             )
                             logger.info(
                                 f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
@@ -756,11 +750,9 @@ def iterate_over_followers(
                         username
                     )
                     if interacted:
-                        interact_after = timedelta(
-                            hours=float(self.args.can_reinteract_after)
-                        )
                         can_reinteract = storage.can_be_reinteract(
-                            interacted_when, interact_after
+                            interacted_when,
+                            get_value(self.args.can_reinteract_after, None, 0),
                         )
                         logger.info(
                             f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
