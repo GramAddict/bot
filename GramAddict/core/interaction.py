@@ -931,6 +931,9 @@ def _watch_stories(
         limit_type=session_state.Limit.WATCHES, output=True
     ):
 
+        def is_live_video() -> bool:
+            return device.find(resourceIdMatches=ResourceID.IGLIVE_REEL_LAYOUT).exists()
+
         def watch_story() -> bool:
             if session_state.check_limit(
                 limit_type=session_state.Limit.WATCHES, output=False
@@ -942,7 +945,7 @@ def _watch_stories(
             stories_counter += 1
             for _ in range(7):
                 random_sleep(0.5, 1, modulable=False, log=False)
-                if story_view.getUsername().strip().upper() != username.upper():
+                if story_view.getUsername().strip().casefold() != username.casefold():
                     return False
             like_story()
             return True
@@ -959,20 +962,28 @@ def _watch_stories(
                 logger.info("There is no like button!")
 
         stories_ring = profile_view.StoryRing()
+        live_marker = profile_view.live_marker()
+        if live_marker.exists():
+            logger.info(f"{username} is making a live.")
+            return None
         if stories_ring.exists():
             stories_to_watch: int = get_value(
                 args.stories_count, "Stories count: {}.", 1
             )
             stories_counter = 0
             logger.debug("Open the story container.")
-            stories_ring.click(sleep=SleepTime.SHORT)
+            stories_ring.click(sleep=SleepTime.DEFAULT)
+            if is_live_video:
+                logger.info("It's a live video, skip.")
+                device.back()
+                return stories_counter
             story_view = CurrentStoryView(device)
             story_frame = story_view.getStoryFrame()
             story_frame.wait(Timeout.MEDIUM)
             story_username = story_view.getUsername()
             if (
                 story_username == "BUG!"
-                or story_username.strip().upper() == username.upper()
+                or story_username.strip().casefold() == username.casefold()
             ):
                 start = datetime.now()
                 try:
@@ -1000,7 +1011,10 @@ def _watch_stories(
                         )
                         break
                 for _ in range(4):
-                    if story_view.getUsername().strip().upper() == username.upper():
+                    if (
+                        story_view.getUsername().strip().casefold()
+                        == username.casefold()
+                    ):
                         device.back()
                     else:
                         break
@@ -1013,6 +1027,10 @@ def _watch_stories(
                 return stories_counter
             else:
                 logger.warning("Failed to open the story container.")
+                logger.debug(f"Story username: {story_username}")
+                save_crash(device)
+                if story_frame.exists():
+                    device.back()
                 return False
         return 0
     else:

@@ -54,6 +54,7 @@ class ResourceID:
         self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
             f"{APP_ID}:id/igds_headline_emphasized_headline"
         )
+        self.IGLIVE_REEL_LAYOUT = f"{APP_ID}:id/iglive_reel_layout"
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
         self.INDICATOR = f"{APP_ID}:id/indicator"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
@@ -64,6 +65,7 @@ class ResourceID:
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
         self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
+        self.LIVE_BADGE_VIEW = f"{APP_ID}:id/live_badge_view"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
         self.MEDIA_CONTENT_LOCATION = f"{APP_ID}:id/media_content_location"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
@@ -229,6 +231,7 @@ class ClassName:
     EDIT_TEXT = "android.widget.EditText"
     FRAME_LAYOUT = "android.widget.FrameLayout"
     HORIZONTAL_SCROLL_VIEW = "android.widget.HorizontalScrollView"
+    IMAGE = "android.widget.Image"
     IMAGE_VIEW = "android.widget.ImageView"
     LIST_VIEW = "android.widget.ListView"
     LINEAR_LAYOUT = "android.widget.LinearLayout"
