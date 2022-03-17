@@ -11,6 +11,7 @@ from uiautomator2.exceptions import UiObjectNotFoundError
 from GramAddict.core.device_facade import DeviceFacade
 from GramAddict.core.report import print_full_report
 from GramAddict.core.utils import (
+    check_if_crash_popup_is_there,
     close_instagram,
     open_instagram,
     random_sleep,
@@ -128,6 +129,7 @@ def restart(
             stop_bot(device, sessions, session_state)
         logger.info("Something unexpected happened. Let's try again.")
     close_instagram(device)
+    check_if_crash_popup_is_there(device)
     random_sleep()
     if not open_instagram(device):
         print_full_report(sessions, configs.args.scrape_to_file)
