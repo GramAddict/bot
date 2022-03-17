@@ -153,7 +153,7 @@ def handle_blogger_from_file(
     on_following_list = False
     limit_reached = False
 
-    filename = parameter_passed.split(" ")[0]
+    filename: str = os.path.join(storage.account_path, parameter_passed.split(" ")[0])
     try:
         amount_of_users = get_value(parameter_passed.split(" ")[1], None, 10)
     except IndexError:
