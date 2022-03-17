@@ -85,8 +85,8 @@ class RemoveFollowersFromList(Plugin):
             with open(filename, "r", encoding="utf-8") as f:
                 nonempty_lines = [line.strip("\n") for line in f if line != "\n"]
                 logger.info(
-                    f"In this file there are {len(nonempty_lines)} entries.",
-                    extra={"color": f"{Fore.RED}"},
+                    f"In {filename} there are {len(nonempty_lines)} entries.",
+                    extra={"color": f"{Fore.GREEN}"},
                 )
                 f.seek(0)
                 ProfileView(self.device).navigateToFollowers()
@@ -118,5 +118,5 @@ class RemoveFollowersFromList(Plugin):
                 with atomic_write(filename, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
-            logger.warning(f"File {current_file} not found.")
+            logger.warning(f"File {filename} not found.")
             return
