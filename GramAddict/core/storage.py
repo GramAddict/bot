@@ -84,15 +84,19 @@ class Storage:
         self.report_path = os.path.join(self.account_path, REPORTS)
 
     def can_be_reinteract(
-        self, last_interaction: datetime, hours_that_have_to_pass: int
+        self, last_interaction: datetime, hours_that_have_to_pass: Optional[int]
     ) -> bool:
+        if hours_that_have_to_pass is None:
+            return False
         return self._check_time(
             last_interaction, timedelta(hours=hours_that_have_to_pass)
         )
 
     def can_be_unfollowed(
-        self, last_interaction: datetime, days_that_have_to_pass: int
+        self, last_interaction: datetime, days_that_have_to_pass: Optional[int]
     ) -> bool:
+        if days_that_have_to_pass is None:
+            return False
         return self._check_time(
             last_interaction, timedelta(days=days_that_have_to_pass)
         )

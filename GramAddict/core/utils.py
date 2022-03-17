@@ -566,13 +566,15 @@ def get_value(
     name: Optional[str],
     default: Union[int, float] = 0,
     its_time: bool = False,
-) -> Union[int, float]:
+) -> Optional[Union[int, float]]:
     def print_error() -> None:
         logger.error(
             f'Using default value instead of "{count}", because it must be '
             "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
 
+    if count is None:
+        return None
     parts = count.split("-")
     try:
         if len(parts) == 1:

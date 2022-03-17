@@ -141,7 +141,7 @@ class CoreArguments(Plugin):
                 "nargs": None,
                 "help": "amount of hours that have to pass from the last interaction",
                 "metavar": "50",
-                "default": "-1",
+                "default": None,
             },
             {
                 "arg": "--repeat",
