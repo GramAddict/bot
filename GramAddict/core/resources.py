@@ -198,6 +198,7 @@ class ResourceID:
             f"{self.ROW_FEED_HEADLINE}|{self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT}"
         )
         self.USER_LIST_CONTAINER = f"{self.FOLLOW_LIST_CONTAINER}|{self.ROW_USER_CONTAINER_BASE}|{self.RECOMMENDED_USER_ROW_CONTENT_IDENTIFIER}"
+        self.SEARCH_ROW_ITEM = f"{self.ROW_SEARCH_USER_USERNAME}|{self.ROW_HASHTAG_TEXTVIEW_TAG_NAME}|{self.ROW_PLACE_TITLE}"
 
         # android specific
         self.LIST = "android:id/list"

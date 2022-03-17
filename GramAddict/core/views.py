@@ -445,6 +445,7 @@ class SearchView:
         else:
             obj = self.device.find(
                 text=target,
+                resourceIdMatches=ResourceID.SEARCH_ROW_ITEM,
             )
         if obj.exists():
             obj.click()
