@@ -122,8 +122,8 @@ def interact_with_user(
             )
             if sent_pm:
                 interacted = True
-
-        if can_follow and profile_filter.can_follow_private_or_empty():
+        can_follow_private_or_empty = profile_filter.can_follow_private_or_empty()
+        if can_follow and can_follow_private_or_empty:
             if scraping_file is None:
                 followed = _follow(
                     device, username, follow_percentage, args, session_state, 0
@@ -141,7 +141,16 @@ def interact_with_user(
                     number_of_commented,
                 )
         else:
-            logger.info("Skip user.", extra={"color": f"{Fore.GREEN}"})
+            if not can_follow_private_or_empty:
+                logger.info(
+                    "follow_private_or_empty is disabled in filters. Skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
+            else:
+                logger.info(
+                    "Your follow-percentage is not 100%, not following this time. Skip.",
+                    extra={"color": f"{Fore.GREEN}"},
+                )
             return (
                 interacted,
                 followed,
