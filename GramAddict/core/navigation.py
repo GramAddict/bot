@@ -68,10 +68,10 @@ def nav_to_blogger(device, username, current_job):
             profile_view.navigateToFollowing()
     else:
         search_view = TabBarView(device).navigateToSearch()
-        profile_view = search_view.navigateToUsername(username)
-        if not profile_view:
+        if not search_view.navigate_to_target(username, current_job):
             return False
 
+        profile_view = ProfileView(device, is_own_profile=False)
         if _to_followers:
             logger.info(f"Open @{username} followers.")
             profile_view.navigateToFollowers()
@@ -85,11 +85,7 @@ def nav_to_blogger(device, username, current_job):
 def nav_to_hashtag_or_place(device, target, current_job):
     """navigate to hashtag/place/feed list"""
     search_view = TabBarView(device).navigateToSearch()
-    if (
-        not search_view.navigateToHashtag(target)
-        if current_job.startswith("hashtag")
-        else not search_view.navigateToPlaces(target)
-    ):
+    if not search_view.navigate_to_target(target, current_job):
         return False
 
     TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
@@ -126,7 +122,7 @@ def nav_to_post_likers(device, username, my_username):
         TabBarView(device).navigateToProfile()
     else:
         search_view = TabBarView(device).navigateToSearch()
-        if not search_view.navigateToUsername(username):
+        if not search_view.navigate_to_target(username, "account"):
             return False
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()

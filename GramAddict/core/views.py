@@ -303,7 +303,6 @@ class SearchView:
                 resourceIdMatches=case_insensitive_re(
                     ResourceID.ACTION_BAR_SEARCH_EDIT_TEXT
                 ),
-                className=ClassName.EDIT_TEXT,
             )
             if obj.exists(Timeout.LONG):
                 return obj
@@ -335,7 +334,6 @@ class SearchView:
     def _getPlaceRow(self):
         obj = self.device.find(
             resourceIdMatches=case_insensitive_re(ResourceID.ROW_PLACE_TITLE),
-            className=ClassName.TEXT_VIEW,
         )
         obj.wait(Timeout.MEDIUM)
         return obj
@@ -345,13 +343,11 @@ class SearchView:
             resourceIdMatches=case_insensitive_re(
                 ResourceID.FIXED_TABBAR_TABS_CONTAINER
             ),
-            className=ClassName.LINEAR_LAYOUT,
         )
         if tab_layout.exists():
             logger.debug("Tabs container exists!")
             tab_text_view = tab_layout.child(
                 resourceIdMatches=case_insensitive_re(ResourceID.TAB_BUTTON_NAME_TEXT),
-                className=ClassName.TEXT_VIEW,
                 textMatches=case_insensitive_re(tab.name),
             )
             if not tab_text_view.exists():
@@ -368,7 +364,6 @@ class SearchView:
             resourceIdMatches=case_insensitive_re(
                 ResourceID.FIXED_TABBAR_TABS_CONTAINER
             ),
-            className=ClassName.LINEAR_LAYOUT,
         )
         search_edit_text = self._getSearchEditText()
 
@@ -396,175 +391,65 @@ class SearchView:
                 return item
         return None
 
-    def navigateToUsername(self, username, interact_usernames=False):
-        already_typed = False
-        logger.debug(f"Search for @{username}.")
+    def navigate_to_target(self, target: str, job: str) -> bool:
+        target = emoji.emojize(target, use_aliases=True)
+        logger.info(f"Navigate to {target}")
         search_edit_text = self._getSearchEditText()
         if search_edit_text is not None:
             logger.debug("Pressing on searchbar.")
             search_edit_text.click(sleep=SleepTime.SHORT)
-        accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
-        if accounts_tab is None:
-            logger.error("Cannot find tab: ACCOUNTS. Will type first and change after.")
-            search_edit_text.set_text(
-                username, Mode.PASTE if args.dont_type else Mode.TYPE
-            )
-            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
-            if echo_text.exists(Timeout.SHORT):
-                logger.debug("Search by pressing on echo text.")
-                echo_text.click()
-            already_typed = True
-            accounts_tab = self._getTabTextView(SearchTabs.ACCOUNTS)
-        if accounts_tab is None:
-            logger.error("Cannot find tab: ACCOUNTS.")
-            save_crash(self.device)
-            return None
-        logger.debug("Pressing on accounts tab.")
-        accounts_tab.click(sleep=SleepTime.SHORT)
-
-        if not already_typed:
-            if interact_usernames:
-                search_edit_text.set_text(
-                    username, Mode.PASTE if args.dont_type else Mode.TYPE
-                )
-            else:
-                searched_user_recent = self._getUsernameRow(username)
-                if searched_user_recent.exists(Timeout.MEDIUM):
-                    searched_user_recent.click()
-                    return ProfileView(self.device, is_own_profile=False)
-                logger.debug(f"{username} not in recent searching history.")
-                if search_edit_text.exists():
-                    search_edit_text.set_text(
-                        username, Mode.PASTE if args.dont_type else Mode.TYPE
-                    )
-                else:
-                    return None
-        username_view = self._getUsernameRow(username)
-        if not username_view.exists(Timeout.MEDIUM):
-            logger.error(f"Cannot find user @{username}.")
-            return None
         else:
-            username_view.click()
-
-        return ProfileView(self.device, is_own_profile=False)
-
-    def navigateToHashtag(self, hashtag):
-        already_typed = False
-        logger.info(f"Navigate to hashtag {emoji.emojize(hashtag, use_aliases=True)}")
-        search_edit_text = self._getSearchEditText()
-        if search_edit_text is not None:
-            logger.debug("Pressing on searchbar.")
-            search_edit_text.click(sleep=SleepTime.SHORT)
-        hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
-        if hashtag_tab is None:
-            logger.debug("Cannot find tab: TAGS. Will type first and change after.")
-            search_edit_text.set_text(
-                emoji.emojize(hashtag, use_aliases=True),
-                Mode.PASTE if args.dont_type else Mode.TYPE,
-            )
-            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
-            if echo_text.exists(Timeout.SHORT):
-                logger.debug("Search by pressing on echo text.")
-                echo_text.click()
-            already_typed = True
-            hashtag_tab = self._getTabTextView(SearchTabs.TAGS)
-        if hashtag_tab is None:
-            logger.error("Cannot find tab: TAGS.")
-            save_crash(self.device)
-            return None
-        logger.debug("Pressing on tags tab.")
-        hashtag_tab.click(sleep=SleepTime.SHORT)
-        tabbar_container = self.device.find(
-            resourceId=ResourceID.FIXED_TABBAR_TABS_CONTAINER
+            logger.debug("There is no searchbar!")
+            return False
+        if self._check_current_view(target, job):
+            logger.info(f"{target} is in recent history.")
+            return True
+        search_edit_text.set_text(
+            target,
+            Mode.PASTE if args.dont_type else Mode.TYPE,
         )
-        if tabbar_container.exists(Timeout.SHORT):
-            delta = tabbar_container.get_bounds()["bottom"]
+        if self._check_current_view(target, job):
+            logger.info(f"{target} is in top view.")
+            return True
+        echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
+        if echo_text.exists(Timeout.SHORT):
+            logger.debug("Pressing on see all results.")
+            echo_text.click()
+        # at this point we have the tabs available
+        self._switch_to_target_tag(job)
+        if self._check_current_view(target, job, in_place_tab=True):
+            return True
+        return False
+
+    def _switch_to_target_tag(self, job: str):
+        if "place" in job:
+            tab = SearchTabs.PLACES
+        elif "hashtag" in job:
+            tab = SearchTabs.TAGS
         else:
-            delta = 375
-        if not already_typed:
-            hashtag_view_recent = self._getHashtagRow(
-                emoji.demojize(hashtag, use_aliases=True)[1:]
+            tab = SearchTabs.ACCOUNTS
+
+        obj = self._getTabTextView(tab)
+        if obj is not None:
+            logger.info(f"Switching to {tab.name}")
+            obj.click()
+
+    def _check_current_view(
+        self, target: str, job: str, in_place_tab: bool = False
+    ) -> bool:
+        if "place" in job:
+            if not in_place_tab:
+                return False
+            else:
+                obj = self._getPlaceRow()
+        else:
+            obj = self.device.find(
+                text=target,
             )
-
-            if hashtag_view_recent.exists(Timeout.MEDIUM):
-                hashtag_view_recent.click()
-                return HashTagView(self.device)
-
-            logger.info(
-                f"{emoji.emojize(hashtag, use_aliases=True)} is not in recent searching history.."
-            )
-            if not search_edit_text.exists():
-                search_edit_text = self._getSearchEditText()
-            search_edit_text.set_text(
-                emoji.emojize(hashtag, use_aliases=True),
-                Mode.PASTE if args.dont_type else Mode.TYPE,
-            )
-        hashtag_view = self._getHashtagRow(emoji.emojize(hashtag, use_aliases=True)[1:])
-
-        if not hashtag_view.exists(Timeout.MEDIUM):
-            UniversalActions(self.device)._swipe_points(
-                direction=Direction.DOWN,
-                start_point_y=randint(delta + 10, delta + 150),
-                delta_y=randint(150, 250),
-            )
-
-            hashtag_view = self._getHashtagRow(
-                emoji.emojize(hashtag, use_aliases=True)[1:]
-            )
-            if not hashtag_view.exists(Timeout.SHORT):
-                logger.error(
-                    f"Cannot find hashtag {emoji.emojize(hashtag, use_aliases=True)}."
-                )
-                return None
-
-        hashtag_view.click()
-
-        return HashTagView(self.device)
-
-    def navigateToPlaces(self, place):
-        already_typed = False
-        logger.info(f"Navigate to place {place}.")
-        search_edit_text = self._getSearchEditText()
-        if search_edit_text is not None:
-            logger.debug("Pressing on searchbar.")
-            search_edit_text.click(sleep=SleepTime.SHORT)
-        place_tab = self._getTabTextView(SearchTabs.PLACES)
-        if place_tab is None:
-            logger.debug("Cannot find tab: PLACE. Will type first and change after.")
-            search_edit_text.set_text(
-                place, Mode.PASTE if args.dont_type else Mode.TYPE
-            )
-            echo_text = self.device.find(resourceId=ResourceID.ECHO_TEXT)
-            if echo_text.exists(Timeout.SHORT):
-                logger.debug("Search by pressing on echo text.")
-                echo_text.click()
-            already_typed = True
-            place_tab = self._getTabTextView(SearchTabs.PLACES)
-        if place_tab is None:
-            logger.error("Cannot find tab: Places.")
-            save_crash(self.device)
-            return None
-        logger.debug("Pressing on places tab.")
-        place_tab.click(sleep=SleepTime.SHORT)
-        if not already_typed:
-            search_edit_text.set_text(
-                place, Mode.PASTE if args.dont_type else Mode.TYPE
-            )
-
-        # After set_text we assume that the first occurrence It's correct
-        # That's because for example if we type: 'Italia' on my English device the first result is: 'Italy' (and it's correct)
-        # I mean, we can't search for text because 'Italia' != 'Italy', but It's also the correct item
-
-        place_view = self._getPlaceRow()
-
-        if not place_view.exists(Timeout.MEDIUM):
-            logger.error(f"Cannot find place {place}, abort.")
-            save_crash(self.device)
-            return None
-
-        place_view.click()
-
-        return PlacesView(self.device)
+        if obj.exists():
+            obj.click()
+            return True
+        return False
 
 
 class PostsViewList:
@@ -709,7 +594,7 @@ class PostsViewList:
             if hasattr(matches_likes, "group"):
                 likes = int(matches_likes.group("likes"))
                 logger.info(
-                    f"This post has {likes if 'likes' in likes_view_text else likes+1} like(s)."
+                    f"This post has {likes if 'likes' in likes_view_text else likes + 1} like(s)."
                 )
                 return likes
             elif hasattr(matches_view, "group"):
@@ -1543,16 +1428,12 @@ class ProfileView(ActionBarView):
         action_bar = self.device.find(
             resourceIdMatches=bar,
         )
-        if not watching_stories:
-            if action_bar.exists(Timeout.LONG):
-                return action_bar
-            else:
-                logger.error(
-                    "Unable to find action bar! (The element with the username at top)"
-                )
-                return None
-        else:
+        if not watching_stories and action_bar.exists(Timeout.LONG) or watching_stories:
             return action_bar
+        logger.error(
+            "Unable to find action bar! (The element with the username at top)"
+        )
+        return None
 
     def _getSomeText(self):
         obj = self.device.find(
@@ -1838,16 +1719,17 @@ class ProfileView(ActionBarView):
         )
         return private_profile_view.exists()
 
-    def StoryRing(self):
+    def StoryRing(self) -> DeviceFacade.View:
         return self.device.find(
             resourceId=ResourceID.REEL_RING,
-            className=ClassName.VIEW,
         )
+
+    def live_marker(self) -> DeviceFacade.View:
+        return self.device.find(resourceId=ResourceID.LIVE_BADGE_VIEW)
 
     def profileImage(self):
         return self.device.find(
             resourceId=ResourceID.ROW_PROFILE_HEADER_IMAGEVIEW,
-            className=ClassName.IMAGE_VIEW,
         )
 
     def navigateToFollowers(self):
@@ -2174,10 +2056,16 @@ class UniversalActions:
     @staticmethod
     def detect_block(device) -> bool:
         if not args.disable_block_detection:
-            return
+            return False
         logger.debug("Checking for block...")
         if "blocked" in device.deviceV2.toast.get_message(1.0, 2.0, default=""):
             logger.warning("Toast detected!")
+        serius_block = device.find(
+            className=ClassName.IMAGE,
+            textMatches=case_insensitive_re("Force reset password icon"),
+        )
+        if serius_block.exists():
+            raise ActionBlockedError("Serius block detected :(")
         block_dialog = device.find(
             resourceIdMatches=ResourceID.BLOCK_POPUP,
         )
