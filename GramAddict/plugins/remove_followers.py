@@ -22,7 +22,7 @@ class RemoveFollowersFromList(Plugin):
         self.description = "Remove followers from a list"
         self.arguments = [
             {
-                "arg": "--remove-followers-from-list",
+                "arg": "--remove-followers-from-file",
                 "help": "full path of plaintext file contains followers to be removed",
                 "nargs": "+",
                 "default": None,
@@ -30,7 +30,7 @@ class RemoveFollowersFromList(Plugin):
                 "operation": True,
             },
             {
-                "arg": "--delete-removed-follower-from-list",
+                "arg": "--delete-removed-follower-from-file",
                 "help": "delete the follower removed from the txt",
                 "action": "store_true",
             },
@@ -51,7 +51,7 @@ class RemoveFollowersFromList(Plugin):
         self.session_state = sessions[-1]
         self.current_mode = plugin
 
-        file_list = [file for file in self.args.remove_followers_from_list]
+        file_list = [file for file in self.args.remove_followers_from_file]
         shuffle(file_list)
 
         for filename in file_list:
@@ -114,7 +114,7 @@ class RemoveFollowersFromList(Plugin):
                         break
                 remaining = f.readlines()
 
-            if self.args.delete_removed_follower_from_list:
+            if self.args.delete_removed_follower_from_file:
                 with atomic_write(filename, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
