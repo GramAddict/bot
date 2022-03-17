@@ -23,12 +23,14 @@ dont-type: false
 # scrape-to-file: scraped.txt
 total-crashes-limit: 5
 count-app-crashes: false
+shuffle-jobs: true
+truncate-sources: 2-5
 
 ##############################################################################
 # Actions
 ##############################################################################
 
-## Interaction
+## Interaction (active jobs)
 blogger-followers: [ username1, username2 ]
 blogger-following: [ username1, username2 ]
 blogger-post-likers: [ username1, username2 ]
@@ -46,17 +48,12 @@ posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed
 
 ## Special modifier for jobs and sources
-shuffle-jobs: true
-truncate-sources: 2-5
-delete-interacted-users: true
 watch-video-time: 15-35
 watch-photo-time: 3-4
-# blogger-post-limits: 2 this feature is not implemented at this moment
-can-reinteract-after: -1 # -1 or commented for disable this feature, otherwise the amount of hours that have to pass from the last interaction
-# pre-script: pre_script_path_here
-# post-script: post_script_path_here
+# can-reinteract-after: 48 # the amount of hours that have to pass from the last interaction
+delete-interacted-users: true
 
-## Unfollow
+## Unfollow (unfollow jobs)
 unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
@@ -68,13 +65,19 @@ unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
 sort-followers-newest-to-oldest: false
 unfollow-by-date: 15
 
-## Remove followers
-remove-followers-from-list: [remove1.txt 5-10, remove2.txt 6]
-delete-removed-follower-from-list: true
+## Remove followers (active jobs)
+remove-followers-from-file: [remove1.txt 5-10, remove2.txt 6]
+
+## Special modifier for remove followers
+delete-removed-follower-from-file: true
 
 ## Post Processing
-analytics: false # no more supported
+# analytics: false # no more supported
 telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder
+
+## Special actions
+# pre-script: pre_script_path_here
+# post-script: post_script_path_here
 
 ##############################################################################
 # Source Limits
