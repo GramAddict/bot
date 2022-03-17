@@ -78,55 +78,53 @@ class LikeFromURLs(Plugin):
                 f.seek(0)
                 for line in f:
                     url = line.strip()
-                    if validate_url(url) and "instagram.com/p/" in url:
-                        if open_instagram_with_url(url):
+                    if (
+                        validate_url(url)
+                        and "instagram.com/p/" in url
+                        and open_instagram_with_url(url)
+                    ):
+                        already_liked, _ = opened_post_view._is_post_liked()
+                        if already_liked:
+                            logger.info("Post already liked!")
+                        else:
+                            _, content_desc = post_view_list._get_media_container()
 
-                            already_liked, _ = opened_post_view._is_post_liked()
-                            if already_liked:
-                                logger.info("Post already liked!")
-                            else:
-                                _, content_desc = post_view_list._get_media_container()
-
-                                (
-                                    media_type,
-                                    obj_count,
-                                ) = post_view_list.detect_media_type(content_desc)
-                                if media_type in (
-                                    MediaType.REEL,
-                                    MediaType.IGTV,
-                                    MediaType.VIDEO,
-                                ):
-                                    opened_post_view.start_video()
-                                    video_opened = opened_post_view.open_video()
-                                    if video_opened:
-                                        opened_post_view.watch_media(media_type)
-                                        like_succeed = opened_post_view.like_video()
-                                        logger.debug("Closing video...")
-                                        self.device.back()
-                                elif media_type in (
-                                    MediaType.CAROUSEL,
-                                    MediaType.PHOTO,
-                                ):
-                                    if media_type == MediaType.CAROUSEL:
-                                        _browse_carousel(self.device, obj_count)
+                            (
+                                media_type,
+                                obj_count,
+                            ) = post_view_list.detect_media_type(content_desc)
+                            if media_type in (
+                                MediaType.REEL,
+                                MediaType.IGTV,
+                                MediaType.VIDEO,
+                            ):
+                                opened_post_view.start_video()
+                                video_opened = opened_post_view.open_video()
+                                if video_opened:
                                     opened_post_view.watch_media(media_type)
-                                    like_succeed = opened_post_view.like_post()
+                                    like_succeed = opened_post_view.like_video()
+                                    logger.debug("Closing video...")
+                                    self.device.back()
+                            elif media_type in (
+                                MediaType.CAROUSEL,
+                                MediaType.PHOTO,
+                            ):
+                                if media_type == MediaType.CAROUSEL:
+                                    _browse_carousel(self.device, obj_count)
+                                opened_post_view.watch_media(media_type)
+                                like_succeed = opened_post_view.like_post()
 
-                                username, _, _ = post_view_list._post_owner(
-                                    self.current_mode, Owner.GET_NAME
+                            username, _, _ = post_view_list._post_owner(
+                                self.current_mode, Owner.GET_NAME
+                            )
+                            if like_succeed:
+                                register_like(self.device, self.session_state)
+                                logger.info(f"Like for: {url}, status: {like_succeed}")
+                                storage.add_interacted_user(
+                                    username, self.session_state.id, liked=1
                                 )
-                                if like_succeed:
-                                    register_like(self.device, self.session_state)
-                                    logger.info(
-                                        "Like for: {}, status: {}".format(
-                                            url, like_succeed
-                                        )
-                                    )
-                                    storage.add_interacted_user(
-                                        username, self.session_state.id, liked=1
-                                    )
-                                else:
-                                    logger.info("Not able to like this post!")
+                            else:
+                                logger.info("Not able to like this post!")
                     logger.info("Going back..")
                     self.device.back()
                 remaining = f.readlines()
