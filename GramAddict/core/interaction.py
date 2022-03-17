@@ -940,9 +940,6 @@ def _watch_stories(
         limit_type=session_state.Limit.WATCHES, output=True
     ):
 
-        def is_live_video() -> bool:
-            return device.find(resourceIdMatches=ResourceID.IGLIVE_REEL_LAYOUT).exists()
-
         def watch_story() -> bool:
             if session_state.check_limit(
                 limit_type=session_state.Limit.WATCHES, output=False
@@ -982,10 +979,6 @@ def _watch_stories(
             stories_counter = 0
             logger.debug("Open the story container.")
             stories_ring.click(sleep=SleepTime.DEFAULT)
-            if is_live_video:
-                logger.info("It's a live video, skip.")
-                device.back()
-                return stories_counter
             story_view = CurrentStoryView(device)
             story_frame = story_view.getStoryFrame()
             story_frame.wait(Timeout.MEDIUM)
