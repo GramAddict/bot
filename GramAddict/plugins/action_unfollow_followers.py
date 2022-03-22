@@ -89,7 +89,7 @@ class ActionUnfollowFollowers(Plugin):
                 "action": "store_true",
             },
             {
-                "arg": "--unfollow-by-date",
+                "arg": "--unfollow-delay",
                 "nargs": None,
                 "help": "unfollow users followed by the bot after x amount of days",
                 "metavar": "3",
@@ -339,10 +339,10 @@ class ActionUnfollowFollowers(Plugin):
                             continue
                         elif not storage.can_be_unfollowed(
                             last_interaction,
-                            get_value(self.args.unfollow_by_date, None, 0),
+                            get_value(self.args.unfollow_delay, None, 0),
                         ):
                             logger.info(
-                                f"@{username} has been followed less then {self.args.unfollow_by_date} days ago. Skip."
+                                f"@{username} has been followed less then {self.args.unfollow_delay} days ago. Skip."
                             )
                             continue
                         elif following_status == FollowingStatus.UNFOLLOWED:

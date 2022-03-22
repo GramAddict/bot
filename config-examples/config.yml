@@ -63,7 +63,7 @@ unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
 
 ## Special modifier for unfollow jobs
 sort-followers-newest-to-oldest: false
-unfollow-by-date: 15
+unfollow-delay: 15
 
 ## Remove followers (active jobs)
 remove-followers-from-file: [remove1.txt 5-10, remove2.txt 6]
