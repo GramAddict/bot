@@ -4,7 +4,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from enum import Enum, unique
-from typing import Optional
+from typing import Optional, Union
 
 from atomicwrites import atomic_write
 
@@ -84,10 +84,14 @@ class Storage:
         self.report_path = os.path.join(self.account_path, REPORTS)
 
     def can_be_reinteract(
-        self, last_interaction: datetime, hours_that_have_to_pass: Optional[int]
+        self,
+        last_interaction: datetime,
+        hours_that_have_to_pass: Optional[Union[int, float]],
     ) -> bool:
         if hours_that_have_to_pass is None:
             return False
+        elif hours_that_have_to_pass == 0:
+            return True
         return self._check_time(
             last_interaction, timedelta(hours=hours_that_have_to_pass)
         )

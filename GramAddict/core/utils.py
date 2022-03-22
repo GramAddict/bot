@@ -578,7 +578,10 @@ def get_value(
     parts = count.split("-")
     try:
         if len(parts) == 1:
-            value = int(count)
+            if "." in count:
+                value = float(count)
+            else:
+                value = int(count)
         elif len(parts) == 2:
             if not its_time:
                 value = randint(int(parts[0]), int(parts[1]))
