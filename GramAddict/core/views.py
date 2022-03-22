@@ -183,7 +183,7 @@ class TabBarView:
             if not button.exists():
                 button = self._get_new_profile_position()
 
-        if button is not None or button.exists(Timeout.MEDIUM):
+        if button is not None and button.exists(Timeout.MEDIUM):
             # Two clicks to reset tab content
             button.click(sleep=SleepTime.SHORT)
             if tab is not TabBarTabs.PROFILE:
