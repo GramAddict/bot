@@ -1,4 +1,34 @@
 # Changelog
+## 3.2.0 (2022-03-23)
+### New Features
+- `unfollow` and `unfollow-non-followers` now check for when you last interacted with each user. Using the argument `unfollow-delay` you can specify the number of days that have to have passed since the last interaction
+- after watching a story, the bot will now like it
+- with `count-app-crashes` you can tell the bot to count app crashes as a crash for `total-crashes-limit` (default False)
+- using the argument `remove-followers-from-file`, the bot can now remove followers following you from a *.txt
+### Fix
+- when interacting with the last picture of a profile, the bot could crash
+- following suggested people instead of target account
+- missing block detection for full screen mode (video)
+- profile is loaded false negative
+- avoid re-watching content if like fails
+### Performance improvements
+- new way to search for targets in search menu
+- no need to see limits for PM if you're not sending them
+- code has been cleaned and some functions have been merged
+- inspect current view for list of users, this will avoid pressing on bottom bar
+- set the screen timeout to 5 minutes if it's less than this value to avoid screen off issues
+- store the target source in json instead of a duplicate of the username
+- store request and followed status in json (it uses to be only followed)
+- using `app_current` instead `info` for checking if the app is opened
+- check for crash dialog when app crashes
+- check if it's a live video before opening a story
+- for actions with files (`interact-from-file`, `unfollow-form-file` and `remove-followers-from-file`) the script will look inside your account folder and no longer where you start the bot from
+### Others
+- bump version of UIA2
+- trim logs in crash reports
+- put your username inside the config when creating it with `gramaddict init username`
+- default value for `can-reinteract-after` is now "None" instead of "-1"
+- better logs when skipping profiles
 ## 3.1.5 (2022-02-07)
 ### Fix
 - `app_id` was None for them who used the tool in a fancy way (without using config files)
@@ -43,7 +73,7 @@
 ### Fix
 - in the new version (217..) the element for sorting following list has changed
 ### Performance improvements
--  better info when min-following is used in unfollow actions or you're trying to unfollow more people than the number you're following
+-  better info when min-following is used in unfollow actions, or you're trying to unfollow more people than the number you're following
 -  handle of malformed data in telegram-reports
 ## 3.0.2 (2022-01-10)
 ### Fix
@@ -74,7 +104,7 @@
 
 ### Performance improvements
 
-- jobs have been split in "active-" and "unfollow-" jobs. That means, for example, that the bot won't stop the activity if it reached the likes limit and you scheduled the unfollow.
+- jobs have been split in "active-" and "unfollow-" jobs. That means, for example, that the bot won't stop the activity if it reached the likes limit, and you scheduled to unfollow.
 - you can pass how many users have to be processed when working with \*.text (unfollow-from-list and interact-from-list)
 - bot flow improved
 - feed job improvements
@@ -179,7 +209,7 @@ Full set of changes: [`2.9.1...2.9.2`](https://github.com/GramAddict/bot/compare
 
 * module version thanks to @patbengr
 * if a username in *.txt file is not found, it will be appended to a *_not_found.txt
-* from now you can customize the session ending conditions
+* from now, you can customize the session ending conditions
 #### Fixes
 
 * compatibility with IG: 208.0.0.32.135
@@ -211,7 +241,7 @@ Full set of changes: [`2.8.0...2.9.0`](https://github.com/GramAddict/bot/compare
 #### New Features
 
 * new filters: 'skip_if_link_in_bio: true/false' and 'mutual_friends: a_number' min count
-* new feature added: pre and post script execution
+* new feature added: pre- and post-script execution
 
 Full set of changes: [`2.7.7...2.8.0`](https://github.com/GramAddict/bot/compare/2.7.7...2.8.0)
 
@@ -276,7 +306,7 @@ Full set of changes: [`2.7.2...2.7.3`](https://github.com/GramAddict/bot/compare
 * bug in open post container when someone in your 'following list' has also liked the post
 #### Performance improvements
 
-* lowered a little bit the swipe up in sorting `Following accounts`
+* lowered a little the swipe up in sorting `Following accounts`
 
 Full set of changes: [`2.7.1...2.7.2`](https://github.com/GramAddict/bot/compare/2.7.1...2.7.2)
 
@@ -287,7 +317,7 @@ Full set of changes: [`2.7.1...2.7.2`](https://github.com/GramAddict/bot/compare
 * you can dump your current screen with that command `gramaddict dump`
 #### Performance improvements
 
-* we don't need to click on a obj if we are already on it
+* we don't need to click on an obj if we are already on it
 
 Full set of changes: [`2.7.0...2.7.1`](https://github.com/GramAddict/bot/compare/2.7.0...2.7.1)
 
