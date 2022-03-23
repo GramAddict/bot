@@ -69,7 +69,7 @@ unfollow-delay: 15
 remove-followers-from-file: [remove1.txt 5-10, remove2.txt 6]
 
 ## Special modifier for remove followers
-delete-removed-follower-from-file: true
+delete-removed-followers: true
 
 ## Post Processing
 # analytics: false # no more supported

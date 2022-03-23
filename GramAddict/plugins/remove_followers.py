@@ -30,8 +30,8 @@ class RemoveFollowersFromList(Plugin):
                 "operation": True,
             },
             {
-                "arg": "--delete-removed-follower-from-file",
-                "help": "delete the follower removed from the txt",
+                "arg": "--delete-removed-followers",
+                "help": "delete the followers removed from the txt",
                 "action": "store_true",
             },
         ]
@@ -114,7 +114,7 @@ class RemoveFollowersFromList(Plugin):
                         break
                 remaining = f.readlines()
 
-            if self.args.delete_removed_follower_from_file:
+            if self.args.delete_removed_followers:
                 with atomic_write(filename, overwrite=True, encoding="utf-8") as f:
                     f.writelines(remaining)
         else:
