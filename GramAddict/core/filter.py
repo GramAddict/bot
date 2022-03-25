@@ -170,7 +170,7 @@ class Filter:
                     logger.info(f"{k:<35} {v}", extra={"color": f"{Fore.WHITE}"})
         else:
             logger.warning(
-                "The filters file doesn't exists in your account folder. Download and use it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
+                "The filters file doesn't exists in your account folder. Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
             )
 
     def is_num_likers_in_range(self, likes_on_post: str) -> bool:
