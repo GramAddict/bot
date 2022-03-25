@@ -1,4 +1,8 @@
 # Changelog
+## 3.2.1 (2022-03-25)
+### Fix
+- default value for `unfollow-delay` was an integer instead of a string
+- story_watcher returned Optional\[Union\[bool, int]] instead of int
 ## 3.2.0 (2022-03-23)
 ### New Features
 - `unfollow` and `unfollow-non-followers` now check for when you last interacted with each user. Using the argument `unfollow-delay` you can specify the number of days that have to have passed since the last interaction
