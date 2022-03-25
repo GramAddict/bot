@@ -109,7 +109,7 @@ class Storage:
         self, stored_time: Optional[datetime], limit_time: timedelta
     ) -> bool:
         if stored_time is None or limit_time == timedelta(hours=0):
-            return False
+            return True
         return datetime.now() - stored_time >= limit_time
 
     def check_user_was_interacted(self, username):

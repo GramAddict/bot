@@ -93,7 +93,7 @@ class ActionUnfollowFollowers(Plugin):
                 "nargs": None,
                 "help": "unfollow users followed by the bot after x amount of days",
                 "metavar": "3",
-                "default": 0,
+                "default": "0",
             },
         ]
 
