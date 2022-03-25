@@ -933,7 +933,7 @@ def _watch_stories(
     stories_percentage: int,
     args: Namespace,
     session_state: SessionState,
-):
+) -> int:
     if not random_choice(stories_percentage):
         return 0
     if not session_state.check_limit(
@@ -971,7 +971,7 @@ def _watch_stories(
         live_marker = profile_view.live_marker()
         if live_marker.exists():
             logger.info(f"{username} is making a live.")
-            return None
+            return 0
         if stories_ring.exists():
             stories_to_watch: int = get_value(
                 args.stories_count, "Stories count: {}.", 1
@@ -1033,8 +1033,8 @@ def _watch_stories(
                 save_crash(device)
                 if story_frame.exists():
                     device.back()
-                return False
+                return 0
         return 0
     else:
         logger.info("Reached total watch limit, not watching stories.")
-        return False
+        return 0
