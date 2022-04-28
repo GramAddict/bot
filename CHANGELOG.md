@@ -1,4 +1,8 @@
 # Changelog
+## 3.2.2 (2022-04-28)
+### Fix
+- deprecated method uiautomator2 side that cause that error:
+  >AttributeError: 'Session or Device' object has no attribute '_is_alive'
 ## 3.2.1 (2022-03-25)
 ### Fix
 - default value for `unfollow-delay` was an integer instead of a string
