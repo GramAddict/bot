@@ -127,10 +127,10 @@ class DeviceFacade:
             raise DeviceFacade.JsonRpcError(e)
         return DeviceFacade.View(view=view, device=self.deviceV2)
 
-    def back(self):
+    def back(self, modulable: bool = True):
         logger.debug("Press back button.")
         self.deviceV2.press("back")
-        random_sleep()
+        random_sleep(modulable=modulable)
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=20):
         import imageio
