@@ -403,7 +403,7 @@ def countdown(seconds: int = 10, waiting_message: str = "") -> None:
 
 def choose_cloned_app(device) -> None:
     """if dialog box is displayed choose for original or cloned app"""
-    app_number = "1" if not configs.args.use_cloned_app else "2"
+    app_number = "2" if configs.args.use_cloned_app else "1"
     obj = device.find(resourceId=f"{ResourceID.MIUI_APP}{app_number}")
     if obj.exists(3):
         logger.debug(f"Cloned app menu exists. Pressing on app number {app_number}.")
@@ -564,7 +564,7 @@ def can_repeat(current_session, max_sessions: int) -> bool:
 def get_value(
     count: str,
     name: Optional[str],
-    default: Union[int, float] = 0,
+    default: Optional[Union[int, float]] = 0,
     its_time: bool = False,
 ) -> Optional[Union[int, float]]:
     def print_error() -> None:
@@ -575,23 +575,21 @@ def get_value(
 
     if count is None:
         return None
-    parts = count.split("-")
     try:
-        if len(parts) == 1:
-            if "." in count:
-                value = float(count)
-            else:
-                value = int(count)
-        elif len(parts) == 2:
+        if "." in count:
+            value = float(count)
+        else:
+            value = int(count)
+    except ValueError:
+        parts = count.split("-")
+        if len(parts) == 2:
             if not its_time:
                 value = randint(int(parts[0]), int(parts[1]))
             else:
                 value = round(uniform(int(parts[0]), int(parts[1])), 2)
         else:
-            raise ValueError
-    except ValueError:
-        value = default
-        print_error()
+            value = default
+            print_error()
     if name is not None:
         logger.info(name.format(value), extra={"color": Style.BRIGHT})
     return value
