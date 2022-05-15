@@ -48,11 +48,15 @@ def cmd_dump(args):
     import uiautomator2 as u2
     from colorama import Fore, Style
 
-    os.popen("adb shell pkill atx-agent").close()
-    d = u2.connect()
+    if not args.no_kill:
+        os.popen("adb shell pkill atx-agent").close()
+    try:
+        d = u2.connect(args.device)
+    except RuntimeError as err:
+        raise SystemExit(err)
 
-    def dump_hierarchy(d, path):
-        xml_dump = d.dump_hierarchy()
+    def dump_hierarchy(device, path):
+        xml_dump = device.dump_hierarchy()
         with open(path, "w", encoding="utf-8") as outfile:
             outfile.write(xml_dump)
 
@@ -99,6 +103,19 @@ _commands = [
         action=cmd_dump,
         command="dump",
         help="dump current screen",
+        flags=[
+            dict(
+                args=["--device"],
+                nargs=None,
+                default=None,
+                help="provide the device name if more then one connected",
+            ),
+            dict(
+                args=["--no-kill"],
+                action="store_true",
+                help="don't kill the uia2 demon",
+            ),
+        ],
     ),
 ]
 
