@@ -1,4 +1,8 @@
 # Changelog
+## 3.2.3 (2022-06-23)
+### Others
+- allow to pass device to dump
+- allot to don't to kill the demon while dumping
 ## 3.2.2 (2022-04-28)
 ### Fix
 - deprecated method uiautomator2 side that cause that error:
