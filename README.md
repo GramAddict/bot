@@ -31,7 +31,7 @@
     </a>
     <a href="https://github.com/GramAddict/bot#backers">
 	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat">
-    </a>  
+    </a>
     <a href="https://discord.gg/NK8PNEFGFF">
 	    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
     </a>
@@ -71,7 +71,7 @@ __No__ this bot is working through __adb__ and is powered by __uiautomator2__ wh
 ## Urra! I'll never get banned anymore with this bot!
 No no no, wait! 🤦
 You have to configure the bot for doing things as a human would do. Do you really spend all the day scrolling on Instagram? If yes contact a medic :P
-You don't have to do so many actions or Instagram will block you. That appends even if you do that by your hands.. Have you ever added a lot of people in a row and got blocked for that action? Or spamming people with a link in PM? 
+You don't have to do so many actions or Instagram will block you. That appends even if you do that by your hands.. Have you ever added a lot of people in a row and got blocked for that action? Or spamming people with a link in PM?
 __DON'T F*CKING DO THAT__
 
 __Be gently and anonymous and nobody will notice that you're botting, trust me__.
@@ -79,12 +79,12 @@ __Be gently and anonymous and nobody will notice that you're botting, trust me__
 ## Do I need a computer for running the bot?
 Yes, but you can also run it [directly on your phone](https://docs.gramaddict.org/#/termux)!!
 
-In any case, you can decide to use a physical device or an emulator (if you're under Windows I suggest you use [Memu](https://www.memuplay.com/)).
+In any case, you can decide to use a physical device or an emulator. If you're under Windows I suggest you use [Memu](https://www.memuplay.com/), under Mac OS we found out that [Android studio](https://developer.android.com/studio) works well (Installable with [homebrew](https://formulae.brew.sh/cask/android-studio)).
 For hosting the bot you can use:
 - your computer (with Windows, macOS, or Linux)
 - a Raspberry (which is a cheap little pc Linux based)
 
-## Cool! What can I do with this bot? 
+## Cool! What can I do with this bot?
 There are lots of __cool features__ you can use __for free__!
 - Works without rooting
 - Works with both emulators and physical devices
@@ -211,19 +211,37 @@ Adb stands for [Android Debug Bridge](https://developer.android.com/studio/comma
       > Android Debug Bridge version 1.0.41
       > Version 30.0.5-6877874
 
-### Step 4: Start the bot:
-This bot works only if your Instagram is in [English](https://help.instagram.com/111923612310997).
+### Step 4: Set up the device:
+
+**Physical device**
+
 1. First thing you have to do is to [enable developer options and USB debugging](https://developer.android.com/studio/debug/dev-options#enable).
 2. connect your phone to your computer with a USB cable
 3. device will ask you to allow connection. Press "Connect"
-4. type `adb devices` in terminal
+
+**Emulator for Mac OS**
+
+1. Install the [Homebrew](https://brew.sh)
+2. Install the [Cask](https://cask.readthedocs.io/en/latest/index.html) by running `brew install cask`
+3. Add the Cask application folder to your `$PATH`, e.g. `echo 'export PATH="$HOME/.cask/bin:$PATH"' >> ~/.bash_profile` and open a new terminal or reload with `source ~/.bash_profile`
+4. Install the [Android Studio](https://formulae.brew.sh/cask/android-studio)
+5. Run the Android Studio and click on 'More Actions -> Virtual Device Manager', then select the device and image, I found out that Pixel 2 API 28 combo works well.
+6. Run the virtual device and install the Instagram app on it, don't forget to log in.
+
+**Verify the device with adb**
+
+Type `adb devices` in terminal
    - a list of devices attached should be displayed, if not you did something wrong
       > List of devices attached
       > A0B1CD2345678901    device
 
    - this is your device ID, you have to use it only if you have more than one device connected at the same time
-5. initialize uiautomator2: `uiautomator2 init`
-6. initialize GramAddict: `gramaddict init your_ig_account_name_here`
+
+### Step 5: Start the bot:
+
+This bot works only if your Instagram is in [English](https://help.instagram.com/111923612310997).
+1. initialize uiautomator2: `uiautomator2 init`
+2. initialize GramAddict: `gramaddict init your_ig_account_name_here`
     > __Warning:__ works only if you installed the bot with pip, if you used git you have to create account folder and youraccountname folder manually.
     - that script will crate all the files you need for configure and start this bot
     - you will find them inside the folder `accounts/youraccountname/`
@@ -240,8 +258,8 @@ This bot works only if your Instagram is in [English](https://help.instagram.com
               comments_list.txt
               pm_list.txt
       ```
-7. now that you have all the requirements you have to configure the whole thing by [following this guide](https://docs.gramaddict.org/#/configuration)
-8. now you're done, and you can finally start the bot: `python3 run.py --config accounts/yourusername/config.yml` or `gramaddict run --config accounts/yourusername/config.yml`
+3. now that you have all the requirements you have to configure the whole thing by [following this guide](https://docs.gramaddict.org/#/configuration)
+4. now you're done, and you can finally start the bot: `python3 run.py --config accounts/yourusername/config.yml` or `gramaddict run --config accounts/yourusername/config.yml`
 
 Failed? [Check this out!](https://docs.gramaddict.org/#/quickstart?id=troubleshooting)
 
