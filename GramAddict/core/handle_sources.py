@@ -1074,24 +1074,16 @@ def iterate_and_scrape_over_followers(
                         can_interact = True
 
                 if can_interact:
-                    logger.info(
-                        f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
-                    )
-
-                    # Scrape the username to file
-                    append_to_file(target, username)
-                    storage.add_interacted_user(username, session_state.id,target=target)
-                    # scrape(
-                    #         storage=storage,
-                    #         is_follow_limit_reached=is_follow_limit_reached,
-                    #         username=username,
-                    #         interaction=interaction,
-                    #         device=device,
-                    #         session_state=session_state,
-                    #         current_job=current_job,
-                    #         target=target,
-                    #         on_interaction=on_interaction,
-                    #     )
+                    if not session_state.check_limit(limit_type=self.session_state.Limit.TOTAL, output=True):
+                        logger.info(
+                            f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
+                        )
+                        # Scrape the username to file
+                        append_to_file(target, username)
+                        storage.add_interacted_user(username, session_state.id, target=target)
+                        session_state.add_interaction(source=None, succeed=True, followed=False, scraped=True)
+                    else:
+                        return
 
         except IndexError:
             logger.info(

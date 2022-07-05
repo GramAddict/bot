@@ -67,7 +67,6 @@ class ScrapeBloggerFollowers_Following(Plugin):
         # IMPORTANT: in each job we assume being on the top of the Profile tab already
         if self.args.scrape_blogger_followers is not None:
             sources = [s for s in self.args.scrape_blogger_followers if s.strip()]
-            print(sources)
         else:
             sources = [s for s in self.args.scrape_blogger_following if s.strip()]
 
