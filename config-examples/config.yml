@@ -1,5 +1,5 @@
 ##############################################################################
-# For more information on parameters, refer to: 
+# For more information on parameters, refer to:
 # https://docs.gramaddict.org/#/configuration?id=configuration-file
 #
 # Note: be sure to comment out any parameters not used by adding a # in front
@@ -31,18 +31,19 @@ truncate-sources: 2-5
 ##############################################################################
 
 ## Interaction (active jobs)
-blogger-followers: [ username1, username2 ]
-blogger-following: [ username1, username2 ]
-blogger-post-likers: [ username1, username2 ]
-blogger: [ username1, username2 ]
-hashtag-likers-top: [ hashtag1, hashtag2 ]
-hashtag-likers-recent: [ hashtag1, hashtag2 ]
-hashtag-posts-top: [ hashtag1, hashtag2 ]
-hashtag-posts-recent: [ hashtag1, hashtag2 ]
-place-posts-top: [ place1, place2 ]
-place-posts-recent: [ place1, place2 ]
-place-likers-top: [ place1, place2 ]
-place-likers-recent: [ place1, place2 ]
+blogger-followers: [username1, username2]
+blogger-following: [username1, username2]
+blogger-post-likers: [username1, username2]
+blogger: [username1, username2]
+scrape-blogger-followers: [username1, username2]
+hashtag-likers-top: [hashtag1, hashtag2]
+hashtag-likers-recent: [hashtag1, hashtag2]
+hashtag-posts-top: [hashtag1, hashtag2]
+hashtag-posts-recent: [hashtag1, hashtag2]
+place-posts-top: [place1, place2]
+place-posts-recent: [place1, place2]
+place-likers-top: [place1, place2]
+place-likers-recent: [place1, place2]
 interact-from-file: [usernames1.txt 10-15, usernames2.txt 3]
 posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed

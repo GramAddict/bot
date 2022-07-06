@@ -1079,9 +1079,9 @@ def iterate_and_scrape_over_followers(
                             f"@{username}: interact", extra={"color": f"{Fore.YELLOW}"}
                         )
                         # Scrape the username to file
-                        append_to_file(target, username)
+                        append_to_file(f"{target}_followers", username)
                         storage.add_interacted_user(username, session_state.id, target=target)
-                        session_state.add_interaction(source=None, succeed=True, followed=False, scraped=True)
+                        session_state.add_interaction(source=username, succeed=True, followed=False, scraped=True)
                     else:
                         return
 
