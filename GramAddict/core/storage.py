@@ -123,6 +123,22 @@ class Storage:
         )
         return True, last_interaction
 
+    def check_user_was_interacted_with_target(self, username, target):
+        """returns when a username has been interacted for a given target, False if not already interacted"""
+        user = self.interacted_users.get(username)
+        if user is None:
+            return False, None
+
+        user_target = user.get('target')
+        if not user_target == target:
+            logger.info(f"@{username} has not interacted with target: {user_target}, allowing to interact")
+            return False, None
+
+        last_interaction = datetime.strptime(
+            user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
+        )
+        return True, last_interaction
+
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
         if user is None:

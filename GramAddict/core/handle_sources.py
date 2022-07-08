@@ -1055,8 +1055,8 @@ def iterate_and_scrape_over_followers(
                 if storage.is_user_in_blacklist(username):
                     logger.info(f"@{username} is in blacklist. Skip.")
                 else:
-                    interacted, interacted_when = storage.check_user_was_interacted(
-                        username
+                    interacted, interacted_when = storage.check_user_was_interacted_with_target(
+                        username, target
                     )
                     if interacted:
                         can_reinteract = storage.can_be_reinteract(
