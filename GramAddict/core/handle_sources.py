@@ -1064,7 +1064,7 @@ def iterate_and_scrape_over_followers(
                             get_value(self.args.can_reinteract_after, None, 0),
                         )
                         logger.info(
-                            f"@{username}: already interacted on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
+                            f"@{username}: already interacted with @{target} on {interacted_when:%Y/%m/%d %H:%M:%S}. {'Interacting again now' if can_reinteract else 'Skip'}."
                         )
                         if can_reinteract:
                             can_interact = True

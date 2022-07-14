@@ -126,16 +126,25 @@ class Storage:
     def check_user_was_interacted_with_target(self, username, target):
         """returns when a username has been interacted for a given target, False if not already interacted"""
         user = self.interacted_users.get(username)
+        interacted = False
+        index = 0
         if user is None:
             return False, None
 
-        user_target = user.get('target')
-        if not user_target == target:
-            logger.info(f"@{username} has not interacted with target: {user_target}, allowing to interact")
+        logger.debug(f"self.interacted_users.get({user}): {user}")
+
+        for i, interaction in enumerate(user):
+            user_target = interaction.get('target')
+            if user_target == target:
+                interacted = True
+                index = i
+
+        if not interacted:
+            logger.info(f"@{username} has not interacted with target: {target}, allowing to interact")
             return False, None
 
         last_interaction = datetime.strptime(
-            user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
+            user[index][USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
         )
         return True, last_interaction
 
@@ -176,62 +185,87 @@ class Storage:
         job_name=None,
         target=None,
     ):
-        user = self.interacted_users.get(username, {})
-        user[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        user_interactions = self.interacted_users.get(username, {})
+        interaction = {}
+        index = 0
+        updated = False
+
+        if len(user_interactions) > 0:
+            logger.debug(f"Have interacted with @{username} before, checking target")
+            for i, inter in enumerate(user_interactions):
+                logger.debug(f"Assessing interaction: {inter}")
+                index = i
+                if target == inter.get('target'):
+                    logger.debug(f"{username} interaction with @{target} found... updating")
+                    interaction = inter
+                    updated = True
+                    break
+
+        interaction[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if followed:
             if is_requested:
-                user[USER_FOLLOWING_STATUS] = FollowingStatus.REQUESTED.name.casefold()
+                interaction[USER_FOLLOWING_STATUS] = FollowingStatus.REQUESTED.name.casefold()
             else:
-                user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
+                interaction[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
         elif unfollowed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.casefold()
+            interaction[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.casefold()
         elif scraped:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.casefold()
+            interaction[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.casefold()
         else:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.casefold()
+            interaction[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.casefold()
 
         # Save only the last session_id
-        user["session_id"] = session_id
+        interaction["session_id"] = session_id
 
         # Save only the last job_name and target
-        if not user.get("job_name"):
-            user["job_name"] = job_name
-        if not user.get("target"):
-            user["target"] = target
+        if not interaction.get("job_name"):
+            interaction["job_name"] = job_name
+        if not interaction.get("target"):
+            interaction["target"] = target
 
         # Increase the value of liked, watched or commented if we have already a value
-        user["liked"] = liked if "liked" not in user else (user["liked"] + liked)
-        user["watched"] = (
-            watched if "watched" not in user else (user["watched"] + watched)
+        interaction["liked"] = liked if "liked" not in interaction else (interaction["liked"] + liked)
+        interaction["watched"] = (
+            watched if "watched" not in interaction else (interaction["watched"] + watched)
         )
-        user["commented"] = (
-            commented if "commented" not in user else (user["commented"] + commented)
+        interaction["commented"] = (
+            commented if "commented" not in interaction else (interaction["commented"] + commented)
         )
 
         # Update the followed or unfollowed boolean only if we have a real update
-        user["followed"] = (
+        interaction["followed"] = (
             followed
-            if "followed" not in user or user["followed"] != followed
-            else user["followed"]
+            if "followed" not in interaction or interaction["followed"] != followed
+            else interaction["followed"]
         )
-        user["unfollowed"] = (
+        interaction["unfollowed"] = (
             unfollowed
-            if "unfollowed" not in user or user["unfollowed"] != unfollowed
-            else user["unfollowed"]
+            if "unfollowed" not in interaction or interaction["unfollowed"] != unfollowed
+            else interaction["unfollowed"]
         )
-        user["scraped"] = (
+        interaction["scraped"] = (
             scraped
-            if "scraped" not in user or user["scraped"] != scraped
-            else user["scraped"]
+            if "scraped" not in interaction or interaction["scraped"] != scraped
+            else interaction["scraped"]
         )
         # Save the boolean if we sent a PM
-        user["pm_sent"] = (
+        interaction["pm_sent"] = (
             pm_sent
-            if "pm_sent" not in user or user["pm_sent"] != pm_sent
-            else user["pm_sent"]
+            if "pm_sent" not in interaction or interaction["pm_sent"] != pm_sent
+            else interaction["pm_sent"]
         )
-        self.interacted_users[username] = user
+
+        logger.debug(f"Adding interaction with @{target} to @{username}")
+
+        if updated:
+            self.interacted_users[username][index] = interaction
+        else:
+            if len(user_interactions) == 0:
+                self.interacted_users[username] = [interaction]
+            else:
+                self.interacted_users[username].append(interaction)
+
         self._update_file()
 
     def is_user_in_whitelist(self, username):
