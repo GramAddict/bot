@@ -632,6 +632,13 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
+        def is_scrollable(self):
+            try:
+                if self.viewV2.exists():
+                    return self.viewV2.info["scrollable"]
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
         @staticmethod
         def get_ui_timeout(ui_timeout: Timeout) -> int:
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout

@@ -1058,22 +1058,34 @@ class AccountView:
                 return True
             logger.debug(f"You're logged as {current_profile_name.strip()}")
             action_bar.click()
-            found_obj = self.device.find(
-                resourceId=ResourceID.ROW_USER_TEXTVIEW,
-                textMatches=case_insensitive_re(username),
-            )
-            if found_obj.exists(Timeout.SHORT):
-                logger.info(
-                    f"Switching to {username}...",
-                    extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
-                )
-                found_obj.click()
-                random_sleep()
-                action_bar = ProfileView._getActionBarTitleBtn(self)
+            if self._find_username(username):
                 if action_bar is not None:
                     current_profile_name = action_bar.get_text()
                     if current_profile_name.strip().upper() == username.upper():
                         return True
+                else:
+                    logger.error(
+                        "Cannot find action bar (where you select your account)!"
+                    )
+        return False
+
+    def _find_username(self, username, has_scrolled=False):
+        list_view = self.device.find(resourceId=ResourceID.LIST)
+        username_obj = self.device.find(
+            resourceId=ResourceID.ROW_USER_TEXTVIEW,
+            textMatches=case_insensitive_re(username),
+        )
+        if username_obj.exists(Timeout.SHORT):
+            logger.info(
+                f"Switching to {username}...",
+                extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+            )
+            username_obj.click()
+            return True
+        elif list_view.is_scrollable() and not has_scrolled:
+            logger.debug("User list is scrollable.")
+            list_view.scroll(Direction.DOWN)
+            self._find_username(username, has_scrolled=True)
         return False
 
     def refresh_account(self):
