@@ -227,16 +227,21 @@ def head_up_notifications(enabled: bool = False):
 
 def check_screen_timeout():
     MIN_TIMEOUT = 5 * 6_000
-    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get system screen_off_timeout"
+    cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings get system screen_off_timeout"
     resp = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
-    if int(resp.stdout.lstrip()) < MIN_TIMEOUT:
-        logger.info(
-            f"Setting timeout of the screen to {MIN_TIMEOUT/6_000:.0f} minutes."
-        )
-        cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
-        subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
-    else:
-        logger.info("Screen timeout is fine!")
+    try:
+        if int(resp.stdout.lstrip()) < MIN_TIMEOUT:
+            logger.info(
+                f"Setting timeout of the screen to {MIN_TIMEOUT/6_000:.0f} minutes."
+            )
+            cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
+
+            subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+        else:
+            logger.info("Screen timeout is fine!")
+    except ValueError:
+        logger.info("Unable to get screen timeout!")
+        logger.debug(resp.stdout)
 
 
 def open_instagram(device):
