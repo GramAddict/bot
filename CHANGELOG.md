@@ -1,4 +1,8 @@
 # Changelog
+## 3.2.4 (2022-08-18)
+### Fix
+- fix selecting account if you have a lof of them, and it's not visible
+- screen timeout checking for always on devices (as emulators)
 ## 3.2.3 (2022-06-23)
 ### Others
 - allow to pass device to dump
