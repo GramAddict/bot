@@ -153,7 +153,7 @@ def start_bot(**kwargs):
                     TESTED_IG_VERSION.split(".")
                 ):
                     logger.info(
-                        f"You have a newer version of IG then the one tested! (Tested version: {TESTED_IG_VERSION}). That shouldn't be a problem.",
+                        f"You have a newer version of IG than the one tested! (Tested version: {TESTED_IG_VERSION}). That shouldn't be a problem.",
                         extra={"color": f"{Style.BRIGHT}"},
                     )
             except Exception as e:
