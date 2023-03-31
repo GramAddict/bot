@@ -210,7 +210,6 @@ class ActionUnfollowFollowers(Plugin):
         self.session_state.totalUnfollowed += 1
 
     def sort_followings_by_date(self, device, newest_to_oldest=False) -> bool:
-
         sort_button = device.find(
             resourceId=self.ResourceID.SORTING_ENTRY_ROW_OPTION,
         )

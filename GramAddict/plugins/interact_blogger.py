@@ -165,7 +165,6 @@ class InteractBloggerPostLikers(Plugin):
         comment_percentage,
         pm_percentage,
     ):
-
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,
@@ -220,7 +219,6 @@ class InteractBloggerPostLikers(Plugin):
         comment_percentage,
         pm_percentage,
     ):
-
         interaction = partial(
             interact_with_user,
             my_username=self.session_state.my_username,

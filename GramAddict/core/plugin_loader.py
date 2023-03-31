@@ -39,7 +39,7 @@ class PluginLoader(object):
             if not ispkg:
                 plugin_module = __import__(pluginname, fromlist=["plugins"])
                 clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
-                for (_, c) in clsmembers:
+                for _, c in clsmembers:
                     if issubclass(c, Plugin) & (c is not Plugin):
                         if self.output:
                             logger.info(f"  - {c.__name__}: {c.__doc__}")

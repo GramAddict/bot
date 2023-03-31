@@ -1676,7 +1676,6 @@ class ProfileView(ActionBarView):
                             return last_index - 1, n
 
     def getProfileInfo(self):
-
         username = self.getUsername()
         posts = self.getPostsCount()
         followers = self.getFollowersCount()

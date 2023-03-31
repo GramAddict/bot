@@ -724,7 +724,6 @@ def iterate_over_followers(
         )
         row_height, n_users = inspect_current_view(user_list)
         try:
-
             for item in user_list:
                 cur_row_height = item.get_height()
                 if cur_row_height < row_height:
