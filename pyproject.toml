@@ -7,7 +7,7 @@ name = "GramAddict"
 authors = [{ name = "GramAddict Team", email = "maintainers@gramaddict.org" }]
 readme = "README.md"
 classifiers = [
-    "License :: MIT License",
+    "License :: Free for non-commercial use",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3"
 ]
