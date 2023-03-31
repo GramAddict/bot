@@ -1,9 +1,9 @@
 import argparse
 from os import getcwd, path
 
+from GramAddict import __version__
 from GramAddict.core.bot_flow import start_bot
 from GramAddict.core.download_from_github import download_from_github
-from GramAddict.version import __version__
 
 
 def cmd_init(args):

@@ -5,6 +5,7 @@ from time import sleep
 
 from colorama import Fore, Style
 
+from GramAddict import __tested_ig_version__
 from GramAddict.core.config import Config
 from GramAddict.core.device_facade import create_device, get_device_info
 from GramAddict.core.filter import Filter
@@ -48,8 +49,6 @@ from GramAddict.core.utils import (
 )
 from GramAddict.core.views import AccountView, ProfileView, TabBarView, UniversalActions
 from GramAddict.core.views import load_config as load_views
-
-TESTED_IG_VERSION = "226.1.0.16.117"
 
 
 def start_bot(**kwargs):
@@ -150,10 +149,10 @@ def start_bot(**kwargs):
                 running_ig_version = get_instagram_version()
                 logger.info(f"Instagram version: {running_ig_version}")
                 if tuple(running_ig_version.split(".")) > tuple(
-                    TESTED_IG_VERSION.split(".")
+                    __tested_ig_version__.split(".")
                 ):
                     logger.info(
-                        f"You have a newer version of IG then the one tested! (Tested version: {TESTED_IG_VERSION}). That shouldn't be a problem.",
+                        f"You have a newer version of IG then the one tested! (Tested version: {__tested_ig_version__}). That shouldn't be a problem.",
                         extra={"color": f"{Style.BRIGHT}"},
                     )
             except Exception as e:

@@ -18,17 +18,17 @@ from typing import Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import emoji
+import requests
 import urllib3
 from colorama import Fore, Style
-from requests import get
+from packaging.version import parse as parse_version
 
-from GramAddict import __file__
+from GramAddict import __file__, __version__
 from GramAddict.core.config import Config
 from GramAddict.core.log import get_log_file_config
 from GramAddict.core.report import print_full_report
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.storage import ACCOUNTS
-from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
@@ -46,54 +46,36 @@ def load_config(config: Config):
 
 
 def update_available():
-    urllib3.disable_warnings()
-    if "b" not in __version__:
-        version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
-    else:
-        version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
-    try:
-        r = get(version_request, verify=True)
-        online_version_raw = r.text.split('"')[1]
+    response = requests.get("https://pypi.python.org/pypi/gramaddict/json")
+    if response.ok:
+        latest_version = response.json()["info"]["version"]
 
-    except Exception as e:
-        logger.error(
-            f"There was an error retrieving the latest version of GramAddict: {e}"
-        )
-        return False, False
-    if "b" not in __version__:
-        local_version = __version__.split(".")
-        online_version = online_version_raw.split(".")
+        current_version = parse_version(__version__)
+        latest_version = parse_version(latest_version)
+
+        return current_version < latest_version, latest_version
     else:
-        local_version = __version__.split(".")[:-1] + __version__.split(".")[-1].split(
-            "b"
-        )
-        online_version = online_version_raw.split(".")[:-1] + online_version_raw.split(
-            "."
-        )[-1].split("b")
-    for n in range(len(online_version)):
-        if int(online_version[n]) > int(local_version[n]):
-            return True, online_version_raw
-        if int(online_version[n]) == int(local_version[n]):
-            continue
-        break
-    return False, online_version_raw
+        return False, None
 
 
 def check_if_updated(crash=False):
     if not crash:
         logger.info("Checking for updates...")
-    new_update, version = update_available()
+    new_update, latest_version = update_available()
     if new_update:
         logger.warning("NEW VERSION FOUND!")
         logger.warning(
-            f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
+            f"Version {latest_version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
         )
         logger.warning("HOW TO UPDATE:")
         logger.warning("If you installed with pip: pip3 install GramAddict -U")
         logger.warning("If you installed with git: git pull")
         sleep(5)
+    elif latest_version is None:
+        logger.error("Unable to get latest version from pypi!")
     elif not crash:
         logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+
     if not crash:
         logger.info(
             f"GramAddict v.{__version__}",
