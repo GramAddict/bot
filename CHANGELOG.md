@@ -1,8 +1,10 @@
 # Changelog
-## 3.2.4 (2022-08-18)
+## 3.2.4 (2023-04-07)
 ### Fix
 - fix selecting account if you have a lof of them, and it's not visible
-- screen timeout checking for always on devices (as emulators)
+- screen timeout checking for 'always on devices' (for example emulators)
+### Others
+- config loader in 'extra' folder
 ## 3.2.3 (2022-06-23)
 ### Others
 - allow to pass device to dump
