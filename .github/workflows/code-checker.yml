@@ -5,10 +5,23 @@ on:
     # only build each push to develop and master, other branches are built through pull requests
     branches: [develop, master]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      run-lint:
+        description: 'Run lint job'
+        required: false
+        default: true
+        type: boolean
+      run-static-check:
+        description: 'Run static-check job'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run-lint == 'true' }}
     steps:
       - name: Clone Repository
         uses: actions/checkout@v2
@@ -23,6 +36,7 @@ jobs:
 
   static-check:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run-static-check == 'true' }}
     strategy:
       fail-fast: false
       matrix:
