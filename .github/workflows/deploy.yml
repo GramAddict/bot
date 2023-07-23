@@ -21,8 +21,8 @@ jobs:
 
     - name: Build and Publish
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        FLIT_USERNAME: __token__
+        FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         flit build
         flit publish
