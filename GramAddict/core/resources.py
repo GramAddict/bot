@@ -16,6 +16,7 @@ class ResourceID:
         self.ACTION_BAR_TITLE_AUTO_SIZE = (
             f"{APP_ID}:id/action_bar_large_title_auto_size"
         )
+        self.ACTION_BAR_TITLE_CHEVRON = f"{APP_ID}:id/action_bar_title_chevron"
         self.ACTION_ICON = f"{APP_ID}:id/action_icon"
         self.ACTION_SHEET_ROW_TEXT_VIEW = f"{APP_ID}:id/action_sheet_row_text_view"
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
