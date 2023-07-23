@@ -1,42 +1,46 @@
 <p align="center">
-  <img src="https://github.com/GramAddict/bot/raw/master/res/logo.png">
+  <img src="https://github.com/GramAddict/bot/raw/master/res/logo.png" alt="logo">
   <br />
   <h1 align="center">GramAddict</h1>
   <br />
   <p align="center">Looking for Instagram automation? I'm proud to present you a <b>100% free and open source Instagram bot</b>. This bot will allow you to grow your following and engagement by liking, following, commenting and sending PM automatically with your Android phone/tablet/emulator. <b>No root required.</b> <p>
   <p align="center">
     <a href="https://github.com/gramaddict/bot/blob/master/LICENSE">
-      <img src="https://img.shields.io/github/license/gramaddict/bot?style=flat" />
+      <img src="https://img.shields.io/github/license/gramaddict/bot?style=flat"  alt=""/>
     </a>
     <a href="https://www.python.org/">
-      <img src="https://img.shields.io/badge/built%20with-Python3-red.svg?style=flat" />
+      <img src="https://img.shields.io/badge/built%20with-Python3-red.svg?style=flat"  alt=""/>
     </a>
     <a href="https://github.com/GramAddict/bot/pulls">
-      <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" />
+      <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat"  alt=""/>
     </a>
     <a href="https://github.com/GramAddict/bot/issues">
-    	<img src="https://img.shields.io/github/issues/gramaddict/bot?style=flat" />
+    	<img src="https://img.shields.io/github/issues/gramaddict/bot?style=flat"  alt=""/>
     </a>
     <a href="https://github.com/GramAddict/bot/pulls">
-      <img src="https://img.shields.io/github/issues-pr/gramaddict/bot?style=flat" />
+      <img src="https://img.shields.io/github/issues-pr/gramaddict/bot?style=flat"  alt=""/>
     </a>
     <a href="https://github.com/GramAddict/bot/stargazers">
-	    <img src="https://img.shields.io/github/stars/gramaddict/bot?style=flat">
+	    <img src="https://img.shields.io/github/stars/gramaddict/bot?style=flat" alt="">
     </a>
     <a href="https://img.shields.io/github/last-commit/gramaddict/bot/master?style=flat">
-	    <img src="https://img.shields.io/github/last-commit/GramAddict/bot/master?style=flat">
+	    <img src="https://img.shields.io/github/last-commit/GramAddict/bot/master?style=flat" alt="">
     </a>
     <a href="https://pypi.org/project/gramaddict/">
-      <img src="https://img.shields.io/pypi/dm/gramaddict">
+      <img src="https://img.shields.io/pypi/dm/gramaddict" alt="">
     </a>
     <a href="https://github.com/GramAddict/bot#backers">
-	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat">
+	    <img src="https://img.shields.io/opencollective/backers/gramaddict?style=flat" alt="">
     </a>
     <a href="https://discord.gg/NK8PNEFGFF">
-	    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
+	    <img src="https://img.shields.io/discord/771481743471017994?style=flat" alt="">
     </a>
-  </p>
+    <a href="https://duckduckgo.com/?q=where+can+i+find+old+ig+version+apk&t=newext&atb=v376-1&df=y&ia=web">
+        <img src="https://img.shields.io/badge/works_on_ig_version-226.1.0.16.117-orange" alt="">
+    </a>
 </p>
+
+
 
 <br />
 
@@ -53,7 +57,7 @@ Don't worry about that now, it's not that hard to start botting with GramAddict!
 Yes! We are on __discord__ and we count a lot of __active users__ you can ask us whatever you want!
 
   <a href="https://discord.gg/NK8PNEFGFF">
-    <img src="https://img.shields.io/discord/771481743471017994?style=flat">
+    <img src="https://img.shields.io/discord/771481743471017994?style=flat" alt="">
   </a>
 
 ## I saw there are a lot of similar projects on GitHub, why should I choose this one?
