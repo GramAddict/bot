@@ -393,4 +393,9 @@ class CoreArguments(Plugin):
                 "help": "instead of typing you can paste the text as in old versions",
                 "action": "store_true",
             },
+            {
+                "arg": "--allow-untested-ig-version",
+                "help": "don't ask the user to press enter to continue with an untested IG version",
+                "action": "store_true",
+            },
         ]

@@ -151,10 +151,19 @@ def start_bot(**kwargs):
                 if tuple(running_ig_version.split(".")) > tuple(
                     __tested_ig_version__.split(".")
                 ):
-                    logger.info(
-                        f"You have a newer version of IG then the one tested! (Tested version: {__tested_ig_version__}). That shouldn't be a problem.",
+                    logger.warning(
+                        f"You have a newer version of IG then the one tested! (Tested version: {__tested_ig_version__}).",
                         extra={"color": f"{Style.BRIGHT}"},
                     )
+                    logger.warning(
+                        "Using an untested version of IG would cause unexpected behavior because some elements in the user interface may have been changed. Any crashes that occur with an untested version are not taken into account."
+                    )
+                    if not configs.args.allow_untested_ig_version:
+                        logger.warning(
+                            "If you press ENTER, you are aware of this and will not ask for support in case of a crash."
+                        )
+                        input()
+
             except Exception as e:
                 logger.error(f"Error retrieving the IG version. Exception: {e}")
 
