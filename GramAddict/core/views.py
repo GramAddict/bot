@@ -1057,7 +1057,8 @@ class AccountView:
                 )
                 return True
             logger.debug(f"You're logged as {current_profile_name.strip()}")
-            action_bar.click()
+            selector = self.device.find(resourceId=ResourceID.ACTION_BAR_TITLE_CHEVRON)
+            selector.click()
             if self._find_username(username):
                 if action_bar is not None:
                     current_profile_name = action_bar.get_text()
