@@ -1,4 +1,9 @@
 # Changelog
+## 3.2.5 (2023-07-23)
+### Fix
+- account selection with the little arrow instead of clicking on the account name
+### Others
+- display a warning if the user tries to use an untested version of IG
 ## 3.2.4 (2023-04-07)
 ### Fix
 - fix selecting account if you have a lof of them, and it's not visible
