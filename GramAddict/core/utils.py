@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 
 import emoji
 import requests
+import uiautomator2.exceptions
 import urllib3
 from colorama import Fore, Style
 from packaging.version import parse as parse_version
@@ -232,24 +233,17 @@ def open_instagram(device):
     logger.info("Open Instagram app.")
 
     def call_ig():
-        cmd_ig: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
-        return subprocess.run(
-            cmd_ig, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
-        )
+        try:
+            return device.deviceV2.app_start(app_id)
+        except uiautomator2.exceptions.BaseError as exc:
+            return exc
 
-    err = call_ig().stderr.strip()
-    if "Error" in err:
-        logger.error(err.replace(nl, ". "))
+    err = call_ig()
+    if err:
+        logger.error(err)
         return False
-    elif "more than one device/emulator" in err:
-        logger.error(
-            f"{err[9:].capitalize()}, specify only one by using `device: devicename` in your config.yml"
-        )
-        return False
-    elif err == "":
-        logger.debug("Instagram called successfully.")
     else:
-        logger.debug(f"{err.replace('Warning: ', '')}.")
+        logger.debug("Instagram called successfully.")
 
     max_tries = 3
     n = 0
