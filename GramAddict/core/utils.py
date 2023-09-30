@@ -234,7 +234,7 @@ def open_instagram(device):
 
     def call_ig():
         try:
-            return device.deviceV2.app_start(app_id)
+            return device.deviceV2.app_start(app_id, use_monkey=True)
         except uiautomator2.exceptions.BaseError as exc:
             return exc
 
