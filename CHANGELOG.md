@@ -1,4 +1,7 @@
 # Changelog
+## 3.2.7 (2023-09-30)
+### Fix
+- using the monkey approach until this bug is fixed https://github.com/openatx/atx-agent/pull/111
 ## 3.2.6 (2023-09-28)
 ### Fix
 - get rid of Activity class when starting app
