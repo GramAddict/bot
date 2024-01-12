@@ -1,6 +1,6 @@
 from GramAddict.core.plugin_loader import Plugin
 
-# Note: this is mainly here to house old arguments until we figure out args better
+# Note: this is mainly here to house old arguments until we figure our args better
 
 
 class CoreArguments(Plugin):
@@ -141,7 +141,7 @@ class CoreArguments(Plugin):
                 "nargs": None,
                 "help": "amount of hours that have to pass from the last interaction",
                 "metavar": "50",
-                "default": "-1",
+                "default": None,
             },
             {
                 "arg": "--repeat",
@@ -269,9 +269,34 @@ class CoreArguments(Plugin):
             {
                 "arg": "--max-comments-pro-user",
                 "nargs": None,
-                "help": "limit on max possibile comments for each interacted user",
+                "help": "limit on max possible comments for each interacted user",
                 "metavar": "1-2",
                 "default": "1",
+            },
+            {
+                "arg": "--end-if-likes-limit-reached",
+                "help": "end session if likes limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-follows-limit-reached",
+                "help": "end session if follows limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-watches-limit-reached",
+                "help": "end session if watches limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-comments-limit-reached",
+                "help": "end session if comments limit is reached",
+                "action": "store_true",
+            },
+            {
+                "arg": "--end-if-pm-limit-reached",
+                "help": "end session if pm limit is reached",
+                "action": "store_true",
             },
             {
                 "arg": "--truncate-sources",
@@ -310,6 +335,11 @@ class CoreArguments(Plugin):
                 "help": "limit on total allowed crashes for session, 5 by default",
                 "metavar": "5-10",
                 "default": "5",
+            },
+            {
+                "arg": "--count-app-crashes",
+                "help": "count as a crash if the app crashes/loses view",
+                "action": "store_true",
             },
             {
                 "arg": "--skipped-posts-limit",
@@ -356,6 +386,16 @@ class CoreArguments(Plugin):
             {
                 "arg": "--move-folders-in-accounts",
                 "help": "allow the script to move all the sibling folders of run.py in accounts folder",
+                "action": "store_true",
+            },
+            {
+                "arg": "--dont-type",
+                "help": "instead of typing you can paste the text as in old versions",
+                "action": "store_true",
+            },
+            {
+                "arg": "--allow-untested-ig-version",
+                "help": "don't ask the user to press enter to continue with an untested IG version",
                 "action": "store_true",
             },
         ]

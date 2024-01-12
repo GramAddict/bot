@@ -16,7 +16,9 @@ class ResourceID:
         self.ACTION_BAR_TITLE_AUTO_SIZE = (
             f"{APP_ID}:id/action_bar_large_title_auto_size"
         )
+        self.ACTION_BAR_TITLE_CHEVRON = f"{APP_ID}:id/action_bar_title_chevron"
         self.ACTION_ICON = f"{APP_ID}:id/action_icon"
+        self.ACTION_SHEET_ROW_TEXT_VIEW = f"{APP_ID}:id/action_sheet_row_text_view"
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
         self.BUTTON = f"{APP_ID}:id/button"
         self.CAROUSEL_MEDIA_GROUP = f"{APP_ID}:id/carousel_media_group"
@@ -27,6 +29,7 @@ class ResourceID:
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )
         self.CLIPS_VIDEO_CONTAINER = f"{APP_ID}:id/clips_video_container"
+        self.COLLECTION_ROOT_VIEW = f"{APP_ID}:id/collection_root_view"
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
         self.DIALOG_ROOT_VIEW = f"{APP_ID}:id/dialog_root_view"
         self.DIALOG_CONTAINER = f"{APP_ID}:id/dialog_container"
@@ -47,10 +50,12 @@ class ResourceID:
         self.FOLLOW_SHEET_UNFOLLOW_ROW = f"{APP_ID}:id/follow_sheet_unfollow_row"
         self.FOOTER_SPACE = f"{APP_ID}:id/footer_space"
         self.GAP_VIEW = f"{APP_ID}:id/gap_view"
+        self.GAP_BINDER_GROUP = f"{APP_ID}:id/gap_binder_group"
         self.IGDS_HEADLINE_BODY = f"{APP_ID}:id/igds_headline_body"
         self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
             f"{APP_ID}:id/igds_headline_emphasized_headline"
         )
+        self.IGLIVE_REEL_LAYOUT = f"{APP_ID}:id/iglive_reel_layout"
         self.IMAGE_BUTTON = f"{APP_ID}:id/image_button"
         self.INDICATOR = f"{APP_ID}:id/indicator"
         self.LANGUAGE_LIST_LOCALE = f"{APP_ID}:id/language_locale_list"
@@ -61,8 +66,9 @@ class ResourceID:
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
         self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
-        self.LIST = "android:id/list"
+        self.LIVE_BADGE_VIEW = f"{APP_ID}:id/live_badge_view"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
+        self.MEDIA_CONTENT_LOCATION = f"{APP_ID}:id/media_content_location"
         self.MENU_SETTINGS_ROW = f"{APP_ID}:id/menu_settings_row"
         self.MENU_OPTION_TEXT = f"{APP_ID}:id/menu_option_text"
         self.NEGATIVE_BUTTON = f"{APP_ID}:id/negative_button"
@@ -103,6 +109,8 @@ class ResourceID:
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (
             f"{APP_ID}:id/row_feed_comment_textview_layout"
         )
+        self.ROW_FEED_CTA_WRAPPER = f"{APP_ID}:id/row_feed_cta_wrapper"
+        self.ROW_FEED_HEADLINE = f"{APP_ID}:id/row_feed_headline"
         self.ROW_FEED_LIKE_COUNT_FACEPILE_STUB = (
             f"{APP_ID}:id/row_feed_like_count_facepile_stub"
         )
@@ -112,7 +120,12 @@ class ResourceID:
         self.ROW_HASHTAG_TEXTVIEW_TAG_NAME = (
             f"{APP_ID}:id/row_hashtag_textview_tag_name"
         )
+        self.ROW_FEED_PROFILE_HEADER = f"{APP_ID}:id/row_feed_profile_header"
+        self.INDICATOR_ICON_VIEW = f"{APP_ID}:id/indicator_icon_view"
         self.INFORM_BODY = f"{APP_ID}:id/inform_body"
+        self.RECOMMENDED_USER_ROW_CONTENT_IDENTIFIER = (
+            f"{APP_ID}:id/recommended_user_row_content_identifier"
+        )
         self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
@@ -155,11 +168,16 @@ class ResourceID:
         self.SWIPE_REFRESH_ANIMATED_PROGRESSBAR_CONTAINER = (
             f"{APP_ID}:id/swipe_refresh_animated_progressbar_container"
         )
+        self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT = (
+            f"{APP_ID}:id/sponsored_content_server_rendered_root"
+        )
         self.TAB_AVATAR = f"{APP_ID}:id/tab_avatar"
         self.TAB_BAR = f"{APP_ID}:id/tab_bar"
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
+        self.TIMER = f"{APP_ID}:id/timer"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
+        self.TOOLBAR_LIKE_BUTTON = f"{APP_ID}:id/toolbar_like_button"
         self.UFI_STACK = f"{APP_ID}:id/ufi_stack"
         self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
             f"{APP_ID}:id/unified_follow_list_tab_layout"
@@ -172,14 +190,26 @@ class ResourceID:
         self.VIDEO_CONTAINER_AND_CLIPS_VIDEO_CONTAINER = (
             f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
         )
-        self.CAROUSEL_IMAGE_AND_MEDIA_GROUP = (
-            f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}"
-        )
-        self.CAROUSEL_MEDIA_GROUP_AND_ZOOMABLE_VIEW_CONTAINER = (
-            f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}"
-        )
+        self.CAROUSEL_AND_MEDIA_GROUP = f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}|{self.CAROUSEL_IMAGE_MEDIA_GROUP}|{self.CAROUSEL_VIDEO_MEDIA_GROUP}"
+        self.MEDIA_CONTAINER = f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}|{self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT}|{self.COLLECTION_ROOT_VIEW}|{self.MEDIA_CONTENT_LOCATION}"
         self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
         self.BLOCK_POPUP = f"{self.DIALOG_CONTAINER}|{self.DIALOG_ROOT_VIEW}"
+
+        self.ROW_FEED_TEXT = (
+            f"{self.ROW_FEED_HEADLINE}|{self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT}"
+        )
+        self.USER_LIST_CONTAINER = f"{self.FOLLOW_LIST_CONTAINER}|{self.ROW_USER_CONTAINER_BASE}|{self.RECOMMENDED_USER_ROW_CONTENT_IDENTIFIER}"
+        self.SEARCH_ROW_ITEM = f"{self.ROW_SEARCH_USER_USERNAME}|{self.ROW_HASHTAG_TEXTVIEW_TAG_NAME}|{self.ROW_PLACE_TITLE}"
+
+        # android specific
+        self.LIST = "android:id/list"
+        self.AERR_RESTART = "android:id/aerr_restart"
+        self.AERR_CLOSE = "android:id/aerr_close"
+        self.CRASH_POPUP = f"{self.AERR_RESTART}|{self.AERR_CLOSE}"
+
+        # device specific
+        ## MIUI
+        self.MIUI_APP = "android.miui:id/app"
 
 
 class TabBarText:
@@ -203,6 +233,7 @@ class ClassName:
     EDIT_TEXT = "android.widget.EditText"
     FRAME_LAYOUT = "android.widget.FrameLayout"
     HORIZONTAL_SCROLL_VIEW = "android.widget.HorizontalScrollView"
+    IMAGE = "android.widget.Image"
     IMAGE_VIEW = "android.widget.ImageView"
     LIST_VIEW = "android.widget.ListView"
     LINEAR_LAYOUT = "android.widget.LinearLayout"

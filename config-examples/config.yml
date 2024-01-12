@@ -1,4 +1,3 @@
----
 ##############################################################################
 # For more information on parameters, refer to: 
 # https://docs.gramaddict.org/#/configuration?id=configuration-file
@@ -9,24 +8,30 @@
 # General Configuration
 ##############################################################################
 
-username: myusername
-device: put_your_device_id_there # 'adb devices' in console to know it
+username: myusername # you have to put your IG name here!
+# device: put_your_device_id_there # 'adb devices' in the console to know it.  It's needed only if you have more than 1 device connected
 app-id: com.instagram.android
+use-cloned-app: false
+allow-untested-ig-version: false # Using an untested version of IG would cause unexpected behavior because some elements in the user interface may have been changed
 screen-sleep: true
 screen-record: false
 speed-multiplier: 1
 debug: false
-# scrape-to-file: scraped.txt
 close-apps: false
 disable-block-detection: false
 disable-filters: false
+dont-type: false
+# scrape-to-file: scraped.txt
 total-crashes-limit: 5
+count-app-crashes: false
+shuffle-jobs: true
+truncate-sources: 2-5
 
 ##############################################################################
 # Actions
 ##############################################################################
 
-## Interaction
+## Interaction (active jobs)
 blogger-followers: [ username1, username2 ]
 blogger-following: [ username1, username2 ]
 blogger-post-likers: [ username1, username2 ]
@@ -39,33 +44,41 @@ place-posts-top: [ place1, place2 ]
 place-posts-recent: [ place1, place2 ]
 place-likers-top: [ place1, place2 ]
 place-likers-recent: [ place1, place2 ]
-interact-from-file: [usernames1.txt, usernames2.txt]
+interact-from-file: [usernames1.txt 10-15, usernames2.txt 3]
 posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed
 
-## Special modificators for jobs and sources
-shuffle-jobs: true
-truncate-sources: 2-5
-delete-interacted-users: true
+## Special modifier for jobs and sources
 watch-video-time: 15-35
 watch-photo-time: 3-4
-# blogger-post-limits: 2 this feature is not implemented at this moment
-can-reinteract-after: -1 # -1 or commented for disable this feature, otherwise the amount of hours that have to pass from the last interaction
-# pre-script: pre_script_path_here
-# post-script: post_script_path_here
+# can-reinteract-after: 48 # the amount of hours that have to pass from the last interaction
+delete-interacted-users: true
 
-## Unfollow
+## Unfollow (unfollow jobs)
 unfollow: 10-20
 unfollow-any: 10-20
 unfollow-non-followers: 10-20
 unfollow-any-non-followers: 10-20
 unfollow-any-followers: 10-20
-unfollow-from-file: [usernames1.txt, usernames2.txt]
+unfollow-from-file: [usernames1.txt 7-15, usernames2.txt 6]
+
+## Special modifier for unfollow jobs
 sort-followers-newest-to-oldest: false
+unfollow-delay: 15
+
+## Remove followers (active jobs)
+remove-followers-from-file: [remove1.txt 5-10, remove2.txt 6]
+
+## Special modifier for remove followers
+delete-removed-followers: true
 
 ## Post Processing
-analytics: false
+# analytics: false # no more supported
 telegram-reports: false # for using telegram-reports you have also to configure telegram.yml in your account folder
+
+## Special actions
+# pre-script: pre_script_path_here
+# post-script: post_script_path_here
 
 ##############################################################################
 # Source Limits
@@ -93,15 +106,25 @@ min-following: 100
 # Total Limits Per Session
 ##############################################################################
 
-total-likes-limit: 300
-total-follows-limit: 50
-total-unfollows-limit: 50
-total-watches-limit: 500
-total-successful-interactions-limit: 100
-total-interactions-limit: 500
-total-comments-limit: 5
-total-pm-limit: 5
-total-scraped-limit: 100
+total-likes-limit: 120-150
+total-follows-limit: 40-50
+total-unfollows-limit: 40-50
+total-watches-limit: 120-150
+total-successful-interactions-limit: 120-150
+total-interactions-limit: 280-300
+total-comments-limit: 3-5
+total-pm-limit: 3-5
+total-scraped-limit: 100-150
+
+##############################################################################
+# Ending Session Conditions
+##############################################################################
+
+end-if-likes-limit-reached: true
+end-if-follows-limit-reached: false
+end-if-watches-limit-reached: false
+end-if-comments-limit-reached: false
+end-if-pm-limit-reached: false
 
 ##############################################################################
 # Scheduling

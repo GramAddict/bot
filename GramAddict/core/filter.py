@@ -7,10 +7,11 @@ import unicodedata
 from datetime import datetime
 from enum import Enum, auto
 from time import sleep
+from typing import Optional, Tuple
 
 import emoji
 import yaml
-from colorama import Fore
+from colorama import Fore, Style
 from langdetect import detect
 
 from GramAddict.core.device_facade import Timeout
@@ -25,6 +26,8 @@ FIELD_SKIP_NON_BUSINESS = "skip_non_business"
 FIELD_SKIP_FOLLOWING = "skip_following"
 FIELD_SKIP_FOLLOWER = "skip_follower"
 FIELD_SKIP_IF_LINK_IN_BIO = "skip_if_link_in_bio"
+FIELD_SKIP_PRIVATE = "skip_if_private"
+FIELD_SKIP_PUBLIC = "skip_if_public"
 FIELD_MIN_FOLLOWERS = "min_followers"
 FIELD_MAX_FOLLOWERS = "max_followers"
 FIELD_MIN_FOLLOWINGS = "min_followings"
@@ -35,7 +38,7 @@ FIELD_FOLLOW_PRIVATE_OR_EMPTY = "follow_private_or_empty"
 FIELD_PM_TO_PRIVATE_OR_EMPTY = "pm_to_private_or_empty"
 FIELD_COMMENT_PHOTOS = "comment_photos"
 FIELD_COMMENT_VIDEOS = "comment_videos"
-FIELD_INTERACT_ONLY_PRIVATE = "interact_only_private"
+FIELD_COMMENT_CAROUSELS = "comment_carousels"
 FIELD_BLACKLIST_WORDS = "blacklist_words"
 FIELD_MANDATORY_WORDS = "mandatory_words"
 FIELD_SPECIFIC_ALPHABET = "specific_alphabet"
@@ -62,13 +65,13 @@ class SkipReason(Enum):
     YOU_FOLLOW = auto()
     FOLLOW_YOU = auto()
     IS_PRIVATE = auto()
+    IS_PUBLIC = auto()
     UNKNOWN_PRIVACY = auto()
     LT_FOLLOWERS = auto()
     GT_FOLLOWERS = auto()
     LT_FOLLOWINGS = auto()
     GT_FOLLOWINGS = auto()
     POTENCY_RATIO = auto()
-    UNDEFINED_FOLLOWERS_FOLLOWING = auto()
     HAS_BUSINESS = auto()
     HAS_NON_BUSINESS = auto()
     NOT_ENOUGH_POSTS = auto()
@@ -81,6 +84,7 @@ class SkipReason(Enum):
     RESTRICTED = auto()
     HAS_LINK_IN_BIO = auto()
     LT_MUTUAL = auto()
+    BIOGRAPHY_IS_EMPTY = auto()
 
 
 class Profile(object):
@@ -108,16 +112,17 @@ class Profile(object):
         self.biography = biography
         self.link_in_bio = link_in_bio
         self.fullname = fullname
+        self.potency_ratio = None
 
-    def set_followers_and_following(self, followers: int, followings: int):
+    def set_followers_and_following(
+        self, followers: Optional[int], followings: Optional[int]
+    ) -> None:
         self.followers = followers
         self.followings = followings
         if followers is not None or followings is not None:
             self.potency_ratio = (
                 0 if self.followings == 0 else self.followers / self.followings
             )
-        else:
-            self.potency_ratio = None
 
 
 class Filter:
@@ -125,36 +130,50 @@ class Filter:
 
     def __init__(self, storage=None):
         filter_path = storage.filter_path
-        if not configs.args.disable_filters:
-            if os.path.exists(filter_path) and filter_path.endswith(".yml"):
-                with open(filter_path, "r", encoding="utf-8") as stream:
-                    try:
-                        self.conditions = yaml.safe_load(stream)
-                    except Exception as e:
-                        logger.error(f"Error: {e}")
-
-            elif os.path.exists(filter_path):
-                with open(filter_path, "r", encoding="utf-8") as json_file:
-                    try:
-                        self.conditions = json.load(json_file)
-                        logger.warning(
-                            "Using filter.json is deprecated from version 2.3.0 and will stop working very soon, use filters.yml instead!"
-                        )
-                        sleep(5)
-                    except Exception as e:
-                        logger.error(
-                            f"Please check {json_file.name}, it contains this error: {e}"
-                        )
-                        sys.exit(0)
-            else:
-                logger.warning(
-                    f"The legacy filters file {filter_path} doesn't exists. Download and use the filters.yml instead from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
-                )
-        else:
+        if configs.args.disable_filters:
             logger.warning("Filters are disabled!")
-        self.storage = storage
+        elif os.path.exists(filter_path) and filter_path.endswith(".yml"):
+            with open(filter_path, "r", encoding="utf-8") as stream:
+                try:
+                    self.conditions = yaml.safe_load(stream)
+                except Exception as e:
+                    logger.error(f"Error: {e}")
 
-    def is_num_likers_in_range(self, likes_on_post):
+        elif os.path.exists(filter_path):
+            with open(filter_path, "r", encoding="utf-8") as json_file:
+                try:
+                    self.conditions = json.load(json_file)
+                    logger.warning(
+                        "Using filter.json is deprecated from version 2.3.0 and will stop working very soon, use filters.yml instead!"
+                    )
+                    sleep(5)
+                except Exception as e:
+                    logger.error(
+                        f"Please check {json_file.name}, it contains this error: {e}"
+                    )
+                    sys.exit(2)
+        self.storage = storage
+        if self.conditions is not None:
+            logger.info("-" * 70, extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"})
+            logger.info(
+                f"{'Filters recap (no spell check!)':<35} Value",
+                extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"},
+            )
+            logger.info("-" * 70, extra={"color": f"{Fore.YELLOW}{Style.BRIGHT}"})
+            for k, v in self.conditions.items():
+                if isinstance(v, bool):
+                    logger.info(
+                        f"{k:<35} {v}",
+                        extra={"color": f"{Fore.GREEN if v else Fore.RED}"},
+                    )
+                else:
+                    logger.info(f"{k:<35} {v}", extra={"color": f"{Fore.WHITE}"})
+        else:
+            logger.warning(
+                "The filters file doesn't exists in your account folder. Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
+            )
+
+    def is_num_likers_in_range(self, likes_on_post: str) -> bool:
         if self.conditions is not None and likes_on_post is not None:
             if likes_on_post == -1:
                 logger.debug("We don't know how many likers this post has.")
@@ -176,11 +195,11 @@ class Filter:
             logger.debug("filters.yml not loaded!")
             return True
 
-    def return_check_profile(self, username, profile_data, skip_reason=None):
+    def return_check_profile(self, username, profile_data, skip_reason=None) -> bool:
         if self.storage is not None:
             self.storage.add_filter_user(username, profile_data, skip_reason)
 
-        return False if skip_reason is None else True
+        return skip_reason is not None
 
     def check_profile(self, device, username):
         """
@@ -201,9 +220,6 @@ class Filter:
             field_max_potency_ratio = self.conditions.get(FIELD_MAX_POTENCY_RATIO, 999)
             field_blacklist_words = self.conditions.get(FIELD_BLACKLIST_WORDS, [])
             field_mandatory_words = self.conditions.get(FIELD_MANDATORY_WORDS, [])
-            field_interact_only_private = self.conditions.get(
-                FIELD_INTERACT_ONLY_PRIVATE, False
-            )
             field_specific_alphabet = self.conditions.get(FIELD_SPECIFIC_ALPHABET)
             field_bio_language = self.conditions.get(FIELD_BIO_LANGUAGE)
             field_bio_banned_language = self.conditions.get(FIELD_BIO_BANNED_LANGUAGE)
@@ -212,10 +228,10 @@ class Filter:
             field_skip_if_link_in_bio = self.conditions.get(
                 FIELD_SKIP_IF_LINK_IN_BIO, False
             )
+            field_skip_if_private = self.conditions.get(FIELD_SKIP_PRIVATE, False)
+            field_skip_if_public = self.conditions.get(FIELD_SKIP_PUBLIC, False)
 
         profile_data = self.get_all_data(device)
-        if self.conditions is None:
-            return profile_data, False
         if profile_data.is_restricted:
             logger.info(
                 "This is a restricted profile, skip.",
@@ -224,129 +240,141 @@ class Filter:
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.RESTRICTED
             )
-        if profile_data.follow_button_text == FollowStatus.NONE:
+        if profile_data.follow_button_text == FollowStatus.NONE or None in (
+            profile_data.followers,
+            profile_data.followings,
+            profile_data.posts_count,
+        ):
             logger.info(
-                "Profile was not fully loaded or the user uses a bug for having super huge profile description, skip.",
+                "Profile was not fully loaded, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.NOT_LOADED
             )
-        if field_skip_following or field_skip_follower:
-            if field_skip_following:
-                if profile_data.follow_button_text == FollowStatus.FOLLOWING:
-                    logger.info(
-                        f"You follow @{username}, skip.",
-                        extra={"color": f"{Fore.CYAN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.YOU_FOLLOW
-                    )
-
-            if field_skip_follower:
-                if profile_data.follow_button_text == FollowStatus.FOLLOW_BACK:
-                    logger.info(
-                        f"@{username} follows you, skip.",
-                        extra={"color": f"{Fore.CYAN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.FOLLOW_YOU
-                    )
-
-        if field_interact_only_private:
-            logger.debug("Checking if account is private...")
-
-            if field_interact_only_private and profile_data.is_private is False:
-
-                logger.info(
-                    f"@{username} has public account, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.IS_PRIVATE
-                )
-
-            elif field_interact_only_private and profile_data.is_private is None:
-                logger.info(
-                    f"Could not determine if @{username} is public or private, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.UNKNOWN_PRIVACY
-                )
-
-        logger.debug("Checking if account is within follower/following parameters...")
-        if profile_data.followers is not None and profile_data.followings is not None:
-            if field_min_followers is not None and profile_data.followers < int(
-                field_min_followers
-            ):
-                logger.info(
-                    f"@{username} has less than {field_min_followers} followers, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.LT_FOLLOWERS
-                )
-            if field_max_followers is not None and profile_data.followers > int(
-                field_max_followers
-            ):
-                logger.info(
-                    f"@{username} has more than {field_max_followers} followers, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.GT_FOLLOWERS
-                )
-            if field_min_followings is not None and profile_data.followings < int(
-                field_min_followings
-            ):
-                logger.info(
-                    f"@{username} has less than {field_min_followings} followings, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.LT_FOLLOWINGS
-                )
-            if field_max_followings is not None and profile_data.followings > int(
-                field_max_followings
-            ):
-                logger.info(
-                    f"@{username} has more than {field_max_followings} followings, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.GT_FOLLOWINGS
-                )
-
-            if field_min_potency_ratio != 0 or field_max_potency_ratio != 999:
-                if (
-                    int(profile_data.followings) == 0
-                    or profile_data.followers / profile_data.followings
-                    < float(field_min_potency_ratio)
-                    or profile_data.followers / profile_data.followings
-                    > float(field_max_potency_ratio)
-                ):
-                    logger.info(
-                        f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
-                        extra={"color": f"{Fore.CYAN}"},
-                    )
-                    return profile_data, self.return_check_profile(
-                        username, profile_data, SkipReason.POTENCY_RATIO
-                    )
-
-        else:
-            logger.critical(
-                "Either followers, followings, or possibly both are undefined. Cannot filter."
+        if self.conditions is None:
+            logger.debug("filters.yml not loaded!")
+            return profile_data, False
+        if (
+            field_skip_following
+            and profile_data.follow_button_text == FollowStatus.FOLLOWING
+        ):
+            logger.info(
+                f"You follow @{username}, skip.",
+                extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
-                username, profile_data, SkipReason.UNDEFINED_FOLLOWERS_FOLLOWING
+                username, profile_data, SkipReason.YOU_FOLLOW
             )
 
-        if field_mutual_friends > -1:
+        if (
+            field_skip_follower
+            and profile_data.follow_button_text == FollowStatus.FOLLOW_BACK
+        ):
+            logger.info(
+                f"@{username} follows you, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.FOLLOW_YOU
+            )
+        logger.debug(
+            f"This account is {'private' if profile_data.is_private else 'public'}."
+        )
+
+        if profile_data.is_private and field_skip_if_public:
+            logger.info(
+                f"@{username} has public account and you want to interact only private, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.IS_PUBLIC
+            )
+        elif profile_data.is_private and field_skip_if_private:
+            logger.info(
+                f"@{username} has private account and you want to interact only public, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.IS_PRIVATE
+            )
+        elif profile_data.is_private is None:
+            logger.info(
+                f"Could not determine if @{username} is public or private, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.UNKNOWN_PRIVACY
+            )
+
+        logger.debug("Checking if account is within follower/following parameters...")
+        if field_min_followers is not None and profile_data.followers < int(
+            field_min_followers
+        ):
+            logger.info(
+                f"@{username} has less than {field_min_followers} followers, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.LT_FOLLOWERS
+            )
+        if field_max_followers is not None and profile_data.followers > int(
+            field_max_followers
+        ):
+            logger.info(
+                f"@{username} has more than {field_max_followers} followers, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.GT_FOLLOWERS
+            )
+        if field_min_followings is not None and profile_data.followings < int(
+            field_min_followings
+        ):
+            logger.info(
+                f"@{username} has less than {field_min_followings} followings, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.LT_FOLLOWINGS
+            )
+        if field_max_followings is not None and profile_data.followings > int(
+            field_max_followings
+        ):
+            logger.info(
+                f"@{username} has more than {field_max_followings} followings, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.GT_FOLLOWINGS
+            )
+
+        if (field_min_potency_ratio != 0 or field_max_potency_ratio != 999) and (
+            (
+                int(profile_data.followings) == 0
+                or profile_data.followers / profile_data.followings
+                < float(field_min_potency_ratio)
+                or profile_data.followers / profile_data.followings
+                > float(field_max_potency_ratio)
+            )
+        ):
+            logger.info(
+                f"@{username}'s potency ratio is not between {field_min_potency_ratio} and {field_max_potency_ratio}, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.POTENCY_RATIO
+            )
+
+        if field_mutual_friends != -1:
             logger.debug(
                 f"Checking if that user has at least {field_mutual_friends} mutual friends."
             )
             if profile_data.mutual_friends < field_mutual_friends:
+                logger.info(
+                    f"@{username} has less then {field_mutual_friends} mutual friends, skip.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.LT_MUTUAL
                 )
@@ -354,49 +382,68 @@ class Filter:
         if field_skip_if_link_in_bio:
             logger.debug("Checking if account has link in bio...")
             if profile_data.link_in_bio is not None:
+                logger.info(
+                    f"@{username} has a link in bio, skip.",
+                    extra={"color": f"{Fore.CYAN}"},
+                )
                 return profile_data, self.return_check_profile(
                     username, profile_data, SkipReason.HAS_LINK_IN_BIO
                 )
 
         if field_skip_business or field_skip_non_business:
             logger.debug("Checking if account is a business...")
-            if field_skip_business and profile_data.has_business_category is True:
-                logger.info(
-                    f"@{username} has business account, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.HAS_BUSINESS
-                )
-            if field_skip_non_business and profile_data.has_business_category is False:
-                logger.info(
-                    f"@{username} has non business account, skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.HAS_NON_BUSINESS
-                )
+        if field_skip_business and profile_data.has_business_category is True:
+            logger.info(
+                f"@{username} has business account, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.HAS_BUSINESS
+            )
+        if field_skip_non_business and profile_data.has_business_category is False:
+            logger.info(
+                f"@{username} has non business account, skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.HAS_NON_BUSINESS
+            )
 
-        if field_min_posts is not None:
-            if field_min_posts > profile_data.posts_count:
-                logger.info(
-                    f"@{username} doesn't have enough posts ({profile_data.posts_count}), skip.",
-                    extra={"color": f"{Fore.CYAN}"},
-                )
-                return profile_data, self.return_check_profile(
-                    username, profile_data, SkipReason.NOT_ENOUGH_POSTS
-                )
+        if field_min_posts is not None and field_min_posts > profile_data.posts_count:
+            logger.info(
+                f"@{username} doesn't have enough posts ({profile_data.posts_count}), skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.NOT_ENOUGH_POSTS
+            )
 
-        cleaned_biography = emoji.get_emoji_regexp().sub(
-            "", profile_data.biography.replace("\n", "").lower()
+        cleaned_biography = " ".join(
+            emoji.get_emoji_regexp()
+            .sub("", profile_data.biography.replace("\n", ""))
+            .lower()
+            .split()
         )
+
+        if not cleaned_biography and (
+            len(field_mandatory_words) > 0
+            or field_bio_language is not None
+            or field_specific_alphabet is not None
+        ):
+            logger.info(
+                f"@{username} has an empty biography, that means there isn't any mandatory things that can be checked. Skip.",
+                extra={"color": f"{Fore.CYAN}"},
+            )
+            return profile_data, self.return_check_profile(
+                username, profile_data, SkipReason.BIOGRAPHY_IS_EMPTY
+            )
         if (
             len(field_blacklist_words) > 0
             or len(field_mandatory_words) > 0
             or field_specific_alphabet is not None
             or field_bio_language is not None
             or field_bio_banned_language is not None
-        ) and cleaned_biography != "":
+        ):
             logger.debug("Pulling biography...")
             if len(field_blacklist_words) > 0:
                 logger.debug(
@@ -497,7 +544,7 @@ class Filter:
         # If no filters return false, we are good to proceed
         return profile_data, self.return_check_profile(username, profile_data, None)
 
-    def can_follow_private_or_empty(self):
+    def can_follow_private_or_empty(self) -> bool:
         if self.conditions is None:
             return False
 
@@ -508,7 +555,7 @@ class Filter:
             field_follow_private_or_empty
         )
 
-    def can_pm_to_private_or_empty(self):
+    def can_pm_to_private_or_empty(self) -> bool:
         if self.conditions is None:
             return False
 
@@ -517,16 +564,17 @@ class Filter:
             field_pm_to_private_or_empty
         )
 
-    def can_comment(self, current_mode):
+    def can_comment(self, current_mode) -> Tuple[bool, bool, bool, bool]:
         if self.conditions is not None:
             return (
                 self.conditions.get(FIELD_COMMENT_PHOTOS, True),
                 self.conditions.get(FIELD_COMMENT_VIDEOS, True),
+                self.conditions.get(FIELD_COMMENT_CAROUSELS, True),
                 self.conditions.get("comment_" + current_mode.replace("-", "_"), False),
             )
         else:
             logger.debug("filters.yml (or legacy filter.json) is not loaded!")
-        return False, False, False
+        return False, False, False, False
 
     def get_all_data(self, device):
         profile_picture = device.find(
@@ -552,7 +600,7 @@ class Filter:
                     random_sleep(60, 120, modulable=False)
                     if profile_picture.exists():
                         logger.warning(
-                            "Profile won't load! Maybe you're softbanned or you've lost your connection!"
+                            "Profile won't load! Maybe you're soft-banned or you've lost your connection!"
                         )
         profileView = ProfileView(device)
         if not is_restricted:
@@ -585,7 +633,9 @@ class Filter:
         return profile
 
     @staticmethod
-    def _get_followers_and_followings(device, profileView=None):
+    def _get_followers_and_followings(
+        device, profileView: ProfileView = None
+    ) -> Tuple[int, int]:
         followers = 0
         profileView = ProfileView(device) if profileView is None else profileView
         try:
@@ -606,14 +656,14 @@ class Filter:
             return 0, 1
 
     @staticmethod
-    def _has_business_category(device, profileView=None):
+    def _has_business_category(device, ProfileView=None) -> bool:
         business_category_view = device.find(
             resourceId=ResourceID.PROFILE_HEADER_BUSINESS_CATEGORY,
         )
         return business_category_view.exists()
 
     @staticmethod
-    def _is_private_account(device, profileView=None):
+    def _is_private_account(device, profileView: ProfileView = None) -> Optional[bool]:
         private = None
         profileView = ProfileView(device) if profileView is None else profileView
         try:
@@ -625,16 +675,16 @@ class Filter:
         return private
 
     @staticmethod
-    def _get_profile_biography(device, profileView=None):
+    def _get_profile_biography(device, profileView: ProfileView = None) -> str:
         profileView = ProfileView(device) if profileView is None else profileView
         return profileView.getProfileBiography()
 
     @staticmethod
-    def _find_alphabet(biography):
+    def _find_alphabet(biography: str) -> str:
         a_dict = {}
         max_alph = "UNKNOWN"
         try:
-            for x in range(0, len(biography)):
+            for x in range(len(biography)):
                 if biography[x].isalpha():
                     a = unicodedata.name(biography[x]).split(" ")[0]
                     if a not in IGNORE_CHARSETS:
@@ -650,13 +700,13 @@ class Filter:
         return max_alph
 
     @staticmethod
-    def _find_language(biography):
+    def _find_language(biography: str) -> str:
         """Language detection algorithm is non-deterministic, which means that if you try to run it on a text which is either too short or too ambiguous, you might get different results everytime you run it."""
         language = ""
         results = []
         try:
             for _ in range(5):
-                # we do a BO5, that would mitigate the inconsistency a little bit
+                # we do a BO5, that would mitigate the inconsistency a little
                 results.append(detect(biography))
             language = max(results, key=results.count)
         except Exception as e:
@@ -664,7 +714,7 @@ class Filter:
         return language
 
     @staticmethod
-    def _get_fullname(device, profileView=None):
+    def _get_fullname(device, profileView: ProfileView = None) -> str:
         profileView = ProfileView(device) if profileView is None else profileView
         fullname = ""
         try:
@@ -676,7 +726,7 @@ class Filter:
         return fullname
 
     @staticmethod
-    def _get_posts_count(device, profileView=None):
+    def _get_posts_count(device, profileView: ProfileView = None) -> int:
         profileView = ProfileView(device) if profileView is None else profileView
         posts_count = 0
         try:
@@ -688,19 +738,17 @@ class Filter:
         return posts_count
 
     @staticmethod
-    def _get_follow_button_text(device, profileView=None):
+    def _get_follow_button_text(device, profileView: ProfileView = None) -> str:
         profileView = ProfileView(device) if profileView is None else profileView
         _, text = profileView.getFollowButton()
         return text
 
     @staticmethod
-    def _get_mutual_friends(device, profileView=None):
+    def _get_mutual_friends(device, profileView: ProfileView = None) -> int:
         profileView = ProfileView(device) if profileView is None else profileView
-        mutual_friends = profileView.getMutualFriends()
-        return mutual_friends
+        return profileView.getMutualFriends()
 
     @staticmethod
-    def _get_link_in_bio(device, profileView=None):
+    def _get_link_in_bio(device, profileView: ProfileView = None) -> str:
         profileView = ProfileView(device) if profileView is None else profileView
-        link = profileView.getLinkInBio()
-        return link
+        return profileView.getLinkInBio()

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "GramAddict"
+authors = [{ name = "GramAddict Team", email = "maintainers@gramaddict.org" }]
+readme = "README.md"
+classifiers = [
+    "License :: Free for non-commercial use",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3"
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.6"
+dynamic = ["version", "description"]
+dependencies = [
+    "colorama==0.4.4",
+    "ConfigArgParse==1.5.3",
+    "PyYAML==6.0",
+    "uiautomator2==2.16.14",
+    "urllib3==1.26.7",
+    "emoji==1.6.1",
+    "langdetect==1.0.9",
+    "atomicwrites==1.4.0",
+    "spintax==1.0.4",
+    "requests~=2.28.2",
+    "packaging~=20.9"
+]
+
+[project.optional-dependencies]
+telegram-reports = [
+    "pandas==1.2.4",
+    "pytest-cov",
+]
+analytics = ["matplotlib==3.4.2"]
+dev = ["flit", "pre-commit", "black", "flake8", "isort"]
+
+
+[project.urls]
+Documentation = "https://docs.gramaddict.org/#/"
+Source = "https://github.com/GramAddict/bot"
+
+[project.scripts]
+gramaddict = "GramAddict.__main__:main"

@@ -4,6 +4,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from enum import Enum, unique
+from typing import Optional, Union
 
 from atomicwrites import atomic_write
 
@@ -25,35 +26,22 @@ FILENAME_MESSAGES = "pm_list.txt"
 
 
 class Storage:
-    interacted_users_path = None
-    interacted_users = {}
-
-    history_filter_users_path = None
-    history_filter_users = {}
-
-    filter_path = None
-    filter = {}
-
-    comment_path = None
-    comment = []
-
-    whitelist = []
-    blacklist = []
-
     def __init__(self, my_username):
         if my_username is None:
             logger.error(
                 "No username, thus the script won't get access to interacted users and sessions data."
             )
             return
+        self.account_path = os.path.join(ACCOUNTS, my_username)
+        if not os.path.exists(self.account_path):
+            os.makedirs(self.account_path)
+        self.interacted_users = {}
+        self.history_filter_users = {}
 
-        if not os.path.exists(f"{ACCOUNTS}/{my_username}"):
-            os.makedirs(f"{ACCOUNTS}/{my_username}")
-
-        self.interacted_users_path = (
-            f"{ACCOUNTS}/{my_username}/{FILENAME_INTERACTED_USERS}"
+        self.interacted_users_path = os.path.join(
+            self.account_path, FILENAME_INTERACTED_USERS
         )
-        if os.path.exists(self.interacted_users_path):
+        if os.path.isfile(self.interacted_users_path):
             with open(self.interacted_users_path, encoding="utf-8") as json_file:
                 try:
                     self.interacted_users = json.load(json_file)
@@ -62,12 +50,11 @@ class Storage:
                         f"Please check {json_file.name}, it contains this error: {e}"
                     )
                     sys.exit(0)
-
-        self.history_filter_users_path = (
-            f"{ACCOUNTS}/{my_username}/{FILENAME_HISTORY_FILTER_USERS}"
+        self.history_filter_users_path = os.path.join(
+            self.account_path, FILENAME_HISTORY_FILTER_USERS
         )
 
-        if os.path.exists(self.history_filter_users_path):
+        if os.path.isfile(self.history_filter_users_path):
             with open(self.history_filter_users_path, encoding="utf-8") as json_file:
                 try:
                     self.history_filter_users = json.load(json_file)
@@ -76,35 +63,57 @@ class Storage:
                         f"Please check {json_file.name}, it contains this error: {e}"
                     )
                     sys.exit(0)
-
-        self.filter_path = f"{ACCOUNTS}/{my_username}/{FILTER}"
+        self.filter_path = os.path.join(self.account_path, FILTER)
         if not os.path.exists(self.filter_path):
-            self.filter_path = f"{ACCOUNTS}/{my_username}/{OLD_FILTER}"
+            self.filter_path = os.path.join(self.account_path, OLD_FILTER)
 
-        whitelist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_WHITELIST}"
+        whitelist_path = os.path.join(self.account_path, FILENAME_WHITELIST)
         if os.path.exists(whitelist_path):
             with open(whitelist_path, encoding="utf-8") as file:
                 self.whitelist = [line.rstrip() for line in file]
+        else:
+            self.whitelist = []
 
-        blacklist_path = f"{ACCOUNTS}/{my_username}/{FILENAME_BLACKLIST}"
+        blacklist_path = os.path.join(self.account_path, FILENAME_BLACKLIST)
         if os.path.exists(blacklist_path):
             with open(blacklist_path, encoding="utf-8") as file:
                 self.blacklist = [line.rstrip() for line in file]
-
-        self.report_path = f"{ACCOUNTS}/{my_username}/{REPORTS}/"
-
-    def can_be_reinteract(self, last_interaction, hours_that_have_to_pass):
-        if hours_that_have_to_pass > timedelta(hours=0):
-            delta = datetime.now() - last_interaction
-            if delta < hours_that_have_to_pass:
-                return False
-            else:
-                return True
         else:
+            self.blacklist = []
+
+        self.report_path = os.path.join(self.account_path, REPORTS)
+
+    def can_be_reinteract(
+        self,
+        last_interaction: datetime,
+        hours_that_have_to_pass: Optional[Union[int, float]],
+    ) -> bool:
+        if hours_that_have_to_pass is None:
             return False
+        elif hours_that_have_to_pass == 0:
+            return True
+        return self._check_time(
+            last_interaction, timedelta(hours=hours_that_have_to_pass)
+        )
+
+    def can_be_unfollowed(
+        self, last_interaction: datetime, days_that_have_to_pass: Optional[int]
+    ) -> bool:
+        if days_that_have_to_pass is None:
+            return False
+        return self._check_time(
+            last_interaction, timedelta(days=days_that_have_to_pass)
+        )
+
+    def _check_time(
+        self, stored_time: Optional[datetime], limit_time: timedelta
+    ) -> bool:
+        if stored_time is None or limit_time == timedelta(hours=0):
+            return True
+        return datetime.now() - stored_time >= limit_time
 
     def check_user_was_interacted(self, username):
-        """returns when an username has been interacted, False if not already interacted"""
+        """returns when a username has been interacted, False if not already interacted"""
         user = self.interacted_users.get(username)
         if user is None:
             return False, None
@@ -113,7 +122,6 @@ class Storage:
             user[USER_LAST_INTERACTION], "%Y-%m-%d %H:%M:%S.%f"
         )
         return True, last_interaction
-        # return datetime.now() - last_interaction <= timedelta(days=3)
 
     def get_following_status(self, username):
         user = self.interacted_users.get(username)
@@ -142,6 +150,7 @@ class Storage:
         username,
         session_id,
         followed=False,
+        is_requested=None,
         unfollowed=False,
         scraped=False,
         liked=0,
@@ -152,16 +161,19 @@ class Storage:
         target=None,
     ):
         user = self.interacted_users.get(username, {})
-        user[USER_LAST_INTERACTION] = str(datetime.now())
+        user[USER_LAST_INTERACTION] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         if followed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.lower()
+            if is_requested:
+                user[USER_FOLLOWING_STATUS] = FollowingStatus.REQUESTED.name.casefold()
+            else:
+                user[USER_FOLLOWING_STATUS] = FollowingStatus.FOLLOWED.name.casefold()
         elif unfollowed:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.UNFOLLOWED.name.casefold()
         elif scraped:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.SCRAPED.name.casefold()
         else:
-            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.lower()
+            user[USER_FOLLOWING_STATUS] = FollowingStatus.NONE.name.casefold()
 
         # Save only the last session_id
         user["session_id"] = session_id
@@ -236,6 +248,7 @@ class Storage:
 class FollowingStatus(Enum):
     NONE = 0
     FOLLOWED = 1
-    UNFOLLOWED = 2
-    NOT_IN_LIST = 3
-    SCRAPED = 4
+    REQUESTED = 2
+    UNFOLLOWED = 3
+    NOT_IN_LIST = 4
+    SCRAPED = 5

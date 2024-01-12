@@ -17,6 +17,8 @@ class Plugin(object):
 
 class PluginLoader(object):
     def __init__(self, plugin_package, first_run):
+        self.seen_paths = None
+        self.plugins = None
         self.plugin_package = plugin_package
         self.output = first_run
         self.reload_plugins()
@@ -32,12 +34,12 @@ class PluginLoader(object):
         imported_package = __import__(package, fromlist=["plugins"])
 
         for _, pluginname, ispkg in pkgutil.iter_modules(
-            imported_package.__path__, imported_package.__name__ + "."
+            imported_package.__path__, f"{imported_package.__name__}."
         ):
             if not ispkg:
                 plugin_module = __import__(pluginname, fromlist=["plugins"])
                 clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
-                for (_, c) in clsmembers:
+                for _, c in clsmembers:
                     if issubclass(c, Plugin) & (c is not Plugin):
                         if self.output:
                             logger.info(f"  - {c.__name__}: {c.__doc__}")

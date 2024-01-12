@@ -2,11 +2,13 @@ import logging
 import string
 from datetime import datetime
 from enum import Enum, auto
+from inspect import stack
 from os import getcwd, listdir
 from random import randint, uniform
 from re import search
 from subprocess import PIPE, run
 from time import sleep
+from typing import Optional
 
 import uiautomator2
 
@@ -15,9 +17,9 @@ from GramAddict.core.utils import random_sleep
 logger = logging.getLogger(__name__)
 
 
-def create_device(device_id):
+def create_device(device_id, app_id):
     try:
-        return DeviceFacade(device_id)
+        return DeviceFacade(device_id, app_id)
     except ImportError as e:
         logger.error(str(e))
         return None
@@ -40,6 +42,7 @@ def get_device_info(device):
 
 class Timeout(Enum):
     ZERO = auto()
+    TINY = auto()
     SHORT = auto()
     MEDIUM = auto()
     LONG = auto()
@@ -60,6 +63,7 @@ class Location(Enum):
     RIGHT = auto()
     LEFT = auto()
     BOTTOMRIGHT = auto()
+    LEFTEDGE = auto()
     RIGHTEDGE = auto()
     TOPLEFT = auto()
 
@@ -71,9 +75,15 @@ class Direction(Enum):
     LEFT = auto()
 
 
+class Mode(Enum):
+    TYPE = auto()
+    PASTE = auto()
+
+
 class DeviceFacade:
-    def __init__(self, device_id):
+    def __init__(self, device_id, app_id):
         self.device_id = device_id
+        self.app_id = app_id
         try:
             if device_id is None or "." not in device_id:
                 self.deviceV2 = uiautomator2.connect(
@@ -84,28 +94,87 @@ class DeviceFacade:
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
 
+    def _get_current_app(self):
+        try:
+            return self.deviceV2.app_current()["package"]
+        except uiautomator2.JSONRPCError as e:
+            raise DeviceFacade.JsonRpcError(e)
+
+    def _ig_is_opened(self) -> bool:
+        return self._get_current_app() == self.app_id
+
+    def check_if_ig_is_opened(func):
+        def wrapper(self, **kwargs):
+            avoid_lst = ["choose_cloned_app", "check_if_crash_popup_is_there"]
+            caller = stack()[1].function
+            if not self._ig_is_opened() and caller not in avoid_lst:
+                raise DeviceFacade.AppHasCrashed("App has crashed / has been closed!")
+            return func(self, **kwargs)
+
+        return wrapper
+
+    @check_if_ig_is_opened
     def find(
         self,
         index=None,
-        *args,
         **kwargs,
     ):
         try:
-            view = self.deviceV2(*args, **kwargs)
+            view = self.deviceV2(**kwargs)
             if index is not None and view.count > 1:
-                view = self.deviceV2(*args, **kwargs)[index]
+                view = self.deviceV2(**kwargs)[index]
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
         return DeviceFacade.View(view=view, device=self.deviceV2)
 
-    def back(self):
+    def back(self, modulable: bool = True):
         logger.debug("Press back button.")
         self.deviceV2.press("back")
-        random_sleep()
+        random_sleep(modulable=modulable)
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=20):
+        import imageio
+
+        def _run_MOD(self):
+            from collections import deque
+
+            pipelines = [self._pipe_limit, self._pipe_convert, self._pipe_resize]
+            _iter = self._iter_minicap()
+            for p in pipelines:
+                _iter = p(_iter)
+
+            with imageio.get_writer(self._filename, fps=self._fps) as wr:
+                frames = deque(maxlen=self._fps * 30)
+                for im in _iter:
+                    frames.append(im)
+                if self.crash:
+                    for frame in frames:
+                        wr.append_data(frame)
+            self._done_event.set()
+
+        def stop_MOD(self, crash=True):
+            """
+            stop record and finish write video
+            Returns:
+                bool: whether video is recorded.
+            """
+            if self._running:
+                self.crash = crash
+                self._stop_event.set()
+                ret = self._done_event.wait(10.0)
+
+                # reset
+                self._stop_event.clear()
+                self._done_event.clear()
+                self._running = False
+                return ret
+
+        from uiautomator2 import screenrecord as _sr
+
+        _sr.Screenrecord._run = _run_MOD
+        _sr.Screenrecord.stop = stop_MOD
         mp4_files = [f for f in listdir(getcwd()) if f.endswith(".mp4")]
-        if mp4_files != []:
+        if mp4_files:
             last_mp4 = mp4_files[-1]
             debug_number = "{0:0=4d}".format(int(last_mp4[-8:-4]) + 1)
             output = f"debug_{debug_number}.mp4"
@@ -114,7 +183,7 @@ class DeviceFacade:
 
     def stop_screenrecord(self, crash=True):
         if self.deviceV2.screenrecord.stop(crash=crash):
-            logger.warning("Screen recorder has been stopped succesfully!")
+            logger.warning("Screen recorder has been stopped successfully!")
 
     def screenshot(self, path):
         self.deviceV2.screenshot(path)
@@ -138,16 +207,16 @@ class DeviceFacade:
         )
         if data != "":
             flag = search("mDreamingLockscreen=(true|false)", data.stdout)
-            return True if flag is not None and flag.group(1) == "true" else False
+            return flag is not None and flag.group(1) == "true"
         else:
             logger.debug(
                 f"'adb -s {self.deviceV2.serial} shell dumpsys window' returns nothing!"
             )
             return None
 
-    def is_keyboard_show(serial):
+    def _is_keyboard_show(self):
         data = run(
-            f"adb -s {serial} shell dumpsys input_method",
+            f"adb -s {self.deviceV2.serial} shell dumpsys input_method",
             encoding="utf-8",
             stdout=PIPE,
             stderr=PIPE,
@@ -155,15 +224,18 @@ class DeviceFacade:
         )
         if data != "":
             flag = search("mInputShown=(true|false)", data.stdout)
-            return True if flag.group(1) == "true" else False
+            return flag.group(1) == "true"
         else:
             logger.debug(
-                f"'adb -s {serial} shell dumpsys input_method' returns nothing!"
+                f"'adb -s {self.deviceV2.serial} shell dumpsys input_method' returns nothing!"
             )
             return None
 
     def is_alive(self):
-        return self.deviceV2._is_alive()
+        try:
+            return self.deviceV2._is_alive()  # deprecated method
+        except AttributeError:
+            return self.deviceV2.server.alive
 
     def wake_up(self):
         """Make sure agent is alive or bring it back up before starting."""
@@ -198,7 +270,7 @@ class DeviceFacade:
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
 
-    def swipe(self, direction: "Direction", scale=0.5):
+    def swipe(self, direction: Direction, scale=0.5):
         """Swipe finger in the `direction`.
         Scale is the sliding distance. Default to 50% of the screen width
         """
@@ -266,8 +338,10 @@ class DeviceFacade:
         def __iter__(self):
             children = []
             try:
-                for item in self.viewV2:
-                    children.append(DeviceFacade.View(view=item, device=self.deviceV2))
+                children.extend(
+                    DeviceFacade.View(view=item, device=self.deviceV2)
+                    for item in self.viewV2
+                )
                 return iter(children)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
@@ -275,6 +349,12 @@ class DeviceFacade:
         def ui_info(self):
             try:
                 return self.viewV2.info
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def content_desc(self):
+            try:
+                return self.viewV2.info["contentDescription"]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
@@ -326,10 +406,10 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def click(self, mode=None, sleep=None, coord=[], crash_report_if_fails=True):
+        def click(self, mode=None, sleep=None, coord=None, crash_report_if_fails=True):
+            if coord is None:
+                coord = []
             mode = Location.WHOLE if mode is None else mode
-            x_abs = -1
-            y_abs = -1
             if mode == Location.WHOLE:
                 x_offset = uniform(0.15, 0.85)
                 y_offset = uniform(0.15, 0.85)
@@ -337,6 +417,10 @@ class DeviceFacade:
             elif mode == Location.LEFT:
                 x_offset = uniform(0.15, 0.4)
                 y_offset = uniform(0.15, 0.85)
+
+            elif mode == Location.LEFTEDGE:
+                x_offset = uniform(0.1, 0.2)
+                y_offset = uniform(0.40, 0.60)
 
             elif mode == Location.CENTER:
                 x_offset = uniform(0.4, 0.6)
@@ -348,7 +432,7 @@ class DeviceFacade:
 
             elif mode == Location.RIGHTEDGE:
                 x_offset = uniform(0.8, 0.9)
-                y_offset = uniform(0.30, 0.70)
+                y_offset = uniform(0.40, 0.60)
 
             elif mode == Location.BOTTOMRIGHT:
                 x_offset = uniform(0.8, 0.9)
@@ -399,12 +483,14 @@ class DeviceFacade:
                 else:
                     logger.debug("Trying to press on a obj which is gone.")
 
-        def click_retry(self, mode=None, sleep=None, coord=[], maxretry=2):
+        def click_retry(self, mode=None, sleep=None, coord=None, maxretry=2):
             """return True if successfully open the element, else False"""
+            if coord is None:
+                coord = []
             self.click(mode, sleep, coord)
 
             while maxretry > 0:
-                # we wait a little bit more before try again
+                # we wait a little more before try again
                 random_sleep(2, 4, modulable=False)
                 if not self.exists():
                     return True
@@ -413,9 +499,8 @@ class DeviceFacade:
                 maxretry -= 1
             if not self.exists():
                 return True
-            else:
-                logger.warning("Failed to open the UI element!")
-                return False
+            logger.warning("Failed to open the UI element!")
+            return False
 
         def double_click(self, padding=0.3, obj_over=0):
             """Double click randomly in the selected view using padding
@@ -473,33 +558,38 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def exists(self, ui_timeout=None):
+        def exists(self, ui_timeout=None, ignore_bug: bool = False) -> bool:
             try:
-                # Currently the methods left, right, up and down from
+                # Currently, the methods left, right, up and down from
                 # uiautomator2 return None when a Selector does not exist.
                 # All other selectors return an UiObject with exists() == False.
                 # We will open a ticket to uiautomator2 to fix this inconsistency.
                 if self.viewV2 is None:
                     return False
-                exists = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
-                if hasattr(self.viewV2, "count"):
-                    if not exists and self.viewV2.count >= 1:
-                        logger.debug(
-                            f"BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
-                        )
-                        # More info about that: https://github.com/openatx/uiautomator2/issues/689"
-                        return False
+                exists: bool = self.viewV2.exists(self.get_ui_timeout(ui_timeout))
+                if (
+                    hasattr(self.viewV2, "count")
+                    and not exists
+                    and self.viewV2.count >= 1
+                ):
+                    logger.debug(
+                        f"UIA2 BUG: exists return False, but there is/are {self.viewV2.count} element(s)!"
+                    )
+                    if ignore_bug:
+                        return "BUG!"
+                    # More info about that: https://github.com/openatx/uiautomator2/issues/689"
+                    return False
                 return exists
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def count_items(self):
+        def count_items(self) -> int:
             try:
                 return self.viewV2.count
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def wait(self, ui_timeout=None):
+        def wait(self, ui_timeout=Timeout.MEDIUM):
             try:
                 return self.viewV2.wait(timeout=self.get_ui_timeout(ui_timeout))
             except uiautomator2.JSONRPCError as e:
@@ -511,23 +601,51 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_bounds(self):
+        def is_above_this(self, obj2) -> Optional[bool]:
+            obj1 = self.viewV2
+            obj2 = obj2.viewV2
+            try:
+                if obj1.exists() and obj2.exists():
+                    return obj1.info["bounds"]["top"] < obj2.info["bounds"]["top"]
+                else:
+                    return None
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def get_bounds(self) -> dict:
             try:
                 return self.viewV2.info["bounds"]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def get_property(self, property):
+        def get_height(self) -> int:
+            bounds = self.get_bounds()
+            return bounds["bottom"] - bounds["top"]
+
+        def get_width(self):
+            bounds = self.get_bounds()
+            return bounds["right"] - bounds["left"]
+
+        def get_property(self, prop: str):
             try:
-                return self.viewV2.info[property]
+                return self.viewV2.info[prop]
+            except uiautomator2.JSONRPCError as e:
+                raise DeviceFacade.JsonRpcError(e)
+
+        def is_scrollable(self):
+            try:
+                if self.viewV2.exists():
+                    return self.viewV2.info["scrollable"]
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
         @staticmethod
-        def get_ui_timeout(ui_timeout):
+        def get_ui_timeout(ui_timeout: Timeout) -> int:
             ui_timeout = Timeout.ZERO if ui_timeout is None else ui_timeout
             if ui_timeout == Timeout.ZERO:
                 ui_timeout = 0
+            elif ui_timeout == Timeout.TINY:
+                ui_timeout = 1
             elif ui_timeout == Timeout.SHORT:
                 ui_timeout = 3
             elif ui_timeout == Timeout.MEDIUM:
@@ -536,93 +654,87 @@ class DeviceFacade:
                 ui_timeout = 8
             return ui_timeout
 
-        def get_text(self, retry=True, error=True, index=None):
-            max_attempts = 1 if not retry else 3
-            attempts = 0
-            while attempts < max_attempts:
-                attempts += 1
-                try:
-                    text = (
-                        self.viewV2.info["text"]
-                        if index is None
-                        else self.viewV2[index].info["text"]
-                    )
-                    if text is None:
-                        logger.debug(
-                            "Could not get text. Waiting 2 seconds and trying again..."
-                        )
-                        sleep(2)  # wait 2 seconds and retry
-                    else:
-                        return text
-                except uiautomator2.JSONRPCError as e:
-                    if error:
-                        raise DeviceFacade.JsonRpcError(e)
-                    else:
-                        return ""
-            logger.error(
-                f"Attempted to get text {attempts} times. You may have a slow network or are experiencing another problem."
-            )
+        def get_text(self, error=True, index=None):
+            try:
+                text = (
+                    self.viewV2.info["text"]
+                    if index is None
+                    else self.viewV2[index].info["text"]
+                )
+                if text is not None:
+                    return text
+            except uiautomator2.JSONRPCError as e:
+                if error:
+                    raise DeviceFacade.JsonRpcError(e)
+                else:
+                    return ""
+            logger.debug("Object exists but doesn't contain any text.")
             return ""
 
         def get_selected(self) -> bool:
             try:
-                return self.viewV2.info["selected"]
+                if self.viewV2.exists():
+                    return self.viewV2.info["selected"]
+                logger.debug(
+                    "Object has disappeared! Probably too short video which has been liked!"
+                )
+                return True
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def set_text(self, text):
+        def set_text(self, text: str, mode: Mode = Mode.TYPE) -> None:
             punct_list = string.punctuation
             try:
-                self.click(sleep=SleepTime.SHORT)
-                self.deviceV2.clear_text()
-                start = datetime.now()
-                random_sleep(0.3, 1, modulable=False)
-                word_list = text.split()
-                n_words = len(word_list)
-                i = 0
-                n = 1
-                for word in word_list:
-                    n_single_letters = randint(1, 3)
-                    for char in word:
-                        if i < n_single_letters:
-                            self.deviceV2.send_keys(char, clear=False)
-                            random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            i += 1
-                        else:
-                            if word[-1] in punct_list:
-                                self.deviceV2.send_keys(word[i:-1], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                                self.deviceV2.send_keys(word[-1], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            else:
-                                self.deviceV2.send_keys(word[i:], clear=False)
-                                random_sleep(0.01, 0.1, modulable=False, logging=False)
-                            break
-                    if n < n_words:
-                        self.deviceV2.send_keys(" ", clear=False)
-                        random_sleep(0.01, 0.1, modulable=False, logging=False)
-
-                    i = 0
-                    n += 1
-                typed_text = self.viewV2.get_text()
-                if (
-                    typed_text is None
-                    or typed_text == "Add a comment…"
-                    or typed_text == "Message…"
-                    or typed_text == ""
-                    or typed_text.startswith("Comment as ")
-                ):
-                    logger.warning(
-                        "Failed to write in text field, let's try in the old way.."
-                    )
+                if mode == Mode.PASTE:
                     self.viewV2.set_text(text)
                 else:
-                    logger.debug(
-                        f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
-                    )
+                    self.click(sleep=SleepTime.SHORT)
+                    self.deviceV2.clear_text()
+                    random_sleep(0.3, 1, modulable=False)
+                    start = datetime.now()
+                    sentences = text.splitlines()
+                    for j, sentence in enumerate(sentences, start=1):
+                        word_list = sentence.split()
+                        n_words = len(word_list)
+                        for n, word in enumerate(word_list, start=1):
+                            i = 0
+                            n_single_letters = randint(1, 3)
+                            for char in word:
+                                if i < n_single_letters:
+                                    self.deviceV2.send_keys(char, clear=False)
+                                    # random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                    i += 1
+                                else:
+                                    if word[-1] in punct_list:
+                                        self.deviceV2.send_keys(word[i:-1], clear=False)
+                                        # random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                        self.deviceV2.send_keys(word[-1], clear=False)
+                                    else:
+                                        self.deviceV2.send_keys(word[i:], clear=False)
+                                    # random_sleep(0.01, 0.1, modulable=False, logging=False)
+                                    break
+                            if n < n_words:
+                                self.deviceV2.send_keys(" ", clear=False)
+                                # random_sleep(0.01, 0.1, modulable=False, logging=False)
+                        if j < len(sentences):
+                            self.deviceV2.send_keys("\n")
+
+                    typed_text = self.viewV2.get_text()
+                    if typed_text != text:
+                        logger.warning(
+                            "Failed to write in text field, let's try in the old way.."
+                        )
+                        self.viewV2.set_text(text)
+                    else:
+                        logger.debug(
+                            f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
+                        )
                 DeviceFacade.sleep_mode(SleepTime.SHORT)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
     class JsonRpcError(Exception):
+        pass
+
+    class AppHasCrashed(Exception):
         pass

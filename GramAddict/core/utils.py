@@ -5,6 +5,8 @@ import re
 import shutil
 import subprocess
 import sys
+import time
+from collections import Counter
 from datetime import datetime
 from math import nan
 from os import getcwd, rename, walk
@@ -12,25 +14,28 @@ from pathlib import Path
 from random import randint, shuffle, uniform
 from subprocess import PIPE
 from time import sleep
+from typing import Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import emoji
+import requests
+import uiautomator2.exceptions
 import urllib3
 from colorama import Fore, Style
-from requests import get
+from packaging.version import parse as parse_version
 
-from GramAddict import __file__
+from GramAddict import __file__, __version__
+from GramAddict.core.config import Config
 from GramAddict.core.log import get_log_file_config
 from GramAddict.core.report import print_full_report
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.storage import ACCOUNTS
-from GramAddict.version import __version__
 
 http = urllib3.PoolManager()
 logger = logging.getLogger(__name__)
 
 
-def load_config(config):
+def load_config(config: Config):
     global app_id
     global args
     global configs
@@ -42,56 +47,36 @@ def load_config(config):
 
 
 def update_available():
-    urllib3.disable_warnings()
-    if "b" not in __version__:
-        version_request = "https://raw.githubusercontent.com/GramAddict/bot/master/GramAddict/version.py"
-    else:
-        version_request = "https://raw.githubusercontent.com/GramAddict/bot/develop/GramAddict/version.py"
-    try:
-        r = get(version_request, verify=False)
-        online_version_raw = r.text.split('"')[1]
+    response = requests.get("https://pypi.python.org/pypi/gramaddict/json")
+    if response.ok:
+        latest_version = response.json()["info"]["version"]
 
-    except Exception as e:
-        logger.error(
-            f"There was an error retrieving the latest version of GramAddict: {e}"
-        )
-        return False, False
-    if "b" not in __version__:
-        local_version = __version__.split(".")
-        online_version = online_version_raw.split(".")
+        current_version = parse_version(__version__)
+        latest_version = parse_version(latest_version)
+
+        return current_version < latest_version, latest_version
     else:
-        local_version = __version__.split(".")[:-1] + __version__.split(".")[-1].split(
-            "b"
-        )
-        online_version = online_version_raw.split(".")[:-1] + online_version_raw.split(
-            "."
-        )[-1].split("b")
-    for n in range(len(online_version)):
-        if int(online_version[n]) > int(local_version[n]):
-            return True, online_version_raw
-        else:
-            if int(online_version[n]) == int(local_version[n]):
-                continue
-            break
-    return False, online_version_raw
+        return False, None
 
 
 def check_if_updated(crash=False):
     if not crash:
         logger.info("Checking for updates...")
-    new_update, version = update_available()
+    new_update, latest_version = update_available()
     if new_update:
         logger.warning("NEW VERSION FOUND!")
         logger.warning(
-            f"Version {version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
+            f"Version {latest_version} has been released! Please update so that you can get all the latest features and bugfixes. Changelog here -> https://github.com/GramAddict/bot/blob/master/CHANGELOG.md"
         )
         logger.warning("HOW TO UPDATE:")
         logger.warning("If you installed with pip: pip3 install GramAddict -U")
         logger.warning("If you installed with git: git pull")
         sleep(5)
-    else:
-        if not crash:
-            logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+    elif latest_version is None:
+        logger.error("Unable to get latest version from pypi!")
+    elif not crash:
+        logger.info("Bot is updated.", extra={"color": f"{Style.BRIGHT}"})
+
     if not crash:
         logger.info(
             f"GramAddict v.{__version__}",
@@ -163,7 +148,7 @@ def config_examples():
 
 def check_adb_connection():
     is_device_id_provided = configs.device_id is not None
-    # sometimes it needs two requests to wake up..
+    # sometimes it needs two requests to wake up...
     stream = os.popen("adb devices")
     stream.close()
     stream = os.popen("adb devices")
@@ -178,7 +163,7 @@ def check_adb_connection():
         message = "Cannot proceed."
     elif devices_count > 1 and not is_device_id_provided:
         is_ok = False
-        message = "Use '--device devicename' to specify a device."
+        message = "Set a device name in your config.yml"
 
     if is_ok:
         logger.debug(f"Connected devices via adb: {devices_count}. {message}")
@@ -190,27 +175,18 @@ def check_adb_connection():
 
 def get_instagram_version():
     stream = os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell dumpsys package {app_id}"
+        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell dumpsys package {app_id}"
     )
     output = stream.read()
     version_match = re.findall("versionName=(\\S+)", output)
-    if len(version_match) == 1:
-        version = version_match[0]
-    else:
-        version = "not found"
+    version = version_match[0] if len(version_match) == 1 else "not found"
     stream.close()
     return version
 
 
 def open_instagram_with_url(url) -> bool:
-    logger.info("Open Instagram app with url: {}".format(url))
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell am start -a android.intent.action.VIEW -d {}".format(url)
-    )
+    logger.info(f"Open Instagram app with url: {url}")
+    cmd = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell am start -a android.intent.action.VIEW -d {url}"
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     err = cmd_res.stderr.strip()
     random_sleep()
@@ -220,64 +196,87 @@ def open_instagram_with_url(url) -> bool:
     return True
 
 
-def open_instagram(device, screen_record, close_apps):
-    FastInputIME = "com.github.uiautomator/.FastInputIME"
+def kill_app(device, app_id):
+    device.deviceV2.app_stop(app_id)
+
+
+def head_up_notifications(enabled: bool = False):
+    """
+    Enable or disable head-up-notifications
+    """
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
+    return subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
+def check_screen_timeout():
+    MIN_TIMEOUT = 5 * 6_000
+    cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings get system screen_off_timeout"
+    resp = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+    try:
+        if int(resp.stdout.lstrip()) < MIN_TIMEOUT:
+            logger.info(
+                f"Setting timeout of the screen to {MIN_TIMEOUT/6_000:.0f} minutes."
+            )
+            cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
+
+            subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+        else:
+            logger.info("Screen timeout is fine!")
+    except ValueError:
+        logger.info("Unable to get screen timeout!")
+        logger.debug(resp.stdout)
+
+
+def open_instagram(device):
     nl = "\n"
+    FastInputIME = "com.github.uiautomator/.FastInputIME"
     logger.info("Open Instagram app.")
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + f" shell am start -n {app_id}/com.instagram.mainactivity.MainActivity"
-    )
-    cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
-    err = cmd_res.stderr.strip()
-    if "Error" in err:
-        logger.error(err.replace(nl, ". "))
+
+    def call_ig():
+        try:
+            return device.deviceV2.app_start(app_id, use_monkey=True)
+        except uiautomator2.exceptions.BaseError as exc:
+            return exc
+
+    err = call_ig()
+    if err:
+        logger.error(err)
         return False
-    elif "more than one device/emulator" in err:
-        logger.error(
-            f"{err[9:].capitalize()}, specify only one by using '--device devicename'"
-        )
-        return False
-    elif err == "":
-        logger.debug("Instagram called succesfully.")
     else:
-        logger.debug(f"{err.replace('Warning: ', '')}.")
+        logger.debug("Instagram called successfully.")
 
     max_tries = 3
     n = 0
-    while device.deviceV2.info["currentPackageName"] != app_id:
-        if n > max_tries:
-            logger.critical("Unabled to open Instagram. Bot will stop.")
+    while device.deviceV2.app_current()["package"] != app_id:
+        if n == max_tries:
+            logger.critical(
+                f"Unable to open Instagram. Bot will stop. Current package name: {device.deviceV2.app_current()['package']} (Looking for {app_id})"
+            )
             return False
         n += 1
         logger.info(f"Waiting for Instagram to open... 😴 ({n}/{max_tries})")
+        if check_if_crash_popup_is_there(device):
+            logger.info("Ig crashed, try to open it again...")
+        call_ig()
+        choose_cloned_app(device)
         random_sleep(3, 3, modulable=False)
 
     logger.info("Ready for botting!🤫", extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"})
 
     random_sleep()
-    if close_apps:
+    if configs.args.close_apps:
         logger.info("Close all the other apps, to avoid interferences...")
         device.deviceV2.app_stop_all(excludes=[app_id])
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
     device.deviceV2.set_fastinput_ime(True)
-    cmd = (
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell settings get secure default_input_method"
-    )
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get secure default_input_method"
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     if cmd_res.stdout.replace(nl, "") != FastInputIME:
         logger.warning(
             f"FastInputIME is not the default keyboard! Default is: {cmd_res.stdout.replace(nl, '')}. Changing it via adb.."
         )
-        cmd = (
-            "adb"
-            + ("" if configs.device_id is None else " -s " + configs.device_id)
-            + f" shell ime set {FastInputIME}"
-        )
+        cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell ime set {FastInputIME}"
         cmd_res = subprocess.run(
             cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
         )
@@ -289,7 +288,7 @@ def open_instagram(device, screen_record, close_apps):
             logger.info("FastInputIME is the default keyboard.")
     else:
         logger.info("FastInputIME is the default keyboard.")
-    if screen_record:
+    if configs.args.screen_record:
         try:
             device.start_screenrecord()
         except Exception as e:
@@ -299,17 +298,97 @@ def open_instagram(device, screen_record, close_apps):
     return True
 
 
-def close_instagram(device, screen_record):
+def close_instagram(device):
     logger.info("Close Instagram app.")
     device.deviceV2.app_stop(app_id)
     random_sleep(5, 5, modulable=False)
-    if screen_record:
+    if configs.args.screen_record:
         try:
             device.stop_screenrecord(crash=False)
         except Exception as e:
             logger.error(
                 f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
             )
+
+
+def check_if_crash_popup_is_there(device) -> bool:
+    obj = device.find(resourceId=ResourceID.CRASH_POPUP)
+    if obj.exists():
+        obj.click()
+        return True
+    return False
+
+
+def show_ending_conditions():
+    end_likes = configs.args.end_if_likes_limit_reached
+    end_follows = configs.args.end_if_follows_limit_reached
+    end_watches = configs.args.end_if_watches_limit_reached
+    end_comments = configs.args.end_if_comments_limit_reached
+    end_pm = configs.args.end_if_pm_limit_reached
+    logger.info(
+        "-" * 70,
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    logger.info(
+        f"{'Session ending conditions:':<35} Value",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    logger.info(
+        "-" * 70,
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    logger.info(
+        f"{'Likes:':<35} {end_likes}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_likes else Fore.RED}"},
+    )
+    logger.info(
+        f"{'Follows:':<35} {end_follows}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_follows else Fore.RED}"},
+    )
+    logger.info(
+        f"{'Watches:':<35} {end_watches}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_watches else Fore.RED}"},
+    )
+    logger.info(
+        f"{'Comments:':<35} {end_comments}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_comments else Fore.RED}"},
+    )
+    logger.info(
+        f"{'PM:':<35} {end_pm}",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN if end_pm else Fore.RED}"},
+    )
+    logger.info(
+        f"{'Total actions:':<35} True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
+    )
+    logger.info(
+        f"{'Total successfull actions:':<35} True (not mutable)",
+        extra={"color": f"{Style.BRIGHT}{Fore.GREEN}"},
+    )
+    logger.info(
+        "For more info -> https://github.com/GramAddict/docs/blob/main/configuration.md#ending-session-conditions",
+        extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
+    )
+    logger.info(
+        "-" * 70,
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+
+
+def countdown(seconds: int = 10, waiting_message: str = "") -> None:
+    while seconds:
+        print(waiting_message, f"{seconds:02d}", end="\r")
+        time.sleep(1)
+        seconds -= 1
+
+
+def choose_cloned_app(device) -> None:
+    """if dialog box is displayed choose for original or cloned app"""
+    app_number = "2" if configs.args.use_cloned_app else "1"
+    obj = device.find(resourceId=f"{ResourceID.MIUI_APP}{app_number}")
+    if obj.exists(3):
+        logger.debug(f"Cloned app menu exists. Pressing on app number {app_number}.")
+        obj.click()
 
 
 def pre_post_script(path: str, pre: bool = True):
@@ -328,39 +407,39 @@ def pre_post_script(path: str, pre: bool = True):
 
 
 def print_telegram_reports(
-    configs, telegram_reports_at_end, followers_now, following_now, time_left=None
+    conf, telegram_reports_at_end, followers_now, following_now, time_left=None
 ):
-    if followers_now is not None:
-        if telegram_reports_at_end:
-            configs.actions["telegram-reports"].run(
-                configs, "telegram-reports", followers_now, following_now, time_left
-            )
+    if followers_now is not None and telegram_reports_at_end:
+        conf.actions["telegram-reports"].run(
+            conf, "telegram-reports", followers_now, following_now, time_left
+        )
 
 
 def kill_atx_agent(device):
+    _restore_keyboard(device)
+    logger.info("Kill atx agent.")
+    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell pkill atx-agent"
+    subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
+def _restore_keyboard(device):
     logger.debug("Back to default keyboard!")
     device.deviceV2.set_fastinput_ime(False)
-    logger.info("Kill atx agent.")
-    os.popen(
-        "adb"
-        + ("" if configs.device_id is None else " -s " + configs.device_id)
-        + " shell pkill atx-agent"
-    ).close()
 
 
-def random_sleep(inf=0.5, sup=3.0, modulable=True, logging=True):
+def random_sleep(inf=0.5, sup=3.0, modulable=True, log=True):
     MIN_INF = 0.3
     multiplier = float(args.speed_multiplier)
     delay = uniform(inf, sup) / (multiplier if modulable else 1.0)
-    if delay < MIN_INF:
-        delay = MIN_INF
-    if logging:
-        logger.debug(f"{str(delay)[0:4]}s sleep")
+    delay = max(delay, MIN_INF)
+    if log:
+        logger.debug(f"{str(delay)[:4]}s sleep")
     sleep(delay)
 
 
 def save_crash(device):
-    directory_name = __version__ + "_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    directory_name = f"{__version__}_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
     crash_path = os.path.join("crashes", directory_name)
     try:
         os.makedirs(crash_path, exist_ok=False)
@@ -379,7 +458,12 @@ def save_crash(device):
     except RuntimeError:
         logger.error(f"Cannot save 'hierarchy.{hierarchy_format}'.")
     if args.screen_record:
-        device.stop_screenrecord()
+        try:
+            device.stop_screenrecord(crash=True)
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
+            )
         files = [f for f in os.listdir("./") if f.endswith(".mp4")]
         try:
             os.replace(files[-1], os.path.join(crash_path, "video.mp4"))
@@ -388,11 +472,9 @@ def save_crash(device):
     g_log_file_name, g_logs_dir, _, _ = get_log_file_config()
     src_file = os.path.join(g_logs_dir, g_log_file_name)
     target_file = os.path.join(crash_path, "logs.txt")
-    shutil.copy(src_file, target_file)
-
+    trim_txt(source=src_file, target=target_file)  # copy logs trimmed
     shutil.make_archive(crash_path, "zip", crash_path)
     shutil.rmtree(crash_path)
-
     logger.info(
         f"Crash saved as {crash_path}.zip",
         extra={"color": Fore.GREEN},
@@ -404,12 +486,34 @@ def save_crash(device):
     logger.info("https://discord.gg/66zWWCDM7x\n", extra={"color": Fore.GREEN})
     check_if_updated(crash=True)
     if args.screen_record:
-        device.start_screenrecord()
+        try:
+            device.start_screenrecord()
+        except Exception as e:
+            logger.error(
+                f"You can't use this feature without installing dependencies. Type that in console: 'pip3 install -U \"uiautomator2[image]\" -i https://pypi.doubanio.com/simple'. Exception: {e}"
+            )
 
 
-def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False):
-    close_instagram(device, screen_record)
+def trim_txt(source: str, target: str) -> None:
+    with open(source, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    tail = next(
+        (
+            index
+            for index, line in enumerate(lines[::-1])
+            if line.find("Arguments used:") != -1
+        ),
+        250,
+    )
+    rem = lines[-tail:]
+    with open(target, "w", encoding="utf-8") as f:
+        f.writelines(rem)
+
+
+def stop_bot(device, sessions, session_state, was_sleeping=False):
+    close_instagram(device)
     kill_atx_agent(device)
+    head_up_notifications(enabled=True)
     logger.info(
         f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
         extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
@@ -419,66 +523,60 @@ def stop_bot(device, sessions, session_state, screen_record, was_sleeping=False)
         if not was_sleeping:
             sessions.persist(directory=session_state.my_username)
     ask_for_a_donation()
-    sys.exit(0)
+    sys.exit(2)
 
 
-def can_repeat(current_session, max_sessions):
-    if max_sessions != -1:
-        logger.info(
-            f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
-            extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-        )
-        if current_session >= max_sessions:
-            logger.info(
-                "You reached the total-sessions limit! Finish.",
-                extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-            )
-            return False
-        else:
-            return True
-    else:
+def can_repeat(current_session, max_sessions: int) -> bool:
+    if max_sessions == -1:
         return True
+    logger.info(
+        f"You completed {current_session} session(s). {max_sessions-current_session} session(s) left.",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    if current_session < max_sessions:
+        return True
+    logger.info(
+        "You reached the total-sessions limit! Finish.",
+        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+    )
+    return False
 
 
-def get_value(count, name, default, its_time=False):
-    def print_error():
+def get_value(
+    count: str,
+    name: Optional[str],
+    default: Optional[Union[int, float]] = 0,
+    its_time: bool = False,
+) -> Optional[Union[int, float]]:
+    def print_error() -> None:
         logger.error(
-            name.format(default)
-            + f'. Using default value instead of "{count}", because it must be '
+            f'Using default value instead of "{count}", because it must be '
             "either a number (e.g. 2) or a range (e.g. 2-4)."
         )
 
-    parts = count.split("-")
-    if len(parts) <= 0:
-        value = default
-        print_error()
-    elif len(parts) == 1:
-        try:
+    if count is None:
+        return None
+    try:
+        if "." in count:
+            value = float(count)
+        else:
             value = int(count)
-            if name is not None:
-                logger.info(name.format(value), extra={"color": Style.BRIGHT})
-        except ValueError:
-            value = default
-            print_error()
-    elif len(parts) == 2:
-        try:
+    except ValueError:
+        parts = count.split("-")
+        if len(parts) == 2:
             if not its_time:
                 value = randint(int(parts[0]), int(parts[1]))
             else:
                 value = round(uniform(int(parts[0]), int(parts[1])), 2)
-
-            if name is not None:
-                logger.info(name.format(value), extra={"color": Style.BRIGHT})
-        except ValueError:
+        else:
             value = default
             print_error()
-    else:
-        value = default
-        print_error()
+    if name is not None:
+        logger.info(name.format(value), extra={"color": Style.BRIGHT})
     return value
 
 
-def validate_url(x):
+def validate_url(x) -> bool:
     try:
         result = urlparse(x)
         return all([result.scheme, result.netloc, result.path])
@@ -487,10 +585,10 @@ def validate_url(x):
         return False
 
 
-def append_to_file(filename, username):
+def append_to_file(filename: str, username: str) -> None:
     try:
         if not filename.lower().endswith(".txt"):
-            filename = filename + ".txt"
+            filename += ".txt"
         with open(filename, "a+", encoding="utf-8") as file:
             file.write(username + "\n")
     except Exception as e:
@@ -540,7 +638,7 @@ def init_on_things(source, args, sessions, session_state):
 
     on_interaction = partial(
         _on_interaction,
-        likes_limit=int(args.total_likes_limit),
+        likes_limit=args.current_likes_limit,
         source=source,
         interactions_limit=get_value(
             args.interactions_count, "Interactions count: {}", 70
@@ -591,7 +689,7 @@ def set_time_delta(args):
     )
 
 
-def wait_for_next_session(time_left, session_state, sessions, device, screen_record):
+def wait_for_next_session(time_left, session_state, sessions, device):
     hours, remainder = divmod(time_left.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     kill_atx_agent(device)
@@ -606,10 +704,27 @@ def wait_for_next_session(time_left, session_state, sessions, device, screen_rec
     try:
         sleep(time_left.total_seconds())
     except KeyboardInterrupt:
-        stop_bot(device, sessions, session_state, screen_record, was_sleeping=True)
+        stop_bot(device, sessions, session_state, was_sleeping=True)
+
+
+def inspect_current_view(user_list) -> Tuple[int, int]:
+    """
+    return the number of users and each row height in the current view
+    """
+    user_list.wait()
+    lst = [item.get_height() for item in user_list if item.wait()]
+    if not lst:
+        raise EmptyList
+    row_height, n_users = Counter(lst).most_common()[0]
+    logger.debug(f"There are {n_users} users fully visible in that view.")
+    return row_height, n_users
 
 
 class ActionBlockedError(Exception):
+    pass
+
+
+class EmptyList(Exception):
     pass
 
 

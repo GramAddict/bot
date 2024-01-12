@@ -1,0 +1,6 @@
+your_config1_name_here:
+ description: "your config1 description"
+ path: "your_path_to_config1_here"
+your_config2_name_here:
+ description: "your config2 description"
+ path: "your_path_to_config2_here"

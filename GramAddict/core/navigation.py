@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from colorama import Fore
 
@@ -11,7 +12,6 @@ from GramAddict.core.views import (
     PlacesView,
     PostsGridView,
     ProfileView,
-    SearchView,
     SettingsView,
     TabBarView,
     UniversalActions,
@@ -22,15 +22,21 @@ logger = logging.getLogger(__name__)
 
 def check_if_english(device):
     logger.debug("Navigate to PROFILE.")
-    SearchView(device)._close_keyboard()
-    ProfileView(device)._click_on_avatar()
+    UniversalActions.close_keyboard(device)
+    ProfileView(device).click_on_avatar()
+    if ProfileView(device).getFollowingCount() is None:
+        ProfileView(device).click_on_avatar()
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
-    if None not in {post, follower, following}:
-        if post == "Posts" and follower == "Followers" and following == "Following":
-            logger.debug("Instagram in English.")
-        else:
-            logger.info("Switching to English locale", extra={"color": f"{Fore.GREEN}"})
+    if None in {post, follower, following}:
+        logger.warning(
+            "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
+        )
+    elif post == "Posts" and follower == "Followers" and following == "Following":
+        logger.debug("Instagram in English.")
+    else:
+        logger.info("Switching to English locale.", extra={"color": f"{Fore.GREEN}"})
+        try:
             ProfileView(device).navigateToOptions()
             OptionsView(device).navigateToSettings()
             SettingsView(device).navigateToAccount()
@@ -39,18 +45,19 @@ def check_if_english(device):
             logger.debug(
                 "After changing language, IG goes to feed. Let's go to profile view again."
             )
-            ProfileView(device)._click_on_avatar()
-    else:
-        logger.warning(
-            "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
-        )
+            ProfileView(device).click_on_avatar()
+        except Exception as ex:
+            logger.error(f"Please change the language manually to English! Error: {ex}")
+            sys.exit(1)
+        if ProfileView(device).getFollowingCount() is None:
+            ProfileView(device).click_on_avatar()
     return ProfileView(device, is_own_profile=True)
 
 
 def nav_to_blogger(device, username, current_job):
     """navigate to blogger (followers list or posts)"""
-    _to_followers = True if current_job.endswith("followers") else False
-    _to_following = True if current_job.endswith("following") else False
+    _to_followers = bool(current_job.endswith("followers"))
+    _to_following = bool(current_job.endswith("following"))
     if username is None:
         profile_view = TabBarView(device).navigateToProfile()
         if _to_followers:
@@ -61,10 +68,10 @@ def nav_to_blogger(device, username, current_job):
             profile_view.navigateToFollowing()
     else:
         search_view = TabBarView(device).navigateToSearch()
-        profile_view = search_view.navigateToUsername(username)
-        if not profile_view:
+        if not search_view.navigate_to_target(username, current_job):
             return False
 
+        profile_view = ProfileView(device, is_own_profile=False)
         if _to_followers:
             logger.info(f"Open @{username} followers.")
             profile_view.navigateToFollowers()
@@ -78,11 +85,7 @@ def nav_to_blogger(device, username, current_job):
 def nav_to_hashtag_or_place(device, target, current_job):
     """navigate to hashtag/place/feed list"""
     search_view = TabBarView(device).navigateToSearch()
-    if (
-        not search_view.navigateToHashtag(target)
-        if current_job.startswith("hashtag")
-        else not search_view.navigateToPlaces(target)
-    ):
+    if not search_view.navigate_to_target(target, current_job):
         return False
 
     TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
@@ -119,7 +122,7 @@ def nav_to_post_likers(device, username, my_username):
         TabBarView(device).navigateToProfile()
     else:
         search_view = TabBarView(device).navigateToSearch()
-        if not search_view.navigateToUsername(username):
+        if not search_view.navigate_to_target(username, "account"):
             return False
     profile_view = ProfileView(device)
     is_private = profile_view.isPrivateAccount()

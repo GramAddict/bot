@@ -118,10 +118,7 @@ def update_log_file_name(username: str):
         return
     named_log_file_name = f"{username}.log"
     named_full_filename = f"{logs_dir}/{named_log_file_name}"
-    rollover = False
-    if os.path.isfile(named_full_filename):
-        rollover = True
-
+    rollover = bool(os.path.isfile(named_full_filename))
     named_file_handler = create_log_file_handler(named_full_filename)
     if rollover:
         named_file_handler.doRollover()

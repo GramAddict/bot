@@ -40,7 +40,7 @@ class TelegramReports(Plugin):
         modulename = "pandas"
         if modulename not in sys.modules:
             logger.error(
-                f"You can't use {plugin} withtout installing {modulename}. Type that in console: 'pip3 install gramaddict[telegram-reports]'"
+                f"You can't use {plugin} without installing {modulename}. Type that in console: 'pip3 install gramaddict[telegram-reports]'"
             )
             return
 
@@ -74,30 +74,35 @@ class TelegramReports(Plugin):
 
         aggActivity = []
         for session in activity:
-            start = session["start_time"]
-            finish = session["finish_time"]
-            followed = session.get("total_followed", 0)
-            unfollowed = session.get("total_unfollowed", 0)
-            likes = session.get("total_likes", 0)
-            watched = session.get("total_watched", 0)
-            comments = session.get("total_comments", 0)
-            pm_sent = session.get("total_pm", 0)
-            followers = int(session.get("profile", 0).get("followers", 0))
-            following = int(session.get("profile", 0).get("following", 0))
-            aggActivity.append(
-                [
-                    start,
-                    finish,
-                    likes,
-                    watched,
-                    followed,
-                    unfollowed,
-                    comments,
-                    pm_sent,
-                    followers,
-                    following,
-                ]
-            )
+            try:
+                id = session["id"]
+                start = session["start_time"]
+                finish = session["finish_time"]
+                followed = session.get("total_followed", 0)
+                unfollowed = session.get("total_unfollowed", 0)
+                likes = session.get("total_likes", 0)
+                watched = session.get("total_watched", 0)
+                comments = session.get("total_comments", 0)
+                pm_sent = session.get("total_pm", 0)
+                followers = int(session.get("profile", 0).get("followers", 0))
+                following = int(session.get("profile", 0).get("following", 0))
+                aggActivity.append(
+                    [
+                        start,
+                        finish,
+                        likes,
+                        watched,
+                        followed,
+                        unfollowed,
+                        comments,
+                        pm_sent,
+                        followers,
+                        following,
+                    ]
+                )
+            except TypeError:
+                logger.error(f"The session {id} has malformed data, skip.")
+                continue
 
         df = pd.DataFrame(
             aggActivity,
@@ -183,7 +188,7 @@ class TelegramReports(Plugin):
                 • {str(df["comments"].iloc[-1])} comments done
                 • {str(df["pm_sent"].iloc[-1])} PM sent
 
-                *📅 Todays total actions*
+                *📅 Today's total actions*
                 • {str(dailySummary["duration"].iloc[-1])} minutes of botting
                 • {str(dailySummary["likes"].iloc[-1])} likes
                 • {str(dailySummary["followed"].iloc[-1])} follows

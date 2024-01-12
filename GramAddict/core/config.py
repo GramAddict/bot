@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Optional
 
 import configargparse
 import yaml
@@ -20,20 +21,41 @@ class Config:
             self.module = False
         self.config = None
         self.config_list = None
+        self.plugins = None
+        self.actions = None
+        self.enabled = []
+        self.unknown_args = []
         self.debug = False
-        self.device_id = None
+        self.device_id: Optional[str] = None
+        self.app_id: Optional[str] = None
         self.first_run = first_run
         self.username = False
 
         # Pre-Load Variables Needed for Script Init
-        if "--config" in self.args:
+        if self.module:
+            if "debug" in self.args:
+                self.debug = True
+            if "username" in self.args:
+                self.username = self.args["username"]
+            if "app_id" in self.args:
+                app_id = self.args["app_id"]
+                if app_id:
+                    self.app_id = app_id
+                else:
+                    self.app_id = "com.instagram.android"
+        elif "--config" in self.args:
             try:
                 file_name = self.args[self.args.index("--config") + 1]
+                if not file_name.endswith((".yml", ".yaml")):
+                    logger.error(
+                        f"You have to specify a *.yml / *.yaml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
+                    )
+                    sys.exit(1)
                 with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
                     fin.seek(0)
-                    # pre-load config for debug and username
+                    # preload config for debug and username
                     self.config = yaml.safe_load(fin)
             except IndexError:
                 logger.warning(
@@ -48,23 +70,22 @@ class Config:
 
             self.username = self.config.get("username", False)
             self.debug = self.config.get("debug", False)
+            self.app_id = self.config.get("app_id", "com.instagram.android")
         else:
-            if self.module:
-                if "debug" in self.args:
-                    self.debug = True
-                if "username" in self.args:
-                    self.username = self.args["username"]
+            if "--debug" in self.args:
+                self.debug = True
+            if "--username" in self.args:
+                try:
+                    self.username = self.args[self.args.index("--username") + 1]
+                except IndexError:
+                    logger.warning(
+                        "Please provide a username with your --username argument. Example: '--username yourusername'"
+                    )
+                    exit(2)
+            if "--app-id" in self.args:
+                self.app_id = self.args[self.args.index("--app-id") + 1]
             else:
-                if "--debug" in self.args:
-                    self.debug = True
-                if "--username" in self.args:
-                    try:
-                        self.username = self.args[self.args.index("--username") + 1]
-                    except IndexError:
-                        logger.warning(
-                            "Please provide a username with your --username argument. Example: '--username yourusername'"
-                        )
-                        exit(2)
+                self.app_id = "com.instagram.android"
 
         # Configure ArgParse
         self.parser = configargparse.ArgumentParser(
@@ -73,8 +94,7 @@ class Config:
             ),
             description="GramAddict Instagram Bot",
         )
-        self.parser.add(
-            "-c",
+        self.parser.add_argument(
             "--config",
             required=False,
             is_config_file=True,
@@ -117,7 +137,7 @@ class Config:
 
     def parse_args(self):
         def _is_legacy_arg(arg):
-            if arg == "interact" or arg == "hashtag-likers":
+            if arg in ["interact", "hashtag-likers"]:
                 if self.first_run:
                     logger.warning(
                         f"You are using a legacy argument {arg} that is no longer supported. It will not be used. Please refer to https://docs.gramaddict.org/#/configuration?id=arguments."
@@ -125,7 +145,6 @@ class Config:
                 return True
             return False
 
-        self.enabled = []
         if self.module:
             if self.first_run:
                 logger.debug("Arguments used:")

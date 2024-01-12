@@ -7,13 +7,14 @@
 ##############################################################################
 
 ## Filters on profile type
+skip_if_private: false
+skip_if_public: false
 skip_business: true
 skip_non_business: false
 skip_following: true
 skip_follower: true
 skip_if_link_in_bio: true
 follow_private_or_empty: false
-interact_only_private: false
 
 ## Filters on profile stats
 min_followers: 50
@@ -52,6 +53,7 @@ comment_feed: false
 # Content specific
 comment_photos: true
 comment_videos: true
+comment_carousels: true
 
 ## Filters for sending PM
 pm_to_private_or_empty: true
