@@ -24,7 +24,7 @@ labels: kind/bug
 
 
 Relevant Logs:
-
+- activate debug mode in confing.yml if you want to paste from the console, otherwise attach the log file from the logs folder
 
 
 
