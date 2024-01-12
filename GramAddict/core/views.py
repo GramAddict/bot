@@ -1449,7 +1449,8 @@ class ProfileView(ActionBarView):
         )
         return None
 
-    def _getSomeText(self):
+    def _getSomeText(self) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+        """Get some text from the profile to check the language"""
         obj = self.device.find(
             resourceIdMatches=ResourceID.ROW_PROFILE_HEADER_TEXTVIEW_POST_CONTAINER
         )
@@ -1477,7 +1478,7 @@ class ProfileView(ActionBarView):
                 .child(index=1)
                 .get_text()
             )
-            return post, followers, following
+            return post.casefold(), followers.casefold(), following.casefold()
         except Exception as e:
             logger.debug(f"Exception: {e}")
             logger.warning(
