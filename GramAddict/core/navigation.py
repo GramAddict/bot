@@ -32,25 +32,11 @@ def check_if_english(device):
         logger.warning(
             "Failed to check your Instagram language. Be sure to set it to English or the bot won't work!"
         )
-    elif post == "Posts" and follower == "Followers" and following == "Following":
+    elif post == "posts" and follower == "followers" and following == "following":
         logger.debug("Instagram in English.")
     else:
-        logger.info("Switching to English locale.", extra={"color": f"{Fore.GREEN}"})
-        try:
-            ProfileView(device).navigateToOptions()
-            OptionsView(device).navigateToSettings()
-            SettingsView(device).navigateToAccount()
-            AccountView(device).navigateToLanguage()
-            LanguageView(device).setLanguage("english")
-            logger.debug(
-                "After changing language, IG goes to feed. Let's go to profile view again."
-            )
-            ProfileView(device).click_on_avatar()
-        except Exception as ex:
-            logger.error(f"Please change the language manually to English! Error: {ex}")
-            sys.exit(1)
-        if ProfileView(device).getFollowingCount() is None:
-            ProfileView(device).click_on_avatar()
+        logger.error(f"Please change the language manually to English! Error: {ex}")
+        sys.exit(1)
     return ProfileView(device, is_own_profile=True)
 
 
