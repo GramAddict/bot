@@ -35,7 +35,7 @@ def check_if_english(device):
     elif post == "posts" and follower == "followers" and following == "following":
         logger.debug("Instagram in English.")
     else:
-        logger.error(f"Please change the language manually to English! Error: {ex}")
+        logger.error("Please change the language manually to English!")
         sys.exit(1)
     return ProfileView(device, is_own_profile=True)
 
