@@ -1045,6 +1045,13 @@ class AccountView:
             logger.error("Not able to set your app in English! Do it by yourself!")
             exit(0)
 
+    def navigate_to_main_account(self):
+        logger.debug("Navigating to main account...")
+        profile_view = ProfileView(self.device)
+        profile_view.click_on_avatar()
+        if profile_view.getFollowingCount() is None:
+            profile_view.click_on_avatar()
+
     def changeToUsername(self, username: str):
         action_bar = ProfileView._getActionBarTitleBtn(self)
         if action_bar is not None:

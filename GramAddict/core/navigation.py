@@ -17,11 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_if_english(device):
-    logger.debug("Navigate to PROFILE.")
-    UniversalActions.close_keyboard(device)
-    ProfileView(device).click_on_avatar()
-    if ProfileView(device).getFollowingCount() is None:
-        ProfileView(device).click_on_avatar()
+    """check if app is in English"""
     logger.debug("Checking if app is in English..")
     post, follower, following = ProfileView(device)._getSomeText()
     if None in {post, follower, following}:
