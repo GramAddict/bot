@@ -36,7 +36,7 @@
 	    <img src="https://img.shields.io/discord/771481743471017994?style=flat" alt="">
     </a>
     <a href="https://duckduckgo.com/?q=where+can+i+find+old+ig+version+apk&t=newext&atb=v376-1&df=y&ia=web">
-        <img src="https://img.shields.io/badge/works_on_ig_version-226.1.0.16.117-orange" alt="">
+        <img src="https://img.shields.io/badge/partially_works_on_ig_version-263.2.0.19.104-orange" alt="">
     </a>
 </p>
 
