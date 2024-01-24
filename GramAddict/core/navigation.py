@@ -5,14 +5,10 @@ from colorama import Fore
 
 from GramAddict.core.device_facade import Timeout
 from GramAddict.core.views import (
-    AccountView,
     HashTagView,
-    LanguageView,
-    OptionsView,
     PlacesView,
     PostsGridView,
     ProfileView,
-    SettingsView,
     TabBarView,
     UniversalActions,
 )
