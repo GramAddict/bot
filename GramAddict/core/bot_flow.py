@@ -174,6 +174,7 @@ def start_bot(**kwargs):
         account_view = AccountView(device)
         tab_bar_view = TabBarView(device)
         try:
+            account_view.navigate_to_main_account()
             check_if_english(device)
             if configs.args.username is not None:
                 success = account_view.changeToUsername(configs.args.username)
