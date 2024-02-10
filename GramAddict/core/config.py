@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from datetime import datetime
 from typing import Optional
 
 import configargparse
@@ -51,6 +52,7 @@ class Config:
                         f"You have to specify a *.yml / *.yaml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
                     )
                     sys.exit(1)
+                logger.warning(get_time_last_save(file_name))
                 with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
@@ -150,7 +152,7 @@ class Config:
                 logger.debug("Arguments used:")
                 if self.config:
                     logger.debug(f"Config used: {self.config}")
-                if not len(self.args) > 0:
+                if len(self.args) == 0:
                     self.parser.print_help()
                     exit(0)
         else:
@@ -158,15 +160,15 @@ class Config:
                 logger.debug(f"Arguments used: {' '.join(sys.argv[1:])}")
                 if self.config:
                     logger.debug(f"Config used: {self.config}")
-                if not len(sys.argv) > 1:
+                if len(sys.argv) <= 1:
                     self.parser.print_help()
                     exit(0)
         if self.module:
             arg_str = ""
             for k, v in self.args.items():
                 new_key = k.replace("_", "-")
-                new_key = " --" + new_key
-                arg_str += new_key + " " + v
+                new_key = f" --{new_key}"
+                arg_str += f"{new_key} {v}"
             self.args, self.unknown_args = self.parser.parse_known_args(args=arg_str)
         else:
             self.args, self.unknown_args = self.parser.parse_known_args()
@@ -205,3 +207,13 @@ class Config:
                     and not _is_legacy_arg(nitem)
                 ):
                     self.enabled.append(nitem)
+
+
+def get_time_last_save(file_path) -> str:
+    try:
+        absolute_file_path = os.path.abspath(file_path)
+        timestamp = os.path.getmtime(absolute_file_path)
+        last_save = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+        return f"{file_path} has been saved last time at {last_save}"
+    except FileNotFoundError:
+        return f"File {file_path} not found"
