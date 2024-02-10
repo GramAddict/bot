@@ -14,7 +14,7 @@ import yaml
 from colorama import Fore, Style
 from langdetect import detect
 
-from GramAddict.core.config import Config, get_time_last_save
+from GramAddict.core.config import get_time_last_save
 from GramAddict.core.device_facade import Timeout
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.utils import random_sleep
