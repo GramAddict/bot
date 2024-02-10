@@ -1383,7 +1383,7 @@ class OpenedPostView:
             resourceId=ResourceID.BUTTON,
             classNameMatches=ClassName.BUTTON_OR_TEXTVIEW_REGEX,
         )
-        if type(text) != str:
+        if not isinstance(text, str):
             text = text.get_text() if text.exists() else ""
         return text in ["Following", "Requested"]
 
