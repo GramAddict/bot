@@ -204,20 +204,26 @@ def head_up_notifications(enabled: bool = False):
     """
     Enable or disable head-up-notifications
     """
-    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings put global heads_up_notifications_enabled {0 if not enabled else 1}"
+    )
     return subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
 
 
 def check_screen_timeout():
     MIN_TIMEOUT = 5 * 6_000
-    cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings get system screen_off_timeout"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings get system screen_off_timeout"
+    )
     resp = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     try:
         if int(resp.stdout.lstrip()) < MIN_TIMEOUT:
             logger.info(
                 f"Setting timeout of the screen to {MIN_TIMEOUT/6_000:.0f} minutes."
             )
-            cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
+            cmd: str = (
+                f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell settings put system screen_off_timeout {MIN_TIMEOUT}"
+            )
 
             subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
         else:
@@ -270,13 +276,17 @@ def open_instagram(device):
         random_sleep()
     logger.debug("Setting FastInputIME as default keyboard.")
     device.deviceV2.set_fastinput_ime(True)
-    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get secure default_input_method"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell settings get secure default_input_method"
+    )
     cmd_res = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
     if cmd_res.stdout.replace(nl, "") != FastInputIME:
         logger.warning(
             f"FastInputIME is not the default keyboard! Default is: {cmd_res.stdout.replace(nl, '')}. Changing it via adb.."
         )
-        cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell ime set {FastInputIME}"
+        cmd: str = (
+            f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell ime set {FastInputIME}"
+        )
         cmd_res = subprocess.run(
             cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8"
         )
@@ -418,7 +428,9 @@ def print_telegram_reports(
 def kill_atx_agent(device):
     _restore_keyboard(device)
     logger.info("Kill atx agent.")
-    cmd: str = f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell pkill atx-agent"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell pkill atx-agent"
+    )
     subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
 
 
