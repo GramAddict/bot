@@ -30,7 +30,7 @@ dependencies = [
 
 [project.optional-dependencies]
 analytics = ["matplotlib==3.4.2"]
-dev = ["flit", "pre-commit", "black", "flake8", "isort"]
+dev = ["flit", "pre-commit", "black", "flake8", "isort", "ruff"]
 
 [project.urls]
 Documentation = "https://docs.gramaddict.org/#/"
