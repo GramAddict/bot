@@ -4,7 +4,7 @@
 - remove pandas as dependency for telegram reports
 - show when config file and filter file have been saved
 - better logging information
-## 3.2.8 (2023-01-24)
+## 3.2.8 (2024-01-24)
 ### Fix
 - removed the language check
 ## 3.2.7 (2023-09-30)
