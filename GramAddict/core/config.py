@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from datetime import datetime
 from typing import Optional
 
 import configargparse
@@ -51,6 +52,7 @@ class Config:
                         f"You have to specify a *.yml / *.yaml config file path (For example 'accounts/your_account_name/config.yml')! \nYou entered: {file_name}, abort."
                     )
                     sys.exit(1)
+                logger.warning(get_time_last_save(file_name))
                 with open(file_name, encoding="utf-8") as fin:
                     # preserve order of yaml
                     self.config_list = [line.strip() for line in fin]
@@ -205,3 +207,13 @@ class Config:
                     and not _is_legacy_arg(nitem)
                 ):
                     self.enabled.append(nitem)
+
+
+def get_time_last_save(file_path) -> str:
+    try:
+        absolute_file_path = os.path.abspath(file_path)
+        timestamp = os.path.getmtime(absolute_file_path)
+        last_save = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+        return f"{file_path} has been saved last time at {last_save}"
+    except FileNotFoundError:
+        return f"File {file_path} not found"

@@ -14,6 +14,7 @@ import yaml
 from colorama import Fore, Style
 from langdetect import detect
 
+from GramAddict.core.config import Config, get_time_last_save
 from GramAddict.core.device_facade import Timeout
 from GramAddict.core.resources import ResourceID as resources
 from GramAddict.core.utils import random_sleep
@@ -131,8 +132,11 @@ class Filter:
     def __init__(self, storage=None):
         filter_path = storage.filter_path
         if configs.args.disable_filters:
-            logger.warning("Filters are disabled!")
+            logger.warning(
+                "Filters are disabled! (The default values in the documentation have been chosen!)"
+            )
         elif os.path.exists(filter_path) and filter_path.endswith(".yml"):
+            logger.warning(get_time_last_save(filter_path))
             with open(filter_path, "r", encoding="utf-8") as stream:
                 try:
                     self.conditions = yaml.safe_load(stream)
@@ -169,9 +173,10 @@ class Filter:
                 else:
                     logger.info(f"{k:<35} {v}", extra={"color": f"{Fore.WHITE}"})
         else:
-            logger.warning(
-                "The filters file doesn't exists in your account folder. Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
-            )
+            if not args.disable_filters:
+                logger.warning(
+                    f"The filters file doesn't exists in your account folder (can't find {filter_path}). Download it from https://github.com/GramAddict/bot/blob/08e1d7aff39ec47543fa78aadd7a2f034b9ae34d/config-examples/filters.yml and place it in your account folder!"
+                )
 
     def is_num_likers_in_range(self, likes_on_post: str) -> bool:
         if self.conditions is not None and likes_on_post is not None:
