@@ -29,13 +29,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-telegram-reports = [
-    "pandas==1.2.4",
-    "pytest-cov",
-]
 analytics = ["matplotlib==3.4.2"]
 dev = ["flit", "pre-commit", "black", "flake8", "isort"]
-
 
 [project.urls]
 Documentation = "https://docs.gramaddict.org/#/"
