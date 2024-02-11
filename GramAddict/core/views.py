@@ -922,6 +922,7 @@ class PostsViewList:
             # workaround test for bug #285/#301
             if obj_count == 0:
                 media_type = MediaType.REEL # it might be better to set it to UNKNOWN
+                logger.info("Activating workaround test for Bug #285 - switching to REEL media type")
             # end of workaround test
         return media_type, obj_count
 
