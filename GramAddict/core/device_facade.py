@@ -135,15 +135,16 @@ class DeviceFacade:
         random_sleep(modulable=modulable)
 
         selectors = [
-            {'resourceId': 'com.instagram.android:id/follow_list_container'},
+            #{'resourceId': 'com.instagram.android:id/follow_list_container'},
             {'resourceId': 'com.instagram.android:id/row_user_container_base'},
-            {'resourceId': 'com.instagram.android:id/recommended_user_row_content_identifier'}
+            #{'resourceId': 'com.instagram.android:id/recommended_user_row_content_identifier'}
         ]
 
         # Wait for each element
         for selector in selectors:
-            if not wait_for_element(self.deviceV2, selector):
-                logger.info(f"[Trying to avoid bug #367] Element with selector {selector} not found within 15 seconds.")
+            logger.info(f"[Trying to avoid bug #367] Waiting for element with selector {selector} to appear.")
+            if not wait_for_element(self.deviceV2, selector, timeout=5):
+                logger.info(f"Element with selector {selector} was not found within 5 seconds.")
                 # Handle the case where the element is not found
                 # You can either break, continue, or take some other action
 
