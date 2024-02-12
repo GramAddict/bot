@@ -731,6 +731,15 @@ def inspect_current_view(user_list) -> Tuple[int, int]:
     logger.debug(f"There are {n_users} users fully visible in that view.")
     return row_height, n_users
 
+# used by back function device_facade.py - attempt to fix bug #367
+def wait_for_element(device, selector, timeout=15):
+    end_time = time.time() + timeout
+    while time.time() < end_time:
+        if device(**selector).exists:
+            return True
+        time.sleep(1)
+    return False
+
 
 class ActionBlockedError(Exception):
     pass
