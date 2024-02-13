@@ -135,9 +135,9 @@ class DeviceFacade:
         random_sleep(modulable=modulable)
 
         selectors = [
-            #{'resourceId': 'com.instagram.android:id/follow_list_container'},
+            {'resourceId': 'com.instagram.android:id/follow_list_container'},
             {'resourceId': 'com.instagram.android:id/row_user_container_base'},
-            #{'resourceId': 'com.instagram.android:id/recommended_user_row_content_identifier'}
+            {'resourceId': 'com.instagram.android:id/recommended_user_row_content_identifier'}
         ]
 
         # Wait for each element
