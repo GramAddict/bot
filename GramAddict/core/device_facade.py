@@ -143,8 +143,8 @@ class DeviceFacade:
         # Wait for each element
         for selector in selectors:
             logger.info(f"[Trying to avoid bug #367] Waiting for element with selector {selector} to appear.")
-            if not wait_for_element(self.deviceV2, selector, timeout=5):
-                logger.info(f"Element with selector {selector} was not found within 5 seconds.")
+            if not wait_for_element(self.deviceV2, selector, timeout=3):
+                logger.info(f"Element with selector {selector} was not found within 3 seconds.")
                 # Handle the case where the element is not found
                 # You can either break, continue, or take some other action
 
