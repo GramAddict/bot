@@ -131,22 +131,8 @@ class DeviceFacade:
     def back(self, modulable: bool = True):
         logger.debug("Press back button.")
         self.deviceV2.press("back")
-        # attempt to fix bug #367 - not enough waiting time for the followers list to load?
+
         random_sleep(modulable=modulable)
-
-        selectors = [
-            {'resourceId': 'com.instagram.android:id/follow_list_container'},
-            {'resourceId': 'com.instagram.android:id/row_user_container_base'},
-            {'resourceId': 'com.instagram.android:id/recommended_user_row_content_identifier'}
-        ]
-
-        # Wait for each element
-        for selector in selectors:
-            logger.info(f"[Trying to avoid bug #367] Waiting for element with selector {selector} to appear.")
-            if not wait_for_element(self.deviceV2, selector, timeout=3):
-                logger.debug(f"Element with selector {selector} was not found within 3 seconds.")
-                # Handle the case where the element is not found
-                # You can either break, continue, or take some other action
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=20):
         import imageio
