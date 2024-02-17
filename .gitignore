@@ -5,7 +5,6 @@
 /dist
 /gramaddict.egg-info
 /.idea
-/test
 /.vscode
 */*.yml
 */*.json
