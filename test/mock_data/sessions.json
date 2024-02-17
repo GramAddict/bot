@@ -1,0 +1,122 @@
+[
+    {
+        "id": "38341cbf-589d-49ab-98c6-b5b54558b486",
+        "total_interactions": 30,
+        "successful_interactions": 20,
+        "total_followed": 10,
+        "total_likes": 10,
+        "total_comments": 10,
+        "total_pm": 10,
+        "total_watched": 10,
+        "total_unfollowed": 10,
+        "total_scraped": {},
+        "start_time": "2024-01-01 11:49:46.405981",
+        "finish_time": "2024-01-01 12:19:47.342904",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 222,
+            "following": 1008
+        }
+    },
+    {
+        "id": "e4d32aee-1f40-4c48-a2fd-fe8221358ab2",
+        "total_interactions": 20,
+        "successful_interactions": 5,
+        "total_followed": 1,
+        "total_likes": 1,
+        "total_comments": 1,
+        "total_pm": 1,
+        "total_watched": 1,
+        "total_unfollowed": 1,
+        "total_scraped": {},
+        "start_time": "2024-01-01 12:03:57.633619",
+        "finish_time": "None",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 225,
+            "following": 1007
+        }
+    },
+    {
+        "id": "ca81fc51-9e5c-4f83-a2bc-7ccbc0c6fef1",
+        "total_interactions": 300,
+        "successful_interactions": 10,
+        "total_followed": 5,
+        "total_likes": 5,
+        "total_comments": 5,
+        "total_pm": 5,
+        "total_watched": 5,
+        "total_unfollowed": 5,
+        "total_scraped": {},
+        "start_time": "2024-01-01 19:45:38.757304",
+        "finish_time": "2024-01-01 20:55:01.146696",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 230,
+            "following": 1009
+        }
+    },
+    {
+        "id": "631e137f-3f3e-4377-a455-118225a03690",
+        "total_interactions": 10,
+        "successful_interactions": 10,
+        "total_followed": 5,
+        "total_likes": 5,
+        "total_comments": 5,
+        "total_pm": 5,
+        "total_watched": 5,
+        "total_unfollowed": 5,
+        "total_scraped": {},
+        "start_time": "2024-01-02 19:36:38.578977",
+        "finish_time": "2024-01-02 19:57:41.298307",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 242,
+            "following": 1009
+        }
+    },
+    {
+        "id": "f4a76d95-7edb-4930-a147-897c0755826b",
+        "total_interactions": 30,
+        "successful_interactions": 15,
+        "total_followed": 5,
+        "total_likes": 5,
+        "total_comments": 5,
+        "total_pm": 5,
+        "total_watched": 5,
+        "total_unfollowed": 5,
+        "total_scraped": {},
+        "start_time": "2024-01-02 21:37:08.331302",
+        "finish_time": "2024-01-02 21:48:00.768777",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 247,
+            "following": 1011
+        }
+    },
+    {
+        "id": "f76d24ed-1fad-4d03-8a5a-af367ce59d2f",
+        "total_interactions": 30,
+        "successful_interactions": 20,
+        "total_followed": 10,
+        "total_likes": 10,
+        "total_comments": 10,
+        "total_pm": 10,
+        "total_watched": 10,
+        "total_unfollowed": 10,
+        "total_scraped": {},
+        "start_time": "2024-01-02 21:56:57.612008",
+        "finish_time": "2024-01-02 22:57:44.465153",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 250,
+            "following": 1011
+        }
+    }
+]
