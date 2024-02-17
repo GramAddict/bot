@@ -24,7 +24,7 @@ dependencies = [
     "langdetect==1.0.9",
     "atomicwrites==1.4.0",
     "spintax==1.0.4",
-    "requests~=2.28.2",
+    "requests~=2.31.0",
     "packaging~=20.9"
 ]
 
