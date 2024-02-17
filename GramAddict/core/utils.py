@@ -428,22 +428,30 @@ def print_telegram_reports(
 def kill_atx_agent(device):
     _restore_keyboard(device)
     logger.info("Kill atx agent.")
-    cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell pkill atx-agent"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell pkill atx-agent"
+    )
     subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
 
 def restart_atx_agent(device):
     kill_atx_agent(device)
     logger.info("Restarting atx agent.")
-    cmd: str = f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell /data/local/tmp/atx-agent server -d"
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell /data/local/tmp/atx-agent server -d"
+    )
 
     try:
-        result = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8", check=True)
+        result = subprocess.run(
+            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8", check=True
+        )
         if result.returncode != 0:
             logger.error(f"Failed to restart atx-agent: {result.stderr}")
         else:
             logger.info("atx-agent restarted successfully.")
     except subprocess.CalledProcessError as e:
         logger.error(f"Error occurred while restarting atx-agent: {e}")
+
 
 def _restore_keyboard(device):
     logger.debug("Back to default keyboard!")
