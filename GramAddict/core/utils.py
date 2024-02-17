@@ -543,7 +543,8 @@ def trim_txt(source: str, target: str) -> None:
 
 def stop_bot(device, sessions, session_state, was_sleeping=False):
     close_instagram(device)
-    kill_atx_agent(device)
+    if args.kill_atx_agent:
+        kill_atx_agent(device)
     head_up_notifications(enabled=True)
     logger.info(
         f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
@@ -723,7 +724,8 @@ def set_time_delta(args):
 def wait_for_next_session(time_left, session_state, sessions, device):
     hours, remainder = divmod(time_left.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    kill_atx_agent(device)
+    if args.kill_atx_agent:
+        kill_atx_agent(device)
     logger.info(
         f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
         extra={"color": f"{Fore.GREEN}"},

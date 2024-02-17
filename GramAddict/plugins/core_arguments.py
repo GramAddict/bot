@@ -206,6 +206,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--kill-atx-agent",
+                "help": "kill atx-agent when the script ends",
+                "action": "store_true",
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",

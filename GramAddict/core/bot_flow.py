@@ -354,7 +354,8 @@ def start_bot(**kwargs):
             device.screen_off()
             logger.info("Screen turned off for sleeping time.")
 
-        kill_atx_agent(device)
+        if configs.args.kill_atx_agent:
+            kill_atx_agent(device)
         head_up_notifications(enabled=True)
         logger.info(
             "-------- FINISH: "
