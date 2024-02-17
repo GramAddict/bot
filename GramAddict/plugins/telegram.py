@@ -103,20 +103,24 @@ def daily_summary(sessions):
 
 
 def _calculate_followers_gained(aggregated_data):
-    dates_sorted = list(sorted(aggregated_data.keys()))[-2:]
+    dates_sorted = sorted(aggregated_data.keys())
     previous_followers = None
     for date in dates_sorted:
         current_followers = aggregated_data[date]["followers"]
         if previous_followers is not None:
-            aggregated_data[date]["followers_gained"] = (
-                current_followers - previous_followers
-            )
+            followers_gained = current_followers - previous_followers
+            aggregated_data[date]["followers_gained"] = followers_gained
         previous_followers = current_followers
     return aggregated_data
 
 
 def generate_report(
-    username, last_session, daily_aggregated_data, followers_now, following_now
+    username,
+    last_session,
+    daily_aggregated_data,
+    weekly_average_data,
+    followers_now,
+    following_now,
 ):
     return f"""
             *Stats for {username}*:
@@ -145,10 +149,37 @@ def generate_report(
 
             *📈 Trends*
             • {daily_aggregated_data["followers_gained"]} new followers today
+            • {weekly_average_data["followers_gained"]} new followers this week
 
             *🗓 7-Day Average*
-            TODO
+            • {weekly_average_data["duration"] / 7:.0f} minutes of botting
+            • {weekly_average_data["total_likes"] / 7:.0f} likes
+            • {weekly_average_data["total_followed"] / 7:.0f} follows
+            • {weekly_average_data["total_unfollowed"] / 7:.0f} unfollows
+            • {weekly_average_data["total_watched"] / 7:.0f} stories watched
+            • {weekly_average_data["total_comments"] / 7:.0f} comments done
+            • {weekly_average_data["total_pm"] / 7:.0f} PM sent
         """
+
+
+def weekly_average(daily_aggregated_data, today) -> dict:
+    weekly_average_data = _initialize_aggregated_data()
+
+    for date in daily_aggregated_data:
+        if (today - datetime.strptime(date, "%Y-%m-%d")).days > 7:
+            continue
+        for key in [
+            "total_likes",
+            "total_watched",
+            "total_followed",
+            "total_unfollowed",
+            "total_comments",
+            "total_pm",
+            "duration",
+            "followers_gained",
+        ]:
+            weekly_average_data[key] += daily_aggregated_data[date][key]
+    return weekly_average_data
 
 
 class TelegramReports(Plugin):
@@ -191,8 +222,15 @@ class TelegramReports(Plugin):
 
         daily_aggregated_data = daily_summary(sessions)
         today_data = daily_aggregated_data.get(last_session["start_time"][:10], {})
+        today = datetime.now()
+        weekly_average_data = weekly_average(daily_aggregated_data, today)
         report = generate_report(
-            username, last_session, today_data, followers_now, following_now
+            username,
+            last_session,
+            today_data,
+            weekly_average_data,
+            followers_now,
+            following_now,
         )
         response = telegram_bot_send_text(
             report, telegram_config["chat_id"], telegram_config["api_token"]
