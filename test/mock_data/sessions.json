@@ -1,4 +1,24 @@
 [
+        {
+        "id": "e4d32aee-1f40-4c48-a2fd-fe8221358ab2",
+        "total_interactions": 30,
+        "successful_interactions": 20,
+        "total_followed": 10,
+        "total_likes": 10,
+        "total_comments": 10,
+        "total_pm": 10,
+        "total_watched": 10,
+        "total_unfollowed": 10,
+        "total_scraped": {},
+        "start_time": "2023-12-29 17:56:22.612008",
+        "finish_time": "2023-12-29 19:57:34.465153",
+        "args": {},
+        "profile": {
+            "posts": 4,
+            "followers": 200,
+            "following": 1011
+        }
+    },
     {
         "id": "38341cbf-589d-49ab-98c6-b5b54558b486",
         "total_interactions": 30,
