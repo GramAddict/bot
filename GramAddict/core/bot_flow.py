@@ -41,6 +41,7 @@ from GramAddict.core.utils import (
     open_instagram,
     pre_post_script,
     print_telegram_reports,
+    restart_atx_agent,
     save_crash,
     set_time_delta,
     show_ending_conditions,
@@ -119,6 +120,8 @@ def start_bot(**kwargs):
         if not inside_working_hours:
             wait_for_next_session(time_left, session_state, sessions, device)
         pre_post_script(path=configs.args.pre_script)
+        if configs.args.restart_atx_agent:
+            restart_atx_agent(device)
         get_device_info(device)
         session_state = SessionState(configs)
         session_state.set_limits_session()

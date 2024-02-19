@@ -211,6 +211,11 @@ class CoreArguments(Plugin):
                 "action": "store_true",
             },
             {
+                "arg": "--restart-atx-agent",
+                "help": "restart atx-agent before the script starts",
+                "action": "store_true",
+            },
+            {
                 "arg": "--interact",
                 "nargs": "+",
                 "help": "list of @usernames or #hashtags with whose followers you want to interact",
