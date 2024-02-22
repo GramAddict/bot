@@ -295,7 +295,7 @@ class Filter:
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.IS_PUBLIC
             )
-        elif profile_data.is_private and field_skip_if_public:
+        elif not profile_data.is_private and field_skip_if_public:
             logger.info(
                 f"@{username} has private account and you want to interact only public, skip.",
                 extra={"color": f"{Fore.CYAN}"},
