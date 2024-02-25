@@ -352,7 +352,7 @@ class DeviceFacade:
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 
-        def content_desc(self):
+        def get_desc(self):
             try:
                 return self.viewV2.info["contentDescription"]
             except uiautomator2.JSONRPCError as e:

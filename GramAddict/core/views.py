@@ -128,7 +128,7 @@ class TabBarView:
     def _get_new_profile_position(self) -> Optional[DeviceFacade.View]:
         buttons = self.device.find(className=ResourceID.BUTTON)
         for button in buttons:
-            if button.content_desc() == "Profile":
+            if button.get_desc() == "Profile":
                 return button
         return None
 
@@ -871,7 +871,7 @@ class PostsViewList:
 
     def _get_media_container(self):
         media = self.device.find(resourceIdMatches=ResourceID.CAROUSEL_AND_MEDIA_GROUP)
-        content_desc = media.content_desc() if media.exists() else None
+        content_desc = media.get_desc() if media.exists() else None
         return media, content_desc
 
     @staticmethod
@@ -1498,7 +1498,7 @@ class ProfileView(ActionBarView):
         found = False
         buttons = self.device.find(className=ResourceID.BUTTON)
         for button in buttons:
-            if button.content_desc() == "Profile":
+            if button.get_desc() == "Profile":
                 button.click()
                 found = True
         return found
