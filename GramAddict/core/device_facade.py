@@ -185,8 +185,11 @@ class DeviceFacade:
         if self.deviceV2.screenrecord.stop(crash=crash):
             logger.warning("Screen recorder has been stopped successfully!")
 
-    def screenshot(self, path):
-        self.deviceV2.screenshot(path)
+    def screenshot(self, path=None):
+        if path is None:
+            return self.deviceV2.screenshot()
+        else:
+            self.deviceV2.screenshot(path)
 
     def dump_hierarchy(self, path):
         xml_dump = self.deviceV2.dump_hierarchy()

@@ -988,14 +988,23 @@ class PostsViewList:
     ) -> Tuple[bool, bool, Optional[str]]:
         is_hashtag = False
         is_ad = False
-        real_username = None
         logger.debug("Checking if it's an AD or an hashtag..")
         ad_like_obj = post_owner_obj.sibling(
             resourceId=ResourceID.SECONDARY_LABEL,
         )
-        if post_owner_obj.get_text().startswith("#"):
-            is_hashtag = True
-            logger.debug("Looks like an hashtag, skip.")
+
+        owner_name = post_owner_obj.get_text() or post_owner_obj.get_desc()
+        if not owner_name:
+            logger.info("Can't find the owner name, need to use OCR.")
+            try:
+                owner_name = self.get_text_from_screen(post_owner_obj)
+            except ImportError:
+                logger.error(
+                    "You need to install pytesseract in order to use OCR feature."
+                )
+            if owner_name.startswith("#"):
+                is_hashtag = True
+                logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
             sponsored_txt = "Sponsored"
             ad_like_txt = ad_like_obj.get_text() or ad_like_obj.get_desc()
@@ -1003,9 +1012,33 @@ class PostsViewList:
                 logger.debug("Looks like an AD, skip.")
                 is_ad = True
             elif is_hashtag:
-                real_username = ad_like_obj.get_text().split("•")[0].strip()
+                owner_name = owner_name.split("•")[0].strip()
 
-        return is_ad, is_hashtag, real_username
+        return is_ad, is_hashtag, owner_name
+
+    def get_text_from_screen(self, obj) -> Optional[str]:
+        import pytesseract as pt
+        import platform
+
+        if platform.system() == "Windows":
+            pt.pytesseract.tesseract_cmd = (
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+            )
+
+        screenshot = self.device.screenshot()
+        bounds = obj.ui_info().get("visibleBounds", None)
+        if bounds is None:
+            logger.info("Can't find the bounds of the object.")
+            return None
+        screenshot_cropped = screenshot.crop(
+            [
+                bounds.get("left"),
+                bounds.get("top"),
+                bounds.get("right"),
+                bounds.get("bottom"),
+            ]
+        )
+        return pt.image_to_string(screenshot_cropped).split(" ")[0].rstrip()
 
 
 class LanguageView:
