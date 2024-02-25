@@ -997,8 +997,9 @@ class PostsViewList:
             is_hashtag = True
             logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
-            sponsored = "Sponsored"
-            if ad_like_obj.get_text() == sponsored:
+            sponsored_txt = "Sponsored"
+            ad_like_txt = ad_like_obj.get_text() or ad_like_obj.get_desc()
+            if ad_like_txt.casefold() == sponsored_txt.casefold():
                 logger.debug("Looks like an AD, skip.")
                 is_ad = True
             elif is_hashtag:
