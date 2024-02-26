@@ -33,6 +33,7 @@ from GramAddict.core.views import (
     UniversalActions,
     case_insensitive_re,
 )
+from uiautomator2.exceptions import UiObjectNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -715,14 +716,23 @@ def iterate_over_followers(
         return row_search.exists()
 
     while True:
-        logger.info("Iterate over visible followers.")
-        screen_iterated_followers = []
-        screen_skipped_followers_count = 0
-        scroll_end_detector.notify_new_page()
-        user_list = device.find(
-            resourceIdMatches=self.ResourceID.USER_LIST_CONTAINER,
-        )
-        row_height, n_users = inspect_current_view(user_list)
+        try:
+            logger.info("Iterate over visible followers.")
+            screen_iterated_followers = []
+            screen_skipped_followers_count = 0
+            scroll_end_detector.notify_new_page()
+            user_list = device.find(
+                resourceIdMatches=self.ResourceID.USER_LIST_CONTAINER,
+            )
+            row_height, n_users = inspect_current_view(user_list)
+        except UiObjectNotFoundError:
+            logger.info(
+                "Unable to find USER_LIST_CONTAINER elements, clicking on the back button again",
+                extra={"color": f"{Fore.RED}"},
+            )
+            device.back()
+            continue
+
         try:
             for item in user_list:
                 cur_row_height = item.get_height()
@@ -791,6 +801,7 @@ def iterate_over_followers(
                 "Cannot get next item: probably reached end of the screen.",
                 extra={"color": f"{Fore.GREEN}"},
             )
+
 
         if is_myself and scrolled_to_top():
             logger.info("Scrolled to top, finish.", extra={"color": f"{Fore.GREEN}"})

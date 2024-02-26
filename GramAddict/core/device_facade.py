@@ -131,7 +131,6 @@ class DeviceFacade:
     def back(self, modulable: bool = True):
         logger.debug("Press back button.")
         self.deviceV2.press("back")
-
         random_sleep(modulable=modulable)
 
     def start_screenrecord(self, output="debug_0000.mp4", fps=20):
