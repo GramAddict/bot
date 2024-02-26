@@ -287,17 +287,17 @@ class Filter:
             f"This account is {'private' if profile_data.is_private else 'public'}."
         )
 
-        if profile_data.is_private and field_skip_if_public:
+        if profile_data.is_private and field_skip_if_private:
             logger.info(
-                f"@{username} has public account and you want to interact only private, skip.",
+                f"@{username} has private account and you want to interact only pubic, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
                 username, profile_data, SkipReason.IS_PUBLIC
             )
-        elif profile_data.is_private and field_skip_if_private:
+        elif not profile_data.is_private and field_skip_if_public:
             logger.info(
-                f"@{username} has private account and you want to interact only public, skip.",
+                f"@{username} has public account and you want to interact only private, skip.",
                 extra={"color": f"{Fore.CYAN}"},
             )
             return profile_data, self.return_check_profile(
