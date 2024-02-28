@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import platform
 from enum import Enum, auto
 from random import choice, randint, uniform
 from time import sleep
@@ -997,10 +998,16 @@ class PostsViewList:
         if not owner_name:
             logger.info("Can't find the owner name, need to use OCR.")
             try:
-                owner_name = self.get_text_from_screen(post_owner_obj)
+                import pytesseract as pt
+
+                owner_name = self.get_text_from_screen(pt, post_owner_obj)
             except ImportError:
                 logger.error(
-                    "You need to install pytesseract in order to use OCR feature."
+                    "You need to install pytesseract (the wrapper: pip install pytesseract) in order to use OCR feature."
+                )
+            except pt.TesseractNotFoundError:
+                logger.error(
+                    "You need to install Tesseract (the engine: it depends on your system) in order to use OCR feature."
                 )
             if owner_name.startswith("#"):
                 is_hashtag = True
@@ -1016,9 +1023,7 @@ class PostsViewList:
 
         return is_ad, is_hashtag, owner_name
 
-    def get_text_from_screen(self, obj) -> Optional[str]:
-        import pytesseract as pt
-        import platform
+    def get_text_from_screen(self, pt, obj) -> Optional[str]:
 
         if platform.system() == "Windows":
             pt.pytesseract.tesseract_cmd = (
