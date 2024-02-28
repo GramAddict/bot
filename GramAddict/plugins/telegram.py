@@ -233,7 +233,9 @@ class TelegramReports(Plugin):
             following_now,
         )
         response = telegram_bot_send_text(
-            report, telegram_config["chat_id"], telegram_config["api_token"]
+            telegram_config.get("telegram-api-token"),
+            telegram_config.get("telegram-chat-id"),
+            report,
         )
         if response and response.get("ok"):
             logger.info(
