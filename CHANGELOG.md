@@ -1,4 +1,12 @@
 # Changelog
+## 3.2.10 (2024-03-09)
+### Fix
+- account selecting
+- function specialization for load and clean txt file
+- better logging for the user
+### Others
+- test for load and clean txt file
+
 ## 3.2.9 (2024-02-10)
 ### Fix
 - remove pandas as dependency for telegram reports

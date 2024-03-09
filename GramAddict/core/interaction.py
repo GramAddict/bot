@@ -5,7 +5,7 @@ from datetime import datetime
 from os import path
 from random import choice, randint, shuffle, uniform
 from time import sleep, time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import emoji
 import spintax
@@ -734,7 +734,7 @@ def _send_PM(
         message = load_random_message(my_username)
         if message is None:
             logger.warning(
-                "You forgot to populate your PM list! If you don't want to comment set 'pm-percentage: 0'"
+                "If you don't want to comment set 'pm-percentage: 0' in your config.yml."
             )
             device.back()
             return False
@@ -780,7 +780,9 @@ def _send_PM(
         return False
 
 
-def load_random_message(my_username: str) -> Optional[str]:
+def _load_and_clean_txt_file(
+    my_username: str, txt_filename: str
+) -> Optional[List[str]]:
     def nonblank_lines(f):
         for ln in f:
             line = ln.rstrip()
@@ -788,68 +790,60 @@ def load_random_message(my_username: str) -> Optional[str]:
                 yield line
 
     lines = []
-    file_name = os.path.join(storage.ACCOUNTS, my_username, storage.FILENAME_MESSAGES)
+    file_name = os.path.join(storage.ACCOUNTS, my_username, txt_filename)
     if path.isfile(file_name):
         try:
             with open(file_name, "r", encoding="utf-8") as f:
                 for line in nonblank_lines(f):
                     lines.append(line)
-                random_message = choice(lines)
-                if random_message != "":
-                    return emoji.emojize(
-                        spintax.spin(random_message.replace("\\n", "\n")),
-                        use_aliases=True,
-                    )
-                else:
-                    return None
+                if lines:
+                    return lines
+                logger.warning(f"{file_name} is empty! Check your account folder.")
+                return None
         except Exception as e:
             logger.error(f"Error: {e}.")
+            return None
+    logger.warning(f"{file_name} not found! Check your account folder.")
+    return None
+
+
+def load_random_message(my_username: str) -> Optional[str]:
+    lines = _load_and_clean_txt_file(my_username, storage.FILENAME_MESSAGES)
+    if lines is not None:
+        random_message = choice(lines)
+        return emoji.emojize(
+            spintax.spin(random_message.replace("\\n", "\n")),
+            use_aliases=True,
+        )
+    return None
 
 
 def load_random_comment(my_username: str, media_type: MediaType) -> Optional[str]:
-    def nonblank_lines(f):
-        for ln in f:
-            line = ln.rstrip()
-            if line:
-                yield line
-
-    lines = []
-    file_name = os.path.join(storage.ACCOUNTS, my_username, storage.FILENAME_COMMENTS)
-    if path.isfile(file_name):
-        with open(file_name, "r", encoding="utf-8") as f:
-            for line in nonblank_lines(f):
-                lines.append(line)
-            try:
-                photo_header = lines.index("%PHOTO")
-                video_header = lines.index("%VIDEO")
-                carousel_header = lines.index("%CAROUSEL")
-            except ValueError:
-                logger.warning(
-                    f"You didn't follow the rules of sections for {file_name}! Look at config example."
-                )
-                return None
-            photo_comments = lines[photo_header + 1 : video_header]
-            video_comments = lines[video_header + 1 : carousel_header]
-            carousel_comments = lines[carousel_header + 1 :]
-            random_comment = ""
-            if media_type == MediaType.PHOTO:
-                random_comment = (
-                    choice(photo_comments) if len(photo_comments) > 0 else ""
-                )
-            elif media_type in (MediaType.VIDEO, MediaType.IGTV, MediaType.REEL):
-                random_comment = (
-                    choice(video_comments) if len(video_comments) > 0 else ""
-                )
-            elif media_type == MediaType.CAROUSEL:
-                random_comment = (
-                    choice(carousel_comments) if len(carousel_comments) > 0 else ""
-                )
-            if random_comment != "":
-                return emoji.emojize(spintax.spin(random_comment), use_aliases=True)
-            else:
-                return None
+    lines = _load_and_clean_txt_file(my_username, storage.FILENAME_COMMENTS)
+    if lines is None:
+        return None
+    try:
+        photo_header = lines.index("%PHOTO")
+        video_header = lines.index("%VIDEO")
+        carousel_header = lines.index("%CAROUSEL")
+    except ValueError:
+        logger.warning(
+            f"You didn't follow the rules for sections in your {storage.FILENAME_COMMENTS} txt file! Look at config example."
+        )
+        return None
+    photo_comments = lines[photo_header + 1 : video_header]
+    video_comments = lines[video_header + 1 : carousel_header]
+    carousel_comments = lines[carousel_header + 1 :]
+    random_comment = ""
+    if media_type == MediaType.PHOTO:
+        random_comment = choice(photo_comments) if len(photo_comments) > 0 else ""
+    elif media_type in (MediaType.VIDEO, MediaType.IGTV, MediaType.REEL):
+        random_comment = choice(video_comments) if len(video_comments) > 0 else ""
+    elif media_type == MediaType.CAROUSEL:
+        random_comment = choice(carousel_comments) if len(carousel_comments) > 0 else ""
+    if random_comment != "":
+        return emoji.emojize(spintax.spin(random_comment), use_aliases=True)
     else:
-        logger.warning(f"{file_name} not found!")
         return None
 
 

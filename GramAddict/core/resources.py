@@ -182,6 +182,7 @@ class ResourceID:
         self.UNIFIED_FOLLOW_LIST_TAB_LAYOUT = (
             f"{APP_ID}:id/unified_follow_list_tab_layout"
         )
+        self.USERNAME_TEXTVIEW = f"{APP_ID}:id/username_textview"
         self.VIDEO_CONTAINER = f"{APP_ID}:id/video_container"
         self.VIEW_PLAY_BUTTON = f"{APP_ID}:id/view_play_button"
         self.ZOOMABLE_VIEW_CONTAINER = f"{APP_ID}:id/zoomable_view_container"

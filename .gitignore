@@ -5,7 +5,6 @@
 /dist
 /gramaddict.egg-info
 /.idea
-/test
 /.vscode
 */*.yml
 */*.json
@@ -17,7 +16,6 @@ accounts
 Pipfile
 Pipfile.lock
 *.pdf
-*.txt
 *.mp4
 *.log*
 *.ini
