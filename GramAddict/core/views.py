@@ -1119,7 +1119,7 @@ class AccountView:
     def _find_username(self, username, has_scrolled=False):
         list_view = self.device.find(resourceId=ResourceID.LIST)
         username_obj = self.device.find(
-            resourceId=ResourceID.ROW_USER_TEXTVIEW,
+            resourceIdMatches=f"{ResourceID.ROW_USER_TEXTVIEW}|{ResourceID.USERNAME_TEXTVIEW}",
             textMatches=case_insensitive_re(username),
         )
         if username_obj.exists(Timeout.SHORT):

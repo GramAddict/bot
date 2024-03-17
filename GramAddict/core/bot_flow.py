@@ -165,6 +165,9 @@ def start_bot(**kwargs):
                         logger.warning(
                             "If you press ENTER, you are aware of this and will not ask for support in case of a crash."
                         )
+                        logger.warning(
+                            "If you want to avoid pressing ENTER next run, add allow-untested-ig-version: True in your config.yml file. (read the docs for more info)"
+                        )
                         input()
 
             except Exception as e:

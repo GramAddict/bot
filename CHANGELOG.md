@@ -1,17 +1,12 @@
 # Changelog
-##3.2.10 (2024-02-28) pre-release
-### New Features
-- 'kill-atx-agent: bool' argument to stop the atx-agent after the bot has finished
-- 'restart-atx-agent: bool' argument to restart the atx-agent before the bot starts
-note: these arguments should help to avoid the problem of the bot stuck on starting the atx-agent
-- OCR recognition for owner obj that doesn't have a text or a description
-note: some nicknames are not correctly recognized, for example 'nick.name____' is recognized as 'nick.name'
+## 3.2.10 (2024-03-09)
 ### Fix
-- correctly recognize if a post is sponsored in the feed
-### Improvements
-- improved telegram reports plugin
+- account selecting
+- function specialization for load and clean txt file
+- better logging for the user
 ### Others
-- add pytest for telegram reports plugin
+- test for load and clean txt file
+
 ## 3.2.9 (2024-02-10)
 ### Fix
 - remove pandas as dependency for telegram reports
