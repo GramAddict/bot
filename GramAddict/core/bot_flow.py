@@ -41,6 +41,7 @@ from GramAddict.core.utils import (
     open_instagram,
     pre_post_script,
     print_telegram_reports,
+    restart_atx_agent,
     save_crash,
     set_time_delta,
     show_ending_conditions,
@@ -119,6 +120,8 @@ def start_bot(**kwargs):
         if not inside_working_hours:
             wait_for_next_session(time_left, session_state, sessions, device)
         pre_post_script(path=configs.args.pre_script)
+        if configs.args.restart_atx_agent:
+            restart_atx_agent(device)
         get_device_info(device)
         session_state = SessionState(configs)
         session_state.set_limits_session()
@@ -163,7 +166,7 @@ def start_bot(**kwargs):
                             "If you press ENTER, you are aware of this and will not ask for support in case of a crash."
                         )
                         logger.warning(
-                            "If you want to avoid pressing ENTER next run, add allow-untested-ig-version: True in your config.yml file. (read the docs for more info)"
+                            "If you want to avoid pressing ENTER next run, add allow-untested-ig-version: true in your config.yml file. (read the docs for more info)"
                         )
                         input()
 
@@ -357,7 +360,8 @@ def start_bot(**kwargs):
             device.screen_off()
             logger.info("Screen turned off for sleeping time.")
 
-        kill_atx_agent(device)
+        if configs.args.kill_atx_agent:
+            kill_atx_agent(device)
         head_up_notifications(enabled=True)
         logger.info(
             "-------- FINISH: "

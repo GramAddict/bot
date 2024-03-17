@@ -429,9 +429,28 @@ def kill_atx_agent(device):
     _restore_keyboard(device)
     logger.info("Kill atx agent.")
     cmd: str = (
-        f"adb{'' if configs.device_id is None else ' -s ' + configs.device_id} shell pkill atx-agent"
+        f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell pkill atx-agent"
     )
     subprocess.run(cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8")
+
+
+def restart_atx_agent(device):
+    kill_atx_agent(device)
+    logger.info("Restarting atx agent.")
+    cmd: str = (
+        f"adb{'' if configs.device_id is None else f' -s {configs.device_id}'} shell /data/local/tmp/atx-agent server -d"
+    )
+
+    try:
+        result = subprocess.run(
+            cmd, stdout=PIPE, stderr=PIPE, shell=True, encoding="utf8", check=True
+        )
+        if result.returncode != 0:
+            logger.error(f"Failed to restart atx-agent: {result.stderr}")
+        else:
+            logger.info("atx-agent restarted successfully.")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error occurred while restarting atx-agent: {e}")
 
 
 def _restore_keyboard(device):
@@ -524,7 +543,8 @@ def trim_txt(source: str, target: str) -> None:
 
 def stop_bot(device, sessions, session_state, was_sleeping=False):
     close_instagram(device)
-    kill_atx_agent(device)
+    if args.kill_atx_agent:
+        kill_atx_agent(device)
     head_up_notifications(enabled=True)
     logger.info(
         f"-------- FINISH: {datetime.now().strftime('%H:%M:%S')} --------",
@@ -704,7 +724,8 @@ def set_time_delta(args):
 def wait_for_next_session(time_left, session_state, sessions, device):
     hours, remainder = divmod(time_left.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    kill_atx_agent(device)
+    if args.kill_atx_agent:
+        kill_atx_agent(device)
     logger.info(
         f'Next session will start at: {(datetime.now()+ time_left).strftime("%H:%M:%S (%Y/%m/%d)")}.',
         extra={"color": f"{Fore.GREEN}"},

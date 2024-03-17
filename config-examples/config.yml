@@ -18,6 +18,8 @@ screen-record: false
 speed-multiplier: 1
 debug: false
 close-apps: false
+kill-atx-agent: false
+restart-atx-agent: false
 disable-block-detection: false
 disable-filters: false
 dont-type: false
