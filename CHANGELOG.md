@@ -1,4 +1,16 @@
 # Changelog
+## 3.2.11 (2024-03-17)
+## New Features
+- OCR to read the post owner if the obj is missing in the feed job (optional)
+- `restart-atx-agent: bool` to restart the atx-agent before starting the bot
+- `kill-atx-agent: bool` to kill the atx-agent when the script ends
+### Fix
+- feed sponsored detection
+- Telegram wrong keys and order
+## Misc
+- message in telegram now looks more like it did before pandas were removed
+## Test
+- improved telegram test
 ## 3.2.10 (2024-03-09)
 ### Fix
 - account selecting
@@ -6,7 +18,6 @@
 - better logging for the user
 ### Others
 - test for load and clean txt file
-
 ## 3.2.9 (2024-02-10)
 ### Fix
 - remove pandas as dependency for telegram reports
