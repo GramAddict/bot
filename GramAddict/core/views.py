@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import platform
 from enum import Enum, auto
 from random import choice, randint, uniform
 from time import sleep
@@ -128,7 +129,7 @@ class TabBarView:
     def _get_new_profile_position(self) -> Optional[DeviceFacade.View]:
         buttons = self.device.find(className=ResourceID.BUTTON)
         for button in buttons:
-            if button.content_desc() == "Profile":
+            if button.get_desc() == "Profile":
                 return button
         return None
 
@@ -871,7 +872,7 @@ class PostsViewList:
 
     def _get_media_container(self):
         media = self.device.find(resourceIdMatches=ResourceID.CAROUSEL_AND_MEDIA_GROUP)
-        content_desc = media.content_desc() if media.exists() else None
+        content_desc = media.get_desc() if media.exists() else None
         return media, content_desc
 
     @staticmethod
@@ -988,23 +989,61 @@ class PostsViewList:
     ) -> Tuple[bool, bool, Optional[str]]:
         is_hashtag = False
         is_ad = False
-        real_username = None
         logger.debug("Checking if it's an AD or an hashtag..")
         ad_like_obj = post_owner_obj.sibling(
             resourceId=ResourceID.SECONDARY_LABEL,
         )
-        if post_owner_obj.get_text().startswith("#"):
-            is_hashtag = True
-            logger.debug("Looks like an hashtag, skip.")
+
+        owner_name = post_owner_obj.get_text() or post_owner_obj.get_desc()
+        if not owner_name:
+            logger.info("Can't find the owner name, need to use OCR.")
+            try:
+                import pytesseract as pt
+
+                owner_name = self.get_text_from_screen(pt, post_owner_obj)
+            except ImportError:
+                logger.error(
+                    "You need to install pytesseract (the wrapper: pip install pytesseract) in order to use OCR feature."
+                )
+            except pt.TesseractNotFoundError:
+                logger.error(
+                    "You need to install Tesseract (the engine: it depends on your system) in order to use OCR feature."
+                )
+            if owner_name.startswith("#"):
+                is_hashtag = True
+                logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
-            sponsored = "Sponsored"
-            if ad_like_obj.get_text() == sponsored:
+            sponsored_txt = "Sponsored"
+            ad_like_txt = ad_like_obj.get_text() or ad_like_obj.get_desc()
+            if ad_like_txt.casefold() == sponsored_txt.casefold():
                 logger.debug("Looks like an AD, skip.")
                 is_ad = True
             elif is_hashtag:
-                real_username = ad_like_obj.get_text().split("•")[0].strip()
+                owner_name = owner_name.split("•")[0].strip()
 
-        return is_ad, is_hashtag, real_username
+        return is_ad, is_hashtag, owner_name
+
+    def get_text_from_screen(self, pt, obj) -> Optional[str]:
+
+        if platform.system() == "Windows":
+            pt.pytesseract.tesseract_cmd = (
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+            )
+
+        screenshot = self.device.screenshot()
+        bounds = obj.ui_info().get("visibleBounds", None)
+        if bounds is None:
+            logger.info("Can't find the bounds of the object.")
+            return None
+        screenshot_cropped = screenshot.crop(
+            [
+                bounds.get("left"),
+                bounds.get("top"),
+                bounds.get("right"),
+                bounds.get("bottom"),
+            ]
+        )
+        return pt.image_to_string(screenshot_cropped).split(" ")[0].rstrip()
 
 
 class LanguageView:
@@ -1498,7 +1537,7 @@ class ProfileView(ActionBarView):
         found = False
         buttons = self.device.find(className=ResourceID.BUTTON)
         for button in buttons:
-            if button.content_desc() == "Profile":
+            if button.get_desc() == "Profile":
                 button.click()
                 found = True
         return found
