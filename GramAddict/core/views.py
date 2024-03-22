@@ -1009,9 +1009,9 @@ class PostsViewList:
                 logger.error(
                     "You need to install Tesseract (the engine: it depends on your system) in order to use OCR feature."
                 )
-            if owner_name.startswith("#"):
-                is_hashtag = True
-                logger.debug("Looks like an hashtag, skip.")
+        if owner_name.startswith("#"):
+            is_hashtag = True
+            logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
             sponsored_txt = "Sponsored"
             ad_like_txt = ad_like_obj.get_text() or ad_like_obj.get_desc()
