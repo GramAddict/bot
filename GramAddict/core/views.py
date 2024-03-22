@@ -994,7 +994,7 @@ class PostsViewList:
             resourceId=ResourceID.SECONDARY_LABEL,
         )
 
-        owner_name = post_owner_obj.get_text() or post_owner_obj.get_desc()
+        owner_name = post_owner_obj.get_text() or post_owner_obj.get_desc() or ""
         if not owner_name:
             logger.info("Can't find the owner name, need to use OCR.")
             try:
