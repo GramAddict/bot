@@ -1,4 +1,8 @@
 # Changelog
+## 3.2.12 (2024-03-22)
+### Fix
+- handle NoneType for owner_name in feel job
+- wrong indentation for hashtag check in feed job
 ## 3.2.11 (2024-03-17)
 ## New Features
 - OCR to read the post owner if the obj is missing in the feed job (optional)
