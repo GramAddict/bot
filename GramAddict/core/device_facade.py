@@ -1,5 +1,6 @@
 import logging
 import string
+import time
 from datetime import datetime
 from enum import Enum, auto
 from inspect import stack
@@ -12,7 +13,7 @@ from typing import Optional
 
 import uiautomator2
 
-from GramAddict.core.utils import random_sleep
+from GramAddict.core.utils import random_sleep, wait_for_element
 
 logger = logging.getLogger(__name__)
 

@@ -68,18 +68,20 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
     TargetView = HashTagView if current_job.startswith("hashtag") else PlacesView
 
-    if current_job.endswith("recent"):
-        logger.info("Switching to Recent tab.")
-        recent_tab = TargetView(device)._getRecentTab()
-        if recent_tab.exists(Timeout.MEDIUM):
-            recent_tab.click()
-        else:
-            return False
+    # when searching for a hashtag, the recent tab is not available anymore in version 263.2.0.19.104
 
-        if UniversalActions(device)._check_if_no_posts():
-            UniversalActions(device)._reload_page()
-            if UniversalActions(device)._check_if_no_posts():
-                return False
+    # if current_job.endswith("recent"):
+    #     logger.info("Switching to Recent tab.")
+    #     recent_tab = TargetView(device)._getRecentTab()
+    #     if recent_tab.exists(Timeout.MEDIUM):
+    #         recent_tab.click()
+    #     else:
+    #         return False
+    #
+    #     if UniversalActions(device)._check_if_no_posts():
+    #         UniversalActions(device)._reload_page()
+    #         if UniversalActions(device)._check_if_no_posts():
+    #             return False
 
     result_view = TargetView(device)._getRecyclerView()
     FistImageInView = TargetView(device)._getFistImageView(result_view)
