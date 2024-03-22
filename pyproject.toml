@@ -17,7 +17,7 @@ dynamic = ["version", "description"]
 dependencies = [
     "colorama==0.4.4",
     "ConfigArgParse==1.5.3",
-    "PyYAML==6.0",
+    "PyYAML==6.0.1",
     "uiautomator2==2.16.14",
     "urllib3==1.26.18",
     "emoji==1.6.1",
