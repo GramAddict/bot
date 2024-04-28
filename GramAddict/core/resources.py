@@ -223,6 +223,8 @@ class TabBarText:
     POSTS_CONTENT_DESC = "Grid View"
     PROFILE_CONTENT_DESC = "Profile"
     RECENT_CONTENT_DESC = "Recent"
+    FILTER_CONTENT = "Filter"
+    FILTER_RECENT_CONTENT = "Recent top posts"
     REELS_CONTENT_DESC = "Reels"
     SEARCH_CONTENT_DESC = "Search and Explore"
 
