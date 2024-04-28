@@ -243,19 +243,30 @@ class HashTagView:
             logger.debug("First image in view doesn't exists.")
         return obj
 
-    def _getRecentTab(self):
+    def _navigateToRecentTab(self):
         obj = self.device.find(
-            className=ClassName.TEXT_VIEW,
-            textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
+            textMatches=case_insensitive_re(TabBarText.FILTER_CONTENT),
         )
         if obj.exists(Timeout.LONG):
-            logger.debug("Recent Tab exists.")
+            logger.debug("Filter option exists.")
+            obj.click()
         else:
-            logger.debug("Recent Tab doesn't exists.")
-        return obj
+            logger.debug("Filter option doesn't exists.")
+            return False
+
+        obj = self.device.find(
+            textMatches=case_insensitive_re(TabBarText.FILTER_RECENT_CONTENT),
+        )
+        if obj.exists(Timeout.SHORT):
+            logger.debug("Filter by recent posts")
+            obj.click()
+        else:
+            logger.debug("Filter by recent posts doesn't exists")
+            return False
+        return True
 
 
-# The place view for the moment It's only a copy/paste of HashTagView
+# The place view for the moment
 # Maybe we can add the com.instagram.android:id/category_name == "Country/Region" (or other obv)
 
 
@@ -281,11 +292,16 @@ class PlacesView:
             logger.debug("First image in view doesn't exists.")
         return obj
 
-    def _getRecentTab(self):
-        return self.device.find(
+    def _navigateToRecentTab(self):
+        recent_tab = self.device.find(
             className=ClassName.TEXT_VIEW,
             textMatches=case_insensitive_re(TabBarText.RECENT_CONTENT_DESC),
         )
+        if recent_tab.exists(Timeout.MEDIUM):
+            recent_tab.click()
+            return True
+        else:
+            return False
 
     def _getInformBody(self):
         return self.device.find(
@@ -358,7 +374,9 @@ class SearchView:
                         tab_text_view = obj
                         break
             return tab_text_view
-        return None
+        else:
+            logger.debug("Tabs container doesn't exists.")
+            return None
 
     def _searchTabWithTextPlaceholder(self, tab: SearchTabs):
         tab_layout = self.device.find(
@@ -434,6 +452,8 @@ class SearchView:
         if obj is not None:
             logger.info(f"Switching to {tab.name}")
             obj.click()
+        else:
+            logger.debug("Impossible to switch to the target tab.")
 
     def _check_current_view(
         self, target: str, job: str, in_place_tab: bool = False

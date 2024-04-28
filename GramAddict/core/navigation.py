@@ -70,10 +70,8 @@ def nav_to_hashtag_or_place(device, target, current_job):
 
     if current_job.endswith("recent"):
         logger.info("Switching to Recent tab.")
-        recent_tab = TargetView(device)._getRecentTab()
-        if recent_tab.exists(Timeout.MEDIUM):
-            recent_tab.click()
-        else:
+        recent_tab_exists = TargetView(device)._navigateToRecentTab()
+        if not recent_tab_exists:
             return False
 
         if UniversalActions(device)._check_if_no_posts():
