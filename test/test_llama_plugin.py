@@ -143,7 +143,7 @@ def test_scan_network_detects_open_port():
     assert port in results["127.0.0.1"]
 
 
-def test_security_sweep_creates_report(tmp_path):
+def test_security_sweep_creates_report(tmp_path, monkeypatch):
     plugin = LlamaImageChat()
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -162,6 +162,7 @@ def test_security_sweep_creates_report(tmp_path):
     time.sleep(0.05)
 
     report_path = tmp_path / "report.json"
+    monkeypatch.setenv("API_KEY", "sk-1234567890ABCDEFGHIJ")
     args = SimpleNamespace(
         llama_scan_hosts=["127.0.0.1"],
         llama_port_range=(port, port),
@@ -173,5 +174,9 @@ def test_security_sweep_creates_report(tmp_path):
     thread.join(timeout=0.1)
 
     assert report["network"]["127.0.0.1"] == [port]
+    assert report["environment"]["API_KEY"].startswith("sk-1")
+    assert report["environment"]["API_KEY"].endswith("GHIJ")
     stored = json.loads(report_path.read_text(encoding="utf-8"))
     assert stored["network"]["127.0.0.1"] == [port]
+    assert stored["environment"]["API_KEY"].startswith("sk-1")
+    assert stored["environment"]["API_KEY"].endswith("GHIJ")

@@ -398,11 +398,10 @@ class LlamaImageChat(Plugin):
             ports = DEFAULT_SECURITY_PORTS
 
         open_ports = scan_network(hosts, ports)
-        sanitized_env = {
-            key: "***MASKED***"
-            for key in os.environ
-            if any(keyword in key.lower() for keyword in SECRET_KEYWORDS)
-        }
+        sanitized_env: dict[str, str] = {}
+        for key, value in os.environ.items():
+            if any(keyword in key.lower() for keyword in SECRET_KEYWORDS):
+                sanitized_env[key] = mask_secrets(str(value))
         report = {
             "network": open_ports,
             "environment": sanitized_env,
