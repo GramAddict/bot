@@ -106,10 +106,16 @@ def test_wyy_creates_expected_structure():
 
 
 def test_mask_secrets_masks_sensitive_values():
-    text = "api_key=sk-1234567890ABCDEFGHIJ secret ABCDEFGHIJKLMNOPQRST"
+    text = (
+        'api_key = "sk-1234567890ABCDEFGHIJ" secret '
+        "token=abcd1234 password:ZXCVBNMASDFGHJKL"
+    )
     masked = mask_secrets(text)
-    assert "sk-1234567890ABCDEFGHIJ" not in masked
-    assert masked.count("***") >= 1
+
+    assert '"sk-1234567890ABCDEFGHIJ"' not in masked
+    assert "sk-1***GHIJ" in masked
+    assert "token=***" in masked
+    assert "password:ZXCV***HJKL" in masked
 
 
 def test_scan_network_detects_open_port():

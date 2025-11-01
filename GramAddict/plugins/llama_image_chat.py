@@ -46,14 +46,36 @@ def mask_secrets(text: str) -> str:
         return text
 
     def _mask_keyword(match: re.Match[str]) -> str:
-        key = match.group(1)
-        value = match.group(2)
-        masked = f"{value[:4]}***{value[-4:]}" if len(value) > 8 else "***"
-        return f"{key}{match.group(3)}{masked}"
+        key = match.group("keyword")
+        sep = match.group("separator")
+        leading_ws = match.group("leading_ws") or ""
+        trailing_ws = match.group("trailing_ws") or ""
+        raw_value = match.group("value")
+
+        quote_prefix = ""
+        quote_suffix = ""
+        core_value = raw_value
+        if len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in {'"', "'"}:
+            quote_prefix = raw_value[0]
+            quote_suffix = raw_value[-1]
+            core_value = raw_value[1:-1]
+
+        if not core_value:
+            masked_core = ""
+        elif len(core_value) > 8:
+            masked_core = f"{core_value[:4]}***{core_value[-4:]}"
+        else:
+            masked_core = "***"
+
+        masked_value = f"{quote_prefix}{masked_core}{quote_suffix}"
+        return f"{key}{leading_ws}{sep}{trailing_ws}{masked_value}"
 
     keyword_pattern = re.compile(
-        r"(" + "|".join(re.escape(keyword) for keyword in SECRET_KEYWORDS) + r")" +
-        r"\s*([:=])\s*([^\s,;]+)",
+        r"(?P<keyword>" + "|".join(re.escape(keyword) for keyword in SECRET_KEYWORDS) + r")"
+        r"(?P<leading_ws>\s*)"
+        r"(?P<separator>[:=])"
+        r"(?P<trailing_ws>\s*)"
+        r"(?P<value>[^\s,;]+)",
         flags=re.IGNORECASE,
     )
 
@@ -61,6 +83,8 @@ def mask_secrets(text: str) -> str:
 
     def _mask_long_value(match: re.Match[str]) -> str:
         value = match.group(1)
+        if "***" in value:
+            return value
         if len(value) <= 8:
             return "***"
         return f"{value[:4]}***{value[-4:]}"
