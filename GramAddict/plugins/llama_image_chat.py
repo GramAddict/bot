@@ -35,8 +35,21 @@ def build_chat_messages(
     return messages
 
 
-SECRET_KEYWORDS = ("api_key", "token", "secret", "password", "key", "credential")
+SECRET_KEYWORDS = (
+    "api_key",
+    "api-key",
+    "apikey",
+    "token",
+    "secret",
+    "password",
+    "key",
+    "credential",
+)
 SECRET_VALUE_PATTERN = re.compile(r"(?<![A-Za-z0-9])([A-Za-z0-9+/=_-]{20,})(?![A-Za-z0-9])")
+SECRET_KEYWORD_BOUNDARY = re.compile(
+    r"(?:^|[^a-z0-9])(" + "|".join(re.escape(keyword) for keyword in SECRET_KEYWORDS) + r")(?:[^a-z0-9]|$)",
+    flags=re.IGNORECASE,
+)
 
 
 def mask_secrets(text: str) -> str:
@@ -71,6 +84,7 @@ def mask_secrets(text: str) -> str:
         return f"{key}{leading_ws}{sep}{trailing_ws}{masked_value}"
 
     keyword_pattern = re.compile(
+        r"(?<![A-Za-z0-9])"
         r"(?P<keyword>" + "|".join(re.escape(keyword) for keyword in SECRET_KEYWORDS) + r")"
         r"(?P<leading_ws>\s*)"
         r"(?P<separator>[:=])"
@@ -400,7 +414,7 @@ class LlamaImageChat(Plugin):
         open_ports = scan_network(hosts, ports)
         sanitized_env: dict[str, str] = {}
         for key, value in os.environ.items():
-            if any(keyword in key.lower() for keyword in SECRET_KEYWORDS):
+            if SECRET_KEYWORD_BOUNDARY.search(key) or SECRET_VALUE_PATTERN.search(str(value)):
                 sanitized_env[key] = mask_secrets(str(value))
         report = {
             "network": open_ports,

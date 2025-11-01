@@ -118,6 +118,15 @@ def test_mask_secrets_masks_sensitive_values():
     assert "password:ZXCV***HJKL" in masked
 
 
+def test_mask_secrets_does_not_mask_substring_matches():
+    text = "monkey=bananas key=ZXCVBNMASDFGHJKL"
+
+    masked = mask_secrets(text)
+
+    assert "monkey=bananas" in masked
+    assert "key=ZXCV***HJKL" in masked
+
+
 def test_scan_network_detects_open_port():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -180,3 +189,26 @@ def test_security_sweep_creates_report(tmp_path, monkeypatch):
     assert stored["network"]["127.0.0.1"] == [port]
     assert stored["environment"]["API_KEY"].startswith("sk-1")
     assert stored["environment"]["API_KEY"].endswith("GHIJ")
+
+
+def test_security_sweep_skips_non_secret_like_environment(monkeypatch, mocker):
+    plugin = LlamaImageChat()
+    monkeypatch.setenv("MONKEY", "bananas")
+    monkeypatch.setenv("API_KEY", "sk-1234567890ABCDEFGHIJ")
+
+    args = SimpleNamespace(
+        llama_scan_hosts=["127.0.0.1"],
+        llama_port_range=(1, 1),
+        llama_security_report=None,
+    )
+
+    mocker.patch(
+        "GramAddict.plugins.llama_image_chat.scan_network",
+        return_value={},
+    )
+
+    report = plugin._security_sweep(args)
+
+    assert "MONKEY" not in report["environment"]
+    assert report["environment"]["API_KEY"].startswith("sk-1")
+    assert report["environment"]["API_KEY"].endswith("GHIJ")
