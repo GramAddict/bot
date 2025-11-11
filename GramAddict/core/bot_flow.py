@@ -96,8 +96,20 @@ def start_bot(**kwargs):
 
     if len(configs.enabled) < 1:
         logger.error(
-            "You have to specify one of these actions: " + ", ".join(configs.actions)
+            "No actions found! You need to specify at least one action in your config file or command line."
         )
+        logger.error("Available actions: " + ", ".join(sorted(configs.actions)))
+        logger.info("")
+        logger.info("Common examples:")
+        logger.info("  - feed: 2-5                    # Like 2-5 posts from your feed")
+        logger.info("  - blogger-followers: [user1]   # Interact with user1's followers")
+        logger.info("  - unfollow: 10-20              # Unfollow 10-20 users")
+        logger.info("")
+        logger.info("To fix this:")
+        logger.info("  1. Open your config file and uncomment at least one action (remove the # symbol)")
+        logger.info("  2. Or add an action via command line, e.g.: python run.py --config config.yml --feed 5")
+        logger.info("")
+        logger.info("For more details, see: https://docs.gramaddict.org/#/configuration")
         return
     device = create_device(configs.device_id, configs.app_id)
     session_state = None

@@ -198,15 +198,27 @@ class Config:
                     and not _is_legacy_arg(item)
                 ):
                     self.enabled.append(item)
+            # Also check sys.argv for command-line arguments that may override config
+            for item in sys.argv:
+                if item.startswith("--"):
+                    nitem = item[2:]
+                    if (
+                        nitem in self.actions
+                        and getattr(self.args, nitem.replace("-", "_")) is not None
+                        and not _is_legacy_arg(nitem)
+                        and nitem not in self.enabled
+                    ):
+                        self.enabled.append(nitem)
         else:
             for item in sys.argv:
-                nitem = item[2:]
-                if (
-                    nitem in self.actions
-                    and getattr(self.args, nitem.replace("-", "_")) is not None
-                    and not _is_legacy_arg(nitem)
-                ):
-                    self.enabled.append(nitem)
+                if item.startswith("--"):
+                    nitem = item[2:]
+                    if (
+                        nitem in self.actions
+                        and getattr(self.args, nitem.replace("-", "_")) is not None
+                        and not _is_legacy_arg(nitem)
+                    ):
+                        self.enabled.append(nitem)
 
 
 def get_time_last_save(file_path) -> str:
