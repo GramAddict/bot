@@ -996,32 +996,78 @@ class PostsViewList:
 
         owner_name = post_owner_obj.get_text() or post_owner_obj.get_desc() or ""
         if not owner_name:
-            logger.info("Can't find the owner name, need to use OCR.")
-            try:
-                import pytesseract as pt
+            logger.info("Can't find the owner name, attempting fallback methods.")
+            # Try multiple fallback methods
+            owner_name = self._get_owner_name_with_fallbacks(post_owner_obj)
 
-                owner_name = self.get_text_from_screen(pt, post_owner_obj)
-            except ImportError:
-                logger.error(
-                    "You need to install pytesseract (the wrapper: pip install pytesseract) in order to use OCR feature."
-                )
-            except pt.TesseractNotFoundError:
-                logger.error(
-                    "You need to install Tesseract (the engine: it depends on your system) in order to use OCR feature."
-                )
-        if owner_name.startswith("#"):
+        if owner_name and owner_name.startswith("#"):
             is_hashtag = True
             logger.debug("Looks like an hashtag, skip.")
         if ad_like_obj.exists():
             sponsored_txt = "Sponsored"
             ad_like_txt = ad_like_obj.get_text() or ad_like_obj.get_desc()
-            if ad_like_txt.casefold() == sponsored_txt.casefold():
+            if ad_like_txt and ad_like_txt.casefold() == sponsored_txt.casefold():
                 logger.debug("Looks like an AD, skip.")
                 is_ad = True
-            elif is_hashtag:
+            elif is_hashtag and owner_name:
                 owner_name = owner_name.split("•")[0].strip()
 
         return is_ad, is_hashtag, owner_name
+
+    def _get_owner_name_with_fallbacks(self, post_owner_obj) -> Optional[str]:
+        """
+        Attempt to get owner name using multiple fallback methods
+        :param post_owner_obj: The post owner UI object
+        :return: Owner name or None
+        """
+        owner_name = None
+
+        # Fallback 1: Try OCR with better error handling
+        try:
+            import pytesseract as pt
+            logger.debug("Attempting OCR to extract owner name...")
+            owner_name = self.get_text_from_screen(pt, post_owner_obj)
+            if owner_name and len(owner_name.strip()) > 0:
+                logger.info(f"OCR successfully extracted owner name: {owner_name}")
+                return owner_name
+        except ImportError:
+            logger.warning(
+                "pytesseract not installed. Install with: pip install pytesseract"
+            )
+        except Exception as e:
+            # Catch TesseractNotFoundError and other exceptions
+            logger.warning(
+                f"OCR failed: {str(e)}. Tesseract may not be installed on your system."
+            )
+
+        # Fallback 2: Try to find owner name in parent/sibling elements
+        try:
+            logger.debug("Attempting to find owner name in nearby UI elements...")
+            parent = post_owner_obj
+            # Try to get text from nearby elements
+            for attempt in range(3):  # Try up to 3 levels up
+                if parent:
+                    siblings = parent.sibling()
+                    if siblings.exists():
+                        sibling_text = siblings.get_text()
+                        if sibling_text and len(sibling_text.strip()) > 0:
+                            logger.info(f"Found owner name in sibling element: {sibling_text}")
+                            return sibling_text
+        except Exception as e:
+            logger.debug(f"Sibling search failed: {e}")
+
+        # Fallback 3: Try content description as last resort
+        try:
+            content_desc = post_owner_obj.get_desc()
+            if content_desc and len(content_desc.strip()) > 0:
+                # Sometimes the content description contains the username
+                logger.info(f"Using content description as owner name: {content_desc}")
+                return content_desc
+        except Exception as e:
+            logger.debug(f"Content description extraction failed: {e}")
+
+        logger.warning("All fallback methods failed to extract owner name.")
+        return None
 
     def get_text_from_screen(self, pt, obj) -> Optional[str]:
 
@@ -1312,9 +1358,21 @@ class OpenedPostView:
                     watching_time,
                     time_left - 5,
                 )
-            logger.info(
-                f"Watching video for {watching_time if watching_time > 0 else 'few '}s."
-            )
+
+            # Special handling for Reels with natural viewing behavior
+            if media_type == MediaType.REEL:
+                # Add variance to reel watching time for more natural behavior
+                watching_time = int(watching_time * uniform(0.85, 1.40))
+                logger.info(
+                    f"Watching reel for {watching_time}s with natural behavior."
+                )
+                # Simulate natural reel viewing with random pauses
+                self._watch_reel_naturally(watching_time)
+                return None
+            else:
+                logger.info(
+                    f"Watching video for {watching_time if watching_time > 0 else 'few '}s."
+                )
 
         elif (
             media_type in (MediaType.CAROUSEL, MediaType.PHOTO)
@@ -1328,6 +1386,40 @@ class OpenedPostView:
             return None
         if watching_time > 0:
             sleep(watching_time)
+
+    def _watch_reel_naturally(self, total_time: int) -> None:
+        """
+        Watch reel with natural human-like behavior including random pauses
+        :param total_time: Total time to watch the reel
+        :return: None
+        """
+        elapsed_time = 0
+        segment_count = randint(2, 4)  # Break viewing into 2-4 segments
+
+        for i in range(segment_count):
+            if elapsed_time >= total_time:
+                break
+
+            # Watch for a random segment duration
+            segment_duration = uniform(
+                total_time / segment_count * 0.7,
+                total_time / segment_count * 1.3
+            )
+            segment_duration = min(segment_duration, total_time - elapsed_time)
+
+            logger.debug(f"Watching reel segment {i+1}/{segment_count} for {segment_duration:.1f}s")
+            sleep(segment_duration)
+            elapsed_time += segment_duration
+
+            # Random chance to "re-watch" a moment (tap to restart/rewind behavior)
+            if i < segment_count - 1 and randint(1, 100) <= 20:
+                logger.debug("Re-watching reel moment (natural behavior)")
+                sleep(uniform(0.8, 2.0))
+                elapsed_time += uniform(0.8, 2.0)
+
+            # Small pause between segments (natural attention span)
+            if i < segment_count - 1:
+                random_sleep(0.2, 0.7, modulable=False, log=False)
 
     def _get_video_time_left(self) -> int:
         timer = self.device.find(resourceId=ResourceID.TIMER)

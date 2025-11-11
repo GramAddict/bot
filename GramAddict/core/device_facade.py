@@ -26,11 +26,15 @@ def create_device(device_id, app_id):
 
 
 def get_device_info(device):
+    sdk_version = int(device.get_info()["sdkInt"])
     logger.debug(
-        f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
+        f"Phone Name: {device.get_info()['productName']}, SDK Version: {sdk_version}"
     )
-    if int(device.get_info()["sdkInt"]) < 19:
+    if sdk_version < 19:
         logger.warning("Only Android 4.4+ (SDK 19+) devices are supported!")
+    elif sdk_version >= 31:
+        # Android 12 (SDK 31) and 12L (SDK 32) compatibility
+        logger.info(f"Android 12+ detected (SDK {sdk_version}). Using enhanced compatibility mode.")
     logger.debug(
         f"Screen dimension: {device.get_info()['displayWidth']}x{device.get_info()['displayHeight']}"
     )
@@ -317,6 +321,13 @@ class DeviceFacade:
             return self.deviceV2.info
         except uiautomator2.JSONRPCError as e:
             raise DeviceFacade.JsonRpcError(e)
+
+    def is_android_12_plus(self):
+        """Check if device is running Android 12 (SDK 31) or higher"""
+        try:
+            return int(self.get_info()["sdkInt"]) >= 31
+        except (KeyError, ValueError, TypeError):
+            return False
 
     @staticmethod
     def sleep_mode(mode):

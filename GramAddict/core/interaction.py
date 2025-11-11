@@ -548,6 +548,9 @@ def _browse_carousel(device: DeviceFacade, obj_count: int) -> None:
             media_obj_bounds = media_obj.get_bounds()
             n = 1
             while n < carousel_count:
+                # Add humanlike delay before checking media type
+                random_sleep(0.3, 0.8, modulable=False)
+
                 if media_obj.child(
                     resourceIdMatches=ResourceID.CAROUSEL_IMAGE_MEDIA_GROUP
                 ).exists():
@@ -557,7 +560,9 @@ def _browse_carousel(device: DeviceFacade, obj_count: int) -> None:
                         0,
                         its_time=True,
                     )
-                    sleep(watch_photo_time)
+                    # Add variance to photo viewing time
+                    actual_watch_time = watch_photo_time * uniform(0.85, 1.25)
+                    sleep(actual_watch_time)
                 elif media_obj.child(
                     resourceIdMatches=ResourceID.CAROUSEL_VIDEO_MEDIA_GROUP
                 ).exists():
@@ -567,22 +572,51 @@ def _browse_carousel(device: DeviceFacade, obj_count: int) -> None:
                         0,
                         its_time=True,
                     )
-                    sleep(watch_video_time)
+                    # Add variance to video viewing time
+                    actual_watch_time = watch_video_time * uniform(0.90, 1.20)
+                    sleep(actual_watch_time)
+
+                # More natural swipe coordinates with greater randomness
                 start_point_y = (
                     (media_obj_bounds["bottom"] + media_obj_bounds["top"])
                     / 2
-                    * uniform(0.85, 1.15)
+                    * uniform(0.80, 1.20)
                 )
-                start_point_x = uniform(0.85, 1.10) * (
-                    media_obj_bounds["right"] * 5 / 6
+                start_point_x = uniform(0.75, 0.95) * (
+                    media_obj_bounds["right"] * uniform(0.80, 0.95)
                 )
-                delta_x = media_obj_bounds["right"] * uniform(0.5, 0.7)
+                # Vary swipe distance for more natural behavior
+                delta_x = media_obj_bounds["right"] * uniform(0.45, 0.75)
+
+                # Add small random pause before swiping (simulates human decision time)
+                random_sleep(0.2, 0.6, modulable=False)
+
                 UniversalActions(device)._swipe_points(
                     start_point_y=start_point_y,
                     start_point_x=start_point_x,
                     delta_x=delta_x,
                     direction=Direction.LEFT,
                 )
+
+                # Random chance to swipe back occasionally (natural curiosity)
+                if randint(1, 100) <= 15 and n > 1:
+                    logger.debug("Looking back at previous carousel item (humanlike behavior)")
+                    random_sleep(0.4, 0.9, modulable=False)
+                    UniversalActions(device)._swipe_points(
+                        start_point_y=start_point_y,
+                        start_point_x=media_obj_bounds["left"] + (media_obj_bounds["right"] * 0.2),
+                        delta_x=media_obj_bounds["right"] * uniform(0.45, 0.65),
+                        direction=Direction.RIGHT,
+                    )
+                    random_sleep(0.5, 1.2, modulable=False)
+                    # Swipe forward again
+                    UniversalActions(device)._swipe_points(
+                        start_point_y=start_point_y,
+                        start_point_x=start_point_x,
+                        delta_x=delta_x,
+                        direction=Direction.LEFT,
+                    )
+
                 n += 1
 
 
