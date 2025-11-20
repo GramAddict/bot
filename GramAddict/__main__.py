@@ -4,6 +4,8 @@ from os import getcwd, path
 from GramAddict import __version__
 from GramAddict.core.bot_flow import start_bot
 from GramAddict.core.download_from_github import download_from_github
+from GramAddict.core.setup_wizard import run_setup_wizard
+from GramAddict.core.health_check import run_health_check
 
 
 def cmd_init(args):
@@ -78,7 +80,31 @@ def cmd_dump(args):
     print(Fore.BLUE + Style.BRIGHT + f"{os.getcwd()}\\screen_{archive_name}.zip")
 
 
+def cmd_setup(args):
+    """Run the plug-and-play setup wizard."""
+    import sys
+    sys.exit(run_setup_wizard())
+
+
+def cmd_health_check(args):
+    """Run system health check."""
+    import sys
+    sys.exit(run_health_check())
+
+
 _commands = [
+    dict(
+        action=cmd_setup,
+        command="setup",
+        help="interactive setup wizard for plug-and-play configuration (recommended for first-time users)",
+        flags=[],
+    ),
+    dict(
+        action=cmd_health_check,
+        command="health-check",
+        help="verify system requirements and configuration",
+        flags=[],
+    ),
     dict(
         action=cmd_init,
         command="init",

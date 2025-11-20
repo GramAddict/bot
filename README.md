@@ -144,8 +144,46 @@ You can get __reports__ through telegram from your bot activities!
 
 Cool, isn't it? 💦
 # Quick start
-Now that you're there you still don't know how to install that whole thing.
-I'll try to help you accomplish that with a short tutorial. The full is available [here](https://docs.gramaddict.org/#/quickstart).
+
+## 🚀 NEW: Plug & Play Setup (Easiest Way!)
+
+We now have an **interactive setup wizard** that does everything automatically! Perfect for beginners.
+
+### Just 3 steps:
+1. **Install GramAddict:**
+   ```bash
+   pip3 install GramAddict
+   ```
+
+2. **Run the setup wizard:**
+   ```bash
+   gramaddict setup
+   ```
+   The wizard will:
+   - ✓ Check your Python version
+   - ✓ Download and configure ADB automatically
+   - ✓ Detect your Android device
+   - ✓ Setup UIAutomator2
+   - ✓ Generate optimal configuration for you
+   - ✓ Get you ready in minutes!
+
+3. **Start the bot:**
+   ```bash
+   gramaddict run --config accounts/yourusername/config.yml
+   ```
+
+### Verify everything works:
+```bash
+gramaddict health-check
+```
+
+That's it! 🎉 No need to manually configure ADB or edit YAML files.
+
+---
+
+## 📖 Manual Setup (Traditional Way)
+
+If you prefer to set things up manually, follow this tutorial. The full is available [here](https://docs.gramaddict.org/#/quickstart).
 
 ## What do you need:
 - a computer (with Windows, macOS or Linux)
