@@ -267,6 +267,87 @@ This bot works only if your Instagram is in [English](https://help.instagram.com
 
 Failed? [Check this out!](https://docs.gramaddict.org/#/quickstart?id=troubleshooting)
 
+---
+
+# 🤖 LLaMA/Ollama Extension (Optional)
+
+This project includes an **optional LLaMA multimodal extension** that adds AI-powered features:
+- 🖼️ **Image analysis** - Analyze Instagram images with AI
+- 🇵🇱 **Polish language support** - Full support for Polish language
+- 💬 **Smart interactions** - AI-generated comments and responses
+- 🔊 **Speech synthesis** - Text-to-speech in Polish and Armenian
+- 📊 **Google integration** - Connect with Google Drive, Docs, Calendar
+- 🧠 **Psychological profiling** - Understand user behavior patterns
+
+## What is Ollama?
+
+[Ollama](https://ollama.com) is a local AI runtime that allows you to run large language models (LLMs) on your own computer. It's completely free and works offline, giving you privacy and control over your AI operations.
+
+## Installation
+
+### Quick Install (Recommended)
+
+Run the automated installation script:
+
+```bash
+cd scripts
+chmod +x install_ollama.sh
+./install_ollama.sh
+```
+
+This script will:
+- ✅ Install Ollama for your operating system
+- ✅ Start the Ollama service
+- ✅ Download recommended models (Qwen 2.5, LLaMA 3.2, CodeLlama)
+- ✅ Optionally install Open WebUI (web interface)
+- ✅ Install Python libraries for Ollama integration
+
+### Manual Installation
+
+For detailed installation instructions, see [INSTALLATION.md](./INSTALLATION.md)
+
+### Quick verification
+
+After installation, verify Ollama is working:
+
+```bash
+ollama --version
+ollama list
+```
+
+You should see the Ollama version and a list of installed models.
+
+## Using the LLaMA Extension
+
+The extension is located in `extra/llama_extension/`.
+
+Basic usage example:
+
+```bash
+cd extra/llama_extension
+python demo.py \
+  --model-path ~/.ollama/models \
+  --confirm \
+  "Opisz ten obraz" \
+  --image /path/to/image.jpg
+```
+
+For full documentation of the LLaMA extension, see [extra/llama_extension/README.md](./extra/llama_extension/README.md)
+
+## Do I need this?
+
+**No!** The LLaMA/Ollama extension is completely **optional**. GramAddict works perfectly fine without it.
+
+The extension adds advanced AI features for users who want:
+- More sophisticated content analysis
+- AI-generated comments
+- Multimodal (text + image) processing
+- Offline AI capabilities
+
+If you just want to use the basic Instagram automation features, **you can skip this section entirely**.
+
+---
+
 # Bot crashes, what should I do?
 The script isn't perfect and may fail sometimes. If this is the case you can open a ticket on our [discord channel](https://discord.gg/NK8PNEFGFF). In that way you won't share with anyone your Instagram account name 😈. We'll be very happy to help you!
 
