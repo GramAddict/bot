@@ -1,8 +1,9 @@
 import json
+from datetime import datetime
+from pathlib import Path
 from unittest.mock import mock_open
 
 import pytest
-from datetime import datetime
 
 import GramAddict.plugins.telegram as TelegramReports
 
@@ -10,7 +11,8 @@ import GramAddict.plugins.telegram as TelegramReports
 @pytest.fixture
 def mock_session_data_raw():
     """Provides session data in raw format"""
-    with open(r"mock_data\sessions.json", "r") as file:
+    file_path = Path(__file__).parent / "mock_data" / "sessions.json"
+    with open(file_path, "r", encoding="utf-8") as file:
         return file.read()
 
 
