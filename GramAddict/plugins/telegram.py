@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 import requests
 import yaml
@@ -12,12 +12,17 @@ from GramAddict.core.plugin_loader import Plugin
 logger = logging.getLogger(__name__)
 
 
-def load_sessions(username) -> Optional[dict]:
+def load_sessions(username) -> Optional[List[dict]]:
     try:
-        with open(f"accounts/{username}/sessions.json") as json_data:
+        with open(
+            f"accounts/{username}/sessions.json", "r", encoding="utf-8"
+        ) as json_data:
             return json.load(json_data)
     except FileNotFoundError:
         logger.error("No session data found. Skipping report generation.")
+        return None
+    except json.JSONDecodeError as exc:
+        logger.error(f"Invalid session data for {username}: {exc}")
         return None
 
 

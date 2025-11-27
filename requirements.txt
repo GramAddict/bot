@@ -9,3 +9,22 @@ atomicwrites==1.4.0
 spintax==1.0.4
 requests~=2.31.0
 packaging~=20.9
+
+# LLaMA/Ollama extension dependencies
+ollama>=0.1.0
+langchain>=0.1.0
+langchain-community>=0.0.1
+llama-index>=0.9.0
+
+# Optional: Image processing for multimodal features
+Pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Optional: Google integration
+google-auth>=2.23.0
+google-api-python-client>=2.100.0
+
+# Optional: Document processing
+python-docx>=1.0.0
+openpyxl>=3.1.0
+PyPDF2>=3.0.0
