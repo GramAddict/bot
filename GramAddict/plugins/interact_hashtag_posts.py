@@ -126,6 +126,10 @@ class InteractHashtagPosts(Plugin):
             while not self.state.is_job_completed and not limit_reached:
                 job()
 
+            if self.session_state.job_limit_reached:
+                logger.info("Job limit reached; moving to next job.")
+                break
+
             if limit_reached:
                 logger.info("Ending session.")
                 self.session_state.check_limit(

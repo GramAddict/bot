@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from enum import Enum, auto
 from json import JSONEncoder
 
-from GramAddict.core.utils import get_value
+from GramAddict.core.utils import RandomStop, get_value
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,25 @@ class SessionState:
     totalComments = 0
     totalPm = 0
     totalWatched = 0
+    totalReelLikes = 0
+    totalReelWatched = 0
     totalUnfollowed = 0
     removedMassFollowers = []
     totalScraped = 0
     totalCrashes = 0
     startTime = None
     finishTime = None
+    random_stop_at = None
+    random_stop_minutes = None
+    random_stop_triggered = False
+    current_job = None
+    job_start_time = None
+    job_time_limit_seconds = 0
+    job_interactions_limit = 0
+    job_successful_interactions_start = 0
+    job_limit_reached = False
+    _job_time_limit_logged = False
+    _job_interactions_limit_logged = False
 
     def __init__(self, configs):
         self.id = str(uuid.uuid4())
@@ -44,12 +57,25 @@ class SessionState:
         self.totalComments = 0
         self.totalPm = 0
         self.totalWatched = 0
+        self.totalReelLikes = 0
+        self.totalReelWatched = 0
         self.totalUnfollowed = 0
         self.removedMassFollowers = []
         self.totalScraped = {}
         self.totalCrashes = 0
         self.startTime = datetime.now()
         self.finishTime = None
+        self.random_stop_at = None
+        self.random_stop_minutes = None
+        self.random_stop_triggered = False
+        self.current_job = None
+        self.job_start_time = None
+        self.job_time_limit_seconds = 0
+        self.job_interactions_limit = 0
+        self.job_successful_interactions_start = 0
+        self.job_limit_reached = False
+        self._job_time_limit_logged = False
+        self._job_interactions_limit_logged = False
 
     def add_interaction(self, source, succeed, followed, scraped):
         if self.totalInteractions.get(source) is None:
@@ -76,6 +102,82 @@ class SessionState:
                 self.totalScraped[source] += 1
                 self.successfulInteractions[source] += 1
 
+    def start_job(self, job_name: str) -> None:
+        """Initialize per-job limits and counters."""
+        self.current_job = job_name
+        self.job_start_time = datetime.now()
+        self.job_time_limit_seconds = 0
+        self.job_interactions_limit = 0
+        self.job_successful_interactions_start = sum(
+            self.successfulInteractions.values()
+        )
+        self.job_limit_reached = False
+        self._job_time_limit_logged = False
+        self._job_interactions_limit_logged = False
+
+        job_time_limit = get_value(self.args.job_time_limit, None, 0, its_time=True)
+        if job_time_limit is None:
+            job_time_limit = 0
+        try:
+            job_time_limit = float(job_time_limit)
+        except Exception:
+            job_time_limit = 0
+        if job_time_limit > 0:
+            self.job_time_limit_seconds = int(job_time_limit * 60)
+
+        job_interactions_limit = get_value(self.args.job_interactions_limit, None, 0)
+        if job_interactions_limit is None:
+            job_interactions_limit = 0
+        try:
+            job_interactions_limit = int(job_interactions_limit)
+        except Exception:
+            job_interactions_limit = 0
+        if job_interactions_limit > 0:
+            self.job_interactions_limit = job_interactions_limit
+
+    def end_job(self) -> None:
+        """Reset per-job limit state."""
+        self.current_job = None
+        self.job_start_time = None
+        self.job_time_limit_seconds = 0
+        self.job_interactions_limit = 0
+        self.job_successful_interactions_start = 0
+        self.job_limit_reached = False
+        self._job_time_limit_logged = False
+        self._job_interactions_limit_logged = False
+
+    def job_limits_reached(self) -> bool:
+        """Return True if per-job limits are reached."""
+        if self.job_limit_reached:
+            return True
+        if self.job_start_time is None:
+            return False
+
+        if self.job_time_limit_seconds > 0:
+            elapsed = (datetime.now() - self.job_start_time).total_seconds()
+            if elapsed >= self.job_time_limit_seconds:
+                if not self._job_time_limit_logged:
+                    minutes = round(self.job_time_limit_seconds / 60, 2)
+                    logger.info(
+                        f"Job time limit reached ({minutes} min) for {self.current_job}. Moving to next job."
+                    )
+                    self._job_time_limit_logged = True
+                self.job_limit_reached = True
+                return True
+
+        if self.job_interactions_limit > 0:
+            current_success = sum(self.successfulInteractions.values())
+            delta = current_success - self.job_successful_interactions_start
+            if delta >= self.job_interactions_limit:
+                if not self._job_interactions_limit_logged:
+                    logger.info(
+                        f"Job interaction limit reached ({self.job_interactions_limit}) for {self.current_job}. Moving to next job."
+                    )
+                    self._job_interactions_limit_logged = True
+                self.job_limit_reached = True
+                return True
+        return False
+
     def set_limits_session(
         self,
     ):
@@ -96,6 +198,15 @@ class SessionState:
         self.args.current_watch_limit = get_value(
             self.args.total_watches_limit, None, 50
         )
+        self.args.current_reels_likes_limit = get_value(
+            self.args.reels_likes_limit, None, 0
+        )
+        self.args.current_reels_watches_limit = get_value(
+            self.args.reels_watches_limit, None, 0
+        )
+        self.args.current_reels_watch_after_like_limit = get_value(
+            self.args.reels_watch_after_like_limit, None, 1
+        )
         self.args.current_success_limit = get_value(
             self.args.total_successful_interactions_limit, None, 100
         )
@@ -112,27 +223,38 @@ class SessionState:
     def check_limit(self, limit_type=None, output=False):
         """Returns True if limit reached - else False"""
         limit_type = SessionState.Limit.ALL if limit_type is None else limit_type
+        if self._random_stop_reached():
+            raise RandomStop()
         # check limits
-        total_likes = self.totalLikes >= int(self.args.current_likes_limit)
-        total_followed = sum(self.totalFollowed.values()) >= int(
-            self.args.current_follow_limit
-        )
-        total_unfollowed = self.totalUnfollowed >= int(self.args.current_unfollow_limit)
-        total_comments = self.totalComments >= int(self.args.current_comments_limit)
-        total_pm = self.totalPm >= int(self.args.current_pm_limit)
-        total_watched = self.totalWatched >= int(self.args.current_watch_limit)
-        total_successful = sum(self.successfulInteractions.values()) >= int(
-            self.args.current_success_limit
-        )
-        total_interactions = sum(self.totalInteractions.values()) >= int(
-            self.args.current_total_limit
-        )
+        likes_limit = int(self.args.current_likes_limit)
+        follow_limit = int(self.args.current_follow_limit)
+        unfollow_limit = int(self.args.current_unfollow_limit)
+        comments_limit = int(self.args.current_comments_limit)
+        pm_limit = int(self.args.current_pm_limit)
+        watch_limit = int(self.args.current_watch_limit)
+        reels_likes_limit = int(self.args.current_reels_likes_limit)
+        reels_watches_limit = int(self.args.current_reels_watches_limit)
+        success_limit = int(self.args.current_success_limit)
+        total_limit = int(self.args.current_total_limit)
+        scraped_limit = int(self.args.current_scraped_limit)
+        crashes_limit = int(self.args.current_crashes_limit)
 
-        total_scraped = sum(self.totalScraped.values()) >= int(
-            self.args.current_scraped_limit
+        total_likes = likes_limit > 0 and self.totalLikes >= likes_limit
+        total_followed = follow_limit > 0 and sum(self.totalFollowed.values()) >= follow_limit
+        total_unfollowed = unfollow_limit > 0 and self.totalUnfollowed >= unfollow_limit
+        total_comments = comments_limit > 0 and self.totalComments >= comments_limit
+        total_pm = pm_limit > 0 and self.totalPm >= pm_limit
+        total_watched = watch_limit > 0 and self.totalWatched >= watch_limit
+        total_reel_likes = (
+            reels_likes_limit > 0 and self.totalReelLikes >= reels_likes_limit
         )
-
-        total_crashes = self.totalCrashes >= int(self.args.current_crashes_limit)
+        total_reel_watched = (
+            reels_watches_limit > 0 and self.totalReelWatched >= reels_watches_limit
+        )
+        total_successful = success_limit > 0 and sum(self.successfulInteractions.values()) >= success_limit
+        total_interactions = total_limit > 0 and sum(self.totalInteractions.values()) >= total_limit
+        total_scraped = scraped_limit > 0 and sum(self.totalScraped.values()) >= scraped_limit
+        total_crashes = crashes_limit > 0 and self.totalCrashes >= crashes_limit
 
         session_info = [
             "Checking session limits:",
@@ -146,14 +268,25 @@ class SessionState:
             f"- Total Interactions:\t\t\t{'Limit Reached' if total_interactions else 'OK'} ({sum(self.totalInteractions.values())}/{self.args.current_total_limit})",
             f"- Total Crashes:\t\t\t\t{'Limit Reached' if total_crashes else 'OK'} ({self.totalCrashes}/{self.args.current_crashes_limit})",
             f"- Total Successful Scraped Users:\t\t{'Limit Reached' if total_scraped else 'OK'} ({sum(self.totalScraped.values())}/{self.args.current_scraped_limit})",
+            f"- Reel Likes:\t\t\t\t{'Limit Reached' if total_reel_likes else 'OK'} ({self.totalReelLikes}/{self.args.current_reels_likes_limit})",
+            f"- Reel Watches:\t\t\t\t{'Limit Reached' if total_reel_watched else 'OK'} ({self.totalReelWatched}/{self.args.current_reels_watches_limit})",
         ]
+
+        # Throttle full log to once per minute to reduce noise
+        from time import time
+
+        if not hasattr(self, "_last_limits_log"):
+            self._last_limits_log = 0
+
+        should_log_full = time() - self._last_limits_log >= 60
 
         if limit_type == SessionState.Limit.ALL:
             if output is not None:
-                if output:
+                if output and should_log_full:
                     for line in session_info:
                         logger.info(line)
-                else:
+                    self._last_limits_log = time()
+                elif not output:
                     for line in session_info:
                         logger.debug(line)
 
@@ -296,6 +429,41 @@ class SessionState:
         SCRAPED = auto()
         CRASHES = auto()
 
+    def _maybe_set_random_stop(self) -> None:
+        if self.random_stop_at is not None:
+            return
+        value = getattr(self.args, "random_stop", None)
+        if value is None:
+            return
+        minutes = None
+        if isinstance(value, bool):
+            minutes = None if not value else 0
+        elif isinstance(value, (int, float)):
+            minutes = value
+        elif isinstance(value, str):
+            raw = value.strip().lower()
+            if raw in ("0", "false", "off", "no", "none", ""):
+                minutes = None
+            else:
+                minutes = get_value(value, None, 0)
+        if minutes is None or minutes <= 0:
+            return
+        self.random_stop_minutes = minutes
+        self.random_stop_at = self.startTime + timedelta(minutes=minutes)
+        logger.info(f"Random stop scheduled after {minutes} minute(s).")
+
+    def _random_stop_reached(self) -> bool:
+        self._maybe_set_random_stop()
+        if self.random_stop_at is None:
+            return False
+        if self.random_stop_triggered:
+            return True
+        if datetime.now() >= self.random_stop_at:
+            self.random_stop_triggered = True
+            logger.info("Random stop time reached; ending session now.")
+            return True
+        return False
+
 
 class SessionStateEncoder(JSONEncoder):
     def default(self, session_state: SessionState):
@@ -310,6 +478,8 @@ class SessionStateEncoder(JSONEncoder):
             "total_comments": session_state.totalComments,
             "total_pm": session_state.totalPm,
             "total_watched": session_state.totalWatched,
+            "total_reel_likes": session_state.totalReelLikes,
+            "total_reel_watched": session_state.totalReelWatched,
             "total_unfollowed": session_state.totalUnfollowed,
             "total_scraped": session_state.totalScraped,
             "start_time": str(session_state.startTime),

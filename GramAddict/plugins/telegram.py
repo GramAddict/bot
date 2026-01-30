@@ -46,10 +46,15 @@ def _initialize_aggregated_data():
     return {
         "total_likes": 0,
         "total_watched": 0,
+        "total_reel_likes": 0,
+        "total_reel_watched": 0,
         "total_followed": 0,
         "total_unfollowed": 0,
         "total_comments": 0,
         "total_pm": 0,
+        "total_scraped": 0,
+        "total_interactions": 0,
+        "successful_interactions": 0,
         "duration": 0,
         "followers": float("inf"),
         "following": float("inf"),
@@ -74,6 +79,16 @@ def _calculate_session_duration(session):
 
 
 def daily_summary(sessions):
+    def _session_value(session, key):
+        value = session.get(key, 0)
+        if isinstance(value, dict):
+            return sum(v for v in value.values() if isinstance(v, (int, float)))
+        if isinstance(value, (list, tuple)):
+            return sum(v for v in value if isinstance(v, (int, float)))
+        if value is None:
+            return 0
+        return value
+
     daily_aggregated_data = {}
     for session in sessions:
         date = session["start_time"][:10]
@@ -84,12 +99,17 @@ def daily_summary(sessions):
         for key in [
             "total_likes",
             "total_watched",
+            "total_reel_likes",
+            "total_reel_watched",
             "total_followed",
             "total_unfollowed",
             "total_comments",
             "total_pm",
+            "total_scraped",
+            "total_interactions",
+            "successful_interactions",
         ]:
-            daily_aggregated_data[date][key] += session.get(key, 0)
+            daily_aggregated_data[date][key] += _session_value(session, key)
 
         daily_aggregated_data[date]["followers"] = min(
             session.get("profile", {}).get("followers", 0),
@@ -122,6 +142,24 @@ def generate_report(
     followers_now,
     following_now,
 ):
+    def _session_value(session, key):
+        value = session.get(key, 0)
+        if isinstance(value, dict):
+            return sum(v for v in value.values() if isinstance(v, (int, float)))
+        if isinstance(value, (list, tuple)):
+            return sum(v for v in value if isinstance(v, (int, float)))
+        if value is None:
+            return 0
+        return value
+
+    last_total_reel_likes = _session_value(last_session, "total_reel_likes")
+    last_total_reel_watched = _session_value(last_session, "total_reel_watched")
+    last_total_scraped = _session_value(last_session, "total_scraped")
+    last_total_interactions = _session_value(last_session, "total_interactions")
+    last_successful_interactions = _session_value(
+        last_session, "successful_interactions"
+    )
+
     return f"""
             *Stats for {username}*:
 
@@ -132,20 +170,30 @@ def generate_report(
             *🤖 Last session actions*
             • {last_session["duration"]} minutes of botting
             • {last_session["total_likes"]} likes
+            • {last_total_reel_likes} reel likes
             • {last_session["total_followed"]} follows
             • {last_session["total_unfollowed"]} unfollows
             • {last_session["total_watched"]} stories watched
+            • {last_total_reel_watched} reels watched
             • {last_session["total_comments"]} comments done
             • {last_session["total_pm"]} PM sent
+            • {last_total_scraped} users scraped
+            • {last_total_interactions} total interactions
+            • {last_successful_interactions} successful interactions
 
             *📅 Today's total actions*
             • {daily_aggregated_data["duration"]} minutes of botting
             • {daily_aggregated_data["total_likes"]} likes
+            • {daily_aggregated_data["total_reel_likes"]} reel likes
             • {daily_aggregated_data["total_followed"]} follows
             • {daily_aggregated_data["total_unfollowed"]} unfollows
             • {daily_aggregated_data["total_watched"]} stories watched
+            • {daily_aggregated_data["total_reel_watched"]} reels watched
             • {daily_aggregated_data["total_comments"]} comments done
             • {daily_aggregated_data["total_pm"]} PM sent
+            • {daily_aggregated_data["total_scraped"]} users scraped
+            • {daily_aggregated_data["total_interactions"]} total interactions
+            • {daily_aggregated_data["successful_interactions"]} successful interactions
 
             *📈 Trends*
             • {daily_aggregated_data["followers_gained"]} new followers today
@@ -154,11 +202,16 @@ def generate_report(
             *🗓 7-Day Average*
             • {weekly_average_data["duration"] / 7:.0f} minutes of botting
             • {weekly_average_data["total_likes"] / 7:.0f} likes
+            • {weekly_average_data["total_reel_likes"] / 7:.0f} reel likes
             • {weekly_average_data["total_followed"] / 7:.0f} follows
             • {weekly_average_data["total_unfollowed"] / 7:.0f} unfollows
             • {weekly_average_data["total_watched"] / 7:.0f} stories watched
+            • {weekly_average_data["total_reel_watched"] / 7:.0f} reels watched
             • {weekly_average_data["total_comments"] / 7:.0f} comments done
             • {weekly_average_data["total_pm"] / 7:.0f} PM sent
+            • {weekly_average_data["total_scraped"] / 7:.0f} users scraped
+            • {weekly_average_data["total_interactions"] / 7:.0f} total interactions
+            • {weekly_average_data["successful_interactions"] / 7:.0f} successful interactions
         """
 
 
@@ -171,10 +224,15 @@ def weekly_average(daily_aggregated_data, today) -> dict:
         for key in [
             "total_likes",
             "total_watched",
+            "total_reel_likes",
+            "total_reel_watched",
             "total_followed",
             "total_unfollowed",
             "total_comments",
             "total_pm",
+            "total_scraped",
+            "total_interactions",
+            "successful_interactions",
             "duration",
             "followers_gained",
         ]:

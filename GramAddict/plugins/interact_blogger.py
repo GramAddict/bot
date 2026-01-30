@@ -144,6 +144,10 @@ class InteractBloggerPostLikers(Plugin):
                 else:
                     job_file()
 
+            if self.session_state.job_limit_reached:
+                logger.info("Job limit reached; moving to next job.")
+                break
+
             if limit_reached:
                 logger.info("Ending session.")
                 self.session_state.check_limit(

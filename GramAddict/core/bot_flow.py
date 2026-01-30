@@ -1,4 +1,5 @@
 import logging
+import warnings
 import random
 from datetime import datetime, timedelta
 from time import sleep
@@ -7,7 +8,12 @@ from colorama import Fore, Style
 
 from GramAddict import __tested_ig_version__
 from GramAddict.core.config import Config
-from GramAddict.core.device_facade import create_device, get_device_info
+from GramAddict.core.device_facade import (
+    Direction,
+    create_device,
+    get_device_info,
+    load_config as load_device_facade,
+)
 from GramAddict.core.filter import Filter
 from GramAddict.core.filter import load_config as load_filter
 from GramAddict.core.interaction import load_config as load_interaction
@@ -34,6 +40,8 @@ from GramAddict.core.utils import (
     get_value,
     head_up_notifications,
     kill_atx_agent,
+    random_choice,
+    random_choice,
 )
 from GramAddict.core.utils import load_config as load_utils
 from GramAddict.core.utils import (
@@ -53,6 +61,10 @@ from GramAddict.core.views import load_config as load_views
 
 
 def start_bot(**kwargs):
+    # Silence noisy third-party warnings (cached_property asyncio.iscoroutinefunction)
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=".*asyncio.iscoroutinefunction.*"
+    )
     # Logging initialization
     logger = logging.getLogger(__name__)
 
@@ -70,8 +82,8 @@ def start_bot(**kwargs):
     # Config-example hint
     config_examples()
 
-    # Check for updates
-    check_if_updated()
+    # Check for updates (disabled for forked/offline use)
+    # check_if_updated()
 
     # Move username folders to a main directory -> accounts
     if "--move-folders-in-accounts" in configs.args:
@@ -79,6 +91,7 @@ def start_bot(**kwargs):
 
     # Global Variables
     sessions = PersistentList("sessions", SessionStateEncoder)
+    configs.sessions = sessions
 
     # Load Config
     configs.load_plugins()
@@ -90,6 +103,7 @@ def start_bot(**kwargs):
     load_interaction(configs)
     load_utils(configs)
     load_views(configs)
+    load_device_facade(configs)
 
     if not configs.args or not check_adb_connection():
         return
@@ -108,7 +122,7 @@ def start_bot(**kwargs):
 
     # init
     analytics_at_end = False
-    telegram_reports_at_end = False
+    telegram_reports_at_end = bool(configs.args.telegram_reports)
     followers_now = None
     following_now = None
 
@@ -124,6 +138,7 @@ def start_bot(**kwargs):
             restart_atx_agent(device)
         get_device_info(device)
         session_state = SessionState(configs)
+        configs.session_state = session_state
         session_state.set_limits_session()
         sessions.append(session_state)
         check_screen_timeout()
@@ -180,6 +195,24 @@ def start_bot(**kwargs):
         account_view = AccountView(device)
         tab_bar_view = TabBarView(device)
         try:
+            # Randomly decide whether to peek at notifications first (from home)
+            notif_pct = get_value(
+                configs.args.notifications_percentage, None, 50
+            )
+            if notif_pct and random_choice(int(notif_pct)):
+                logger.info("Opening notifications tab before refreshing profile.")
+                tab_bar_view.navigateToActivity()
+                sleep(random.uniform(0.8, 1.2))
+                logger.debug("Pull-to-refresh notifications.")
+                UniversalActions(device)._swipe_points(
+                    Direction.DOWN, start_point_y=400, delta_y=650
+                )
+                sleep(random.uniform(0.8, 1.6))
+                logger.debug("Exit notifications via back to restore tab bar.")
+                device.back()
+                sleep(random.uniform(0.5, 1.0))
+                tab_bar_view.navigateToHome()
+
             account_view.navigate_to_main_account()
             check_if_english(device)
             if configs.args.username is not None:
@@ -202,6 +235,15 @@ def start_bot(**kwargs):
             logger.error(f"Exception: {e}")
             save_crash(device)
             break
+
+        if (
+            session_state.my_username is None
+            and configs.args.username is not None
+        ):
+            logger.warning(
+                "Username not detected from UI; falling back to config username."
+            )
+            session_state.my_username = configs.args.username
 
         if (
             session_state.my_username is None
@@ -244,14 +286,14 @@ def start_bot(**kwargs):
                 analytics_at_end = True
         if "telegram-reports" in jobs_list:
             jobs_list.remove("telegram-reports")
-            if configs.args.telegram_reports:
-                telegram_reports_at_end = True
         print_limits = True
         unfollow_jobs = [x for x in jobs_list if "unfollow" in x]
         logger.info(
             f"There is/are {len(jobs_list)-len(unfollow_jobs)} active-job(s) and {len(unfollow_jobs)} unfollow-job(s) scheduled for this session."
         )
         storage = Storage(session_state.my_username)
+        # Expose storage so view helpers can reference interacted users when needed
+        configs.storage = storage
         filters = Filter(storage)
         show_ending_conditions()
         if not configs.args.debug:
@@ -298,9 +340,11 @@ def start_bot(**kwargs):
                     f"Current unfollow-job: {plugin}",
                     extra={"color": f"{Style.BRIGHT}{Fore.BLUE}"},
                 )
+                session_state.start_job(plugin)
                 configs.actions[plugin].run(
                     device, configs, storage, sessions, filters, plugin
                 )
+                session_state.end_job()
                 unfollow_jobs.remove(plugin)
                 print_limits = True
             else:
@@ -326,9 +370,11 @@ def start_bot(**kwargs):
                     logger.warning(
                         "You're in scraping mode! That means you're only collection data without interacting!"
                     )
+                session_state.start_job(plugin)
                 configs.actions[plugin].run(
                     device, configs, storage, sessions, filters, plugin
                 )
+                session_state.end_job()
                 print_limits = True
 
         # save the session in sessions.json
@@ -386,6 +432,8 @@ def start_bot(**kwargs):
                     followers_now,
                     following_now,
                     time_left,
+                    session_state=session_state,
+                    sessions=sessions,
                 )
                 logger.info(
                     f'Next session will start at: {(datetime.now() + timedelta(seconds=time_left)).strftime("%H:%M:%S (%Y/%m/%d)")}.'
@@ -406,6 +454,8 @@ def start_bot(**kwargs):
                     followers_now,
                     following_now,
                     time_left.total_seconds(),
+                    session_state=session_state,
+                    sessions=sessions,
                 )
                 wait_for_next_session(
                     time_left,
@@ -420,6 +470,8 @@ def start_bot(**kwargs):
         telegram_reports_at_end,
         followers_now,
         following_now,
+        session_state=session_state,
+        sessions=sessions,
     )
     print_full_report(sessions, configs.args.scrape_to_file)
     ask_for_a_donation()

@@ -1,0 +1,149 @@
+##############################################################################
+# Full Example Config (all options) — values are safe defaults; tweak as needed
+# - Comment out lines you don't use.
+# - Ranges use "min-max" and are chosen randomly each run.
+##############################################################################
+
+##############################################################################
+# General
+##############################################################################
+username: your_username_here              # IG username the bot controls
+# device: SERIAL                           # optional; set when multiple devices are connected
+app-id: com.instagram.android             # Instagram package id
+use-cloned-app: false                     # true if using a cloned/parallel IG package
+allow-untested-ig-version: false          # set true to run on newer IG versions at your own risk
+screen-sleep: true                        # turn screen off during idle periods
+screen-record: false                      # record screen for debugging (heavier)
+speed-multiplier: 1                       # <1 slower, >1 faster random sleeps
+grid-open-any: false                      # open any search grid tile without pre-filtering (reels/blacklist/interacted)
+fast-grid-open: true                      # open grid tiles via coordinates (faster, less safe); set disable-fast-grid-open: true to opt out
+disable-fast-grid-open: false             # disable fast grid opening and use object-based selection instead
+random-stop: 0                            # randomly hard-stop the session after N minutes (number or range); 0 disables
+home-tab-refresh-percentage: 0            # chance (0-100) to refresh Home by double-tapping the Home tab (0 disables)
+double-click-interval: 0.030-0.090        # seconds between taps for double-tap actions (likes). Lower if double-taps fail; higher if too sensitive
+debug: false                              # verbose logging
+close-apps: false                         # close other apps on start
+kill-atx-agent: false                     # stop atx-agent on exit
+restart-atx-agent: false                  # restart atx-agent on start
+disable-block-detection: false            # true skips IG block pop-up detection
+disable-filters: false                    # true disables profile filters
+dont-type: false                          # true uses paste instead of simulated typing
+# scrape-to-file: scraped.txt             # optional: save scraped usernames here
+total-crashes-limit: 5                    # stop after N crashes in a session
+count-app-crashes: false                  # include IG crashes in crash limit
+shuffle-jobs: true                        # randomize job order
+truncate-sources: 2-5                     # cut long sources list to this size; 0 disables
+job-time-limit: 0                         # per-job time cap in minutes (number or range); 0 disables
+job-interactions-limit: 0                 # per-job successful interaction cap (number or range); 0 disables
+
+##############################################################################
+# Actions (enable the jobs you want)
+##############################################################################
+## Interaction jobs
+blogger-followers: [ username1, username2 ]            # interact with followers of these accounts
+blogger-following: [ username1, username2 ]            # interact with following of these accounts
+blogger-post-likers: [ username1, username2 ]          # interact with people who liked posts
+blogger: [ username1, username2 ]                      # generic blogger interaction
+hashtag-likers-top: [ hashtag1, hashtag2 ]             # interact with top posts’ likers for hashtags
+hashtag-likers-recent: [ hashtag1, hashtag2 ]          # interact with recent posts’ likers
+hashtag-posts-top: [ hashtag1, hashtag2 ]              # open top posts of hashtags
+hashtag-posts-recent: [ hashtag1, hashtag2 ]           # recent posts of hashtags
+place-posts-top: [ place1, place2 ]
+place-posts-recent: [ place1, place2 ]
+place-likers-top: [ place1, place2 ]
+place-likers-recent: [ place1, place2 ]
+interact-from-file: [users.txt 10-15]                  # file with usernames and desired interactions
+posts-from-file: posts.txt                             # file with post URLs
+feed: 10-20                                           # likes to do on own feed
+
+## Reels jobs
+watch-reels: 6-10                                      # number of reels to watch (also used if a reel opens from search)
+reels-like-percentage: 20                              # % chance to like each reel
+reels-watch-time: 6-9                                  # seconds to watch each reel
+reels-like-ads: false                                  # allow likes on reels detected as ads
+reels-like-doubletap-percentage: 50                    # % chance to like via double-tap instead of heart icon (0 = always icon, 100 = always double-tap)
+reels-likes-limit: 0                                   # per-session cap for reel likes (Reels tab + accidental reels). 0 disables; number or range (e.g., 5 or 5-10).
+reels-watches-limit: 0                                 # per-session cap for reels watched. 0 disables reel watching entirely; set 1+ (or a range) to enable.
+reels-watch-after-like-limit: 1-10                     # after likes limit is reached (global or reels), watch this many more reels then exit the reel viewer. 0 disables extra watch.
+single-image-reels-as-posts: false                     # treat single-image reels as photo posts (use post limits/timing)
+
+## Special modifiers for jobs
+watch-video-time: 15-35                                # seconds to watch videos before interacting
+watch-photo-time: 2-8                                  # seconds to view photos before interacting
+# can-reinteract-after: 48                              # hours before re-interacting with same user
+delete-interacted-users: true                          # remove interacted users from source lists
+
+## Unfollow jobs
+unfollow: 10-20                                        # unfollow your following (random amount)
+unfollow-any: 10-20                                    # unfollow anyone (not recommended)
+unfollow-non-followers: 10-20                          # unfollow those not following you back
+unfollow-any-non-followers: 10-20
+unfollow-any-followers: 10-20
+unfollow-from-file: [unfollows.txt 7-15]               # unfollow usernames listed in a file
+
+## Unfollow modifiers
+sort-followers-newest-to-oldest: false
+unfollow-delay: 15                                     # seconds between unfollows
+
+## Remove followers
+remove-followers-from-file: [remove1.txt 5-10]
+delete-removed-followers: true                         # delete removed followers from list file
+
+## Post processing
+telegram-reports: false                                # enable telegram reporting (configure telegram.yml)
+
+## Scripts
+# pre-script: pre_script_path_here
+# post-script: post_script_path_here
+
+##############################################################################
+# Source Limits (per job/source)
+##############################################################################
+interactions-count: 30-40                              # interactions per source
+likes-count: 1-2                                       # likes per interacted user
+likes-percentage: 100                                  # chance to like during interaction
+like-ads-percentage: 0                                 # chance to like ads in feed/posts
+stories-count: 1-2
+stories-percentage: 30-40
+carousel-count: 2-3
+carousel-percentage: 60-70
+max-comments-pro-user: 1-2
+# comment-percentage: 30-40
+# pm-percentage: 30-40
+interact-percentage: 30-40                             # overall chance to engage a found user/post
+follow-percentage: 30-40                               # chance to follow an interacted user
+follow-limit: 50                                       # max follows per source
+skipped-list-limit: 10-15                              # max scrolls with already-interacted users before switching source
+skipped-posts-limit: 5                                 # max skipped posts before switching source
+fling-when-skipped: 0                                  # fling after N skips (0 disables)
+min-following: 100                                     # skip users with following below this (0 disables)
+
+##############################################################################
+# Total Session Limits
+##############################################################################
+total-likes-limit: 120-150
+total-follows-limit: 40-50
+total-unfollows-limit: 40-50
+total-watches-limit: 120-150
+total-successful-interactions-limit: 120-150
+total-interactions-limit: 280-300
+total-comments-limit: 3-5
+total-pm-limit: 3-5
+total-scraped-limit: 100-150
+
+##############################################################################
+# Ending Session Conditions
+##############################################################################
+end-if-likes-limit-reached: true
+end-if-follows-limit-reached: false
+end-if-watches-limit-reached: false
+end-if-comments-limit-reached: false
+end-if-pm-limit-reached: false
+
+##############################################################################
+# Scheduling
+##############################################################################
+working-hours: [10.15-16.40, 18.15-22.46]              # HH.MM-HH.MM; multiple windows allowed
+time-delta: 10-15                                      # random +/- minutes to shift start times
+repeat: 280-320                                        # minutes before repeating session; comment for no repeat
+total-sessions: 1                                      # -1 for infinite sessions

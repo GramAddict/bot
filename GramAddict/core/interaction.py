@@ -220,6 +220,12 @@ def interact_with_user(
             _,
             can_comment_job,
         ) = profile_filter.can_comment(current_mode)
+        like_comments_percentage = get_value(
+            args.like_comments_percentage, None, 0
+        )
+        max_comment_likes_per_post = get_value(
+            args.like_comments_per_post, None, 0
+        )
         if can_comment_job and comment_percentage != 0:
             max_comments_pro_user = get_value(
                 args.max_comments_pro_user, "Max comment count: {}", 1
@@ -315,6 +321,22 @@ def interact_with_user(
                         logger.info(
                             f"You've already did {max_comments_pro_user} {'comment' if max_comments_pro_user<=1 else 'comments'} for this user!"
                         )
+                liked_comments = 0
+                if (
+                    like_comments_percentage > 0
+                    and max_comment_likes_per_post > 0
+                    and not session_state.check_limit(
+                        limit_type=session_state.Limit.LIKES, output=True
+                    )
+                ):
+                    liked_comments = opened_post_view.like_comments(
+                        like_comments_percentage,
+                        max_comment_likes_per_post,
+                        args.comment_like_sort,
+                    )
+                    if liked_comments:
+                        session_state.totalLikes += liked_comments
+                        interacted = True
             else:
                 logger.warning("Can't find the post element!")
                 save_crash(device)

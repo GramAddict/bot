@@ -7,14 +7,60 @@ from os import getcwd, listdir
 from random import randint, uniform
 from re import search
 from subprocess import PIPE, run
-from time import sleep
-from typing import Optional
+from time import sleep, time
+from typing import Optional, Tuple
 
 import uiautomator2
 
 from GramAddict.core.utils import random_sleep
 
 logger = logging.getLogger(__name__)
+
+DOUBLE_CLICK_INTERVAL_RANGE: Tuple[float, float] = (0.030, 0.090)
+
+
+def _parse_double_click_interval(value) -> Optional[Tuple[float, float]]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        val = float(value)
+        return (val, val)
+    if isinstance(value, str):
+        parts = [part.strip() for part in value.split("-") if part.strip()]
+        if len(parts) == 1:
+            try:
+                val = float(parts[0])
+            except ValueError:
+                return None
+            return (val, val)
+        if len(parts) == 2:
+            try:
+                low = float(parts[0])
+                high = float(parts[1])
+            except ValueError:
+                return None
+            if low > high:
+                low, high = high, low
+            return (low, high)
+    return None
+
+
+def load_config(config) -> None:
+    global DOUBLE_CLICK_INTERVAL_RANGE
+    args = getattr(config, "args", None)
+    if args is None:
+        return
+    interval_raw = getattr(args, "double_click_interval", None)
+    if interval_raw is None:
+        return
+    parsed = _parse_double_click_interval(interval_raw)
+    if parsed is None or parsed[0] <= 0 or parsed[1] <= 0:
+        logger.warning(
+            f"Invalid double-click-interval '{interval_raw}', using default "
+            f"{DOUBLE_CLICK_INTERVAL_RANGE[0]}-{DOUBLE_CLICK_INTERVAL_RANGE[1]}."
+        )
+        return
+    DOUBLE_CLICK_INTERVAL_RANGE = parsed
 
 
 def create_device(device_id, app_id):
@@ -26,16 +72,17 @@ def create_device(device_id, app_id):
 
 
 def get_device_info(device):
+    info = device.get_info()
     logger.debug(
-        f"Phone Name: {device.get_info()['productName']}, SDK Version: {device.get_info()['sdkInt']}"
+        f"Phone Name: {info['productName']}, SDK Version: {info['sdkInt']}"
     )
-    if int(device.get_info()["sdkInt"]) < 19:
+    if int(info["sdkInt"]) < 19:
         logger.warning("Only Android 4.4+ (SDK 19+) devices are supported!")
     logger.debug(
-        f"Screen dimension: {device.get_info()['displayWidth']}x{device.get_info()['displayHeight']}"
+        f"Screen dimension: {info['displayWidth']}x{info['displayHeight']}"
     )
     logger.debug(
-        f"Screen resolution: {device.get_info()['displaySizeDpX']}x{device.get_info()['displaySizeDpY']}"
+        f"Screen resolution: {info['displaySizeDpX']}x{info['displaySizeDpY']}"
     )
     logger.debug(f"Device ID: {device.deviceV2.serial}")
 
@@ -85,14 +132,58 @@ class DeviceFacade:
         self.device_id = device_id
         self.app_id = app_id
         try:
-            if device_id is None or "." not in device_id:
-                self.deviceV2 = uiautomator2.connect(
-                    "" if device_id is None else device_id
-                )
-            else:
+            # Always prefer a USB connection; only use Wi-Fi when an explicit host:port is provided.
+            if device_id is None:
+                self.deviceV2 = uiautomator2.connect()
+            elif "." in device_id:
                 self.deviceV2 = uiautomator2.connect_adb_wifi(f"{device_id}")
+            else:
+                # explicit serial over USB
+                self.deviceV2 = uiautomator2.connect_usb(device_id)
+
+            # Make sure atx-agent/uiautomator is up before doing anything else.
+            self._ensure_uiautomator_started()
+
+            # FastInputIME is unreliable on Android 15/16; disable it so set_text uses
+            # the standard IME and avoids warnings/timeouts.
+            try:
+                self.deviceV2.set_fastinput_ime(False)
+            except Exception:
+                pass
+
+            # Android 15 (SDK 35/36) + uiautomator2 2.16.x can crash when
+            # compressed layout hierarchy is enabled (NullPointerException in
+            # setCompressedLayoutHeirarchy). Disable it up front to keep dumps
+            # and selector lookups stable. See
+            # https://github.com/openatx/uiautomator2/issues/1393
+            try:
+                self.deviceV2.settings["compressedLayoutHierarchy"] = False
+            except Exception:
+                pass
+
+            # Remove default per-action delay to speed up startup interactions.
+            try:
+                self.deviceV2.settings["operation_delay"] = (0, 0)
+                self.deviceV2.settings["operation_delay_range"] = (0, 0)
+            except Exception:
+                pass
         except ImportError:
             raise ImportError("Please install uiautomator2: pip3 install uiautomator2")
+
+    def _ensure_uiautomator_started(self, timeout: int = 12):
+        """Start uiautomator service if it's stopped and wait until it's ready."""
+        # New API (uiautomator2 >= 3.0): device.uiautomator.start()
+        self.deviceV2.uiautomator.start()
+        start = time()
+        while not self.deviceV2.uiautomator.running():
+            if time() - start > timeout:
+                raise RuntimeError("uiautomator service did not start in time")
+            sleep(0.4)
+        # Warm up one info call so later queries are instant
+        try:
+            _ = self.deviceV2.info
+        except Exception:
+            pass
 
     def _get_current_app(self):
         try:
@@ -530,7 +621,9 @@ class DeviceFacade:
                 )
             )
 
-            time_between_clicks = uniform(0.050, 0.140)
+            time_between_clicks = uniform(
+                DOUBLE_CLICK_INTERVAL_RANGE[0], DOUBLE_CLICK_INTERVAL_RANGE[1]
+            )
 
             try:
                 logger.debug(
@@ -688,12 +781,23 @@ class DeviceFacade:
         def set_text(self, text: str, mode: Mode = Mode.TYPE) -> None:
             punct_list = string.punctuation
             try:
-                if mode == Mode.PASTE:
-                    self.viewV2.set_text(text)
-                else:
-                    self.click(sleep=SleepTime.SHORT)
+                # Always start with fast, non-FastIME set_text
+                try:
+                    self.deviceV2.set_fastinput_ime(False)
+                except Exception:
+                    pass
+
+                self.viewV2.set_text(text)
+                typed_text = self.viewV2.get_text()
+                if typed_text == text:
+                    DeviceFacade.sleep_mode(SleepTime.SHORT)
+                    return
+
+                # If TYPE requested, fall back to slow send_keys once
+                if mode == Mode.TYPE:
+                    self.click(sleep=SleepTime.TINY)
                     self.deviceV2.clear_text()
-                    random_sleep(0.3, 1, modulable=False)
+                    random_sleep(0.1, 0.3, modulable=False)
                     start = datetime.now()
                     sentences = text.splitlines()
                     for j, sentence in enumerate(sentences, start=1):
@@ -701,38 +805,35 @@ class DeviceFacade:
                         n_words = len(word_list)
                         for n, word in enumerate(word_list, start=1):
                             i = 0
-                            n_single_letters = randint(1, 3)
+                            n_single_letters = randint(1, 2)
                             for char in word:
                                 if i < n_single_letters:
                                     self.deviceV2.send_keys(char, clear=False)
-                                    # random_sleep(0.01, 0.1, modulable=False, logging=False)
                                     i += 1
                                 else:
                                     if word[-1] in punct_list:
                                         self.deviceV2.send_keys(word[i:-1], clear=False)
-                                        # random_sleep(0.01, 0.1, modulable=False, logging=False)
                                         self.deviceV2.send_keys(word[-1], clear=False)
                                     else:
                                         self.deviceV2.send_keys(word[i:], clear=False)
-                                    # random_sleep(0.01, 0.1, modulable=False, logging=False)
                                     break
                             if n < n_words:
                                 self.deviceV2.send_keys(" ", clear=False)
-                                # random_sleep(0.01, 0.1, modulable=False, logging=False)
                         if j < len(sentences):
                             self.deviceV2.send_keys("\n")
 
                     typed_text = self.viewV2.get_text()
-                    if typed_text != text:
-                        logger.warning(
-                            "Failed to write in text field, let's try in the old way.."
-                        )
-                        self.viewV2.set_text(text)
-                    else:
+                    if typed_text == text:
                         logger.debug(
                             f"Text typed in: {(datetime.now()-start).total_seconds():.2f}s"
                         )
-                DeviceFacade.sleep_mode(SleepTime.SHORT)
+                        DeviceFacade.sleep_mode(SleepTime.TINY)
+                        return
+
+                # Final fallback: direct set_text again
+                logger.warning("Failed to write in text field, retrying set_text.")
+                self.viewV2.set_text(text)
+                DeviceFacade.sleep_mode(SleepTime.TINY)
             except uiautomator2.JSONRPCError as e:
                 raise DeviceFacade.JsonRpcError(e)
 

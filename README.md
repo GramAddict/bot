@@ -186,11 +186,19 @@ We create a virtual environment called `.venv` and activate it:
 - check if it's installed: `gramaddict --version`
 - if everything is fine you will get the GramAddict version installed 🥳
 
-#### With git:
-> __Warning:__ console commands like `gramaddict init`, `gramaddict dump` and `gramaddict run` won't work if you installed the bot with git.
+#### With git (recommended for development):
 - clone the project: `git clone https://github.com/GramAddict/bot.git gramaddict`
 - enter the gramaddict folder: `cd gramaddict`
-- install the requirements: `pip3 install -r requirements.txt`
+- install the requirements: `pip install -r requirements.txt`
+- install editable with dev extras: `pip install -e .[dev]`
+- install a local adb without touching the system: `./scripts/setup-adb.sh` (sets `platform-tools/adb` under the repo; export `ADB_PATH` to use it)
+
+#### Run from source with a config (recommended)
+- Always drive options from your config file (CLI flags are supported but not recommended).
+- Example: `python -m GramAddict run --config accounts/yourusername/config.yml`
+- New config toggles:
+  - Reels watcher: `watch-reels`, `reels-like-percentage`, `reels-watch-time`
+  - Comment likes: `like-comments-percentage`, `like-comments-per-post`, optional `comment-like-sort`
 
 ### Step 3: Install adb:
 Adb stands for [Android Debug Bridge](https://developer.android.com/studio/command-line/adb). It's needed for making this bot working properly. I think this one is the hardest part to accomplish but don't give up! You can do it, with my help. 💪

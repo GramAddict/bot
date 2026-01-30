@@ -16,6 +16,12 @@ allow-untested-ig-version: false # Using an untested version of IG would cause u
 screen-sleep: true
 screen-record: false
 speed-multiplier: 1
+grid-open-any: false # open any search grid tile without pre-filtering (reels/blacklist/interacted)
+fast-grid-open: true # open grid tiles via coordinates (faster, less safe); set disable-fast-grid-open: true to opt out
+disable-fast-grid-open: false # disable fast grid opening and use object-based selection instead
+random-stop: 0 # randomly hard-stop the session after N minutes (number or range); 0 disables
+home-tab-refresh-percentage: 0 # chance (0-100) to refresh Home by double-tapping the Home tab (0 disables)
+double-click-interval: 0.030-0.090 # seconds between taps for double-tap actions (likes). Use if double-taps fail or feel too slow
 debug: false
 close-apps: false
 kill-atx-agent: false
@@ -28,6 +34,8 @@ total-crashes-limit: 5
 count-app-crashes: false
 shuffle-jobs: true
 truncate-sources: 2-5
+job-time-limit: 0 # per-job time cap in minutes (number or range). 0 disables
+job-interactions-limit: 0 # per-job successful interactions cap (number or range). 0 disables
 
 ##############################################################################
 # Actions
@@ -50,9 +58,17 @@ interact-from-file: [usernames1.txt 10-15, usernames2.txt 3]
 posts-from-file: posts.txt
 feed: 2-5 # is the number of likes you will give in feed
 
+## Reels jobs (optional)
+#watch-reels: 5-10 # number of reels to watch (also used if a reel opens from search)
+#reels-like-percentage: 20 # chance (%) to like each reel
+#reels-watch-time: 6-9 # seconds to watch each reel before swiping
+#reels-like-ads: false # allow liking ads in reels; default false
+#reels-like-doubletap-percentage: 50 # % chance to like via double-tap instead of heart icon (0 = always icon, 100 = always double-tap)
+#single-image-reels-as-posts: false # treat single-image reels as photo posts (use post limits/timing)
+
 ## Special modifier for jobs and sources
 watch-video-time: 15-35
-watch-photo-time: 3-4
+watch-photo-time: 2-8
 # can-reinteract-after: 48 # the amount of hours that have to pass from the last interaction
 delete-interacted-users: true
 
@@ -112,6 +128,9 @@ total-likes-limit: 120-150
 total-follows-limit: 40-50
 total-unfollows-limit: 40-50
 total-watches-limit: 120-150
+reels-likes-limit: 0 # per-session cap for reel likes (Reels tab + accidental reels). 0 disables; number or range (e.g., 5 or 5-10).
+reels-watches-limit: 0 # per-session cap for reels watched. 0 disables reel watching entirely; set 1+ (or a range) to enable.
+reels-watch-after-like-limit: 1-10 # after likes limit is reached (global or reels), watch this many more reels then exit the reel viewer. 0 disables extra watch.
 total-successful-interactions-limit: 120-150
 total-interactions-limit: 280-300
 total-comments-limit: 3-5

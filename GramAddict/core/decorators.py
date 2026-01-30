@@ -14,8 +14,10 @@ from GramAddict.core.utils import (
     check_if_crash_popup_is_there,
     close_instagram,
     open_instagram,
+    print_telegram_reports,
     random_sleep,
     save_crash,
+    RandomStop,
     stop_bot,
 )
 from GramAddict.core.views import TabBarView
@@ -30,34 +32,19 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
             try:
                 func(*args, **kwargs)
             except KeyboardInterrupt:
-                try:
-                    # Catch Ctrl-C and ask if user wants to pause execution
-                    logger.info(
-                        "CTRL-C detected . . .",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    logger.info(
-                        f"-------- PAUSED: {datetime.now().strftime('%H:%M:%S')} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    logger.info(
-                        "NOTE: This is a rudimentary pause. It will restart the action, while retaining session data.",
-                        extra={"color": Style.BRIGHT},
-                    )
-                    logger.info(
-                        "Press RETURN to resume or CTRL-C again to Quit: ",
-                        extra={"color": Style.BRIGHT},
-                    )
+                # Respect immediate exit on Ctrl-C
+                logger.info(
+                    "CTRL-C detected, stopping the bot.",
+                    extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                )
+                stop_bot(device, sessions, session_state)
 
-                    input("")
-
-                    logger.info(
-                        f"-------- RESUMING: {datetime.now().strftime('%H:%M:%S')} --------",
-                        extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
-                    )
-                    TabBarView(device).navigateToProfile()
-                except KeyboardInterrupt:
-                    stop_bot(device, sessions, session_state)
+            except RandomStop:
+                logger.info(
+                    "Random stop triggered, stopping the bot.",
+                    extra={"color": f"{Style.BRIGHT}{Fore.YELLOW}"},
+                )
+                stop_bot(device, sessions, session_state)
 
             except DeviceFacade.AppHasCrashed:
                 logger.warning("App has crashed / has been closed!")
@@ -97,6 +84,15 @@ def run_safely(device, device_id, sessions, session_state, screen_record, config
                 close_instagram(device)
                 print_full_report(sessions, configs.args.scrape_to_file)
                 sessions.persist(directory=session_state.my_username)
+                if getattr(configs.args, "telegram_reports", False):
+                    print_telegram_reports(
+                        configs,
+                        True,
+                        None,
+                        None,
+                        session_state=session_state,
+                        sessions=sessions,
+                    )
                 raise e from e
 
         return wrapper
@@ -134,5 +130,14 @@ def restart(
     if not open_instagram(device):
         print_full_report(sessions, configs.args.scrape_to_file)
         sessions.persist(directory=session_state.my_username)
+        if getattr(configs.args, "telegram_reports", False):
+            print_telegram_reports(
+                configs,
+                True,
+                None,
+                None,
+                session_state=session_state,
+                sessions=sessions,
+            )
         sys.exit(2)
     TabBarView(device).navigateToProfile()

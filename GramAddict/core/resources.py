@@ -17,6 +17,7 @@ class ResourceID:
             f"{APP_ID}:id/action_bar_large_title_auto_size"
         )
         self.ACTION_BAR_TITLE_CHEVRON = f"{APP_ID}:id/action_bar_title_chevron"
+        self.ACTION_BAR_NOTIFICATION = f"{APP_ID}:id/notification"
         self.ACTION_ICON = f"{APP_ID}:id/action_icon"
         self.ACTION_SHEET_ROW_TEXT_VIEW = f"{APP_ID}:id/action_sheet_row_text_view"
         self.BOTTOM_SHEET_CONTAINER_VIEW = f"{APP_ID}:id/bottom_sheet_container_view"
@@ -28,6 +29,22 @@ class ResourceID:
         self.CAROUSEL_INDEX_INDICATOR_TEXT_VIEW = (
             f"{APP_ID}:id/carousel_index_indicator_text_view"
         )
+        # Reels / Clips viewer
+        self.CLIPS_VIEWER_CONTAINER = f"{APP_ID}:id/clips_viewer_container"
+        self.CLIPS_VIEWER_VIEW_PAGER = f"{APP_ID}:id/clips_viewer_view_pager"
+        self.CLIPS_MEDIA_COMPONENT = f"{APP_ID}:id/clips_media_component"
+        self.CLIPS_ITEM_OVERLAY_COMPONENT = f"{APP_ID}:id/clips_item_overlay_component"
+        self.CLIPS_UFI_COMPONENT = f"{APP_ID}:id/clips_ufi_component"
+        self.CLIPS_AUTHOR_USERNAME = f"{APP_ID}:id/clips_author_username"
+        self.CLIPS_SINGLE_IMAGE_MEDIA_CONTENT = (
+            f"{APP_ID}:id/clips_single_image_media_content"
+        )
+        self.CLIPS_SWIPE_REFRESH_CONTAINER = f"{APP_ID}:id/clips_swipe_refresh_container"
+        self.CLIPS_LINEAR_LAYOUT_CONTAINER = (
+            f"{APP_ID}:id/clips_linear_layout_container"
+        )
+        self.CLIPS_ROOT_LAYOUT = f"{APP_ID}:id/root_clips_layout"
+        self.CLIPS_GESTURE_MANAGER = f"{APP_ID}:id/gesture_manager"
         self.CLIPS_VIDEO_CONTAINER = f"{APP_ID}:id/clips_video_container"
         self.COLLECTION_ROOT_VIEW = f"{APP_ID}:id/collection_root_view"
         self.COORDINATOR_ROOT_LAYOUT = f"{APP_ID}:id/coordinator_root_layout"
@@ -37,6 +54,7 @@ class ResourceID:
             f"{APP_ID}:id/direct_text_message_text_view"
         )
         self.ECHO_TEXT = f"{APP_ID}:id/echo_text"
+        self.FAB_LABEL = f"{APP_ID}:id/fab_label"
         self.FEED_INLINE_COMPOSER_BUTTON_TEXTVIEW = (
             f"{APP_ID}:id/feed_inline_composer_button_textview"
         )
@@ -51,6 +69,7 @@ class ResourceID:
         self.FOOTER_SPACE = f"{APP_ID}:id/footer_space"
         self.GAP_VIEW = f"{APP_ID}:id/gap_view"
         self.GAP_BINDER_GROUP = f"{APP_ID}:id/gap_binder_group"
+        self.GRID_CARD_LAYOUT_CONTAINER = f"{APP_ID}:id/grid_card_layout_container"
         self.IGDS_HEADLINE_BODY = f"{APP_ID}:id/igds_headline_body"
         self.IGDS_HEADLINE_EMPHASIZED_HEADLINE = (
             f"{APP_ID}:id/igds_headline_emphasized_headline"
@@ -65,6 +84,7 @@ class ResourceID:
         self.LAYOUT_COMMENT_THREAD_POST_BUTTON_CLICK_AREA = (
             f"{APP_ID}:id/layout_comment_thread_post_button_click_area"
         )
+        self.LAYOUT_CONTAINER_BOTTOM_SHEET = f"{APP_ID}:id/layout_container_bottom_sheet"
         self.LIKE_BUTTON = f"{APP_ID}:id/like_button"
         self.LIVE_BADGE_VIEW = f"{APP_ID}:id/live_badge_view"
         self.MEDIA_GROUP = f"{APP_ID}:id/media_group"
@@ -104,6 +124,9 @@ class ResourceID:
         self.ROW_COMMENT_TEXTVIEW_TIME_AGO = (
             f"{APP_ID}:id/row_comment_textview_time_ago"
         )
+        self.ROW_COMMENT_LIKE_BUTTON = (
+            f"{APP_ID}:id/comment_like_button|{APP_ID}:id/comment_button"
+        )
         self.ROW_FEED_BUTTON_COMMENT = f"{APP_ID}:id/row_feed_button_comment"
         self.ROW_FEED_BUTTON_LIKE = f"{APP_ID}:id/row_feed_button_like"
         self.ROW_FEED_COMMENT_TEXTVIEW_LAYOUT = (
@@ -127,6 +150,11 @@ class ResourceID:
             f"{APP_ID}:id/recommended_user_row_content_identifier"
         )
         self.RECYCLER_VIEW = f"{APP_ID}:id/recycler_view"
+        self.REELS_TAB = f"{APP_ID}:id/clips_tab"
+        self.COMMENT_COUNT = f"{APP_ID}:id/comment_count"
+        self.COMMENT_BUTTON = f"{APP_ID}:id/comment_button"
+        self.COMMENT_COMPOSER_PARENT = f"{APP_ID}:id/comment_composer_parent_updated"
+        self.TAB_ITEM = f"{APP_ID}:id/tab_item"
         self.ROW_PLACE_TITLE = f"{APP_ID}:id/row_place_title"
         self.ROW_LOAD_MORE_BUTTON = f"{APP_ID}:id/row_load_more_button"
         self.ROW_PROFILE_HEADER_EMPTY_PROFILE_NOTICE_CONTAINER = (
@@ -147,21 +175,57 @@ class ResourceID:
         self.ROW_PROFILE_HEADER_TEXTVIEW_FOLLOWING_COUNT = (
             f"{APP_ID}:id/row_profile_header_textview_following_count"
         )
+        # IG v410+ "familiar" profile metrics
+        self.PROFILE_HEADER_METRICS_FULL_WIDTH = (
+            f"{APP_ID}:id/profile_header_metrics_full_width"
+        )
+        self.PROFILE_HEADER_FAMILIAR_POST_COUNT_VALUE = (
+            f"{APP_ID}:id/profile_header_familiar_post_count_value"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWERS_VALUE = (
+            f"{APP_ID}:id/profile_header_familiar_followers_value"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWING_VALUE = (
+            f"{APP_ID}:id/profile_header_familiar_following_value"
+        )
+        self.PROFILE_HEADER_FAMILIAR_POST_COUNT_LABEL = (
+            f"{APP_ID}:id/profile_header_familiar_post_count_label"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWERS_LABEL = (
+            f"{APP_ID}:id/profile_header_familiar_followers_label"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWING_LABEL = (
+            f"{APP_ID}:id/profile_header_familiar_following_label"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWERS_CONTAINER = (
+            f"{APP_ID}:id/profile_header_followers_stacked_familiar"
+        )
+        self.PROFILE_HEADER_FAMILIAR_FOLLOWING_CONTAINER = (
+            f"{APP_ID}:id/profile_header_following_stacked_familiar"
+        )
         self.ROW_PROFILE_HEADER_TEXTVIEW_POST_COUNT = (
             f"{APP_ID}:id/row_profile_header_textview_post_count"
         )
         self.ROW_SEARCH_EDIT_TEXT = f"{APP_ID}:id/row_search_edit_text"
         self.ROW_SEARCH_USER_USERNAME = f"{APP_ID}:id/row_search_user_username"
+        self.SEARCH_REEL_INDICATOR = f"{APP_ID}:id/preview_clip_play_count"
+        self.PLAY_COUNT_CONTAINER = f"{APP_ID}:id/play_count_container"
+        self.PLAY_COUNT_LOGO = f"{APP_ID}:id/play_count_logo"
         self.ROW_SIMPLE_TEXT_TEXTVIEW = f"{APP_ID}:id/row_simple_text_textview"
         self.ROW_THREAD_COMPOSER_BUTTON_SEND = (
             f"{APP_ID}:id/row_thread_composer_button_send"
         )
         self.ROW_THREAD_COMPOSER_EDITTEXT = f"{APP_ID}:id/row_thread_composer_edittext"
+        self.ROW_THREAD_LIST_TITLE = f"{APP_ID}:id/row_thread_list_title"
         self.ROW_USER_CONTAINER_BASE = f"{APP_ID}:id/row_user_container_base"
         self.ROW_USER_PRIMARY_NAME = f"{APP_ID}:id/row_user_primary_name"
         self.ROW_USER_TEXTVIEW = f"{APP_ID}:id/row_user_textview"
         self.SEARCH = f"{APP_ID}:id/search"
+        self.SEARCH_TAB = f"{APP_ID}:id/search_tab"
+        self.FEED_TAB = f"{APP_ID}:id/feed_tab"
+        self.SEARCH_TAB_BAR_LAYOUT = f"{APP_ID}:id/search_tab_bar_layout"
         self.SECONDARY_LABEL = f"{APP_ID}:id/secondary_label"
+        self.AD_BADGE = f"{APP_ID}:id/ad_badge"
         self.SEE_ALL_BUTTON = f"{APP_ID}:id/see_all_button"
         self.SORTING_ENTRY_ROW_ICON = f"{APP_ID}:id/sorting_entry_row_icon"
         self.SORTING_ENTRY_ROW_OPTION = f"{APP_ID}:id/sorting_entry_row_option"
@@ -175,6 +239,7 @@ class ResourceID:
         self.TAB_BAR = f"{APP_ID}:id/tab_bar"
         self.TAB_BUTTON_NAME_TEXT = f"{APP_ID}:id/tab_button_name_text"
         self.TAB_BUTTON_FALLBACK_ICON = f"{APP_ID}:id/tab_button_fallback_icon"
+        self.TAB_BAR_ACTIVITY = f"{APP_ID}:id/activity_tab|{APP_ID}:id/notification"
         self.TIMER = f"{APP_ID}:id/timer"
         self.TITLE_VIEW = f"{APP_ID}:id/title_view"
         self.TOOLBAR_LIKE_BUTTON = f"{APP_ID}:id/toolbar_like_button"
@@ -192,7 +257,7 @@ class ResourceID:
             f"{self.VIDEO_CONTAINER}|{self.CLIPS_VIDEO_CONTAINER}"
         )
         self.CAROUSEL_AND_MEDIA_GROUP = f"{self.CAROUSEL_IMAGE}|{self.MEDIA_GROUP}|{self.CAROUSEL_IMAGE_MEDIA_GROUP}|{self.CAROUSEL_VIDEO_MEDIA_GROUP}"
-        self.MEDIA_CONTAINER = f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}|{self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT}|{self.COLLECTION_ROOT_VIEW}|{self.MEDIA_CONTENT_LOCATION}"
+        self.MEDIA_CONTAINER = f"{self.ZOOMABLE_VIEW_CONTAINER}|{self.CAROUSEL_MEDIA_GROUP}|{self.MEDIA_GROUP}|{self.SPONSORED_CONTENT_SERVER_RENDERED_ROOT}|{self.COLLECTION_ROOT_VIEW}|{self.MEDIA_CONTENT_LOCATION}"
         self.GAP_VIEW_AND_FOOTER_SPACE = f"{self.GAP_VIEW}|{self.FOOTER_SPACE}"
         self.BLOCK_POPUP = f"{self.DIALOG_CONTAINER}|{self.DIALOG_ROOT_VIEW}"
 
