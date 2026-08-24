@@ -1,0 +1,32 @@
+{
+  "name": "web-automation-bot",
+  "version": "1.0.0",
+  "description": "Lightweight web browser automation using Node.js and Playwright for Railway cloud platform",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "eslint src/",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "keywords": [
+    "automation",
+    "web-scraping",
+    "playwright",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0",
+    "dotenv": "^16.4.7",
+    "winston": "^3.15.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.13.0"
+  }
+}

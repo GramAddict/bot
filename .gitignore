@@ -1,22 +1,38 @@
-/venv*
-/.venv
-/build
-/dump
-/dist
-/gramaddict.egg-info
-/.idea
-/.vscode
-*/*.yml
-*/*.json
-*.pyc
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
 .DS_Store
-crashes
-accounts
-!config-examples/*
-Pipfile
-Pipfile.lock
-*.pdf
-*.mp4
-*.log*
-*.ini
-*.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# Playwright
+.auth/
+test-results/
+playwright-report/
+
+# Build outputs
+dist/
+build/
+
+# Cache
+.cache/
+*.tmp
